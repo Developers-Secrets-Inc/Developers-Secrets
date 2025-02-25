@@ -1,54 +1,58 @@
-import * as React from 'react'
-import { Slot } from '@radix-ui/react-slot'
-import { cva, type VariantProps } from 'class-variance-authority'
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-md font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none [&_svg]:pointer-events-none',
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
-        primary:
-          'bg-[#7F56D9] text-white relative before:absolute before:inset-0 before:rounded-md before:border-2 before:border-[linear-gradient(180deg,#FFFFFF1F_0%,#FFFFFF00_100%)] before:pointer-events-none shadow-[0_1px_2px_0_#0A0D120D,inset_0_-2px_0_0_#0A0D120D,inset_0_0_0_1px_#0A0D122E] hover:bg-[#6941C6] hover:before:border-2 hover:before:border-[linear-gradient(180deg,#FFFFFF1F_0%,#FFFFFF00_100%)] hover:shadow-[0_1px_2px_0_#0A0D120D,inset_0_-2px_0_0_#0A0D120D,inset_0_0_0_1px_#0A0D122E] disabled:bg-[#F5F5F5] disabled:border disabled:border-[1px] disabled:border-[#E9EAEB] disabled:shadow-[0_1px_2px_0_#0A0D120D] disabled:before:border-0 disabled:text-[#A4A7AE]',
+        default:
+          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+        outline:
+          "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
         secondary:
-          'bg-white text-[#6941C6] border border-[#D6BBFB] shadow-[0_1px_2px_0_#0A0D120D,inset_0_-2px_0_0_#0A0D120D,inset_0_0_0_1px_#0A0D122E] hover:bg-[#F9F5FF] hover:text-[#53389E] hover:border-[#D6BBFB] hover:shadow-[0_1px_2px_0_#0A0D120D,inset_0_-2px_0_0_#0A0D120D,inset_0_0_0_1px_#0A0D122E] disabled:bg-white disabled:border disabled:border-[#E9EAEB] disabled:shadow-[0_1px_2px_0_#0A0D120D] disabled:text-[#A4A7AE]',
-        secondary_gray:
-          'bg-white text-[#414651] border border-[#D5D7DA] shadow-[0_1px_2px_0_#0A0D120D,inset_0_-2px_0_0_#0A0D120D,inset_0_0_0_1px_#0A0D122E] hover:bg-[#FAFAFA] hover:text-[#252B37] hover:border-[#D5D7DA] hover:shadow-[0_1px_2px_0_#0A0D120D,inset_0_-2px_0_0_#0A0D120D,inset_0_0_0_1px_#0A0D122E] disabled:bg-white disabled:border disabled:border-[#E9EAEB] disabled:shadow-[0_1px_2px_0_#0A0D120D] disabled:text-[#A4A7AE]',
-        tertiary: '',
-        tertiary_gray: '',
-        link: '',
-        link_gray: '',
+          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        sm: 'px-3 py-2 gap-1 text-sm leading-5',
-        md: 'px-3.5 py-2.5 gap-1 text-sm leading-5',
-        lg: 'px-4 py-2.5 gap-1.5 text-base leading-6',
-        xl: 'px-[18px] py-3 gap-1.5 text-base leading-6',
-        '2xl': 'px-[22px] py-4 gap-2 text-lg leading-7',
+        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        sm: "h-8 rounded-md px-3 has-[>svg]:px-2.5",
+        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        icon: "size-9",
       },
     },
     defaultVariants: {
-      variant: 'primary',
-      size: 'md',
+      variant: "default",
+      size: "default",
     },
-  },
+  }
 )
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean
+  }) {
+  const Comp = asChild ? Slot : "button"
+
+  return (
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  )
 }
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'button'
-    return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
-    )
-  },
-)
-Button.displayName = 'Button'
 
 export { Button, buttonVariants }
