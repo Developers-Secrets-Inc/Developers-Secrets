@@ -19,20 +19,19 @@ import { ArticleRating } from '@/components/article-rating'
 import { Article } from '@/types/article'
 import { Tutorial } from '@/types/tutorial'
 import { ReferenceSidebar } from '../components/reference-sidebar'
+import { ReferenceHeader } from './components/reference-header'
+import { ArticleContent } from '../../components/article-content'
 
-export default async function ReferenceArticlePage({
+export default async function ReferencePage({
   params,
 }: {
-  params: Promise<{ tutorial_slug: string; references_slug: string[] }>
+  params: Promise<{ tutorial_slug: string; references_slug: string }>
 }) {
   const { tutorial_slug, references_slug } = await params
 
-  // Join the path segments to get the reference slug
-  const reference_slug = references_slug.join('/')
-
   // Get the tutorial, article, and related data
   const payloadTutorial = await getTutorial(tutorial_slug)
-  const payloadArticle = await getReferenceArticle(tutorial_slug, reference_slug)
+  const payloadArticle = await getReferenceArticle(tutorial_slug, references_slug)
   const payloadArticles = await getTutorialReferenceArticles(tutorial_slug)
 
   // Convert to our custom types using the utility functions
@@ -55,26 +54,20 @@ export default async function ReferenceArticlePage({
       <ReferenceSidebar
         tutorial={tutorial}
         articles={articles}
-        currentArticleSlug={reference_slug}
+        currentArticleSlug={references_slug}
       />
       <SidebarInset>
-        <TutorialHeader tutorial={tutorial} currentTab="references" />
-        <TutorialContent>
-          <div>
-            <article className="prose prose-slate max-w-none">
-              <h1>{article.title}</h1>
-              {article.subtitle && <p className="lead">{article.subtitle}</p>}
-              <Markdown>{article.content}</Markdown>
-              <ArticleRating articleId={String(article.id)} />
-            </article>
-            <RecommendedArticles
-              popularArticles={popularArticles.map(convertPayloadArticleToArticle)}
-              personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
-              tutorialSlug={tutorial_slug}
-            />
-          </div>
+        <ReferenceHeader />
+        <div className="flex flex-1">
+          <ArticleContent
+            article={article}
+            popularArticles={popularArticles.map(convertPayloadArticleToArticle)}
+            personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
+            tutorial_slug={tutorial_slug}
+          />
+
           <ArticleOutline outline={outline} />
-        </TutorialContent>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

@@ -19,8 +19,10 @@ import { ArticleRating } from '@/components/article-rating'
 import { Article } from '@/types/article'
 import { Tutorial } from '@/types/tutorial'
 import { ExampleSidebar } from '../components/example-sidebar'
+import { ExampleHeader } from './components/example-header'
+import { ArticleContent } from '../../components/article-content'
 
-export default async function ExampleArticlePage({
+export default async function ExamplePage({
   params,
 }: {
   params: Promise<{ tutorial_slug: string; example_slug: string }>
@@ -51,23 +53,17 @@ export default async function ExampleArticlePage({
     <SidebarProvider>
       <ExampleSidebar tutorial={tutorial} articles={articles} currentArticleSlug={example_slug} />
       <SidebarInset>
-        <TutorialHeader tutorial={tutorial} currentTab="examples" />
-        <TutorialContent>
-          <div>
-            <article className="prose prose-slate max-w-none">
-              <h1>{article.title}</h1>
-              {article.subtitle && <p className="lead">{article.subtitle}</p>}
-              <Markdown>{article.content}</Markdown>
-              <ArticleRating articleId={String(article.id)} />
-            </article>
-            <RecommendedArticles
-              popularArticles={popularArticles.map(convertPayloadArticleToArticle)}
-              personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
-              tutorialSlug={tutorial_slug}
-            />
-          </div>
+        <ExampleHeader />
+        <div className="flex flex-1">
+          <ArticleContent
+            article={article}
+            popularArticles={popularArticles.map(convertPayloadArticleToArticle)}
+            personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
+            tutorial_slug={tutorial_slug}
+          />
+
           <ArticleOutline outline={outline} />
-        </TutorialContent>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

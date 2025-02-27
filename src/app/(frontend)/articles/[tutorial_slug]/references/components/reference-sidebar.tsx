@@ -1,13 +1,9 @@
 import * as React from 'react'
 
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-} from '@/components/ui/sidebar'
+import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar'
 import { ArticlesSidebar } from '@/components/articles-sidebar'
 import { ArticlesSwitcher } from '../../components/articles-switcher'
-import { SearchForm } from '../../[article_slug]/components/search-form'
+import { SearchForm } from '../[references_slug]/components/search-form'
 import { Tutorial } from '@/types/tutorial'
 import { Article } from '@/types/article'
 
@@ -17,7 +13,11 @@ interface ReferenceSidebarProps {
   currentArticleSlug: string
 }
 
-export const ReferenceSidebar = ({ tutorial, articles, currentArticleSlug }: ReferenceSidebarProps) => {
+export const ReferenceSidebar = ({
+  tutorial,
+  articles,
+  currentArticleSlug,
+}: ReferenceSidebarProps) => {
   return (
     <Sidebar style={{ '--sidebar-width': '270px' } as React.CSSProperties}>
       <SidebarHeader>
@@ -38,4 +38,4 @@ export const ReferenceSidebar = ({ tutorial, articles, currentArticleSlug }: Ref
       </SidebarContent>
     </Sidebar>
   )
-} 
+}

@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar'
 import { ArticlesSidebar } from '@/components/articles-sidebar'
 import { ArticlesSwitcher } from '../../components/articles-switcher'
-import { SearchForm } from '../../[article_slug]/components/search-form'
+import { SearchForm } from '../[example_slug]/components/search-form'
 import { Tutorial } from '@/types/tutorial'
 import { Article } from '@/types/article'
 
