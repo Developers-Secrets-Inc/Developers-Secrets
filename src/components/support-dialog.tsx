@@ -118,7 +118,7 @@ export function SupportDialog({ open, onOpenChange, supportStatus }: SupportDial
             <span className={`ml-2 h-2.5 w-2.5 rounded-full ${getStatusColor()}`} />
           </DialogTitle>
           <DialogDescription>
-            Send us a message and we'll get back to you as soon as possible.
+            Send us a message and we&apos;ll get back to you as soon as possible.
           </DialogDescription>
         </DialogHeader>
 
