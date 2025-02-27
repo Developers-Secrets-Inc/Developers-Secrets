@@ -1,7 +1,7 @@
 import { HelpCircle, MessageSquare } from 'lucide-react'
 import * as React from 'react'
 
-import { ProCtaCard } from '@/components/cards/pro-cta-card'
+import { CreateAccountCTA } from '@/components/cards/create-account-cta'
 import {
   Accordion,
   AccordionContent,
@@ -202,7 +202,7 @@ export const ArticleSidebar = async ({ tutorial, currentArticleSlug }: ArticleSi
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-          <ProCtaCard />
+          <CreateAccountCTA />
         </SidebarFooter>
       </Sidebar>
     </ArticleSidebarWrapper>
