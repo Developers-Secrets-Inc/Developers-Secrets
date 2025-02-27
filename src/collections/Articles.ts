@@ -6,25 +6,25 @@ export const Articles: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'articleStatus', 'difficultyLevel', 'updatedAt'],
   },
-  // Activation du système de versions avec brouillons
+  // Enable version system with drafts
   versions: {
     drafts: true,
   },
   fields: [
     {
       name: 'title',
-      label: 'Titre',
+      label: 'Title',
       type: 'text',
       required: true,
     },
     {
       name: 'subtitle',
-      label: 'Sous-titre',
+      label: 'Subtitle',
       type: 'text',
     },
     {
       name: 'content',
-      label: 'Contenu',
+      label: 'Content',
       type: 'textarea',
       required: true,
     },
@@ -34,16 +34,15 @@ export const Articles: CollectionConfig = {
       type: 'group',
       admin: {
         description:
-          "Informations pour le référencement (SEO) de l'article en langue principale (anglais)",
+          'Information for search engine optimization (SEO) of the article in the main language (English)',
       },
       fields: [
         {
           name: 'title',
-          label: 'Titre SEO',
+          label: 'SEO Title',
           type: 'text',
           admin: {
-            description:
-              'Titre optimisé pour les moteurs de recherche (si différent du titre principal)',
+            description: 'Optimized title for search engines (if different from the main title)',
           },
         },
         {
@@ -51,21 +50,20 @@ export const Articles: CollectionConfig = {
           label: 'Description',
           type: 'textarea',
           admin: {
-            description:
-              'Description courte pour les résultats de recherche (150-160 caractères recommandés)',
+            description: 'Short description for search results (150-160 characters recommended)',
           },
         },
         {
           name: 'keywords',
-          label: 'Mots-clés',
+          label: 'Keywords',
           type: 'array',
           admin: {
-            description: 'Mots-clés pertinents pour le référencement',
+            description: 'Relevant keywords for SEO',
           },
           fields: [
             {
               name: 'keyword',
-              label: 'Mot-clé',
+              label: 'Keyword',
               type: 'text',
             },
           ],
@@ -74,81 +72,166 @@ export const Articles: CollectionConfig = {
     },
     {
       name: 'articleStatus',
-      label: 'Visibilité',
+      label: 'Visibility',
       type: 'select',
       options: [
-        { label: 'Actif', value: 'active' },
-        { label: 'Archivé', value: 'archived' },
+        { label: 'Active', value: 'active' },
+        { label: 'Archived', value: 'archived' },
       ],
       defaultValue: 'active',
       required: true,
       admin: {
         position: 'sidebar',
-        description: "Visibilité de l'article (indépendant du système de brouillon/publication)",
+        description: 'Article visibility (independent from the draft/publish system)',
       },
     },
     {
       name: 'difficultyLevel',
-      label: 'Niveau de difficulté',
+      label: 'Difficulty Level',
       type: 'select',
       options: [
-        { label: 'Débutant', value: 'beginner' },
-        { label: 'Intermédiaire', value: 'intermediate' },
-        { label: 'Avancé', value: 'advanced' },
+        { label: 'Beginner', value: 'beginner' },
+        { label: 'Intermediate', value: 'intermediate' },
+        { label: 'Advanced', value: 'advanced' },
       ],
       defaultValue: 'beginner',
       required: true,
       admin: {
         position: 'sidebar',
-        description: "Niveau de difficulté de l'article",
+        description: 'Difficulty level of the article',
       },
     },
     {
       name: 'author',
-      label: 'Auteur',
+      label: 'Author',
       type: 'relationship',
       relationTo: 'users',
       required: true,
     },
     {
+      name: 'tags',
+      label: 'Tags / Concepts',
+      type: 'relationship',
+      relationTo: 'tags',
+      hasMany: true,
+      admin: {
+        description: 'Concepts related to this article (e.g., "python", "object-oriented")',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'analytics',
+      label: 'Analytics Metrics',
+      type: 'group',
+      admin: {
+        description: 'Engagement metrics for this article (normally updated automatically)',
+        position: 'sidebar',
+        disableBulkEdit: true,
+      },
+      fields: [
+        {
+          name: 'views',
+          label: 'Views',
+          type: 'number',
+          defaultValue: 0,
+          admin: {
+            description: 'Total number of article views',
+          },
+        },
+        {
+          name: 'uniqueViews',
+          label: 'Unique Views',
+          type: 'number',
+          defaultValue: 0,
+          admin: {
+            description: 'Number of distinct visitors who viewed the article',
+          },
+        },
+        {
+          name: 'recommendationClicks',
+          label: 'Recommendation Clicks',
+          type: 'number',
+          defaultValue: 0,
+          admin: {
+            description: 'Number of times the article was viewed from a recommendation',
+          },
+        },
+        {
+          name: 'averageTimeSpent',
+          label: 'Average Time (seconds)',
+          type: 'number',
+          defaultValue: 0,
+          admin: {
+            description: 'Average time spent on the article in seconds',
+          },
+        },
+        {
+          name: 'bounceRate',
+          label: 'Bounce Rate (%)',
+          type: 'number',
+          defaultValue: 0,
+          admin: {
+            description: 'Percentage of users who leave after viewing only this article',
+          },
+        },
+        {
+          name: 'ratingCount',
+          label: 'Number of Ratings',
+          type: 'number',
+          defaultValue: 0,
+          admin: {
+            description: 'Total number of ratings received for this article',
+          },
+        },
+        {
+          name: 'ratingSum',
+          label: 'Sum of Ratings',
+          type: 'number',
+          defaultValue: 0,
+          admin: {
+            description: 'Sum of all ratings (scale of 1 to 5) - allows calculating the average',
+          },
+        },
+      ],
+    },
+    {
       name: 'translations',
-      label: 'Traductions',
+      label: 'Translations',
       type: 'array',
       admin: {
-        description:
-          "Ajoutez des traductions pour cet article (la langue par défaut est l'anglais)",
+        description: 'Add translations for this article (the default language is English)',
       },
       fields: [
         {
           name: 'language',
-          label: 'Langue',
+          label: 'Language',
           type: 'select',
           options: [
-            { label: 'Français', value: 'fr' },
-            { label: 'Espagnol', value: 'es' },
+            { label: 'French', value: 'fr' },
+            { label: 'Spanish', value: 'es' },
           ],
           required: true,
         },
         {
           name: 'title',
-          label: 'Titre',
+          label: 'Title',
           type: 'text',
           required: true,
         },
         {
           name: 'subtitle',
-          label: 'Sous-titre',
+          label: 'Subtitle',
           type: 'text',
         },
         {
           name: 'content',
-          label: 'Contenu',
+          label: 'Content',
           type: 'textarea',
           required: true,
         },
         {
           name: 'translator',
-          label: 'Traducteur',
+          label: 'Translator',
           type: 'relationship',
           relationTo: 'users',
         },
@@ -157,16 +240,16 @@ export const Articles: CollectionConfig = {
           label: 'SEO',
           type: 'group',
           admin: {
-            description: 'Informations pour le référencement (SEO) de cette traduction',
+            description: 'Information for search engine optimization (SEO) of this translation',
           },
           fields: [
             {
               name: 'title',
-              label: 'Titre SEO',
+              label: 'SEO Title',
               type: 'text',
               admin: {
                 description:
-                  'Titre optimisé pour les moteurs de recherche (si différent du titre traduit)',
+                  'Optimized title for search engines (if different from the translated title)',
               },
             },
             {
@@ -175,20 +258,20 @@ export const Articles: CollectionConfig = {
               type: 'textarea',
               admin: {
                 description:
-                  'Description courte pour les résultats de recherche (150-160 caractères recommandés)',
+                  'Short description for search results (150-160 characters recommended)',
               },
             },
             {
               name: 'keywords',
-              label: 'Mots-clés',
+              label: 'Keywords',
               type: 'array',
               admin: {
-                description: 'Mots-clés pertinents pour le référencement dans cette langue',
+                description: 'Relevant keywords for SEO in this language',
               },
               fields: [
                 {
                   name: 'keyword',
-                  label: 'Mot-clé',
+                  label: 'Keyword',
                   type: 'text',
                 },
               ],
@@ -199,32 +282,32 @@ export const Articles: CollectionConfig = {
     },
     {
       name: 'relatedArticles',
-      label: 'Articles reliés',
+      label: 'Related Articles',
       type: 'relationship',
       relationTo: 'articles',
       hasMany: true,
       admin: {
-        description: 'Sélectionnez les articles qui sont reliés à cet article',
+        description: 'Select articles that are related to this article',
       },
     },
     {
       name: 'prerequisites',
-      label: 'Prérequis',
+      label: 'Prerequisites',
       type: 'relationship',
       relationTo: 'articles',
       hasMany: true,
       admin: {
-        description: 'Articles qui devraient être lus avant celui-ci',
+        description: 'Articles that should be read before this one',
       },
     },
     {
       name: 'nextSteps',
-      label: 'Étapes suivantes',
+      label: 'Next Steps',
       type: 'relationship',
       relationTo: 'articles',
       hasMany: true,
       admin: {
-        description: 'Articles recommandés à lire après celui-ci',
+        description: 'Recommended articles to read after this one',
       },
     },
   ],

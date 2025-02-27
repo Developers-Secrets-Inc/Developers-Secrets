@@ -69,6 +69,10 @@ export interface Config {
     users: User;
     media: Media;
     articles: Article;
+    tutorials: Tutorial;
+    tags: Tag;
+    feedbacks: Feedback;
+    'support-settings': SupportSetting;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -78,6 +82,10 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
+    tutorials: TutorialsSelect<false> | TutorialsSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
+    feedbacks: FeedbacksSelect<false> | FeedbacksSelect<true>;
+    'support-settings': SupportSettingsSelect<false> | SupportSettingsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -160,19 +168,19 @@ export interface Article {
   subtitle?: string | null;
   content: string;
   /**
-   * Informations pour le référencement (SEO) de l'article en langue principale (anglais)
+   * Information for search engine optimization (SEO) of the article in the main language (English)
    */
   seo?: {
     /**
-     * Titre optimisé pour les moteurs de recherche (si différent du titre principal)
+     * Optimized title for search engines (if different from the main title)
      */
     title?: string | null;
     /**
-     * Description courte pour les résultats de recherche (150-160 caractères recommandés)
+     * Short description for search results (150-160 characters recommended)
      */
     description?: string | null;
     /**
-     * Mots-clés pertinents pour le référencement
+     * Relevant keywords for SEO
      */
     keywords?:
       | {
@@ -182,16 +190,53 @@ export interface Article {
       | null;
   };
   /**
-   * Visibilité de l'article (indépendant du système de brouillon/publication)
+   * Article visibility (independent from the draft/publish system)
    */
   articleStatus: 'active' | 'archived';
   /**
-   * Niveau de difficulté de l'article
+   * Difficulty level of the article
    */
   difficultyLevel: 'beginner' | 'intermediate' | 'advanced';
   author: number | User;
   /**
-   * Ajoutez des traductions pour cet article (la langue par défaut est l'anglais)
+   * Concepts related to this article (e.g., "python", "object-oriented")
+   */
+  tags?: (number | Tag)[] | null;
+  /**
+   * Engagement metrics for this article (normally updated automatically)
+   */
+  analytics?: {
+    /**
+     * Total number of article views
+     */
+    views?: number | null;
+    /**
+     * Number of distinct visitors who viewed the article
+     */
+    uniqueViews?: number | null;
+    /**
+     * Number of times the article was viewed from a recommendation
+     */
+    recommendationClicks?: number | null;
+    /**
+     * Average time spent on the article in seconds
+     */
+    averageTimeSpent?: number | null;
+    /**
+     * Percentage of users who leave after viewing only this article
+     */
+    bounceRate?: number | null;
+    /**
+     * Total number of ratings received for this article
+     */
+    ratingCount?: number | null;
+    /**
+     * Sum of all ratings (scale of 1 to 5) - allows calculating the average
+     */
+    ratingSum?: number | null;
+  };
+  /**
+   * Add translations for this article (the default language is English)
    */
   translations?:
     | {
@@ -201,19 +246,19 @@ export interface Article {
         content: string;
         translator?: (number | null) | User;
         /**
-         * Informations pour le référencement (SEO) de cette traduction
+         * Information for search engine optimization (SEO) of this translation
          */
         seo?: {
           /**
-           * Titre optimisé pour les moteurs de recherche (si différent du titre traduit)
+           * Optimized title for search engines (if different from the translated title)
            */
           title?: string | null;
           /**
-           * Description courte pour les résultats de recherche (150-160 caractères recommandés)
+           * Short description for search results (150-160 characters recommended)
            */
           description?: string | null;
           /**
-           * Mots-clés pertinents pour le référencement dans cette langue
+           * Relevant keywords for SEO in this language
            */
           keywords?:
             | {
@@ -226,20 +271,142 @@ export interface Article {
       }[]
     | null;
   /**
-   * Sélectionnez les articles qui sont reliés à cet article
+   * Select articles that are related to this article
    */
   relatedArticles?: (number | Article)[] | null;
   /**
-   * Articles qui devraient être lus avant celui-ci
+   * Articles that should be read before this one
    */
   prerequisites?: (number | Article)[] | null;
   /**
-   * Articles recommandés à lire après celui-ci
+   * Recommended articles to read after this one
    */
   nextSteps?: (number | Article)[] | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tutorials".
+ */
+export interface Tutorial {
+  id: number;
+  title: string;
+  description?: string | null;
+  /**
+   * Tutorial visibility (independent from the draft/publish system)
+   */
+  tutorialStatus: 'active' | 'archived';
+  /**
+   * Sections of the tutorial, each containing a list of articles
+   */
+  sections: {
+    title: string;
+    description?: string | null;
+    /**
+     * Articles included in this section, in display order
+     */
+    articles: (number | Article)[];
+    id?: string | null;
+  }[];
+  /**
+   * Example sections for this tutorial, each grouping similar articles
+   */
+  exampleSections?:
+    | {
+        title: string;
+        /**
+         * Example articles included in this section
+         */
+        articles: (number | Article)[];
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Reference article sections for this tutorial, organized by theme or category
+   */
+  referenceSections?:
+    | {
+        title: string;
+        description?: string | null;
+        /**
+         * Reference articles included in this section
+         */
+        articles: (number | Article)[];
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Add translations for the tutorial title (the default language is English)
+   */
+  translations?:
+    | {
+        language: 'fr' | 'es';
+        title: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "feedbacks".
+ */
+export interface Feedback {
+  id: number;
+  message: string;
+  /**
+   * The slug of the article where the feedback was submitted
+   */
+  articleSlug?: string | null;
+  /**
+   * The slug of the tutorial where the feedback was submitted
+   */
+  tutorialSlug?: string | null;
+  /**
+   * IP address of the user who submitted the feedback (for rate limiting)
+   */
+  ipAddress?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "support-settings".
+ */
+export interface SupportSetting {
+  id: number;
+  /**
+   * Name of the settings (should be "Support Settings")
+   */
+  name: string;
+  /**
+   * Current status of the support system
+   */
+  status: 'online' | 'maintenance' | 'offline';
+  /**
+   * Message to display when support is in maintenance mode
+   */
+  maintenanceMessage?: string | null;
+  /**
+   * Message to display when support is offline
+   */
+  offlineMessage?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -259,6 +426,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'articles';
         value: number | Article;
+      } | null)
+    | ({
+        relationTo: 'tutorials';
+        value: number | Tutorial;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: number | Tag;
+      } | null)
+    | ({
+        relationTo: 'feedbacks';
+        value: number | Feedback;
+      } | null)
+    | ({
+        relationTo: 'support-settings';
+        value: number | SupportSetting;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -358,6 +541,18 @@ export interface ArticlesSelect<T extends boolean = true> {
   articleStatus?: T;
   difficultyLevel?: T;
   author?: T;
+  tags?: T;
+  analytics?:
+    | T
+    | {
+        views?: T;
+        uniqueViews?: T;
+        recommendationClicks?: T;
+        averageTimeSpent?: T;
+        bounceRate?: T;
+        ratingCount?: T;
+        ratingSum?: T;
+      };
   translations?:
     | T
     | {
@@ -386,6 +581,81 @@ export interface ArticlesSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tutorials_select".
+ */
+export interface TutorialsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  tutorialStatus?: T;
+  sections?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        articles?: T;
+        id?: T;
+      };
+  exampleSections?:
+    | T
+    | {
+        title?: T;
+        articles?: T;
+        id?: T;
+      };
+  referenceSections?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        articles?: T;
+        id?: T;
+      };
+  translations?:
+    | T
+    | {
+        language?: T;
+        title?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "feedbacks_select".
+ */
+export interface FeedbacksSelect<T extends boolean = true> {
+  message?: T;
+  articleSlug?: T;
+  tutorialSlug?: T;
+  ipAddress?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "support-settings_select".
+ */
+export interface SupportSettingsSelect<T extends boolean = true> {
+  name?: T;
+  status?: T;
+  maintenanceMessage?: T;
+  offlineMessage?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
