@@ -1,6 +1,12 @@
 import { getTutorialArticles } from '.'
 import { Article as PayloadArticle } from '@/payload-types'
 
+
+
+const removeArticleFromArticles = (articles: PayloadArticle[], articleId: string | number): PayloadArticle[] => {
+  return articles.filter((a) => String(a.id) !== String(articleId))
+}
+
 /**
  * Get similar articles based on tags and other metadata
  * This is a placeholder implementation that will be expanded in the future
@@ -10,9 +16,10 @@ export const getSimilarArticles = async (
   articleId: string | number,
   limit: number = 4,
 ): Promise<PayloadArticle[]> => {
-  // For now, just return other articles from the same tutorial
   const articles = await getTutorialArticles(tutorialSlug)
-  return articles.filter((a) => String(a.id) !== String(articleId)).slice(0, limit)
+  const filteredArticles = removeArticleFromArticles(articles, articleId)
+
+  return filteredArticles.slice(0, limit)
 }
 
 /**
