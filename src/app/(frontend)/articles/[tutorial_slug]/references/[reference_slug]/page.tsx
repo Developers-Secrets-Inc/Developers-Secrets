@@ -48,9 +48,9 @@ export async function generateStaticParams() {
 export default async function ReferencePage({
   params,
 }: {
-  params: Promise<{ tutorial_slug: string; reference_slug: string }>
+  params: { tutorial_slug: string; reference_slug: string }
 }) {
-  const { tutorial_slug, reference_slug } = await params
+  const { tutorial_slug, reference_slug } = params
 
   // Get the tutorial, article, and related data with cache tags
   const payloadTutorial = await getTutorial(tutorial_slug, {
