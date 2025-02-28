@@ -8,11 +8,42 @@ import {
   getPopularArticles,
   getTutorial,
   getTutorialArticles,
+  getTutorials,
 } from '@/core/articles'
+import { slugify } from '@/core/format'
 import { ArticleContent } from '../components/article-content'
 import { ArticleHeader } from '../components/article-header'
 import { ArticleSidebar } from '../components/article-sidebar'
 import { ArticleOutline } from './components/article-outline'
+
+// Revalidate content every hour
+export const revalidate = 3600
+
+// Allow dynamic params for articles not in generateStaticParams
+export const dynamicParams = true
+
+// Pre-generate static params for all known tutorial/article combinations
+export async function generateStaticParams() {
+  // Get all tutorials
+  const tutorials = await getTutorials()
+
+  // For each tutorial, get all its articles
+  const params = await Promise.all(
+    tutorials.map(async (tutorial) => {
+      const tutorialSlug = tutorial.slug
+      const articles = await getTutorialArticles(tutorialSlug)
+
+      // Map each article to its params
+      return articles.map((article) => ({
+        tutorial_slug: tutorialSlug,
+        article_slug: slugify(article.title),
+      }))
+    }),
+  )
+
+  // Flatten the array of arrays
+  return params.flat()
+}
 
 export default async function ArticlePage({
   params,
@@ -21,24 +52,43 @@ export default async function ArticlePage({
 }) {
   const { tutorial_slug, article_slug } = await params
 
-  // Get the tutorial, article, and related data
-  const payloadTutorial = await getTutorial(tutorial_slug)
-  const payloadArticle = await getArticle(tutorial_slug, article_slug)
-  const payloadArticles = await getTutorialArticles(tutorial_slug)
+  // Get the tutorial, article, and related data with cache tags
+  const payloadTutorial = await getTutorial(tutorial_slug, {
+    next: { tags: [`tutorial-${tutorial_slug}`] },
+  })
+
+  const payloadArticle = await getArticle(tutorial_slug, article_slug, {
+    next: { tags: [`article-${tutorial_slug}-${article_slug}`] },
+  })
+
+  const payloadArticles = await getTutorialArticles(tutorial_slug, {
+    next: { tags: [`tutorial-articles-${tutorial_slug}`] },
+  })
 
   // Convert to our custom types using the utility functions
   const tutorial = convertPayloadTutorialToTutorial(payloadTutorial)
   const article = convertPayloadArticleToArticle(payloadArticle)
-  const articles = payloadArticles.map(convertPayloadArticleToArticle)
 
   // Get the article outline
   const outline = getArticleOutline(article.content)
 
-  // Get recommended articles
-  const popularArticles = await getPopularArticles(tutorial_slug, article.id)
+  // Get recommended articles with cache tags
+  const popularArticles = await getPopularArticles(
+    tutorial_slug,
+    article.id,
+    {
+      next: { tags: [`popular-articles-${tutorial_slug}`] },
+    },
+    2,
+  )
+
   const personalizedArticles = await getPersonalizedArticleRecommendations(
     tutorial_slug,
     article.id,
+    {
+      next: { tags: [`personalized-articles-${tutorial_slug}`] },
+    },
+    2,
   )
 
   return (

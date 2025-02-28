@@ -5,11 +5,22 @@ import { extractOutline, OutlineItem } from '@/core/markdown/parser'
 import { slugify } from '../format'
 import { Article, ArticleVisibility, DifficultyLevel } from '@/types/article'
 import { Tutorial } from '@/types/tutorial'
-import { InvalidTutorialSlugError, PayloadConnectionError, TutorialError, TutorialNotFoundError, MultipleTutorialsFoundError, ArticleNotFoundError } from './errors'
+import {
+  InvalidTutorialSlugError,
+  PayloadConnectionError,
+  TutorialError,
+  TutorialNotFoundError,
+  MultipleTutorialsFoundError,
+  ArticleNotFoundError,
+} from './errors'
 
-
-
-
+// Add type for cache options
+type CacheOptions = {
+  next?: {
+    tags?: string[]
+    revalidate?: number
+  }
+}
 
 const getTutorialBySlugFromCollection = async (slug: string): Promise<PayloadTutorial> => {
   if (!slug) {
@@ -50,9 +61,36 @@ const getTutorialBySlugFromCollection = async (slug: string): Promise<PayloadTut
   return matchingTutorials[0]
 }
 
-// The big difference that may happen in the future is that we will need
-// the custom Article type, not the PayloadTutorial type.
-export const getTutorial = async (slug: string): Promise<PayloadTutorial> => {
+/**
+ * Get all tutorials from the collection
+ */
+export const getTutorials = async (options?: CacheOptions): Promise<Tutorial[]> => {
+  let payload
+  try {
+    payload = await getPayload({ config })
+  } catch (error) {
+    throw new PayloadConnectionError(error)
+  }
+
+  try {
+    const tutorials = await payload.find({
+      collection: 'tutorials',
+    })
+    return tutorials.docs.map(convertPayloadTutorialToTutorial)
+  } catch (error) {
+    throw new TutorialError(
+      `Error querying tutorials: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    )
+  }
+}
+
+/**
+ * Get a tutorial by its slug
+ */
+export const getTutorial = async (
+  slug: string,
+  options?: CacheOptions,
+): Promise<PayloadTutorial> => {
   try {
     return await getTutorialBySlugFromCollection(slug)
   } catch (error) {
@@ -83,7 +121,13 @@ const extractArticlesFromSections = <T extends { articles: (number | PayloadArti
   }
 }
 
-export const getTutorialArticles = async (slug: string): Promise<PayloadArticle[]> => {
+/**
+ * Get all articles for a tutorial
+ */
+export const getTutorialArticles = async (
+  slug: string,
+  options?: CacheOptions,
+): Promise<PayloadArticle[]> => {
   const tutorial = await getTutorialBySlugFromCollection(slug).catch((error) => {
     console.error(`Error in getTutorialArticles for slug "${slug}":`, error)
     throw error
@@ -146,6 +190,7 @@ export const getFirstReferenceArticleOfTutorial = async (slug: string): Promise<
 export const getArticle = async (
   tutorialSlug: string,
   articleSlug: string,
+  options?: CacheOptions,
 ): Promise<PayloadArticle> => {
   const articles = await getTutorialArticles(tutorialSlug)
   // Find article by comparing slugified titles to the requested slug
@@ -247,6 +292,7 @@ export const calculateHotnessScore = (article: PayloadArticle, alpha: number = 1
 export const getPopularArticles = async (
   tutorialSlug: string,
   excludeArticleId?: string | number,
+  options?: CacheOptions,
   limit: number = 2,
 ): Promise<PayloadArticle[]> => {
   const articles = await getTutorialArticles(tutorialSlug)
@@ -264,11 +310,11 @@ export const getPopularArticles = async (
 
 /**
  * Get personalized article recommendations for a user
- * This is a placeholder implementation that will be expanded in the future
  */
 export const getPersonalizedArticleRecommendations = async (
   tutorialSlug: string,
   excludeArticleId?: string | number,
+  options?: CacheOptions,
   limit: number = 2,
 ): Promise<PayloadArticle[]> => {
   // For now, just return other articles from the same tutorial
