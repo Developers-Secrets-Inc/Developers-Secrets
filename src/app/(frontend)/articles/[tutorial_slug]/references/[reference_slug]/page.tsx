@@ -4,11 +4,11 @@ import {
   convertPayloadArticleToArticle,
   convertPayloadTutorialToTutorial,
   getArticleOutline,
-  getExampleArticle,
+  getReferenceArticle,
   getPersonalizedArticleRecommendations,
   getPopularArticles,
   getTutorial,
-  getTutorialExampleArticles,
+  getTutorialReferenceArticles,
   getTutorials,
 } from '@/core/articles'
 import { slugify } from '@/core/format'
@@ -19,24 +19,24 @@ import { ArticleHeader } from '../../components/article-header'
 // Revalidate content every hour
 export const revalidate = 3600
 
-// Allow dynamic params for examples not in generateStaticParams
+// Allow dynamic params for references not in generateStaticParams
 export const dynamicParams = true
 
-// Pre-generate static params for all known tutorial/example combinations
+// Pre-generate static params for all known tutorial/reference combinations
 export async function generateStaticParams() {
   // Get all tutorials
   const tutorials = await getTutorials()
 
-  // For each tutorial, get all its example articles
+  // For each tutorial, get all its reference articles
   const params = await Promise.all(
     tutorials.map(async (tutorial) => {
       const tutorialSlug = tutorial.slug
-      const articles = await getTutorialExampleArticles(tutorialSlug)
+      const articles = await getTutorialReferenceArticles(tutorialSlug)
 
       // Map each article to its params
       return articles.map((article) => ({
         tutorial_slug: tutorialSlug,
-        example_slug: slugify(article.title),
+        reference_slug: slugify(article.title),
       }))
     }),
   )
@@ -45,24 +45,24 @@ export async function generateStaticParams() {
   return params.flat()
 }
 
-export default async function ExamplePage({
+export default async function ReferencePage({
   params,
 }: {
-  params: Promise<{ tutorial_slug: string; example_slug: string }>
+  params: Promise<{ tutorial_slug: string; reference_slug: string }>
 }) {
-  const { tutorial_slug, example_slug } = await params
+  const { tutorial_slug, reference_slug } = await params
 
   // Get the tutorial, article, and related data with cache tags
   const payloadTutorial = await getTutorial(tutorial_slug, {
     next: { tags: [`tutorial-${tutorial_slug}`] },
   })
 
-  const payloadArticle = await getExampleArticle(tutorial_slug, example_slug, {
-    next: { tags: [`example-article-${tutorial_slug}-${example_slug}`] },
+  const payloadArticle = await getReferenceArticle(tutorial_slug, reference_slug, {
+    next: { tags: [`reference-article-${tutorial_slug}-${reference_slug}`] },
   })
 
-  const payloadArticles = await getTutorialExampleArticles(tutorial_slug, {
-    next: { tags: [`tutorial-examples-${tutorial_slug}`] },
+  const payloadArticles = await getTutorialReferenceArticles(tutorial_slug, {
+    next: { tags: [`tutorial-references-${tutorial_slug}`] },
   })
 
   // Convert to our custom types using the utility functions
@@ -97,8 +97,8 @@ export default async function ExamplePage({
       <ArticleSidebar
         tutorial={tutorial}
         articles={payloadArticles}
-        currentArticleSlug={example_slug}
-        articleType="examples"
+        currentArticleSlug={reference_slug}
+        articleType="references"
       />
       <SidebarInset>
         <ArticleHeader />

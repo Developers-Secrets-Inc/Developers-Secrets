@@ -136,7 +136,10 @@ export const getTutorialArticles = async (
   return extractArticlesFromSections(tutorial.sections)
 }
 
-export const getTutorialExampleArticles = async (slug: string): Promise<PayloadArticle[]> => {
+export const getTutorialExampleArticles = async (
+  slug: string,
+  options?: CacheOptions,
+): Promise<PayloadArticle[]> => {
   const tutorial = await getTutorialBySlugFromCollection(slug).catch((error) => {
     console.error(`Error in getTutorialExampleArticles for slug "${slug}":`, error)
     throw error
@@ -145,7 +148,10 @@ export const getTutorialExampleArticles = async (slug: string): Promise<PayloadA
   return extractArticlesFromSections(tutorial.exampleSections ?? undefined)
 }
 
-export const getTutorialReferenceArticles = async (slug: string): Promise<PayloadArticle[]> => {
+export const getTutorialReferenceArticles = async (
+  slug: string,
+  options?: CacheOptions,
+): Promise<PayloadArticle[]> => {
   const tutorial = await getTutorialBySlugFromCollection(slug).catch((error) => {
     console.error(`Error in getTutorialReferenceArticles for slug "${slug}":`, error)
     throw error
@@ -209,6 +215,7 @@ export const getArticle = async (
 export const getExampleArticle = async (
   tutorialSlug: string,
   articleSlug: string,
+  options?: CacheOptions,
 ): Promise<PayloadArticle> => {
   const articles = await getTutorialExampleArticles(tutorialSlug)
   // Find article by comparing slugified titles to the requested slug
@@ -227,6 +234,7 @@ export const getExampleArticle = async (
 export const getReferenceArticle = async (
   tutorialSlug: string,
   articleSlug: string,
+  options?: CacheOptions,
 ): Promise<PayloadArticle> => {
   const articles = await getTutorialReferenceArticles(tutorialSlug)
   // Find article by comparing slugified titles to the requested slug
