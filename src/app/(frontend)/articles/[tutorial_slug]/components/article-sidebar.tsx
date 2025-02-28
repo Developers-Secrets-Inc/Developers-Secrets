@@ -139,7 +139,7 @@ export const ArticleSidebar = async ({
           >
             {tutorialOutline.map((section, index) => (
               <AccordionItem key={section.title} value={`item-${index}`} className="border-0">
-                <SidebarGroup className="pb-0">
+                <SidebarGroup>
                   <SidebarGroupLabel
                     asChild
                     className="group/label text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -150,7 +150,7 @@ export const ArticleSidebar = async ({
                   </SidebarGroupLabel>
                   <AccordionContent>
                     <SidebarGroupContent>
-                      <SidebarMenu>
+                      <SidebarMenu className="pt-2">
                         {section.items.map((item) => (
                           <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton asChild isActive={item.url === currentArticleSlug}>
