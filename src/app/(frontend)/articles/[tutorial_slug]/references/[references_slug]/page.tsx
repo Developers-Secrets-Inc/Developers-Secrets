@@ -12,8 +12,8 @@ import {
 } from '@/core/articles'
 import { ArticleOutline } from '@/components/article-outline'
 import { ArticleContent } from '../../components/article-content'
-import { ReferenceHeader } from './components/reference-header'
 import { ArticleSidebar } from '../../components/article-sidebar'
+import { ArticleHeader } from '../../components/article-header'
 
 export default async function ReferencePage({
   params,
@@ -51,7 +51,7 @@ export default async function ReferencePage({
         articleType="references"
       />
       <SidebarInset>
-        <ReferenceHeader />
+        <ArticleHeader />
         <div className="flex flex-1">
           <ArticleContent
             article={article}

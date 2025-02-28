@@ -11,8 +11,8 @@ import {
   getTutorialExampleArticles,
 } from '@/core/articles'
 import { ArticleContent } from '../../components/article-content'
-import { ExampleHeader } from './components/example-header'
 import { ArticleSidebar } from '../../components/article-sidebar'
+import { ArticleHeader } from '../../components/article-header'
 
 export default async function ExamplePage({
   params,
@@ -50,7 +50,7 @@ export default async function ExamplePage({
         articleType="examples"
       />
       <SidebarInset>
-        <ExampleHeader />
+        <ArticleHeader />
         <div className="flex flex-1">
           <ArticleContent
             article={article}
