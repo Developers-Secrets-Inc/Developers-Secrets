@@ -1,5 +1,3 @@
-import { RecommendedArticles } from '@/components/recommended-articles'
-import { TypographyH1, TypographyP } from '@/components/typography'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import {
   convertPayloadArticleToArticle,
@@ -11,10 +9,10 @@ import {
   getTutorial,
   getTutorialArticles,
 } from '@/core/articles'
+import { ArticleContent } from '../components/article-content'
 import { ArticleHeader } from '../components/article-header'
 import { ArticleSidebar } from '../components/article-sidebar'
 import { ArticleOutline } from './components/article-outline'
-import { ArticleContent } from '../components/article-content'
 
 export default async function ArticlePage({
   params,
