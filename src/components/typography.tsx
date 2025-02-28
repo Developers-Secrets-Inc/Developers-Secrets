@@ -48,7 +48,13 @@ export function TypographyBlockquote({ children, className = '' }: TypographyPro
 }
 
 export function TypographyList({ children, className = '' }: TypographyProps) {
-  return <ul className={`my-6 ml-6 list-disc [&>li]:mt-2 ${className}`}>{children}</ul>
+  return (
+    <ul
+      className={`my-4 ml-6 list-disc marker:text-gray-500 [&>li]:mt-1.5 ${className}`}
+    >
+      {children}
+    </ul>
+  )
 }
 
 export function TypographyLink({

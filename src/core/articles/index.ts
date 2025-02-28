@@ -413,3 +413,83 @@ export const convertPayloadTutorialToTutorial = (payloadTutorial: PayloadTutoria
       })) || undefined,
   }
 }
+
+/**
+ * Get all articles from all tutorials, including examples and references
+ * This function is optimized for performance with caching
+ */
+export const getAllArticles = async (
+  options?: CacheOptions,
+): Promise<{
+  articles: PayloadArticle[]
+  tutorialMapping: {
+    [articleId: string]: { tutorialSlug: string; type: 'tutorial' | 'examples' | 'references' }
+  }
+}> => {
+  let payload
+  try {
+    payload = await getPayload({ config })
+  } catch (error) {
+    throw new PayloadConnectionError(error)
+  }
+
+  try {
+    // Get all tutorials in a single query
+    const tutorials = await payload.find({
+      collection: 'tutorials',
+      depth: 1, // Limit depth to improve performance
+    })
+
+    const articles: PayloadArticle[] = []
+    const tutorialMapping: {
+      [articleId: string]: { tutorialSlug: string; type: 'tutorial' | 'examples' | 'references' }
+    } = {}
+
+    // Process each tutorial
+    for (const tutorial of tutorials.docs) {
+      const tutorialSlug = getSlugFromTitle(tutorial.title)
+
+      // Process regular articles
+      if (tutorial.sections) {
+        for (const section of tutorial.sections) {
+          for (const article of section.articles) {
+            if (typeof article === 'object' && article !== null) {
+              articles.push(article)
+              tutorialMapping[String(article.id)] = { tutorialSlug, type: 'tutorial' }
+            }
+          }
+        }
+      }
+
+      // Process example articles
+      if (tutorial.exampleSections) {
+        for (const section of tutorial.exampleSections) {
+          for (const article of section.articles) {
+            if (typeof article === 'object' && article !== null) {
+              articles.push(article)
+              tutorialMapping[String(article.id)] = { tutorialSlug, type: 'examples' }
+            }
+          }
+        }
+      }
+
+      // Process reference articles
+      if (tutorial.referenceSections) {
+        for (const section of tutorial.referenceSections) {
+          for (const article of section.articles) {
+            if (typeof article === 'object' && article !== null) {
+              articles.push(article)
+              tutorialMapping[String(article.id)] = { tutorialSlug, type: 'references' }
+            }
+          }
+        }
+      }
+    }
+
+    return { articles, tutorialMapping }
+  } catch (error) {
+    throw new TutorialError(
+      `Error getting all articles: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    )
+  }
+}
