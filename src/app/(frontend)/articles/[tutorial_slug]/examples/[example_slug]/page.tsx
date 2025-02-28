@@ -1,26 +1,18 @@
-import React from 'react'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { ArticleOutline } from '@/components/article-outline'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import {
-  getExampleArticle,
-  getTutorial,
-  getTutorialExampleArticles,
-  getArticleOutline,
-  getPopularArticles,
-  getPersonalizedArticleRecommendations,
   convertPayloadArticleToArticle,
   convertPayloadTutorialToTutorial,
+  getArticleOutline,
+  getExampleArticle,
+  getPersonalizedArticleRecommendations,
+  getPopularArticles,
+  getTutorial,
+  getTutorialExampleArticles,
 } from '@/core/articles'
-import { TutorialHeader } from '@/components/tutorial-header'
-import { TutorialContent } from '@/components/tutorial-content'
-import { Markdown } from '@/components/markdown'
-import { ArticleOutline } from '@/components/article-outline'
-import { RecommendedArticles } from '@/components/recommended-articles'
-import { ArticleRating } from '@/components/article-rating'
-import { Article } from '@/types/article'
-import { Tutorial } from '@/types/tutorial'
-import { ExampleSidebar } from '../components/example-sidebar'
-import { ExampleHeader } from './components/example-header'
 import { ArticleContent } from '../../components/article-content'
+import { ExampleHeader } from './components/example-header'
+import { ArticleSidebar } from '../../components/article-sidebar'
 
 export default async function ExamplePage({
   params,
@@ -51,7 +43,12 @@ export default async function ExamplePage({
 
   return (
     <SidebarProvider>
-      <ExampleSidebar tutorial={tutorial} articles={articles} currentArticleSlug={example_slug} />
+      <ArticleSidebar
+        tutorial={tutorial}
+        articles={payloadArticles}
+        currentArticleSlug={example_slug}
+        articleType="examples"
+      />
       <SidebarInset>
         <ExampleHeader />
         <div className="flex flex-1">

@@ -45,7 +45,12 @@ export default async function ArticlePage({
 
   return (
     <SidebarProvider>
-      <ArticleSidebar tutorial={tutorial} currentArticleSlug={article_slug} />
+      <ArticleSidebar
+        tutorial={tutorial}
+        currentArticleSlug={article_slug}
+        articles={payloadArticles}
+        articleType="tutorial"
+      />
       <SidebarInset>
         <ArticleHeader />
         <div className="flex flex-1">

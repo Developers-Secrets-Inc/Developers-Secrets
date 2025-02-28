@@ -10,17 +10,10 @@ import {
   convertPayloadArticleToArticle,
   convertPayloadTutorialToTutorial,
 } from '@/core/articles'
-import { TutorialHeader } from '@/components/tutorial-header'
-import { TutorialContent } from '@/components/tutorial-content'
-import { Markdown } from '@/components/markdown'
 import { ArticleOutline } from '@/components/article-outline'
-import { RecommendedArticles } from '@/components/recommended-articles'
-import { ArticleRating } from '@/components/article-rating'
-import { Article } from '@/types/article'
-import { Tutorial } from '@/types/tutorial'
-import { ReferenceSidebar } from '../components/reference-sidebar'
-import { ReferenceHeader } from './components/reference-header'
 import { ArticleContent } from '../../components/article-content'
+import { ReferenceHeader } from './components/reference-header'
+import { ArticleSidebar } from '../../components/article-sidebar'
 
 export default async function ReferencePage({
   params,
@@ -51,10 +44,11 @@ export default async function ReferencePage({
 
   return (
     <SidebarProvider>
-      <ReferenceSidebar
+      <ArticleSidebar
         tutorial={tutorial}
-        articles={articles}
+        articles={payloadArticles}
         currentArticleSlug={references_slug}
+        articleType="references"
       />
       <SidebarInset>
         <ReferenceHeader />

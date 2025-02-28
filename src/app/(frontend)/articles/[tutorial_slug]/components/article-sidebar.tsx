@@ -25,6 +25,8 @@ import {
   convertPayloadTutorialToTutorial,
   getSlugFromTitle,
   getTutorialArticles,
+  getTutorialExampleArticles,
+  getTutorialReferenceArticles,
 } from '@/core/articles'
 import { Article as PayloadArticle } from '@/payload-types'
 import { Tutorial } from '@/types/tutorial'
@@ -45,15 +47,26 @@ type Outline = {
 interface ArticleSidebarProps {
   tutorial: Tutorial
   currentArticleSlug: string
+  articles: PayloadArticle[]
+  articleType: 'tutorial' | 'examples' | 'references'
 }
 
 // Function to create tutorial outline from tutorial sections and articles
 const createTutorialOutline = (
   tutorial: ReturnType<typeof convertPayloadTutorialToTutorial>,
   articles: PayloadArticle[],
+  articleType: 'tutorial' | 'examples' | 'references',
 ) => {
-  // Map tutorial sections to the format expected by ArticleSidebar
-  return tutorial.sections.map((section) => ({
+  const sections =
+    articleType === 'tutorial'
+      ? tutorial.sections
+      : articleType === 'examples'
+        ? tutorial.exampleSections
+        : tutorial.referenceSections
+
+  if (!sections) return []
+
+  return sections.map((section) => ({
     title: section.title,
     items: articles
       .filter((article) => section.articles.includes(String(article.id)))
@@ -64,10 +77,13 @@ const createTutorialOutline = (
   }))
 }
 
-export const ArticleSidebar = async ({ tutorial, currentArticleSlug }: ArticleSidebarProps) => {
-  const payloadArticles = await getTutorialArticles(tutorial.slug)
-
-  const tutorialOutline = createTutorialOutline(tutorial, payloadArticles)
+export const ArticleSidebar = async ({
+  tutorial,
+  currentArticleSlug,
+  articles,
+  articleType,
+}: ArticleSidebarProps) => {
+  const tutorialOutline = createTutorialOutline(tutorial, articles, articleType)
   const activeGroupIndex = tutorialOutline.findIndex((group) =>
     group.items.some((item) => item.url === currentArticleSlug),
   )
@@ -110,13 +126,12 @@ export const ArticleSidebar = async ({ tutorial, currentArticleSlug }: ArticleSi
         <SidebarHeader>
           <ArticlesSwitcher
             tutorialSlug={tutorial.slug}
-            currentArticleType="tutorial"
+            currentArticleType={articleType}
             tutorialTitle={tutorial.title}
           />
           <SearchForm />
         </SidebarHeader>
         <SidebarContent className="gap-0">
-          {/* Use Accordion instead of multiple Collapsible components */}
           <Accordion
             type="single"
             defaultValue={activeGroupIndex !== -1 ? `item-${activeGroupIndex}` : undefined}
@@ -139,7 +154,11 @@ export const ArticleSidebar = async ({ tutorial, currentArticleSlug }: ArticleSi
                         {section.items.map((item) => (
                           <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton asChild isActive={item.url === currentArticleSlug}>
-                              <a href={item.url}>{item.title}</a>
+                              <a
+                                href={`/articles/${tutorial.slug}/${articleType !== 'tutorial' ? `${articleType}/` : ''}${item.url}`}
+                              >
+                                {item.title}
+                              </a>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                         ))}
