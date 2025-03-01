@@ -30,26 +30,26 @@ import {
 const tutorialCategories = [
   {
     title: 'Python',
-    href: '/tutorials/python',
+    href: '/articles/python',
     description: 'Learn Python programming from basics to advanced concepts.',
     icon: <Terminal className="h-5 w-5" />,
     isNew: true,
   },
   {
     title: 'JavaScript',
-    href: '/tutorials/javascript',
+    href: '/articles/javascript',
     description: 'Master JavaScript for web development and beyond.',
     icon: <Braces className="h-5 w-5" />,
   },
   {
     title: 'TypeScript',
-    href: '/tutorials/typescript',
+    href: '/articles/typescript',
     description: 'Enhance your JavaScript with static typing and advanced features.',
     icon: <FileCode className="h-5 w-5" />,
   },
   {
     title: 'React',
-    href: '/tutorials/react',
+    href: '/articles/react',
     description: 'Build modern user interfaces with the React library.',
     icon: <Atom className="h-5 w-5" />,
     isNew: true,
@@ -102,7 +102,7 @@ export function MainNavigationMenu() {
               </ul>
               <div className="flex items-center justify-end border-t p-3">
                 <Button variant="default" size="sm" asChild>
-                  <Link href="/tutorials" className="text-sm font-medium">
+                  <Link href="/articles" className="text-sm font-medium">
                     View all tutorials
                   </Link>
                 </Button>

@@ -10,7 +10,9 @@ import {
   getTutorialArticles,
   getTutorials,
 } from '@/core/articles'
+import { ArticleNotFoundError, TutorialNotFoundError } from '@/core/articles/errors'
 import { slugify } from '@/core/format'
+import { notFound } from 'next/navigation'
 import { ArticleContent } from '../components/article-content'
 import { ArticleHeader } from '../components/article-header'
 import { ArticleSidebar } from '../components/article-sidebar'
@@ -52,66 +54,73 @@ export default async function ArticlePage({
 }) {
   const { tutorial_slug, article_slug } = await params
 
-  // Get the tutorial, article, and related data with cache tags
-  const payloadTutorial = await getTutorial(tutorial_slug, {
-    next: { tags: [`tutorial-${tutorial_slug}`] },
-  })
+  try {
+    // Get the tutorial, article, and related data with cache tags
+    const payloadTutorial = await getTutorial(tutorial_slug, {
+      next: { tags: [`tutorial-${tutorial_slug}`] },
+    })
 
-  const payloadArticle = await getArticle(tutorial_slug, article_slug, {
-    next: { tags: [`article-${tutorial_slug}-${article_slug}`] },
-  })
+    const payloadArticle = await getArticle(tutorial_slug, article_slug, {
+      next: { tags: [`article-${tutorial_slug}-${article_slug}`] },
+    })
 
-  const payloadArticles = await getTutorialArticles(tutorial_slug, {
-    next: { tags: [`tutorial-articles-${tutorial_slug}`] },
-  })
+    const payloadArticles = await getTutorialArticles(tutorial_slug, {
+      next: { tags: [`tutorial-articles-${tutorial_slug}`] },
+    })
 
-  // Convert to our custom types using the utility functions
-  const tutorial = convertPayloadTutorialToTutorial(payloadTutorial)
-  const article = convertPayloadArticleToArticle(payloadArticle)
+    // Convert to our custom types using the utility functions
+    const tutorial = convertPayloadTutorialToTutorial(payloadTutorial)
+    const article = convertPayloadArticleToArticle(payloadArticle)
 
-  // Get the article outline
-  const outline = getArticleOutline(article.content)
+    // Get the article outline
+    const outline = getArticleOutline(article.content)
 
-  // Get recommended articles with cache tags
-  const popularArticles = await getPopularArticles(
-    tutorial_slug,
-    article.id,
-    {
-      next: { tags: [`popular-articles-${tutorial_slug}`] },
-    },
-    1,
-  )
+    // Get recommended articles with cache tags
+    const popularArticles = await getPopularArticles(
+      tutorial_slug,
+      article.id,
+      {
+        next: { tags: [`popular-articles-${tutorial_slug}`] },
+      },
+      1,
+    )
 
-  const personalizedArticles = await getPersonalizedArticleRecommendations(
-    tutorial_slug,
-    article.id,
-    {
-      next: { tags: [`personalized-articles-${tutorial_slug}`] },
-    },
-    3,
-  )
+    const personalizedArticles = await getPersonalizedArticleRecommendations(
+      tutorial_slug,
+      article.id,
+      {
+        next: { tags: [`personalized-articles-${tutorial_slug}`] },
+      },
+      3,
+    )
 
-  return (
-    <SidebarProvider>
-      <ArticleSidebar
-        tutorial={tutorial}
-        currentArticleSlug={article_slug}
-        articles={payloadArticles}
-        articleType="tutorial"
-      />
-      <SidebarInset>
-        <ArticleHeader />
-        <div className="flex flex-1">
-          <ArticleContent
-            article={article}
-            popularArticles={popularArticles.map(convertPayloadArticleToArticle)}
-            personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
-            tutorial_slug={tutorial_slug}
-          />
+    return (
+      <SidebarProvider>
+        <ArticleSidebar
+          tutorial={tutorial}
+          currentArticleSlug={article_slug}
+          articles={payloadArticles}
+          articleType="tutorial"
+        />
+        <SidebarInset>
+          <ArticleHeader />
+          <div className="flex flex-1">
+            <ArticleContent
+              article={article}
+              popularArticles={popularArticles.map(convertPayloadArticleToArticle)}
+              personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
+              tutorial_slug={tutorial_slug}
+            />
 
-          <ArticleOutline outline={outline} />
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
-  )
+            <ArticleOutline outline={outline} />
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    )
+  } catch (error) {
+    if (error instanceof ArticleNotFoundError || error instanceof TutorialNotFoundError) {
+      notFound()
+    }
+    throw error
+  }
 }
