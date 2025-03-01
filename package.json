@@ -53,6 +53,7 @@
     "cmdk": "1.0.0",
     "cross-env": "^7.0.3",
     "date-fns": "^4.1.0",
+    "devicons-react": "^1.4.0",
     "embla-carousel-react": "^8.5.2",
     "graphql": "^16.8.1",
     "hast-util-to-jsx-runtime": "^2.3.5",

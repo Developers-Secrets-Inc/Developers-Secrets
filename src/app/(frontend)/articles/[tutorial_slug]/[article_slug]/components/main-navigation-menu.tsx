@@ -13,7 +13,18 @@ import {
 } from '@/components/ui/navigation-menu'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Code, FileText, Globe, Smartphone } from 'lucide-react'
+import {
+  Code,
+  FileCode,
+  Braces,
+  Atom,
+  Globe,
+  Database,
+  Smartphone,
+  Terminal,
+  Brackets,
+  Server,
+} from 'lucide-react'
 
 // Tutorial categories that can be expanded in the future
 const tutorialCategories = [
@@ -21,26 +32,26 @@ const tutorialCategories = [
     title: 'Python',
     href: '/tutorials/python',
     description: 'Learn Python programming from basics to advanced concepts.',
-    icon: <Code className="h-5 w-5" />,
+    icon: <Terminal className="h-5 w-5" />,
     isNew: true,
   },
   {
     title: 'JavaScript',
     href: '/tutorials/javascript',
     description: 'Master JavaScript for web development and beyond.',
-    icon: <Code className="h-5 w-5" />,
+    icon: <Braces className="h-5 w-5" />,
   },
   {
     title: 'TypeScript',
     href: '/tutorials/typescript',
     description: 'Enhance your JavaScript with static typing and advanced features.',
-    icon: <Code className="h-5 w-5" />,
+    icon: <FileCode className="h-5 w-5" />,
   },
   {
     title: 'React',
     href: '/tutorials/react',
     description: 'Build modern user interfaces with the React library.',
-    icon: <Code className="h-5 w-5" />,
+    icon: <Atom className="h-5 w-5" />,
     isNew: true,
   },
 ]
@@ -57,7 +68,7 @@ const courseCategories = [
     title: 'Data Science',
     href: '/courses/data-science',
     description: 'Learn data analysis, visualization, and machine learning.',
-    icon: <FileText className="h-5 w-5" />,
+    icon: <Database className="h-5 w-5" />,
     isNew: true,
   },
   {

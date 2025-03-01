@@ -23,7 +23,7 @@ interface ArticleWithTutorialInfo extends PayloadArticle {
   }
 }
 
-const CHUNK_SIZE = 20
+const CHUNK_SIZE = 2
 
 export async function fetchArticlesChunk(startIndex: number = 0) {
   try {
@@ -33,7 +33,6 @@ export async function fetchArticlesChunk(startIndex: number = 0) {
     const tutorials = await payload.find({
       collection: 'tutorials',
       depth: 1,
-      limit: 100, // Adjust based on your needs
     })
 
     const articles: ArticleWithTutorialInfo[] = []
