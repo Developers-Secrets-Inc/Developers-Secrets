@@ -1,6 +1,6 @@
 import { HelpCircle, MessageSquare } from 'lucide-react'
-import * as React from 'react'
 import Link from 'next/link'
+import * as React from 'react'
 
 import { CreateAccountCTA } from '@/components/cards/create-account-cta'
 import {
@@ -22,7 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { convertPayloadTutorialToTutorial, getSlugFromTitle } from '@/core/articles'
+import { convertPayloadTutorialToTutorial } from '@/core/articles'
 import { Article as PayloadArticle } from '@/payload-types'
 import { Tutorial } from '@/types/tutorial'
 import config from '@payload-config'
@@ -30,13 +30,6 @@ import { getPayload } from 'payload'
 import { SearchForm } from '../[article_slug]/components/search-form'
 import { ArticlesSwitcher } from './articles-switcher'
 
-type Outline = {
-  title: string
-  items: {
-    title: string
-    url: string
-  }[]
-}
 
 interface ArticleSidebarProps {
   tutorial: Tutorial
