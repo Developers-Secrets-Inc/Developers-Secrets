@@ -106,7 +106,7 @@ export const TutorialSidebar = ({ ...props }: React.ComponentProps<typeof Sideba
                 />
               </svg>
               <span className="flex-grow">Support</span>
-              <Badge variant="modern" color="green" withDot>
+              <Badge variant="outline" color="green">
                 Online
               </Badge>
             </div>

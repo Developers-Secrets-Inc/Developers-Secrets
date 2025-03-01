@@ -183,12 +183,7 @@ export const TutorialOutline = () => {
       {data.navMain.map((item) => (
         <AccordionItem key={item.title} value={item.title} className="border-none">
           <AccordionTrigger className="py-2 hover:no-underline">
-            <a
-              href={item.url}
-              className="inline-flex items-center gap-2 pr-2 text-sm font-semibold [&_svg]:size-4 [&_svg]:shrink-0 rounded-md w-full text-[#414651] leading-[24px]"
-            >
               {item.title}
-            </a>
           </AccordionTrigger>
           {item.items?.length ? (
             <AccordionContent className="pb-0">

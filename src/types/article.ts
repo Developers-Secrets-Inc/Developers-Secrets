@@ -49,6 +49,21 @@ type ArticleSEO = {
 }
 
 /**
+ * Métriques d'analyse pour un article
+ */
+export type ArticleAnalytics = {
+  views: number // Nombre total de vues
+  uniqueViews: number // Nombre de vues uniques (visiteurs distincts)
+  recommendationClicks: number // Nombre de clics depuis une recommandation
+  averageTimeSpent: number // Temps moyen passé sur l'article (en secondes)
+  bounceRate: number // Taux de rebond (pourcentage d'utilisateurs qui quittent après avoir vu uniquement cet article)
+
+  // Système d'avis (ratings) - échelle de 1 à 5
+  ratingCount: number // Nombre total d'avis reçus
+  ratingSum: number // Somme de tous les avis (permet de calculer la moyenne: ratingSum / ratingCount)
+}
+
+/**
  * Représente la traduction d'un article dans une langue spécifique
  */
 export type ArticleTranslation = {
@@ -84,4 +99,10 @@ export type Article = {
   relatedArticles?: string[] // IDs ou slugs
   prerequisites?: string[] // IDs ou slugs
   nextSteps?: string[] // IDs ou slugs
+
+  // Tags/concepts liés à l'article (ex: "python", "orienté objet")
+  tags?: string[] // IDs des tags
+
+  // Métriques d'analyse et d'engagement
+  analytics?: ArticleAnalytics
 }

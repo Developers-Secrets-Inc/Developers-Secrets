@@ -1,10 +1,9 @@
-import { Header } from '@/components/header'
-import { Button } from '@/components/ui/button'
+import { HomeHeader } from './components/home-header'
 
 export default async function HomePage() {
   return (
     <>
-      <Header />
+      <HomeHeader />
     </>
   )
 }
