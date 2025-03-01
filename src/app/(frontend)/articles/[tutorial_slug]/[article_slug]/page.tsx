@@ -27,10 +27,10 @@ export const dynamicParams = true
 
 // Generate metadata for SEO
 export async function generateMetadata(
-  { params }: { params: { tutorial_slug: string; article_slug: string } },
+  { params }: { params: Promise<{ tutorial_slug: string; article_slug: string }> },
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
-  const { tutorial_slug, article_slug } = params
+  const { tutorial_slug, article_slug } = await params
 
   try {
     // Get the tutorial and article data

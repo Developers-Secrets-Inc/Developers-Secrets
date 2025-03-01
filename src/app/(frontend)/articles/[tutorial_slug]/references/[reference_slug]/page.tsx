@@ -27,10 +27,10 @@ export const dynamicParams = true
 
 // Generate metadata for SEO
 export async function generateMetadata(
-  { params }: { params: { tutorial_slug: string; reference_slug: string } },
+  { params }: { params: Promise<{ tutorial_slug: string; reference_slug: string }> },
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
-  const { tutorial_slug, reference_slug } = params
+  const { tutorial_slug, reference_slug } = await params
 
   try {
     // Get the tutorial and article data
@@ -111,9 +111,9 @@ export async function generateStaticParams() {
 export default async function ReferencePage({
   params,
 }: {
-  params: { tutorial_slug: string; reference_slug: string }
+  params: Promise<{ tutorial_slug: string; reference_slug: string }>
 }) {
-  const { tutorial_slug, reference_slug } = params
+  const { tutorial_slug, reference_slug } = await params
 
   try {
     // Get the tutorial, article, and related data with cache tags

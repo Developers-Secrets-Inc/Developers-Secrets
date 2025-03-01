@@ -68,7 +68,7 @@ const createTutorialOutline = (
       .filter((article) => section.articles.includes(String(article.id)))
       .map((article) => ({
         title: article.title,
-        url: getSlugFromTitle(article.title),
+        url: article.slug,
       })),
   }))
 }
