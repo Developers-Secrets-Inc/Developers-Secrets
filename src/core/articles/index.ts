@@ -301,7 +301,7 @@ export const getPopularArticles = async (
   tutorialSlug: string,
   excludeArticleId?: string | number,
   options?: CacheOptions,
-  limit: number = 2,
+  limit: number = 1,
 ): Promise<PayloadArticle[]> => {
   const articles = await getTutorialArticles(tutorialSlug)
 
@@ -323,9 +323,9 @@ export const getPersonalizedArticleRecommendations = async (
   tutorialSlug: string,
   excludeArticleId?: string | number,
   options?: CacheOptions,
-  limit: number = 2,
+  limit: number = 3,
 ): Promise<PayloadArticle[]> => {
-  // For now, just return other articles from the same tutorial
+  // For now, just return random articles from the same tutorial
   // In the future, this will use user preferences and reading history
   const articles = await getTutorialArticles(tutorialSlug)
 
@@ -334,7 +334,24 @@ export const getPersonalizedArticleRecommendations = async (
     ? articles.filter((a) => String(a.id) !== String(excludeArticleId))
     : articles
 
-  return filteredArticles.slice(0, limit)
+  // Also filter out articles that are already in popular articles
+  // to avoid duplicates between popular and personalized recommendations
+  const popularArticles = await getPopularArticles(tutorialSlug, excludeArticleId, options, 1)
+  const popularArticleIds = popularArticles.map((article) => String(article.id))
+
+  const candidateArticles = filteredArticles.filter(
+    (article) => !popularArticleIds.includes(String(article.id)),
+  )
+
+  // If we don't have enough articles after filtering out popular ones,
+  // just use the filtered articles
+  const articlesToRandomize =
+    candidateArticles.length >= limit ? candidateArticles : filteredArticles
+
+  // Shuffle the articles to get random recommendations
+  const shuffledArticles = [...articlesToRandomize].sort(() => Math.random() - 0.5)
+
+  return shuffledArticles.slice(0, limit)
 }
 
 /**

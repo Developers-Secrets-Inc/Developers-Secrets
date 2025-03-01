@@ -23,18 +23,14 @@ import {
 } from '@/components/ui/sidebar'
 import {
   convertPayloadTutorialToTutorial,
-  getSlugFromTitle,
-  getTutorialArticles,
-  getTutorialExampleArticles,
-  getTutorialReferenceArticles,
+  getSlugFromTitle
 } from '@/core/articles'
 import { Article as PayloadArticle } from '@/payload-types'
 import { Tutorial } from '@/types/tutorial'
+import config from '@payload-config'
+import { getPayload } from 'payload'
 import { SearchForm } from '../[article_slug]/components/search-form'
 import { ArticlesSwitcher } from './articles-switcher'
-import { ArticleSidebarWrapper } from '@/components/article-sidebar-wrapper'
-import { getPayload } from 'payload'
-import config from '@payload-config'
 
 type Outline = {
   title: string
@@ -121,8 +117,7 @@ export const ArticleSidebar = async ({
   }
 
   return (
-    <ArticleSidebarWrapper>
-      <Sidebar style={{ '--sidebar-width': '270px' } as React.CSSProperties}>
+      <Sidebar style={{ '--sidebar-width': '270px' } as React.CSSProperties} className="z-50">
         <SidebarHeader>
           <ArticlesSwitcher
             tutorialSlug={tutorial.slug}
@@ -224,6 +219,5 @@ export const ArticleSidebar = async ({
           <CreateAccountCTA />
         </SidebarFooter>
       </Sidebar>
-    </ArticleSidebarWrapper>
   )
 }

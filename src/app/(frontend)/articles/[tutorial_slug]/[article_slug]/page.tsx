@@ -79,7 +79,7 @@ export default async function ArticlePage({
     {
       next: { tags: [`popular-articles-${tutorial_slug}`] },
     },
-    2,
+    1,
   )
 
   const personalizedArticles = await getPersonalizedArticleRecommendations(
@@ -88,7 +88,7 @@ export default async function ArticlePage({
     {
       next: { tags: [`personalized-articles-${tutorial_slug}`] },
     },
-    2,
+    3,
   )
 
   return (

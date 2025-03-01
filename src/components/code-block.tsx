@@ -3,6 +3,8 @@
 import { cn } from '@/lib/utils'
 import React, { useEffect, useState } from 'react'
 import { codeToHtml } from 'shiki'
+import { Copy, Check } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export type CodeBlockProps = {
   children?: React.ReactNode
@@ -14,7 +16,7 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
     <div
       className={cn(
         'not-prose flex w-full flex-col overflow-clip border',
-        'border-border bg-card text-card-foreground rounded-md',
+        'border-border/40 bg-muted/50 text-foreground rounded-md shadow-sm my-6',
         className,
       )}
       {...props}
@@ -34,11 +36,12 @@ export type CodeBlockCodeProps = {
 function CodeBlockCode({
   code,
   language = 'tsx',
-  theme = 'github-light',
+  theme = 'github-dark',
   className,
   ...props
 }: CodeBlockCodeProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function highlight() {
@@ -48,16 +51,44 @@ function CodeBlockCode({
     highlight()
   }, [code, language, theme])
 
-  const classNames = cn('w-full overflow-x-auto text-[13px] [&>pre]:px-4 [&>pre]:py-4', className)
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const classNames = cn(
+    'w-full overflow-x-auto text-[13px] [&>pre]:px-4 [&>pre]:py-4 font-mono',
+    '[&>pre]:bg-transparent [&>pre]:rounded-md',
+    className,
+  )
 
   // SSR fallback: render plain code if not hydrated yet
-  return highlightedHtml ? (
-    <div className={classNames} dangerouslySetInnerHTML={{ __html: highlightedHtml }} {...props} />
-  ) : (
-    <div className={classNames} {...props}>
-      <pre>
-        <code>{code}</code>
-      </pre>
+  return (
+    <div className="relative group">
+      <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 bg-background/80 hover:bg-background"
+          onClick={handleCopy}
+        >
+          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+        </Button>
+      </div>
+      {highlightedHtml ? (
+        <div
+          className={classNames}
+          dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+          {...props}
+        />
+      ) : (
+        <div className={classNames} {...props}>
+          <pre>
+            <code>{code}</code>
+          </pre>
+        </div>
+      )}
     </div>
   )
 }
@@ -66,7 +97,13 @@ export type CodeBlockGroupProps = React.HTMLAttributes<HTMLDivElement>
 
 function CodeBlockGroup({ children, className, ...props }: CodeBlockGroupProps) {
   return (
-    <div className={cn('flex items-center justify-between', className)} {...props}>
+    <div
+      className={cn(
+        'flex items-center justify-between px-4 py-2 bg-muted/80 border-b border-border/40 text-sm text-muted-foreground',
+        className,
+      )}
+      {...props}
+    >
       {children}
     </div>
   )
