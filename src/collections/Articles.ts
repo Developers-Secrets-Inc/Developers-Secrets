@@ -18,6 +18,15 @@ export const Articles: CollectionConfig = {
       required: true,
     },
     {
+      name: 'slug',
+      label: 'Slug',
+      type: 'text',
+      admin: {
+        description: 'URL-friendly identifier for this article. Will be used in the URL.',
+      },
+      required: true,
+    },
+    {
       name: 'subtitle',
       label: 'Subtitle',
       type: 'text',

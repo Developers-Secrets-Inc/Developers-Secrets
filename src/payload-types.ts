@@ -165,6 +165,10 @@ export interface Media {
 export interface Article {
   id: number;
   title: string;
+  /**
+   * URL-friendly identifier for this article. Will be used in the URL.
+   */
+  slug: string;
   subtitle?: string | null;
   content: string;
   /**
@@ -524,6 +528,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface ArticlesSelect<T extends boolean = true> {
   title?: T;
+  slug?: T;
   subtitle?: T;
   content?: T;
   seo?:

@@ -26,7 +26,7 @@ const LoginPrompt = () => (
       <ArrowRight className="ml-2 size-4" />
     </Button>
   </div>
-);
+)
 
 /**
  * Displays recommended articles at the end of an article
@@ -50,7 +50,6 @@ export function RecommendedArticles({
   const allRecommendations = [...topPopularArticle, ...filteredPersonalizedArticles]
 
   // Pour le débogage - afficher les articles reçus
-
 
   return (
     <div className="mt-12 pt-8 border-t">

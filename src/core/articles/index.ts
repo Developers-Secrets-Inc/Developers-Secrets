@@ -199,8 +199,8 @@ export const getArticle = async (
   options?: CacheOptions,
 ): Promise<PayloadArticle> => {
   const articles = await getTutorialArticles(tutorialSlug)
-  // Find article by comparing slugified titles to the requested slug
-  const article = articles.find((a) => slugify(a.title) === articleSlug)
+  // Find article by comparing slugs
+  const article = articles.find((a) => a.slug === articleSlug)
 
   if (!article) {
     throw new ArticleNotFoundError(articleSlug)
@@ -218,8 +218,8 @@ export const getExampleArticle = async (
   options?: CacheOptions,
 ): Promise<PayloadArticle> => {
   const articles = await getTutorialExampleArticles(tutorialSlug)
-  // Find article by comparing slugified titles to the requested slug
-  const article = articles.find((a) => slugify(a.title) === articleSlug)
+  // Find article by comparing slugs
+  const article = articles.find((a) => a.slug === articleSlug)
 
   if (!article) {
     throw new ArticleNotFoundError(articleSlug)
@@ -237,8 +237,8 @@ export const getReferenceArticle = async (
   options?: CacheOptions,
 ): Promise<PayloadArticle> => {
   const articles = await getTutorialReferenceArticles(tutorialSlug)
-  // Find article by comparing slugified titles to the requested slug
-  const article = articles.find((a) => slugify(a.title) === articleSlug)
+  // Find article by comparing slugs
+  const article = articles.find((a) => a.slug === articleSlug)
 
   if (!article) {
     throw new ArticleNotFoundError(articleSlug)
@@ -370,7 +370,7 @@ export const convertPayloadArticleToArticle = (payloadArticle: PayloadArticle): 
     title: payloadArticle.title,
     subtitle: payloadArticle.subtitle || undefined,
     content: payloadArticle.content,
-    slug: getSlugFromTitle(payloadArticle.title),
+    slug: payloadArticle.slug!,
     metadata: {
       createdAt: payloadArticle.createdAt,
       updatedAt: payloadArticle.updatedAt,
