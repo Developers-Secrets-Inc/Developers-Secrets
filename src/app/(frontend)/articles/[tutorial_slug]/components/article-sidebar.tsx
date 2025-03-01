@@ -1,6 +1,7 @@
 import { HelpCircle, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
+import { cache } from 'react'
 
 import { CreateAccountCTA } from '@/components/cards/create-account-cta'
 import {
@@ -30,7 +31,6 @@ import { getPayload } from 'payload'
 import { SearchForm } from '../[article_slug]/components/search-form'
 import { ArticlesSwitcher } from './articles-switcher'
 
-
 interface ArticleSidebarProps {
   tutorial: Tutorial
   currentArticleSlug: string
@@ -39,43 +39,36 @@ interface ArticleSidebarProps {
 }
 
 // Function to create tutorial outline from tutorial sections and articles
-const createTutorialOutline = (
-  tutorial: ReturnType<typeof convertPayloadTutorialToTutorial>,
-  articles: PayloadArticle[],
-  articleType: 'tutorial' | 'examples' | 'references',
-) => {
-  const sections =
-    articleType === 'tutorial'
-      ? tutorial.sections
-      : articleType === 'examples'
-        ? tutorial.exampleSections
-        : tutorial.referenceSections
+// Wrapped in cache() to avoid recalculating on each render
+const createTutorialOutline = cache(
+  (
+    tutorial: ReturnType<typeof convertPayloadTutorialToTutorial>,
+    articles: PayloadArticle[],
+    articleType: 'tutorial' | 'examples' | 'references',
+  ) => {
+    const sections =
+      articleType === 'tutorial'
+        ? tutorial.sections
+        : articleType === 'examples'
+          ? tutorial.exampleSections
+          : tutorial.referenceSections
 
-  if (!sections) return []
+    if (!sections) return []
 
-  return sections.map((section) => ({
-    title: section.title,
-    items: articles
-      .filter((article) => section.articles.includes(String(article.id)))
-      .map((article) => ({
-        title: article.title,
-        url: article.slug,
-      })),
-  }))
-}
+    return sections.map((section) => ({
+      title: section.title,
+      items: articles
+        .filter((article) => section.articles.includes(String(article.id)))
+        .map((article) => ({
+          title: article.title,
+          url: article.slug,
+        })),
+    }))
+  },
+)
 
-export const ArticleSidebar = async ({
-  tutorial,
-  currentArticleSlug,
-  articles,
-  articleType,
-}: ArticleSidebarProps) => {
-  const tutorialOutline = createTutorialOutline(tutorial, articles, articleType)
-  const activeGroupIndex = tutorialOutline.findIndex((group) =>
-    group.items.some((item) => item.url === currentArticleSlug),
-  )
-
-  // Get support status
+// Cache the support status fetch to avoid database queries on each navigation
+const getSupportStatus = cache(async () => {
   let supportStatus = { status: 'online' as 'online' | 'maintenance' | 'offline' }
   try {
     const payload = await getPayload({ config })
@@ -92,6 +85,23 @@ export const ArticleSidebar = async ({
   } catch (error) {
     console.error('Error fetching support status:', error)
   }
+  return supportStatus
+})
+
+export const ArticleSidebar = async ({
+  tutorial,
+  currentArticleSlug,
+  articles,
+  articleType,
+}: ArticleSidebarProps) => {
+  // Use cached functions
+  const tutorialOutline = createTutorialOutline(tutorial, articles, articleType)
+  const activeGroupIndex = tutorialOutline.findIndex((group) =>
+    group.items.some((item) => item.url === currentArticleSlug),
+  )
+
+  // Get support status using the cached function
+  const supportStatus = await getSupportStatus()
 
   // Determine the status indicator color
   const getStatusColor = () => {
@@ -142,6 +152,7 @@ export const ArticleSidebar = async ({
                           <SidebarMenuButton asChild isActive={item.url === currentArticleSlug}>
                             <Link
                               href={`/articles/${tutorial.slug}/${articleType !== 'tutorial' ? `${articleType}/` : ''}${item.url}`}
+                              prefetch={true}
                             >
                               {item.title}
                             </Link>
