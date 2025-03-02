@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import Link from 'next/link'
 
 export function AuthButtons() {
   // This would typically come from your auth context/provider
@@ -48,10 +49,12 @@ export function AuthButtons() {
 
   return (
     <div className="ml-auto flex items-center gap-2">
-      <Button variant="outline" size="sm">
-        Log in
+      <Button variant="outline" size="sm" asChild>
+        <Link href="/auth/login">Log in</Link>
       </Button>
-      <Button size="sm">Sign up</Button>
+      <Button size="sm" asChild>
+        <Link href="/auth/signup">Sign up</Link>
+      </Button>
     </div>
   )
 }
