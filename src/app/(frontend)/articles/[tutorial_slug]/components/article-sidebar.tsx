@@ -182,7 +182,7 @@ export const ArticleSidebar = ({
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild className='cursor-pointer'>
               <button onClick={() => setFeedbackOpen(true)} className="flex justify-between w-full">
                 <span className="flex items-center gap-2">
                   <MessageSquare className="size-4" />
@@ -208,7 +208,7 @@ export const ArticleSidebar = ({
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild className='cursor-pointer'>
               <button onClick={() => setSupportOpen(true)} className="flex justify-between w-full">
                 <span className="flex items-center gap-2">
                   <HelpCircle className="size-4" />

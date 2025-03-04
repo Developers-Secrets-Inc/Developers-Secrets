@@ -22,7 +22,7 @@ export default async function Page({ params }: { params: Promise<{ tutorial_slug
     }
 
     // Redirige vers l'article
-    const slug = getSlugFromTitle(article.title)
+    const slug = article.slug
     redirect(`/articles/${tutorial_slug}/examples/${slug}`)
   } catch (error) {
     if (error instanceof Error && error.message !== 'NEXT_REDIRECT') {
