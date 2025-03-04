@@ -418,8 +418,7 @@ export interface SupportSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "permissions".
- */
+
 export interface Permission {
   id: number;
   name: string;
@@ -435,6 +434,7 @@ export interface Permission {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+
  * via the `definition` "user-informations".
  */
 export interface UserInformation {
@@ -460,6 +460,7 @@ export interface UserInformation {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -731,6 +732,7 @@ export interface PermissionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+
  * via the `definition` "user-informations_select".
  */
 export interface UserInformationsSelect<T extends boolean = true> {
@@ -758,6 +760,7 @@ export interface UserInformationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+
  * via the `definition` "payload-locked-documents_select".
  */
 export interface PayloadLockedDocumentsSelect<T extends boolean = true> {

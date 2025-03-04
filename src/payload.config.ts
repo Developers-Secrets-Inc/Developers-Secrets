@@ -14,8 +14,9 @@ import { Tutorials } from './collections/Tutorials'
 import { Tags } from './collections/Tags'
 import { Feedbacks } from './collections/Feedbacks'
 import { SupportSettings } from './collections/SupportSettings'
-import { Permissions } from './collections/Permissions'
 import { UserInformations } from './collections/UserInformations'
+import { Permissions } from './collections/Permissions'
+
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -27,7 +28,17 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Articles, Tutorials, Tags, Feedbacks, SupportSettings, Permissions, UserInformations],
+  collections: [
+    Users,
+    Media,
+    Articles,
+    Tutorials,
+    Tags,
+    Feedbacks,
+    SupportSettings,
+    UserInformations,
+    Permissions,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
