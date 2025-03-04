@@ -87,8 +87,12 @@ function collectArticleFromSection(
   type: 'tutorial' | 'examples' | 'references',
 ): ArticleWithTutorialInfo | null {
   if (typeof article === 'object' && article !== null) {
+    const slug =
+      article.slug || (article.title ? getSlugFromTitle(article.title) : `article-${article.id}`)
+
     return {
       ...article,
+      slug,
       _tutorial: {
         slug: tutorialSlug,
         type,
@@ -151,7 +155,7 @@ function transformArticleForClient(article: ArticleWithTutorialInfo): ArticleWit
   const path = `/articles/${tutorialInfo.slug}/${tutorialInfo.type !== 'tutorial' ? `${tutorialInfo.type}/` : ''}${articleSlug}`
 
   return {
-    id: `${tutorialInfo.slug}-${tutorialInfo.type}-${tutorialInfo.originalId}`,
+    id: `${tutorialInfo.slug}-${tutorialInfo.type}-${tutorialInfo.originalId}-${articleSlug}`,
     title: article.title,
     subtitle: article.subtitle || undefined,
     tutorialSlug: tutorialInfo.slug,
@@ -187,7 +191,6 @@ export async function fetchArticlesChunk(startIndex: number = 0) {
     const cachedResult = getCachedArticlesResult(startIndex)
     if (cachedResult) return cachedResult
 
-    // No cache
     const tutorials = await getCachedTutorials()
     const allArticles: ArticleWithTutorialInfo[] = []
 
@@ -201,10 +204,25 @@ export async function fetchArticlesChunk(startIndex: number = 0) {
       allArticles.push(...tutorialArticles)
     }
 
-    const articlesWithTutorial = paginateAndTransformArticles(allArticles, startIndex)
+    // Dédupliquer les articles en utilisant un Map avec l'ID original comme clé
+    const uniqueArticlesMap = new Map<string, ArticleWithTutorialInfo>()
+
+    for (const article of allArticles) {
+      const uniqueKey = `${article._tutorial.slug}-${article._tutorial.type}-${article._tutorial.originalId}-${article.slug}`
+
+      // Ne garder que la première occurrence de chaque article
+      if (!uniqueArticlesMap.has(uniqueKey)) {
+        uniqueArticlesMap.set(uniqueKey, article)
+      }
+    }
+
+    // Convertir le Map en tableau
+    const uniqueArticles = Array.from(uniqueArticlesMap.values())
+
+    const articlesWithTutorial = paginateAndTransformArticles(uniqueArticles, startIndex)
     cacheArticlesResult(startIndex, articlesWithTutorial)
 
-    return createArticlesResponse(articlesWithTutorial, allArticles, startIndex)
+    return createArticlesResponse(articlesWithTutorial, uniqueArticles, startIndex)
   } catch (error) {
     console.error('Error fetching articles chunk:', error)
     return {
