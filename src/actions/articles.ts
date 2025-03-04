@@ -89,7 +89,7 @@ export async function fetchArticlesChunk(startIndex: number = 0) {
     // Transform articles for client
     const articlesWithTutorial = articles.map((article) => {
       const tutorialInfo = article._tutorial
-      const articleSlug = getSlugFromTitle(article.title)
+      const articleSlug = article.slug
       const path = `/articles/${tutorialInfo.slug}/${tutorialInfo.type !== 'tutorial' ? `${tutorialInfo.type}/` : ''}${articleSlug}`
 
       return {
