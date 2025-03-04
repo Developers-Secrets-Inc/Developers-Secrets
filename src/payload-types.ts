@@ -73,6 +73,8 @@ export interface Config {
     tags: Tag;
     feedbacks: Feedback;
     'support-settings': SupportSetting;
+    permissions: Permission;
+    'user-informations': UserInformation;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -86,6 +88,8 @@ export interface Config {
     tags: TagsSelect<false> | TagsSelect<true>;
     feedbacks: FeedbacksSelect<false> | FeedbacksSelect<true>;
     'support-settings': SupportSettingsSelect<false> | SupportSettingsSelect<true>;
+    permissions: PermissionsSelect<false> | PermissionsSelect<true>;
+    'user-informations': UserInformationsSelect<false> | UserInformationsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -414,6 +418,48 @@ export interface SupportSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "permissions".
+ */
+export interface Permission {
+  id: number;
+  name: string;
+  description?: string | null;
+  /**
+   * Unique code used to identify this permission in the system
+   */
+  code: string;
+  category?: ('content' | 'users' | 'system' | 'other') | null;
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-informations".
+ */
+export interface UserInformation {
+  id: number;
+  userId: string;
+  role: 'basic' | 'pro' | 'max';
+  /**
+   * Select permissions for this user
+   */
+  permissions?: (number | Permission)[] | null;
+  preferences?: {
+    notifications?: {
+      friends?: boolean | null;
+    };
+    emails?: {
+      marketing?: boolean | null;
+      affiliates?: boolean | null;
+    };
+    theme?: ('light' | 'dark' | 'system') | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -446,6 +492,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'support-settings';
         value: number | SupportSetting;
+      } | null)
+    | ({
+        relationTo: 'permissions';
+        value: number | Permission;
+      } | null)
+    | ({
+        relationTo: 'user-informations';
+        value: number | UserInformation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -659,6 +713,46 @@ export interface SupportSettingsSelect<T extends boolean = true> {
   status?: T;
   maintenanceMessage?: T;
   offlineMessage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "permissions_select".
+ */
+export interface PermissionsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  code?: T;
+  category?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-informations_select".
+ */
+export interface UserInformationsSelect<T extends boolean = true> {
+  userId?: T;
+  role?: T;
+  permissions?: T;
+  preferences?:
+    | T
+    | {
+        notifications?:
+          | T
+          | {
+              friends?: T;
+            };
+        emails?:
+          | T
+          | {
+              marketing?: T;
+              affiliates?: T;
+            };
+        theme?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

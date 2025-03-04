@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { HelpCircle, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
@@ -30,6 +33,9 @@ import config from '@payload-config'
 import { getPayload } from 'payload'
 import { SearchForm } from '../[article_slug]/components/search-form'
 import { ArticlesSwitcher } from './articles-switcher'
+import { FeedbackDialog } from '@/components/feedback-dialog'
+import { SupportDialog } from '@/components/support-dialog'
+import { getSupportStatus as fetchSupportStatus } from '@/actions/support'
 
 interface ArticleSidebarProps {
   tutorial: Tutorial
@@ -67,41 +73,46 @@ const createTutorialOutline = cache(
   },
 )
 
-// Cache the support status fetch to avoid database queries on each navigation
-const getSupportStatus = cache(async () => {
-  let supportStatus = { status: 'online' as 'online' | 'maintenance' | 'offline' }
-  try {
-    const payload = await getPayload({ config })
-    const supportSettings = await payload.find({
-      collection: 'support-settings',
-      limit: 1,
-    })
-
-    if (supportSettings.totalDocs > 0) {
-      supportStatus = {
-        status: supportSettings.docs[0].status as 'online' | 'maintenance' | 'offline',
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching support status:', error)
-  }
-  return supportStatus
-})
-
-export const ArticleSidebar = async ({
+export const ArticleSidebar = ({
   tutorial,
   currentArticleSlug,
   articles,
   articleType,
 }: ArticleSidebarProps) => {
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [supportOpen, setSupportOpen] = useState(false)
+  const [supportStatus, setSupportStatus] = useState<{
+    status: 'online' | 'maintenance' | 'offline'
+    message: string
+  }>({
+    status: 'online',
+    message: '',
+  })
+
+  // Fetch support status on component mount
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const status = await fetchSupportStatus()
+        setSupportStatus(
+          status as {
+            status: 'online' | 'maintenance' | 'offline'
+            message: string
+          },
+        )
+      } catch (error) {
+        console.error('Failed to fetch support status:', error)
+      }
+    }
+
+    fetchStatus()
+  }, [])
+
   // Use cached functions
   const tutorialOutline = createTutorialOutline(tutorial, articles, articleType)
   const activeGroupIndex = tutorialOutline.findIndex((group) =>
     group.items.some((item) => item.url === currentArticleSlug),
   )
-
-  // Get support status using the cached function
-  const supportStatus = await getSupportStatus()
 
   // Determine the status indicator color
   const getStatusColor = () => {
@@ -172,7 +183,7 @@ export const ArticleSidebar = async ({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="#feedback" className="flex justify-between w-full">
+              <button onClick={() => setFeedbackOpen(true)} className="flex justify-between w-full">
                 <span className="flex items-center gap-2">
                   <MessageSquare className="size-4" />
                   Feedback
@@ -193,12 +204,12 @@ export const ArticleSidebar = async ({
                     strokeLinejoin="round"
                   />
                 </svg>
-              </Link>
+              </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="#support" className="flex justify-between w-full">
+              <button onClick={() => setSupportOpen(true)} className="flex justify-between w-full">
                 <span className="flex items-center gap-2">
                   <HelpCircle className="size-4" />
                   Support
@@ -214,9 +225,17 @@ export const ArticleSidebar = async ({
                       ? 'Maintenance'
                       : 'Offline'}
                 </Badge>
-              </Link>
+              </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
+
+          <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+
+          <SupportDialog
+            open={supportOpen}
+            onOpenChange={setSupportOpen}
+            supportStatus={supportStatus}
+          />
         </SidebarMenu>
         <CreateAccountCTA />
       </SidebarFooter>
