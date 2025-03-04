@@ -47,7 +47,7 @@ export const CreateAccountCTA = () => {
           </p>
         </div>
       </div>
-      <Button className="w-full">Create Account</Button>
+      <Button className="w-full cursor-pointer">Create Account</Button>
     </div>
   )
 }

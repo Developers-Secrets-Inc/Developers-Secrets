@@ -23,92 +23,206 @@ interface ArticleWithTutorialInfo extends PayloadArticle {
   }
 }
 
-const CHUNK_SIZE = 2
+const CHUNK_SIZE = 10
+
+let tutorialsCache: any[] | null = null
+let tutorialsCacheExpiry = 0
+const CACHE_TTL = 5 * 60 * 1000
+
+const articlesCache = new Map<string, ArticleWithTutorial[]>()
+const articlesCacheExpiry = new Map<string, number>()
+
+async function getCachedTutorials() {
+  const now = Date.now()
+
+  if (tutorialsCache && tutorialsCacheExpiry > now) {
+    return tutorialsCache
+  }
+
+  const payload = await getPayload({ config })
+  const tutorials = await payload.find({
+    collection: 'tutorials',
+    depth: 1,
+  })
+
+  tutorialsCache = tutorials.docs
+  tutorialsCacheExpiry = now + CACHE_TTL
+
+  return tutorialsCache
+}
+
+interface Section {
+  title?: string
+  articles: (PayloadArticle | number)[]
+}
+
+function getCachedArticlesResult(startIndex: number) {
+  const cacheKey = `articles-${startIndex}-${CHUNK_SIZE}`
+  const now = Date.now()
+
+  if (articlesCache.has(cacheKey) && (articlesCacheExpiry.get(cacheKey) || 0) > now) {
+    const cachedResult = articlesCache.get(cacheKey)!
+    return {
+      articles: cachedResult,
+      hasMore: cachedResult.length === CHUNK_SIZE,
+      total: startIndex + cachedResult.length + (cachedResult.length === CHUNK_SIZE ? 1 : 0),
+      nextIndex: cachedResult.length === CHUNK_SIZE ? startIndex + CHUNK_SIZE : null,
+    }
+  }
+
+  return null
+}
+
+function cacheArticlesResult(startIndex: number, articlesWithTutorial: ArticleWithTutorial[]) {
+  const cacheKey = `articles-${startIndex}-${CHUNK_SIZE}`
+  const now = Date.now()
+
+  articlesCache.set(cacheKey, articlesWithTutorial)
+  articlesCacheExpiry.set(cacheKey, now + CACHE_TTL)
+}
+
+function collectArticleFromSection(
+  article: any,
+  tutorialSlug: string,
+  type: 'tutorial' | 'examples' | 'references',
+): ArticleWithTutorialInfo | null {
+  if (typeof article === 'object' && article !== null) {
+    const slug =
+      article.slug || (article.title ? getSlugFromTitle(article.title) : `article-${article.id}`)
+
+    return {
+      ...article,
+      slug,
+      _tutorial: {
+        slug: tutorialSlug,
+        type,
+        originalId: String(article.id),
+      },
+    }
+  }
+  return null
+}
+
+function processSection(
+  section: Section,
+  type: 'tutorial' | 'examples' | 'references',
+  tutorialSlug: string,
+): ArticleWithTutorialInfo[] {
+  if (!section?.articles) return []
+
+  const sectionArticles: ArticleWithTutorialInfo[] = []
+
+  for (const article of section.articles) {
+    const processedArticle = collectArticleFromSection(article, tutorialSlug, type)
+    if (processedArticle) {
+      sectionArticles.push(processedArticle)
+    }
+  }
+
+  return sectionArticles
+}
+
+function collectArticlesFromTutorial(
+  tutorial: any,
+  tutorialSlug: string,
+): ArticleWithTutorialInfo[] {
+  const allArticles: ArticleWithTutorialInfo[] = []
+
+  if (tutorial.sections) {
+    tutorial.sections.forEach((section: Section) => {
+      allArticles.push(...processSection(section, 'tutorial', tutorialSlug))
+    })
+  }
+
+  if (tutorial.exampleSections) {
+    tutorial.exampleSections.forEach((section: Section) => {
+      allArticles.push(...processSection(section, 'examples', tutorialSlug))
+    })
+  }
+
+  if (tutorial.referenceSections) {
+    tutorial.referenceSections.forEach((section: Section) => {
+      allArticles.push(...processSection(section, 'references', tutorialSlug))
+    })
+  }
+
+  return allArticles
+}
+
+function transformArticleForClient(article: ArticleWithTutorialInfo): ArticleWithTutorial {
+  const tutorialInfo = article._tutorial
+  const articleSlug = article.slug
+  const path = `/articles/${tutorialInfo.slug}/${tutorialInfo.type !== 'tutorial' ? `${tutorialInfo.type}/` : ''}${articleSlug}`
+
+  return {
+    id: `${tutorialInfo.slug}-${tutorialInfo.type}-${tutorialInfo.originalId}-${articleSlug}`,
+    title: article.title,
+    subtitle: article.subtitle || undefined,
+    tutorialSlug: tutorialInfo.slug,
+    type: tutorialInfo.type,
+    url: path,
+    searchKey: `${article.title} ${article.subtitle || ''} ${tutorialInfo.slug}`.toLowerCase(),
+  }
+}
+
+function paginateAndTransformArticles(
+  allArticles: ArticleWithTutorialInfo[],
+  startIndex: number,
+): ArticleWithTutorial[] {
+  const paginatedArticles = allArticles.slice(startIndex, startIndex + CHUNK_SIZE)
+  return paginatedArticles.map(transformArticleForClient)
+}
+
+function createArticlesResponse(
+  articlesWithTutorial: ArticleWithTutorial[],
+  allArticles: ArticleWithTutorialInfo[],
+  startIndex: number,
+) {
+  return {
+    articles: articlesWithTutorial,
+    hasMore: startIndex + CHUNK_SIZE < allArticles.length,
+    total: allArticles.length,
+    nextIndex: startIndex + CHUNK_SIZE < allArticles.length ? startIndex + CHUNK_SIZE : null,
+  }
+}
 
 export async function fetchArticlesChunk(startIndex: number = 0) {
   try {
-    const payload = await getPayload({ config })
+    const cachedResult = getCachedArticlesResult(startIndex)
+    if (cachedResult) return cachedResult
 
-    // Fetch tutorials with pagination directly from Payload
-    const tutorials = await payload.find({
-      collection: 'tutorials',
-      depth: 1,
-    })
+    const tutorials = await getCachedTutorials()
+    const allArticles: ArticleWithTutorialInfo[] = []
 
-    const articles: ArticleWithTutorialInfo[] = []
-    let count = 0
-    let skipped = 0
+    const tutorialSlugs = tutorials.map((tutorial) => ({
+      tutorial,
+      slug: getSlugFromTitle(tutorial.title),
+    }))
 
-    // Process each tutorial
-    for (const tutorial of tutorials.docs) {
-      const tutorialSlug = getSlugFromTitle(tutorial.title)
+    for (const { tutorial, slug: tutorialSlug } of tutorialSlugs) {
+      const tutorialArticles = collectArticlesFromTutorial(tutorial, tutorialSlug)
+      allArticles.push(...tutorialArticles)
+    }
 
-      // Helper function to process articles from sections
-      const processArticles = (section: any, type: 'tutorial' | 'examples' | 'references') => {
-        if (!section?.articles) return
+    // Dédupliquer les articles en utilisant un Map avec l'ID original comme clé
+    const uniqueArticlesMap = new Map<string, ArticleWithTutorialInfo>()
 
-        for (const article of section.articles) {
-          if (typeof article === 'object' && article !== null) {
-            // Skip articles before startIndex
-            if (skipped < startIndex) {
-              skipped++
-              continue
-            }
+    for (const article of allArticles) {
+      const uniqueKey = `${article._tutorial.slug}-${article._tutorial.type}-${article._tutorial.originalId}-${article.slug}`
 
-            // Stop if we have enough articles for this chunk
-            if (articles.length >= CHUNK_SIZE) {
-              count++
-              continue
-            }
-
-            articles.push({
-              ...article,
-              _tutorial: {
-                slug: tutorialSlug,
-                type,
-                originalId: article.id, // Store the original ID
-              },
-            })
-            count++
-          }
-        }
-      }
-
-      // Process each type of section
-      if (tutorial.sections) {
-        tutorial.sections.forEach((section) => processArticles(section, 'tutorial'))
-      }
-      if (tutorial.exampleSections) {
-        tutorial.exampleSections.forEach((section) => processArticles(section, 'examples'))
-      }
-      if (tutorial.referenceSections) {
-        tutorial.referenceSections.forEach((section) => processArticles(section, 'references'))
+      // Ne garder que la première occurrence de chaque article
+      if (!uniqueArticlesMap.has(uniqueKey)) {
+        uniqueArticlesMap.set(uniqueKey, article)
       }
     }
 
-    // Transform articles for client
-    const articlesWithTutorial = articles.map((article) => {
-      const tutorialInfo = article._tutorial
-      const articleSlug = getSlugFromTitle(article.title)
-      const path = `/articles/${tutorialInfo.slug}/${tutorialInfo.type !== 'tutorial' ? `${tutorialInfo.type}/` : ''}${articleSlug}`
+    // Convertir le Map en tableau
+    const uniqueArticles = Array.from(uniqueArticlesMap.values())
 
-      return {
-        id: `${tutorialInfo.slug}-${tutorialInfo.type}-${tutorialInfo.originalId}`,
-        title: article.title,
-        subtitle: article.subtitle || undefined,
-        tutorialSlug: tutorialInfo.slug,
-        type: tutorialInfo.type,
-        url: path,
-        searchKey: `${article.title} ${article.subtitle || ''} ${tutorialInfo.slug}`.toLowerCase(),
-      }
-    })
+    const articlesWithTutorial = paginateAndTransformArticles(uniqueArticles, startIndex)
+    cacheArticlesResult(startIndex, articlesWithTutorial)
 
-    return {
-      articles: articlesWithTutorial,
-      hasMore: count > startIndex + CHUNK_SIZE,
-      total: count,
-      nextIndex: count > startIndex + CHUNK_SIZE ? startIndex + CHUNK_SIZE : null,
-    }
+    return createArticlesResponse(articlesWithTutorial, uniqueArticles, startIndex)
   } catch (error) {
     console.error('Error fetching articles chunk:', error)
     return {
@@ -118,4 +232,10 @@ export async function fetchArticlesChunk(startIndex: number = 0) {
       nextIndex: null,
     }
   }
+}
+
+export async function invalidateArticlesCache() {
+  tutorialsCache = null
+  articlesCache.clear()
+  articlesCacheExpiry.clear()
 }

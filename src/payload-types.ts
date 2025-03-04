@@ -73,8 +73,8 @@ export interface Config {
     tags: Tag;
     feedbacks: Feedback;
     'support-settings': SupportSetting;
-    'user-informations': UserInformation;
     permissions: Permission;
+    'user-informations': UserInformation;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -88,8 +88,8 @@ export interface Config {
     tags: TagsSelect<false> | TagsSelect<true>;
     feedbacks: FeedbacksSelect<false> | FeedbacksSelect<true>;
     'support-settings': SupportSettingsSelect<false> | SupportSettingsSelect<true>;
-    'user-informations': UserInformationsSelect<false> | UserInformationsSelect<true>;
     permissions: PermissionsSelect<false> | PermissionsSelect<true>;
+    'user-informations': UserInformationsSelect<false> | UserInformationsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -418,6 +418,23 @@ export interface SupportSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+
+export interface Permission {
+  id: number;
+  name: string;
+  description?: string | null;
+  /**
+   * Unique code used to identify this permission in the system
+   */
+  code: string;
+  category?: ('content' | 'users' | 'system' | 'other') | null;
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+
  * via the `definition` "user-informations".
  */
 export interface UserInformation {
@@ -443,23 +460,7 @@ export interface UserInformation {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "permissions".
- */
-export interface Permission {
-  id: number;
-  name: string;
-  description?: string | null;
-  /**
-   * Unique code used to identify this permission in the system
-   */
-  code: string;
-  category?: ('content' | 'users' | 'system' | 'other') | null;
-  isActive?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
+
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -494,12 +495,12 @@ export interface PayloadLockedDocument {
         value: number | SupportSetting;
       } | null)
     | ({
-        relationTo: 'user-informations';
-        value: number | UserInformation;
-      } | null)
-    | ({
         relationTo: 'permissions';
         value: number | Permission;
+      } | null)
+    | ({
+        relationTo: 'user-informations';
+        value: number | UserInformation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -718,6 +719,20 @@ export interface SupportSettingsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "permissions_select".
+ */
+export interface PermissionsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  code?: T;
+  category?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+
  * via the `definition` "user-informations_select".
  */
 export interface UserInformationsSelect<T extends boolean = true> {
@@ -745,19 +760,7 @@ export interface UserInformationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "permissions_select".
- */
-export interface PermissionsSelect<T extends boolean = true> {
-  name?: T;
-  description?: T;
-  code?: T;
-  category?: T;
-  isActive?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
+
  * via the `definition` "payload-locked-documents_select".
  */
 export interface PayloadLockedDocumentsSelect<T extends boolean = true> {

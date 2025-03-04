@@ -17,6 +17,7 @@ import { SupportSettings } from './collections/SupportSettings'
 import { UserInformations } from './collections/UserInformations'
 import { Permissions } from './collections/Permissions'
 
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
