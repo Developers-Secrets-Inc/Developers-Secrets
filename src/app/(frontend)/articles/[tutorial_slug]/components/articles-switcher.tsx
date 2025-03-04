@@ -100,15 +100,15 @@ export const ArticlesSwitcher = ({
             {orderedMenuItems.map((item) => (
               <DropdownMenuItem
                 key={item.type}
-                className={`flex items-center gap-3 rounded-lg bg-background hover:bg-muted px-3 py-2 ${item.disabled ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={`flex items-start gap-3 rounded-lg bg-background hover:bg-muted px-3 py-2 ${item.disabled ? 'opacity-70 cursor-not-allowed' : ''}`}
                 disabled={item.disabled}
                 asChild={!item.disabled}
               >
                 {item.disabled ? (
-                  <div className="flex items-center gap-3 w-full">
-                    <div className="relative">
-                      <item.icon className="size-5" />
-                      <item.lockIcon className="size-3 absolute -right-1 -bottom-1 text-muted-foreground" />
+                  <div className="flex items-start gap-3 w-full">
+                    <div className="relative mt-1">
+                      <item.icon className="size-4" />
+                      <item.lockIcon className="size-2.5 absolute -right-1 -bottom-1 text-muted-foreground" />
                     </div>
                     <div className="flex flex-col">
                       <span className="leading-6 font-semibold text-foreground">{item.title}</span>
@@ -116,8 +116,8 @@ export const ArticlesSwitcher = ({
                     </div>
                   </div>
                 ) : (
-                  <Link href={item.href} className="flex items-center gap-3 w-full">
-                    <item.icon className="size-5" />
+                  <Link href={item.href} className="flex items-start gap-3 w-full">
+                    <item.icon className="size-4 mt-1" />
                     <div className="flex flex-col">
                       <span className="leading-6 font-semibold text-foreground">{item.title}</span>
                       <span className="leading-5 text-muted-foreground">{item.description}</span>

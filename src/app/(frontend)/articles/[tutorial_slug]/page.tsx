@@ -7,7 +7,7 @@ export default async function Page({ params }: { params: Promise<{ tutorial_slug
 
   try {
     const article = await getFirstArticleOfTutorial(tutorial_slug)
-    const slug = getSlugFromTitle(article.title)
+    const slug = article.slug
 
     return redirect(`/articles/${tutorial_slug}/${slug}`)
   } catch (error) {

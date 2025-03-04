@@ -66,7 +66,7 @@ const ArticleCard = React.memo(function ArticleCard({
         </div>
       </div>
       <Link href={`/articles/${tutorialSlug}/${article.slug}`} className="mt-auto">
-        <Button className="w-full flex items-center justify-center gap-2">
+        <Button className="w-full flex items-center justify-center gap-2 cursor-pointer">
           Read Article
           <ArrowRight className="size-4" />
         </Button>

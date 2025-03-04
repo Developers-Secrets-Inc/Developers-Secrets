@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { sendSupportEmail } from '@/actions/support'
 import { AlertCircle, CheckCircle, HelpCircle, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -27,6 +29,7 @@ interface SupportDialogProps {
 
 export function SupportDialog({ open, onOpenChange, supportStatus }: SupportDialogProps) {
   const params = useParams<{ tutorial_slug?: string; article_slug?: string }>()
+  const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
@@ -54,10 +57,28 @@ export function SupportDialog({ open, onOpenChange, supportStatus }: SupportDial
       return
     }
 
+    if (!email.trim()) {
+      setResult({
+        success: false,
+        message: 'Please enter your email address',
+      })
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setResult({
+        success: false,
+        message: 'Please enter a valid email address',
+      })
+      return
+    }
+
     setIsSubmitting(true)
     setResult(null)
 
     const formData = new FormData()
+    formData.append('email', email)
     formData.append('message', message)
 
     if (params.tutorial_slug) {
@@ -145,13 +166,29 @@ export function SupportDialog({ open, onOpenChange, supportStatus }: SupportDial
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Textarea
-            placeholder="How can we help you?"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="min-h-[120px]"
-            disabled={isSubmitting || supportStatus.status !== 'online'}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="your.email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isSubmitting || supportStatus.status !== 'online'}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="message">Message</Label>
+            <Textarea
+              id="message"
+              placeholder="How can we help you?"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="min-h-[120px]"
+              disabled={isSubmitting || supportStatus.status !== 'online'}
+            />
+          </div>
 
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting || supportStatus.status !== 'online'}>
