@@ -203,7 +203,7 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
             </SidebarMenuItem>
             <SidebarMenuItem key="profile">
               <SidebarMenuButton asChild>
-                <Link href="#">
+                <Link href="/profile/me">
                   <User className="size-4" />
                   <span>Profile</span>
                 </Link>
