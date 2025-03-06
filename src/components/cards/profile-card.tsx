@@ -1,152 +1,170 @@
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import { useState, useEffect } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
+import { Award, Info, Lock, Star } from 'lucide-react'
+import Image from 'next/image'
+import { useEffect } from 'react'
 
-// Définir l'interface pour les données de streak
-interface StreakDay {
-  date: Date
-  activityLevel: number
+export function UserStats({ achievements }: { achievements: number }) {
+  return (
+    <motion.div
+      className="grid grid-cols-2 gap-4 text-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 1, duration: 0.5 }}
+    >
+      <div className="flex items-center gap-2 border p-3 rounded-md col-span-2">
+        <Award className="h-5 w-5 text-primary" />
+        <span>{achievements} Récompenses débloquées</span>
+      </div>
+    </motion.div>
+  )
 }
 
-// Fonction pour générer des données de streak aléatoires pour la démonstration
-const generateStreakData = (): StreakDay[] => {
-  const data: StreakDay[] = []
-  for (let i = 0; i < 30; i++) {
-    // Générer un niveau d'activité aléatoire entre 0 et 4
-    // 0 = pas d'activité, 1-4 = niveaux d'activité croissants
-    const activityLevel = Math.floor(Math.random() * 5)
+export function LevelProgress({ level, xp, maxXp }: { level: number; xp: number; maxXp: number }) {
+  const xpPercentage = (xp / maxXp) * 100
+  const count = useMotionValue(0)
 
-    // Calculer la date (aujourd'hui - i jours)
-    const date = new Date()
-    date.setDate(date.getDate() - i)
+  useEffect(() => {
+    const animation = animate(count, xpPercentage, { duration: 2 })
+    return animation.stop
+  })
 
-    data.push({
-      date,
-      activityLevel,
-    })
-  }
-  // Trier par date croissante
-  return data.sort((a, b) => a.date.getTime() - b.date.getTime())
+  return (
+    <div>
+      <div className="flex justify-between text-sm font-medium mb-2">
+        <span className="text-lg">Niveau {level}</span>
+        <span>
+          {xp} / {maxXp} XP
+        </span>
+      </div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative pt-1">
+              <div className="overflow-hidden h-3 text-xs flex rounded bg-primary/20">
+                <motion.div
+                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${xpPercentage}%` }}
+                  transition={{ duration: 2, ease: 'easeInOut' }}
+                />
+              </div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{maxXp - xp} XP nécessaires pour le niveau suivant</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  )
+}
+
+export function UserInfo({ name, isPremium = false }: { name: string; isPremium?: boolean }) {
+  return (
+    <div>
+      <CardTitle className="text-2xl font-bold">{name}</CardTitle>
+      {isPremium ? (
+        <CardDescription className="flex items-center gap-1">
+          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+          Utilisateur Premium
+        </CardDescription>
+      ) : (
+        <CardDescription className="flex items-center gap-1">
+          <Info className="h-4 w-4" />
+          Utilisateur Standard
+        </CardDescription>
+      )}
+    </div>
+  )
+}
+
+export function UserAvatar({
+  src,
+  alt,
+  isPremium = false,
+}: {
+  src: string
+  alt: string
+  isPremium?: boolean
+}) {
+  return (
+    <motion.div
+      className="relative"
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+    >
+      <Image src={src} alt={alt} width={90} height={90} className="rounded-full" />
+      {isPremium && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 20 }}
+        >
+          <Badge className="absolute -bottom-2 -right-2 bg-yellow-400 text-yellow-900">
+            Premium
+          </Badge>
+        </motion.div>
+      )}
+    </motion.div>
+  )
+}
+
+export function ProfileButton() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.5, duration: 0.5 }}
+    >
+      <Button disabled className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Lock className="h-4 w-4" />
+        Voir le profil complet
+      </Button>
+    </motion.div>
+  )
 }
 
 export const ProfileCard = () => {
-  const [streakData, setStreakData] = useState<StreakDay[]>([])
-
-  useEffect(() => {
-    setStreakData(generateStreakData())
-  }, [])
-
-  // Fonction pour obtenir la couleur en fonction du niveau d'activité
-  const getActivityColor = (level: number): string => {
-    switch (level) {
-      case 0:
-        return 'bg-gray-200 dark:bg-gray-800' // Pas d'activité
-      case 1:
-        return 'bg-emerald-200 dark:bg-emerald-900' // Peu d'activité
-      case 2:
-        return 'bg-emerald-300 dark:bg-emerald-700' // Activité moyenne
-      case 3:
-        return 'bg-emerald-400 dark:bg-emerald-600' // Bonne activité
-      case 4:
-        return 'bg-emerald-500 dark:bg-emerald-500' // Excellente activité
-      default:
-        return 'bg-gray-200 dark:bg-gray-800'
-    }
-  }
-
-  // Formater la date pour l'affichage dans le tooltip
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+  const userData = {
+    name: 'David Vantyghem',
+    isPremium: true,
+    currentLevel: 24,
+    currentExperience: 7450,
+    experienceRequiredForNextLevel: 10000,
+    achievements: 12,
+    avatar: '/avatars/user-01.png',
   }
 
   return (
-    <Card className="w-full h-auto flex flex-col pb-4 self-start bg-background">
-      <CardHeader className="flex flex-col items-center text-center pb-2">
-        <Avatar className="h-16 w-16 mb-2">
-          <AvatarImage src="/avatars/user-01.png" alt="User avatar" />
-          <AvatarFallback>DV</AvatarFallback>
-        </Avatar>
-        <h3 className="font-medium">David Vantyghem</h3>
-        <div className="flex items-center gap-2 mt-1">
-          <Badge variant="outline" className="text-xs px-1.5 py-0 h-4">
-            Lvl 24
-          </Badge>
-          <div className="flex items-center text-xs text-amber-500">
-            <svg
-              className="size-3 mr-0.5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M6 19v-9.8c0-1 .1-1.9-.4-2.7a3 3 0 0 0-2.2-1.2H2" />
-              <path d="M18 5h.3c.8 0 1.5.4 2 1l.2.2c.5.7.5 1.7.5 2.7V19" />
-              <path d="M6 19h12" />
-              <path d="M12 5v4" />
-              <path d="M10 9h4" />
-            </svg>
-            <span>42 days</span>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="w-full max-w-md overflow-hidden shadow-lg">
+        <CardHeader className="pb-0">
+          <div className="flex items-center gap-4">
+            <UserAvatar src={userData.avatar} alt="User Avatar" isPremium={userData.isPremium} />
+            <UserInfo name={userData.name} isPremium={userData.isPremium} />
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Grille de streak style GitHub */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Activité des 30 derniers jours</span>
-          </div>
-          <div className="flex flex-wrap -mx-6 px-6 w-[204px] gap-[6px]">
-            {streakData.map((day, index) => (
-              <Tooltip key={index}>
-                <TooltipTrigger asChild>
-                  <div
-                    className={`w-4.5 h-4.5 rounded-[3px] flex-shrink-0 ${getActivityColor(day.activityLevel)} cursor-pointer`}
-                    aria-label={`Activité du ${formatDate(day.date)}`}
-                  />
-                </TooltipTrigger>
-                <TooltipContent className="border border-border bg-background text-foreground [&>div[data-slot=arrow]]:hidden">
-                  {formatDate(day.date)}:{' '}
-                  {day.activityLevel === 0
-                    ? "Pas d'activité"
-                    : `Niveau d'activité: ${day.activityLevel}`}
-                </TooltipContent>
-              </Tooltip>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Experience</span>
-            <span>7,450 XP</span>
-          </div>
-          <div className="space-y-1">
-            <Progress value={75} className="h-1.5" />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Level 24</span>
-              <span>Level 25</span>
-            </div>
-          </div>
-        </div>
-        <Button variant="outline" size="sm" className="w-full">
-          View Profile
-        </Button>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-4">
+          <LevelProgress
+            level={userData.currentLevel}
+            xp={userData.currentExperience}
+            maxXp={userData.experienceRequiredForNextLevel}
+          />
+          <UserStats achievements={userData.achievements} />
+          <ProfileButton />
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }

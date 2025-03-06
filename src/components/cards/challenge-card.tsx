@@ -1,79 +1,171 @@
+'use client'
+
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { List } from 'lucide-react'
+import { motion } from 'framer-motion'
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  TrophyIcon,
+  UsersIcon,
+  XCircleIcon,
+  ZapIcon,
+} from 'lucide-react'
+import Link from 'next/link'
 
 export const ChallengeCard = () => {
-  return (
-    <Card className="w-full h-auto flex flex-col pb-0 bg-background self-start">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <Badge variant="outline" className="border-primary text-primary">
-            Challenge
-          </Badge>
-          <Badge variant="outline" className="text-xs">
-            <svg
-              className="mr-1 size-3"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20.2 6 17 2.8a1.1 1.1 0 0 0-.7-.3H7.7a1.1 1.1 0 0 0-.7.3L3.8 6a1.1 1.1 0 0 0-.3.7v9.7c0 .2.1.4.3.6l3.2 3.2c.2.2.4.3.7.3h8.6c.3 0 .5-.1.7-.3l3.2-3.2c.2-.2.3-.4.3-.6V6.7c0-.3-.1-.5-.3-.7z" />
-              <path d="M8 12h8" />
-              <path d="M8 8h8" />
-              <path d="M8 16h8" />
-            </svg>
-            +250 XP
-          </Badge>
-        </div>
-        <CardTitle className="mt-2">API Authentication Challenge</CardTitle>
-        <div className="flex items-center gap-2 mt-1">
-          <Badge variant="secondary" className="text-xs">
-            Intermediate
-          </Badge>
-          <Badge variant="secondary" className="text-xs">
-            Backend
-          </Badge>
-          <Badge variant="secondary" className="text-xs">
-            Security
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-4">
-          Implement a secure authentication system with JWT, refresh tokens, and protection against
-          CSRF attacks.
-        </p>
+  const challengeData = {
+    title: 'API Authentication Challenge',
+    difficulty: 'Intermediate',
+    baseExperience: 250,
+    boostedExperience: 375,
+    timeRemaining: { hours: 16, minutes: 45 },
+    isCompleted: false,
+    completedChallenges: 4,
+    totalExperience: 1000,
+    slug: 'api-auth-challenge',
+  }
 
-        {/* XP Boost Badge - Version plus discrète */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <svg
-            className="size-3.5 text-primary/70"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+  return (
+    <motion.div
+      className="w-full"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="w-full bg-background text-foreground shadow-lg">
+        <CardContent className="p-6">
+          <motion.div
+            className="flex justify-between items-start mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
           >
-            <path d="m12 8-9.04 9.06a2.82 2.82 0 1 0 3.98 3.98L16 12" />
-            <circle cx="17" cy="7" r="5" />
-          </svg>
-          <span>XP Boost +25% available for 16 more hours</span>
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-between border-t p-0">
-        <Button variant="outline" className="m-4">
-          <List className="mr-2 size-4" />
-          All challenges
-        </Button>
-        <Button className="m-4">Start Challenge</Button>
-      </CardFooter>
-    </Card>
+            <div>
+              <Badge variant="secondary" className="mb-2">
+                Challenge du jour
+              </Badge>
+              <motion.h3
+                className="text-2xl font-bold"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {challengeData.title}
+              </motion.h3>
+            </div>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.4 }}
+            >
+              <TrophyIcon className="h-8 w-8 text-yellow-500" />
+            </motion.div>
+          </motion.div>
+          <motion.div
+            className="flex items-center gap-4 mb-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <Badge variant="outline">{challengeData.difficulty}</Badge>
+            <div className="flex items-center">
+              <ZapIcon className="h-4 w-4 mr-1 text-yellow-500" />
+              <span className="text-yellow-500">{challengeData.baseExperience} XP</span>
+              {challengeData.timeRemaining.hours > 0 || challengeData.timeRemaining.minutes > 0 ? (
+                <Badge
+                  variant="secondary"
+                  className="ml-2 bg-green-500/20 text-green-700 dark:bg-green-900 dark:text-green-300 border-none"
+                >
+                  +{challengeData.boostedExperience} XP Boost
+                </Badge>
+              ) : (
+                <Badge
+                  variant="secondary"
+                  className="ml-2 bg-green-500/20 text-green-700 dark:bg-green-900 dark:text-green-300 border-none"
+                >
+                  Boost d&apos;XP : Terminé
+                </Badge>
+              )}
+            </div>
+          </motion.div>
+          <motion.div
+            className="flex items-center justify-between mb-4 text-sm text-muted-foreground"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <div className="flex items-center">
+              <ClockIcon className="h-4 w-4 mr-2 text-green-500" />
+              {challengeData.timeRemaining.hours > 0 || challengeData.timeRemaining.minutes > 0 ? (
+                <span>
+                  Boost d&apos;XP disponible : {challengeData.timeRemaining.hours}h{' '}
+                  {challengeData.timeRemaining.minutes}m
+                </span>
+              ) : (
+                <span>Boost d&apos;XP : Terminé</span>
+              )}
+            </div>
+            {challengeData.isCompleted ? (
+              <Badge
+                variant="outline"
+                className="bg-green-500/20 text-green-700 dark:bg-green-900 dark:text-green-300"
+              >
+                Complété
+              </Badge>
+            ) : (
+              <div className="flex items-center">
+                <XCircleIcon className="h-4 w-4 mr-1 text-muted-foreground" />
+                <span>Non complété</span>
+              </div>
+            )}
+          </motion.div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-4 border-t border-border pt-4">
+          <motion.div
+            className="flex justify-between w-full text-sm text-muted-foreground"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+          >
+            <div className="flex items-center">
+              <TrophyIcon className="h-4 w-4 mr-1" />
+              <span>{challengeData.completedChallenges} défis terminés</span>
+            </div>
+            <div className="flex items-center">
+              <ZapIcon className="h-4 w-4 mr-1" />
+              <span>{challengeData.totalExperience} XP gagnés</span>
+            </div>
+          </motion.div>
+          <motion.div
+            className="flex gap-2 w-full"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+          >
+            <Button className="flex-1 group" asChild>
+              <Link
+                href={`/challenges/${challengeData.slug}`}
+                className="flex flex-row items-center"
+              >
+                <UsersIcon className="mr-1 h-4 w-4" />
+                Commencer
+                <ChevronRightIcon className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </Button>
+            <Button variant="outline" className="flex-1 group" asChild>
+              <Link href={'/challenges'} className="flex flex-row items-center">
+                <UsersIcon className="mr-1 h-4 w-4" />
+                Tous les défis
+                <ChevronRightIcon className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </Button>
+          </motion.div>
+        </CardFooter>
+      </Card>
+    </motion.div>
   )
 }
