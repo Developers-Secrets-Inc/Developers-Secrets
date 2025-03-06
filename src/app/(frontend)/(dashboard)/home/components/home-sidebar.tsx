@@ -1,53 +1,38 @@
 'use client'
 
-import * as React from 'react'
-import { useState } from 'react'
-import {
-  HelpCircle,
-  MessageSquare,
-  Book,
-  Trophy,
-  Users,
-  User,
-  BarChart,
-  CheckCircle,
-  Star,
-  MoreHorizontal,
-  Trash2,
-  Forward,
-  Folder,
-  Home,
-} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
+  BarChart,
+  Book,
+  CheckCircle,
+  HelpCircle,
+  Home,
+  MessageSquare,
+  Star,
+  Trophy,
+  User,
+  Users
+} from 'lucide-react'
+import * as React from 'react'
+import { useState } from 'react'
 
-import { SearchForm } from './search-form'
-import { LearningPathSwitcher } from './learning-path-switcher'
+import { ProCtaCard } from '@/components/cards/pro-cta-card'
+import { FeedbackDialog } from '@/components/feedback-dialog'
+import { SupportDialog } from '@/components/support-dialog'
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
-  SidebarFooter,
-  SidebarMenuAction,
+  SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { CreateAccountCTA } from '@/components/cards/create-account-cta'
-import { FeedbackDialog } from '@/components/feedback-dialog'
-import { SupportDialog } from '@/components/support-dialog'
 import Link from 'next/link'
-import { ProCtaCard } from '@/components/cards/pro-cta-card'
+import { LearningPathSwitcher } from './learning-path-switcher'
+import { SearchForm } from './search-form'
 
 // This is sample data.
 const data = {
@@ -142,7 +127,7 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
             </SidebarMenuItem>
             <SidebarMenuItem key="courses">
               <SidebarMenuButton asChild>
-                <Link href="#">
+                <Link href="/courses">
                   <Book className="size-4" />
                   <span>Courses</span>
                 </Link>
