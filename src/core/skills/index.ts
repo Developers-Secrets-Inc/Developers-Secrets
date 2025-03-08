@@ -39,18 +39,16 @@ export const isConceptCompletedByUser = async (user: User, concept: Concept): Pr
   return false
 }
 
-export const increaseUserConceptProgression = async (
+export const setUserConceptProgression = async (
   user: User,
   concept: Concept,
   amount: number,
-): Promise<UserConceptProgression> => {
+): Promise<void> => {
   // TODO: Implement actual logic
-  return {
-    user,
-    concept,
-    progress: amount,
-    lastUpdated: new Date(),
-  } as UserConceptProgression
+}
+
+export const completeConcept = async (user: User, concept: Concept): Promise<void> => {
+  return setUserConceptProgression(user, concept, 100)
 }
 
 export const getUserSkillProgression = async (
