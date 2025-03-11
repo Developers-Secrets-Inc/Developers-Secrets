@@ -10,6 +10,7 @@ export type AchievementType =
   | 'contribution' // Points de contribution accumulés
   | 'time_spent' // Temps passé sur la plateforme
   | 'consecutive_days' // Jours consécutifs de connexion
+  | 'friends_count' // Nombre d'amis
   | 'special' // Accomplissements spéciaux
 
 /**
@@ -21,6 +22,21 @@ export type AchievementRarity =
   | 'rare' // Rare
   | 'epic' // Épique
   | 'legendary' // Légendaire (très difficile à obtenir)
+
+/**
+ * Niveaux de progression des accomplissements
+ */
+export type AchievementTier = 'bronze' | 'silver' | 'gold' | 'diamond'
+
+/**
+ * Configuration des paliers pour chaque niveau d'accomplissement
+ */
+export type AchievementTierConfig = {
+  tier: AchievementTier
+  requiredValue: number
+  reward: AchievementReward
+  imageUrl: string
+}
 
 /**
  * Condition pour obtenir un accomplissement
@@ -55,17 +71,11 @@ export type Achievement = {
   type: AchievementType
   rarity: AchievementRarity
 
-  // Image de l'accomplissement
-  imageUrl: string
+  // Image de l'accomplissement par défaut
+  defaultImageUrl: string
 
-  // Conditions d'obtention
-  condition: AchievementCondition
-
-  // Récompenses
-  reward: AchievementReward
-
-  // Accomplissement suivant dans la série (pour les accomplissements progressifs)
-  nextTierId?: string // ID de l'accomplissement de niveau supérieur
+  // Conditions d'obtention et paliers
+  tiers: AchievementTierConfig[]
 
   // Métadonnées
   metadata: {
@@ -84,10 +94,18 @@ export type AchievementSeries = {
   description: string
 
   // Liste des accomplissements dans l'ordre de progression
-  tiers: Array<{
-    achievement: Achievement
-    order: number // Position dans la série
-  }>
+  achievements: Achievement[]
+}
+
+/**
+ * Données utilisateur associées aux accomplissements
+ */
+export type UserAchievementData = {
+  userId: string
+  metrics: {
+    [key in AchievementType]?: number
+  }
+  lastUpdated: string
 }
 
 /**
@@ -97,9 +115,25 @@ export type UnlockedAchievement = {
   achievementId: string
   userId: string
   unlockedAt: string
-  progress: number // Pourcentage de progression (0-100)
 
-  // Pour les accomplissements progressifs
-  currentTier: number // Niveau actuel dans la série
-  nextTierProgress?: number // Progression vers le prochain niveau
+  // Niveau actuel débloqué
+  currentTier: AchievementTier
+
+  // Progression vers le prochain niveau
+  progress: number // Pourcentage de progression (0-100)
+  currentValue: number // Valeur actuelle
+  nextTierRequiredValue?: number // Valeur requise pour le prochain niveau
+}
+
+/**
+ * Fonction de vérification pour déterminer si un utilisateur a débloqué un accomplissement
+ */
+export type AchievementChecker = (
+  userData: UserAchievementData,
+  achievement: Achievement,
+) => {
+  unlocked: boolean
+  currentTier?: AchievementTier
+  progress: number
+  currentValue: number
 }
