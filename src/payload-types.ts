@@ -726,59 +726,59 @@ export interface Achievement {
 export interface UserAchievement {
   id: number;
   /**
-   * L'ID de l'utilisateur à qui appartient cette progression
+   * The ID of the user this progress belongs to
    */
   userId: string;
   /**
-   * Liste des progressions d'accomplissements de l'utilisateur
+   * List of the user's achievement progresses
    */
   achievements?:
     | {
         /**
-         * L'accomplissement auquel cette progression est liée
+         * The achievement this progress is linked to
          */
         achievementId: number | Achievement;
         /**
-         * La valeur actuelle de progression pour cet accomplissement
+         * The current progress value for this achievement
          */
         currentValue: number;
         /**
-         * Le niveau actuel atteint pour cet accomplissement
+         * The current tier reached for this achievement
          */
         currentTier?: ('none' | 'bronze' | 'silver' | 'gold' | 'diamond' | 'platinum') | null;
         /**
-         * Les niveaux débloqués pour cet accomplissement
+         * The tiers unlocked for this achievement
          */
         unlockedTiers?:
           | {
               /**
-               * Le niveau débloqué
+               * The unlocked tier
                */
               tier: 'bronze' | 'silver' | 'gold' | 'diamond' | 'platinum';
               /**
-               * La date à laquelle ce niveau a été débloqué
+               * The date when this tier was unlocked
                */
               unlockedAt: string;
               /**
-               * Indique si la récompense pour ce niveau a été réclamée
+               * Indicates if the reward for this tier has been claimed
                */
               rewardClaimed?: boolean | null;
               id?: string | null;
             }[]
           | null;
         /**
-         * La date de la dernière mise à jour de cette progression
+         * The date of the last update for this progress
          */
         lastUpdated?: string | null;
         id?: string | null;
       }[]
     | null;
   /**
-   * Le nombre total d'accomplissements débloqués par l'utilisateur
+   * The total number of achievements unlocked by the user
    */
   totalAchievements?: number | null;
   /**
-   * La date de la dernière mise à jour de cette collection
+   * The date of the last update for this collection
    */
   lastUpdated?: string | null;
   updatedAt: string;
