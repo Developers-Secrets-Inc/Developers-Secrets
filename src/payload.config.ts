@@ -16,7 +16,9 @@ import { Feedbacks } from './collections/Feedbacks'
 import { SupportSettings } from './collections/SupportSettings'
 import { UserInformations } from './collections/UserInformations'
 import { Permissions } from './collections/Permissions'
-
+import { UserGamification } from './collections/UserGamification'
+import { UserInventory } from './collections/UserInventory'
+import { UserCurrency } from './collections/UserCurrency'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -38,6 +40,9 @@ export default buildConfig({
     SupportSettings,
     UserInformations,
     Permissions,
+    UserGamification,
+    UserInventory,
+    UserCurrency,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

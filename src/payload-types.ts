@@ -73,8 +73,11 @@ export interface Config {
     tags: Tag;
     feedbacks: Feedback;
     'support-settings': SupportSetting;
-    permissions: Permission;
     'user-informations': UserInformation;
+    permissions: Permission;
+    'user-gamification': UserGamification;
+    'user-inventory': UserInventory;
+    'user-currency': UserCurrency;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -88,8 +91,11 @@ export interface Config {
     tags: TagsSelect<false> | TagsSelect<true>;
     feedbacks: FeedbacksSelect<false> | FeedbacksSelect<true>;
     'support-settings': SupportSettingsSelect<false> | SupportSettingsSelect<true>;
-    permissions: PermissionsSelect<false> | PermissionsSelect<true>;
     'user-informations': UserInformationsSelect<false> | UserInformationsSelect<true>;
+    permissions: PermissionsSelect<false> | PermissionsSelect<true>;
+    'user-gamification': UserGamificationSelect<false> | UserGamificationSelect<true>;
+    'user-inventory': UserInventorySelect<false> | UserInventorySelect<true>;
+    'user-currency': UserCurrencySelect<false> | UserCurrencySelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -418,23 +424,6 @@ export interface SupportSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
-
-export interface Permission {
-  id: number;
-  name: string;
-  description?: string | null;
-  /**
-   * Unique code used to identify this permission in the system
-   */
-  code: string;
-  category?: ('content' | 'users' | 'system' | 'other') | null;
-  isActive?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
-
  * via the `definition` "user-informations".
  */
 export interface UserInformation {
@@ -460,7 +449,147 @@ export interface UserInformation {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
-
+ * via the `definition` "permissions".
+ */
+export interface Permission {
+  id: number;
+  name: string;
+  description?: string | null;
+  /**
+   * Unique code used to identify this permission in the system
+   */
+  code: string;
+  category?: ('content' | 'users' | 'system' | 'other') | null;
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-gamification".
+ */
+export interface UserGamification {
+  id: number;
+  /**
+   * The ID of the user this gamification data belongs to
+   */
+  userId: string;
+  /**
+   * The current level of the user
+   */
+  currentLevel: number;
+  /**
+   * The current experience points towards the next level
+   */
+  currentExperience: number;
+  /**
+   * The total experience points earned by the user
+   */
+  totalExperience: number;
+  /**
+   * The date when the user last leveled up
+   */
+  lastLevelUpDate?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-inventory".
+ */
+export interface UserInventory {
+  id: number;
+  /**
+   * The ID of the user this inventory belongs to
+   */
+  userId: string;
+  /**
+   * Items in the user's inventory
+   */
+  items?: {
+    /**
+     * List of items in the inventory
+     */
+    itemEntries?:
+      | {
+          /**
+           * The type of the item
+           */
+          itemType: 'experience_boost' | 'streak_saver' | 'streak_recovery' | 'solution_viewer' | 'chest';
+          /**
+           * The specific variant of the item (e.g., "basic", "premium", "legendary")
+           */
+          itemVariant: 'basic' | 'premium' | 'legendary';
+          /**
+           * The quantity of this item
+           */
+          quantity: number;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Total number of items in the inventory
+   */
+  itemCount?: number | null;
+  /**
+   * When this inventory was last updated
+   */
+  lastUpdated?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-currency".
+ */
+export interface UserCurrency {
+  id: number;
+  /**
+   * The ID of the user this currency belongs to
+   */
+  userId: string;
+  /**
+   * Standard currency earned through regular activities
+   */
+  coins: number;
+  /**
+   * History of currency transactions
+   */
+  transactionHistory?:
+    | {
+        /**
+         * When the transaction occurred
+         */
+        timestamp: string;
+        /**
+         * The type of transaction
+         */
+        type: 'earn' | 'spend' | 'admin_adjustment';
+        /**
+         * The amount of coins (positive for earning, negative for spending)
+         */
+        amount: number;
+        /**
+         * The source or reason for the transaction
+         */
+        source?: ('daily_challenge' | 'level_up' | 'achievement' | 'item_purchase' | 'other') | null;
+        /**
+         * Additional details about the transaction
+         */
+        details?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * When this currency record was last updated
+   */
+  lastUpdated?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -495,12 +624,24 @@ export interface PayloadLockedDocument {
         value: number | SupportSetting;
       } | null)
     | ({
+        relationTo: 'user-informations';
+        value: number | UserInformation;
+      } | null)
+    | ({
         relationTo: 'permissions';
         value: number | Permission;
       } | null)
     | ({
-        relationTo: 'user-informations';
-        value: number | UserInformation;
+        relationTo: 'user-gamification';
+        value: number | UserGamification;
+      } | null)
+    | ({
+        relationTo: 'user-inventory';
+        value: number | UserInventory;
+      } | null)
+    | ({
+        relationTo: 'user-currency';
+        value: number | UserCurrency;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -719,20 +860,6 @@ export interface SupportSettingsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "permissions_select".
- */
-export interface PermissionsSelect<T extends boolean = true> {
-  name?: T;
-  description?: T;
-  code?: T;
-  category?: T;
-  isActive?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
-
  * via the `definition` "user-informations_select".
  */
 export interface UserInformationsSelect<T extends boolean = true> {
@@ -760,7 +887,76 @@ export interface UserInformationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
-
+ * via the `definition` "permissions_select".
+ */
+export interface PermissionsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  code?: T;
+  category?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-gamification_select".
+ */
+export interface UserGamificationSelect<T extends boolean = true> {
+  userId?: T;
+  currentLevel?: T;
+  currentExperience?: T;
+  totalExperience?: T;
+  lastLevelUpDate?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-inventory_select".
+ */
+export interface UserInventorySelect<T extends boolean = true> {
+  userId?: T;
+  items?:
+    | T
+    | {
+        itemEntries?:
+          | T
+          | {
+              itemType?: T;
+              itemVariant?: T;
+              quantity?: T;
+              id?: T;
+            };
+      };
+  itemCount?: T;
+  lastUpdated?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-currency_select".
+ */
+export interface UserCurrencySelect<T extends boolean = true> {
+  userId?: T;
+  coins?: T;
+  transactionHistory?:
+    | T
+    | {
+        timestamp?: T;
+        type?: T;
+        amount?: T;
+        source?: T;
+        details?: T;
+        id?: T;
+      };
+  lastUpdated?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents_select".
  */
 export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
