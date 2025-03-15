@@ -19,6 +19,9 @@ import { Permissions } from './collections/Permissions'
 import { UserGamification } from './collections/UserGamification'
 import { UserInventory } from './collections/UserInventory'
 import { UserCurrency } from './collections/UserCurrency'
+import { Quests } from './collections/Quests'
+import { Achievements } from './collections/Achievements'
+import { UserAchievements } from './collections/UserAchievements'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -43,6 +46,9 @@ export default buildConfig({
     UserGamification,
     UserInventory,
     UserCurrency,
+    Quests,
+    Achievements,
+    UserAchievements,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

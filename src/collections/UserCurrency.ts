@@ -78,16 +78,10 @@ export const UserCurrency: CollectionConfig = {
         {
           name: 'source',
           label: 'Source',
-          type: 'select',
-          options: [
-            { label: 'Daily Challenge', value: 'daily_challenge' },
-            { label: 'Level Up', value: 'level_up' },
-            { label: 'Achievement', value: 'achievement' },
-            { label: 'Item Purchase', value: 'item_purchase' },
-            { label: 'Other', value: 'other' },
-          ],
+          type: 'text',
           admin: {
-            description: 'The source or reason for the transaction',
+            description:
+              'The source or reason for the transaction (e.g., "daily_challenge", "level_up", "achievement")',
           },
         },
         {

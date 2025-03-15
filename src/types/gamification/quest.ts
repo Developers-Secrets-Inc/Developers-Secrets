@@ -1,5 +1,3 @@
-import { UserGamificationInformation } from './level'
-import { ChestItem } from './item'
 
 export enum ChestRarity {
   COMMON = 'common',
