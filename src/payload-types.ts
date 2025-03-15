@@ -786,6 +786,23 @@ export interface UserAchievement {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "permissions".
+ */
+export interface Permission {
+  id: number;
+  name: string;
+  description?: string | null;
+  /**
+   * Unique code used to identify this permission in the system
+   */
+  code: string;
+  category?: ('content' | 'users' | 'system' | 'other') | null;
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -1231,6 +1248,19 @@ export interface UserAchievementsSelect<T extends boolean = true> {
       };
   totalAchievements?: T;
   lastUpdated?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "permissions_select".
+ */
+export interface PermissionsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  code?: T;
+  category?: T;
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
 }

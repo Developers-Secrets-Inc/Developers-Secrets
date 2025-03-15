@@ -5,12 +5,12 @@ import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Button } from '../ui/button'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 
 interface AuthButtonsClientProps {
@@ -20,6 +20,9 @@ interface AuthButtonsClientProps {
 export const AuthButtonsClient = ({ user }: AuthButtonsClientProps) => {
   return user ? (
     <div className="ml-auto flex items-center gap-2">
+      <Button variant="outline" size="sm" asChild>
+        <Link href="/home">Dashboard</Link>
+      </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
