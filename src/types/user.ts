@@ -1,13 +1,19 @@
-import type { CollectionConfig } from 'payload'
-
-/**
- * Type représentant un utilisateur du système
- * Basé sur la collection Users de Payload CMS
- */
 export type User = {
   id: string
   email: string
+  // Statistiques de connexion
+  connectionStats?: UserConnectionStats
   // Autres champs qui pourraient être ajoutés dans le futur
+}
+
+/**
+ * Statistiques de connexion de l'utilisateur
+ */
+export type UserConnectionStats = {
+  totalConnectionDays: number
+  currentStreak: number
+  maxStreak: number
+  lastConnectionDate?: Date
 }
 
 export type UserInformations = {

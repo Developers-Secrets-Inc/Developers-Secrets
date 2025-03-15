@@ -75,6 +75,12 @@ export interface Config {
     'support-settings': SupportSetting;
     'user-informations': UserInformation;
     permissions: Permission;
+    'user-gamification': UserGamification;
+    'user-inventory': UserInventory;
+    'user-currency': UserCurrency;
+    quests: Quest;
+    achievements: Achievement;
+    'user-achievements': UserAchievement;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -90,6 +96,12 @@ export interface Config {
     'support-settings': SupportSettingsSelect<false> | SupportSettingsSelect<true>;
     'user-informations': UserInformationsSelect<false> | UserInformationsSelect<true>;
     permissions: PermissionsSelect<false> | PermissionsSelect<true>;
+    'user-gamification': UserGamificationSelect<false> | UserGamificationSelect<true>;
+    'user-inventory': UserInventorySelect<false> | UserInventorySelect<true>;
+    'user-currency': UserCurrencySelect<false> | UserCurrencySelect<true>;
+    quests: QuestsSelect<false> | QuestsSelect<true>;
+    achievements: AchievementsSelect<false> | AchievementsSelect<true>;
+    'user-achievements': UserAchievementsSelect<false> | UserAchievementsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -460,6 +472,337 @@ export interface Permission {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-gamification".
+ */
+export interface UserGamification {
+  id: number;
+  /**
+   * The ID of the user this gamification data belongs to
+   */
+  userId: string;
+  /**
+   * The current level of the user
+   */
+  currentLevel: number;
+  /**
+   * The current experience points towards the next level
+   */
+  currentExperience: number;
+  /**
+   * The total experience points earned by the user
+   */
+  totalExperience: number;
+  /**
+   * The date when the user last leveled up
+   */
+  lastLevelUpDate?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-inventory".
+ */
+export interface UserInventory {
+  id: number;
+  /**
+   * The ID of the user this inventory belongs to
+   */
+  userId: string;
+  /**
+   * Items in the user's inventory
+   */
+  items?: {
+    /**
+     * List of items in the inventory
+     */
+    itemEntries?:
+      | {
+          /**
+           * The type of the item
+           */
+          itemType: 'experience_boost' | 'streak_saver' | 'streak_recovery' | 'solution_viewer' | 'chest';
+          /**
+           * The specific variant of the item (e.g., "basic", "premium", "legendary")
+           */
+          itemVariant: 'basic' | 'premium' | 'legendary';
+          /**
+           * The quantity of this item
+           */
+          quantity: number;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Total number of items in the inventory
+   */
+  itemCount?: number | null;
+  /**
+   * When this inventory was last updated
+   */
+  lastUpdated?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-currency".
+ */
+export interface UserCurrency {
+  id: number;
+  /**
+   * The ID of the user this currency belongs to
+   */
+  userId: string;
+  /**
+   * Standard currency earned through regular activities
+   */
+  coins: number;
+  /**
+   * History of currency transactions
+   */
+  transactionHistory?:
+    | {
+        /**
+         * When the transaction occurred
+         */
+        timestamp: string;
+        /**
+         * The type of transaction
+         */
+        type: 'earn' | 'spend' | 'admin_adjustment';
+        /**
+         * The amount of coins (positive for earning, negative for spending)
+         */
+        amount: number;
+        /**
+         * The source or reason for the transaction (e.g., "daily_challenge", "level_up", "achievement")
+         */
+        source?: string | null;
+        /**
+         * Additional details about the transaction
+         */
+        details?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * When this currency record was last updated
+   */
+  lastUpdated?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quests".
+ */
+export interface Quest {
+  id: number;
+  /**
+   * The title of the quest
+   */
+  title: string;
+  /**
+   * The detailed description of the quest
+   */
+  description: string;
+  /**
+   * The difficulty level of the quest
+   */
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
+  /**
+   * The type of objective to achieve
+   */
+  objectiveType:
+    | 'complete_exercises'
+    | 'earn_xp'
+    | 'reach_level'
+    | 'maintain_streak'
+    | 'use_items'
+    | 'complete_tutorials';
+  /**
+   * The numerical value of the objective (ex: 5 exercises, 1000 XP, level 10)
+   */
+  objectiveValue: number;
+  /**
+   * The type of reward offered for completing the quest
+   */
+  rewardType: 'coins' | 'xp' | 'item';
+  /**
+   * The numerical value of the reward (ex: 100 coins, 500 XP)
+   */
+  rewardValue: number;
+  /**
+   * The type of item to give as a reward (only if reward type is 'item')
+   */
+  rewardItemType?: ('experience_boost' | 'streak_saver' | 'streak_recovery' | 'solution_viewer' | 'chest') | null;
+  /**
+   * The variant of the item to give as a reward (only if reward type is 'item')
+   */
+  rewardItemVariant?: ('basic' | 'premium' | 'legendary') | null;
+  /**
+   * Indicates if the quest is currently active and available to users
+   */
+  isActive?: boolean | null;
+  /**
+   * Indicates if the quest can be completed multiple times by a user
+   */
+  isRepeatable?: boolean | null;
+  /**
+   * The time in hours before a user can repeat this quest (if repeatable)
+   */
+  cooldownHours?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "achievements".
+ */
+export interface Achievement {
+  id: number;
+  /**
+   * The title of the achievement
+   */
+  title: string;
+  /**
+   * The type of achievement that determines how progress is calculated
+   */
+  type:
+    | 'level'
+    | 'exercises_completed'
+    | 'streak'
+    | 'tutorials_completed'
+    | 'quests_completed'
+    | 'items_used'
+    | 'coins_earned';
+  /**
+   * The icon identifier for this achievement
+   */
+  icon?: string | null;
+  /**
+   * The maximum number of tiers for this achievement (typically 4 for Bronze, Silver, Gold, Diamond)
+   */
+  maxTier: number;
+  /**
+   * The different tiers of the achievement
+   */
+  tiers: {
+    /**
+     * The name of the tier (Bronze, Silver, Gold, etc.)
+     */
+    name: 'bronze' | 'silver' | 'gold' | 'diamond' | 'platinum';
+    /**
+     * The description specific to this achievement tier
+     */
+    description: string;
+    /**
+     * The value to reach to obtain this achievement tier
+     */
+    threshold: number;
+    /**
+     * The number of coins given as a reward for this tier
+     */
+    rewardCoins: number;
+    /**
+     * The number of experience points given as a reward for this tier
+     */
+    rewardXp: number;
+    id?: string | null;
+  }[];
+  /**
+   * Indicates if this achievement is currently active in the system
+   */
+  isActive?: boolean | null;
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-achievements".
+ */
+export interface UserAchievement {
+  id: number;
+  /**
+   * The ID of the user this progress belongs to
+   */
+  userId: string;
+  /**
+   * List of the user's achievement progresses
+   */
+  achievements?:
+    | {
+        /**
+         * The achievement this progress is linked to
+         */
+        achievementId: number | Achievement;
+        /**
+         * The current progress value for this achievement
+         */
+        currentValue: number;
+        /**
+         * The current tier reached for this achievement
+         */
+        currentTier?: ('none' | 'bronze' | 'silver' | 'gold' | 'diamond' | 'platinum') | null;
+        /**
+         * The tiers unlocked for this achievement
+         */
+        unlockedTiers?:
+          | {
+              /**
+               * The unlocked tier
+               */
+              tier: 'bronze' | 'silver' | 'gold' | 'diamond' | 'platinum';
+              /**
+               * The date when this tier was unlocked
+               */
+              unlockedAt: string;
+              /**
+               * Indicates if the reward for this tier has been claimed
+               */
+              rewardClaimed?: boolean | null;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * The date of the last update for this progress
+         */
+        lastUpdated?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * The total number of achievements unlocked by the user
+   */
+  totalAchievements?: number | null;
+  /**
+   * The date of the last update for this collection
+   */
+  lastUpdated?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "permissions".
+ */
+export interface Permission {
+  id: number;
+  name: string;
+  description?: string | null;
+  /**
+   * Unique code used to identify this permission in the system
+   */
+  code: string;
+  category?: ('content' | 'users' | 'system' | 'other') | null;
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -500,6 +843,30 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'permissions';
         value: number | Permission;
+      } | null)
+    | ({
+        relationTo: 'user-gamification';
+        value: number | UserGamification;
+      } | null)
+    | ({
+        relationTo: 'user-inventory';
+        value: number | UserInventory;
+      } | null)
+    | ({
+        relationTo: 'user-currency';
+        value: number | UserCurrency;
+      } | null)
+    | ({
+        relationTo: 'quests';
+        value: number | Quest;
+      } | null)
+    | ({
+        relationTo: 'achievements';
+        value: number | Achievement;
+      } | null)
+    | ({
+        relationTo: 'user-achievements';
+        value: number | UserAchievement;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -740,6 +1107,147 @@ export interface UserInformationsSelect<T extends boolean = true> {
             };
         theme?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "permissions_select".
+ */
+export interface PermissionsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  code?: T;
+  category?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-gamification_select".
+ */
+export interface UserGamificationSelect<T extends boolean = true> {
+  userId?: T;
+  currentLevel?: T;
+  currentExperience?: T;
+  totalExperience?: T;
+  lastLevelUpDate?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-inventory_select".
+ */
+export interface UserInventorySelect<T extends boolean = true> {
+  userId?: T;
+  items?:
+    | T
+    | {
+        itemEntries?:
+          | T
+          | {
+              itemType?: T;
+              itemVariant?: T;
+              quantity?: T;
+              id?: T;
+            };
+      };
+  itemCount?: T;
+  lastUpdated?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-currency_select".
+ */
+export interface UserCurrencySelect<T extends boolean = true> {
+  userId?: T;
+  coins?: T;
+  transactionHistory?:
+    | T
+    | {
+        timestamp?: T;
+        type?: T;
+        amount?: T;
+        source?: T;
+        details?: T;
+        id?: T;
+      };
+  lastUpdated?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quests_select".
+ */
+export interface QuestsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  difficulty?: T;
+  objectiveType?: T;
+  objectiveValue?: T;
+  rewardType?: T;
+  rewardValue?: T;
+  rewardItemType?: T;
+  rewardItemVariant?: T;
+  isActive?: T;
+  isRepeatable?: T;
+  cooldownHours?: T;
+  createdAt?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "achievements_select".
+ */
+export interface AchievementsSelect<T extends boolean = true> {
+  title?: T;
+  type?: T;
+  icon?: T;
+  maxTier?: T;
+  tiers?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        threshold?: T;
+        rewardCoins?: T;
+        rewardXp?: T;
+        id?: T;
+      };
+  isActive?: T;
+  createdAt?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-achievements_select".
+ */
+export interface UserAchievementsSelect<T extends boolean = true> {
+  userId?: T;
+  achievements?:
+    | T
+    | {
+        achievementId?: T;
+        currentValue?: T;
+        currentTier?: T;
+        unlockedTiers?:
+          | T
+          | {
+              tier?: T;
+              unlockedAt?: T;
+              rewardClaimed?: T;
+              id?: T;
+            };
+        lastUpdated?: T;
+        id?: T;
+      };
+  totalAchievements?: T;
+  lastUpdated?: T;
   updatedAt?: T;
   createdAt?: T;
 }
