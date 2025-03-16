@@ -11,7 +11,7 @@ import {
   Star,
   Trophy,
   User,
-  Users
+  Users,
 } from 'lucide-react'
 import * as React from 'react'
 import { useState } from 'react'
@@ -19,6 +19,8 @@ import { useState } from 'react'
 import { ProCtaCard } from '@/components/cards/pro-cta-card'
 import { FeedbackDialog } from '@/components/feedback-dialog'
 import { SupportDialog } from '@/components/support-dialog'
+import { QuestsDialog } from '@/components/quests-dialog'
+import { AchievementsDialog } from '@/components/achievements-dialog'
 import {
   Sidebar,
   SidebarContent,
@@ -28,7 +30,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem
+  SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import Link from 'next/link'
 import { LearningPathSwitcher } from './learning-path-switcher'
@@ -84,6 +86,8 @@ const data = {
 export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
+  const [questsOpen, setQuestsOpen] = useState(false)
+  const [achievementsOpen, setAchievementsOpen] = useState(false)
   const [supportStatus, setSupportStatus] = useState<{
     status: 'online' | 'maintenance' | 'offline'
     message: string
@@ -150,18 +154,24 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
           <SidebarMenu>
             <SidebarMenuItem key="quests">
               <SidebarMenuButton asChild>
-                <Link href="#">
+                <button
+                  onClick={() => setQuestsOpen(true)}
+                  className="flex w-full items-center gap-2 cursor-pointer"
+                >
                   <CheckCircle className="size-4" />
                   <span>Quests</span>
-                </Link>
+                </button>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem key="achievements">
               <SidebarMenuButton asChild>
-                <Link href="#">
+                <button
+                  onClick={() => setAchievementsOpen(true)}
+                  className="flex w-full items-center gap-2 cursor-pointer"
+                >
                   <Star className="size-4" />
                   <span>Achievements</span>
-                </Link>
+                </button>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem key="leaderboard">
@@ -253,6 +263,8 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
           onOpenChange={setSupportOpen}
           supportStatus={supportStatus}
         />
+        <QuestsDialog open={questsOpen} onOpenChange={setQuestsOpen} />
+        <AchievementsDialog open={achievementsOpen} onOpenChange={setAchievementsOpen} />
         <ProCtaCard />
       </SidebarFooter>
     </Sidebar>
