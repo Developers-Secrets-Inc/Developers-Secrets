@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.2",
+    "@monaco-editor/react": "^4.7.0",
     "@payloadcms/db-postgres": "latest",
     "@payloadcms/next": "latest",
     "@payloadcms/payload-cloud": "latest",

@@ -139,3 +139,31 @@ export type UserChallengeStats = {
   averageChallengesPerDay: number
   dailyCompletions: DailyChallengeCompletion[] // Historique des complétions quotidiennes
 }
+
+
+
+
+export type Article = {
+  title: string 
+  statement: string
+}
+
+export type Exercice = {
+  solution: string 
+  code: {
+    initial_code: string 
+    language: 'javascript' | 'typescript' | 'python'
+    tests: {
+      input: string
+      expectedOutput: string
+    }[]
+  }
+}
+
+export type NewChallenge = {
+  id: string 
+  difficulty: 'easy' | 'medium' | 'hard' | 'horrible'
+
+  article: Article 
+  exercice: Exercice
+}
