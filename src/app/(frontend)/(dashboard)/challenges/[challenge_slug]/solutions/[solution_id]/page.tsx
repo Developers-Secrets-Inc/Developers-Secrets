@@ -1,7 +1,10 @@
 import { notFound } from 'next/navigation'
 import { SolutionDetail } from '../../components/solution-detail'
-import { EXAMPLE_SOLUTIONS } from '../../data/solutions-data'
 import { Suspense } from 'react'
+import { getSolution } from '@/lib/challenge-utils'
+
+// This function enables ISR with a 10-minute revalidation period
+export const revalidate = 600 // 10 minutes in seconds
 
 // Composant de chargement optimisé
 function SolutionSkeleton() {
@@ -23,14 +26,12 @@ function SolutionSkeleton() {
   )
 }
 
-export default function SolutionDetailPage({
+export default async function SolutionDetailPage({
   params,
 }: {
   params: { challenge_slug: string; solution_id: string }
 }) {
-  // Dans une application réelle, on récupérerait les données depuis une API
-  // en utilisant le challenge_slug et le solution_id
-  const solution = EXAMPLE_SOLUTIONS.find((sol) => sol.id === params.solution_id)
+  const solution = await getSolution(params.challenge_slug, params.solution_id)
 
   if (!solution) {
     notFound()
@@ -44,8 +45,14 @@ export default function SolutionDetailPage({
 }
 
 // Génération statique des paramètres pour les routes - améliore considérablement les performances
-// Dans un environnement réel, cela viendrait d'une base de données ou d'une API
-export function generateStaticParams() {
+// Ce code sera exécuté pendant le temps de build
+import { getAllSolutions } from '@/lib/challenge-utils'
+import { EXAMPLE_SOLUTIONS } from '../../data/solutions-data'
+
+export async function generateStaticParams() {
+  // Note: Dans une application réelle, vous récupéreriez la liste des slugs de défis de votre API
+  // Ensuite, vous pourriez utiliser getAllSolutions pour chaque slug
+  // Pour l'exemple, on utilise directement EXAMPLE_SOLUTIONS
   return EXAMPLE_SOLUTIONS.map((solution) => ({
     solution_id: solution.id,
   }))

@@ -2,6 +2,9 @@ import { ChallengeHeader } from '../components/challenge-header'
 import { Markdown } from '@/components/markdown'
 import { CommentsSection } from '../components/comments-section'
 
+// This function enables ISR with a 10-minute revalidation period
+export const revalidate = 600 // 10 minutes in seconds
+
 export default function DescriptionPage({ params }: { params: { challenge_slug: string } }) {
   // Dans une application réelle, on récupérerait les données depuis une API
   // en utilisant le challenge_slug

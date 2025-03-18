@@ -5,6 +5,7 @@ import { CodeEditor } from '@/components/code-editor'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ChallengeNavigation } from './components/challenge-navigation'
+import { ChallengesNavigationButtons } from './components/challenges-navigation-buttons'
 import { Bot, MessageSquareText, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { RatingText } from '@/components/rating-dialog'
 import { Suspense } from 'react'
@@ -32,7 +33,7 @@ export default function ChallengeLayout({
               <Eclipse size={23} />
             </Link>
             <div className="inline-flex -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
-              {/* La navigation entre les challenges sera un composant séparé */}
+              <ChallengesNavigationButtons />
             </div>
           </div>
           <div className="flex items-center gap-4">

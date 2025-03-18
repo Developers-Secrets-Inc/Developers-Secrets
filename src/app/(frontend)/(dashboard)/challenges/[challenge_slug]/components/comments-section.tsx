@@ -6,56 +6,128 @@ import { CommentActions } from './comment-actions'
 import { CommentForm } from './comment-form'
 import { MessageSquare, Reply, Flag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { CustomTooltip } from './custom-tooltip'
 import { ReportCommentDialog } from './report-comment-dialog'
+import { useParams } from 'next/navigation'
+import { subscribeToComments } from '@/lib/real-time-utils'
+import { useToast } from '@/components/ui/use-toast'
+
+// Define CommentType at the top level
+type CommentAuthor = {
+  name: string
+  avatar?: string
+  initials: string
+}
+
+type CommentType = {
+  id: string
+  content: string
+  author: CommentAuthor
+  date: Date
+  upvotes: number
+  downvotes: number
+  replies?: CommentType[]
+  parentId?: string
+}
 
 // This would typically come from your database
-const EXAMPLE_COMMENTS = [
+const EXAMPLE_COMMENTS: CommentType[] = [
   {
     id: '1',
-    user: {
-      name: 'John Doe',
+    content:
+      "I found this challenge particularly interesting. The bit manipulation approach wasn't immediately obvious to me, but after some research, I understood the solution. I think it's a great way to practice bitwise operations.",
+    author: {
+      name: 'user123',
       avatar: 'https://github.com/shadcn.png',
       initials: 'JD',
     },
-    content: 'This challenge is excellent! I learned a lot about bitwise operations.',
-    date: new Date(2023, 4, 15, 10, 30),
-    upvotes: 12,
-    downvotes: 2,
+    date: new Date(2023, 2, 10),
+    upvotes: 5,
+    downvotes: 0,
     replies: [
       {
-        id: '1-1',
-        user: {
-          name: 'Jane Smith',
-          avatar: 'https://github.com/shadcn.png',
-          initials: 'JS',
+        id: '2',
+        content:
+          "I agree! It's a great challenge to understand bitwise OR. I initially tried a recursive approach, but the bit manipulation solution is more elegant.",
+        author: {
+          name: 'developerX',
+          avatar: undefined,
+          initials: 'DX',
         },
-        content: 'I agree! The examples were really clear.',
-        date: new Date(2023, 4, 15, 11, 45),
+        date: new Date(2023, 2, 11),
         upvotes: 3,
         downvotes: 0,
+        parentId: '1',
       },
     ],
   },
   {
-    id: '2',
-    user: {
-      name: 'Alice Johnson',
-      avatar: 'https://github.com/shadcn.png',
-      initials: 'AJ',
+    id: '3',
+    content: 'Could someone please explain why we need to calculate the maximum OR value first?',
+    author: {
+      name: 'newbie_coder',
+      avatar: 'https://github.com/user3.png',
+      initials: 'NC',
     },
-    content:
-      'I found this challenge quite difficult. Had to review bit manipulation basics before solving it.',
-    date: new Date(2023, 4, 14, 16, 20),
-    upvotes: 8,
-    downvotes: 1,
+    date: new Date(2023, 2, 12),
+    upvotes: 0,
+    downvotes: 0,
     replies: [],
   },
 ]
 
-export function CommentsSection() {
+type CommentsProps = {
+  challengeId?: string
+  solutionId?: string
+}
+
+export function CommentsSection({ challengeId, solutionId }: CommentsProps) {
+  const params = useParams<{ challenge_slug: string }>()
+  const challengeSlug = params.challenge_slug
+  const [comments, setComments] = useState<CommentType[]>(EXAMPLE_COMMENTS)
+  const [replying, setReplying] = useState<string | null>(null)
+  const { toast } = useToast()
+
+  // Handle for reporting comments
+  const [reportingCommentId, setReportingCommentId] = useState<string | null>(null)
+  const isReportDialogOpen = reportingCommentId !== null
+
+  // Subscribe to real-time comments
+  useEffect(() => {
+    // Subscribe to real-time updates for comments
+    const unsubscribe = subscribeToComments(challengeSlug, (newComment) => {
+      setComments((currentComments) => {
+        // Check if it's a reply to an existing comment
+        if (newComment.parentId) {
+          return currentComments.map((comment) => {
+            if (comment.id === newComment.parentId) {
+              // Add reply to parent comment
+              return {
+                ...comment,
+                replies: [...(comment.replies || []), newComment],
+              }
+            }
+            return comment
+          })
+        } else {
+          // Add as a top-level comment
+          toast({
+            title: 'New comment',
+            description: `${newComment.author.name} added a new comment`,
+          })
+          return [newComment, ...currentComments]
+        }
+      })
+    })
+
+    // Cleanup on unmount
+    return () => {
+      unsubscribe()
+    }
+  }, [challengeSlug, toast])
+
   const handleCommentSubmit = (content: string) => {
     console.log('New comment:', content)
     // In a real app, this would send the comment to the server
@@ -73,10 +145,10 @@ export function CommentsSection() {
       </div>
 
       <div>
-        {EXAMPLE_COMMENTS.map((comment, index) => (
+        {comments.map((comment, index) => (
           <div key={comment.id} className={index !== 0 ? 'border-t pt-4' : ''}>
             <CommentThread comment={comment} onReportComment={handleReportComment} />
-            {index !== EXAMPLE_COMMENTS.length - 1 && <div className="h-4"></div>}
+            {index !== comments.length - 1 && <div className="h-4"></div>}
           </div>
         ))}
       </div>
@@ -175,14 +247,14 @@ function Comment({
       >
         <div className="flex gap-4">
           <Avatar className="h-8 w-8 flex-shrink-0">
-            <AvatarImage src={comment.user.avatar} alt={comment.user.name} />
-            <AvatarFallback>{comment.user.initials}</AvatarFallback>
+            <AvatarImage src={comment.author.avatar} alt={comment.author.name} />
+            <AvatarFallback>{comment.author.initials}</AvatarFallback>
           </Avatar>
 
           <div className="flex-1">
             <div className="rounded-lg">
               <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-sm">{comment.user.name}</span>
+                <span className="font-medium text-sm">{comment.author.name}</span>
                 <div className="flex items-center gap-2">
                   <CustomTooltip content="Report this comment">
                     <Button

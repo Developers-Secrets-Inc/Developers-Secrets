@@ -1,7 +1,10 @@
 import { ChallengeHeader } from '../components/challenge-header'
 import { CommunitySolutions } from '../components/community-solutions'
-import { prefetchAllChallengeData } from '@/lib/challenge-utils'
+import { getAllSolutions } from '@/lib/challenge-utils'
 import { Suspense } from 'react'
+
+// Ajoutons la configuration ISR pour cette page
+export const revalidate = 600; // 10 minutes en secondes
 
 // Composant de chargement pour éviter les flashs UI
 function SolutionsLoading() {
@@ -19,8 +22,8 @@ function SolutionsLoading() {
 
 // Cette fonction sera exécutée au moment de la génération de la page
 export async function generateMetadata({ params }: { params: { challenge_slug: string } }) {
-  // Préchargement des données pendant la génération des métadonnées
-  await prefetchAllChallengeData(params.challenge_slug)
+  // Préchargement des solutions pendant la génération des métadonnées
+  await getAllSolutions(params.challenge_slug)
 
   return {
     title: `Community Solutions | Challenge`,
@@ -29,8 +32,8 @@ export async function generateMetadata({ params }: { params: { challenge_slug: s
 }
 
 export default async function SolutionsPage({ params }: { params: { challenge_slug: string } }) {
-  // Précharger les données au niveau du serveur
-  await prefetchAllChallengeData(params.challenge_slug)
+  // Précharger les solutions au niveau du serveur
+  await getAllSolutions(params.challenge_slug)
 
   return (
     <div>
