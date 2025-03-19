@@ -22,6 +22,7 @@ import { UserCurrency } from './collections/UserCurrency'
 import { Quests } from './collections/Quests'
 import { Achievements } from './collections/Achievements'
 import { UserAchievements } from './collections/UserAchievements'
+import { Challenges } from './collections/Challenges'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -49,6 +50,7 @@ export default buildConfig({
     Quests,
     Achievements,
     UserAchievements,
+    Challenges,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

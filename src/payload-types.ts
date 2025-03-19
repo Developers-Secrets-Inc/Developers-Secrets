@@ -81,6 +81,7 @@ export interface Config {
     quests: Quest;
     achievements: Achievement;
     'user-achievements': UserAchievement;
+    challenges: Challenge;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -102,6 +103,7 @@ export interface Config {
     quests: QuestsSelect<false> | QuestsSelect<true>;
     achievements: AchievementsSelect<false> | AchievementsSelect<true>;
     'user-achievements': UserAchievementsSelect<false> | UserAchievementsSelect<true>;
+    challenges: ChallengesSelect<false> | ChallengesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -786,6 +788,290 @@ export interface UserAchievement {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenges".
+ */
+export interface Challenge {
+  id: number;
+  /**
+   * The title of the challenge
+   */
+  title: string;
+  /**
+   * URL-friendly identifier for this challenge. Will be used in the URL.
+   */
+  slug: string;
+  /**
+   * The difficulty level of the challenge
+   */
+  difficulty: 'easy' | 'medium' | 'hard' | 'horrible';
+  /**
+   * Experience points awarded for completing this challenge (calculated automatically)
+   */
+  baseExperience?: number | null;
+  /**
+   * Programming concepts covered by this challenge
+   */
+  concepts?:
+    | {
+        concept: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Challenge engagement metrics
+   */
+  engagement?: {
+    /**
+     * Number of likes received
+     */
+    likes?: number | null;
+    /**
+     * Number of dislikes received
+     */
+    dislikes?: number | null;
+  };
+  /**
+   * Challenge description and problem statement
+   */
+  description: {
+    /**
+     * Problem statement and challenge description
+     */
+    statement: string;
+    /**
+     * Statistics about challenge submissions
+     */
+    submissionStats?: {
+      /**
+       * Number of accepted solutions
+       */
+      acceptedSolutions?: number | null;
+      /**
+       * Number of failed solutions
+       */
+      failedSolutions?: number | null;
+      /**
+       * Total number of submissions
+       */
+      totalSubmissions?: number | null;
+      /**
+       * Percentage of accepted submissions (0-100)
+       */
+      acceptanceRate?: number | null;
+    };
+    /**
+     * Helpful hints for solving the challenge
+     */
+    hints?:
+      | {
+          content: string;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * List of related challenges
+     */
+    similarChallenges?:
+      | {
+          /**
+           * Select a related challenge
+           */
+          challenge: number | Challenge;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * User comments on this challenge
+     */
+    comments?:
+      | {
+          id: string | null;
+          /**
+           * ID of the user who wrote this comment
+           */
+          authorId: string;
+          /**
+           * The comment text
+           */
+          content: string;
+          /**
+           * Number of votes on this comment
+           */
+          votes?: number | null;
+          /**
+           * When this comment was created
+           */
+          createdAt?: string | null;
+          /**
+           * Replies to this comment
+           */
+          responses?:
+            | {
+                id: string | null;
+                /**
+                 * ID of the user who wrote this response
+                 */
+                authorId: string;
+                /**
+                 * The response text
+                 */
+                content: string;
+                /**
+                 * Number of votes on this response
+                 */
+                votes?: number | null;
+                /**
+                 * When this response was created
+                 */
+                createdAt?: string | null;
+              }[]
+            | null;
+        }[]
+      | null;
+  };
+  /**
+   * The official solution for this challenge
+   */
+  officialSolution: {
+    /**
+     * The content of the official solution
+     */
+    statement: string;
+    /**
+     * User comments on this solution
+     */
+    comments?:
+      | {
+          id: string | null;
+          /**
+           * ID of the user who wrote this comment
+           */
+          authorId: string;
+          /**
+           * The comment text
+           */
+          content: string;
+          /**
+           * Number of votes on this comment
+           */
+          votes?: number | null;
+          /**
+           * When this comment was created
+           */
+          createdAt?: string | null;
+          /**
+           * Replies to this comment
+           */
+          responses?:
+            | {
+                id: string | null;
+                /**
+                 * ID of the user who wrote this response
+                 */
+                authorId: string;
+                /**
+                 * The response text
+                 */
+                content: string;
+                /**
+                 * Number of votes on this response
+                 */
+                votes?: number | null;
+                /**
+                 * When this response was created
+                 */
+                createdAt?: string | null;
+              }[]
+            | null;
+        }[]
+      | null;
+  };
+  /**
+   * Solutions submitted by users for this challenge
+   */
+  userSolutions?:
+    | {
+        /**
+         * Title of the solution
+         */
+        title: string;
+        /**
+         * ID of the user who submitted this solution
+         */
+        authorId: string;
+        /**
+         * The content of the user solution
+         */
+        statement: string;
+        /**
+         * Number of times this solution has been viewed
+         */
+        views?: number | null;
+        /**
+         * Number of votes received for this solution
+         */
+        votes?: number | null;
+        /**
+         * When this solution was submitted
+         */
+        createdAt?: string | null;
+        /**
+         * User comments on this solution
+         */
+        comments?:
+          | {
+              id: string | null;
+              /**
+               * ID of the user who wrote this comment
+               */
+              authorId: string;
+              /**
+               * The comment text
+               */
+              content: string;
+              /**
+               * Number of votes on this comment
+               */
+              votes?: number | null;
+              /**
+               * When this comment was created
+               */
+              createdAt?: string | null;
+              /**
+               * Replies to this comment
+               */
+              responses?:
+                | {
+                    id: string | null;
+                    /**
+                     * ID of the user who wrote this response
+                     */
+                    authorId: string;
+                    /**
+                     * The response text
+                     */
+                    content: string;
+                    /**
+                     * Number of votes on this response
+                     */
+                    votes?: number | null;
+                    /**
+                     * When this response was created
+                     */
+                    createdAt?: string | null;
+                  }[]
+                | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -850,6 +1136,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'user-achievements';
         value: number | UserAchievement;
+      } | null)
+    | ({
+        relationTo: 'challenges';
+        value: number | Challenge;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1233,6 +1523,126 @@ export interface UserAchievementsSelect<T extends boolean = true> {
   lastUpdated?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenges_select".
+ */
+export interface ChallengesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  difficulty?: T;
+  baseExperience?: T;
+  concepts?:
+    | T
+    | {
+        concept?: T;
+        id?: T;
+      };
+  engagement?:
+    | T
+    | {
+        likes?: T;
+        dislikes?: T;
+      };
+  description?:
+    | T
+    | {
+        statement?: T;
+        submissionStats?:
+          | T
+          | {
+              acceptedSolutions?: T;
+              failedSolutions?: T;
+              totalSubmissions?: T;
+              acceptanceRate?: T;
+            };
+        hints?:
+          | T
+          | {
+              content?: T;
+              id?: T;
+            };
+        similarChallenges?:
+          | T
+          | {
+              challenge?: T;
+              id?: T;
+            };
+        comments?:
+          | T
+          | {
+              id?: T;
+              authorId?: T;
+              content?: T;
+              votes?: T;
+              createdAt?: T;
+              responses?:
+                | T
+                | {
+                    id?: T;
+                    authorId?: T;
+                    content?: T;
+                    votes?: T;
+                    createdAt?: T;
+                  };
+            };
+      };
+  officialSolution?:
+    | T
+    | {
+        statement?: T;
+        comments?:
+          | T
+          | {
+              id?: T;
+              authorId?: T;
+              content?: T;
+              votes?: T;
+              createdAt?: T;
+              responses?:
+                | T
+                | {
+                    id?: T;
+                    authorId?: T;
+                    content?: T;
+                    votes?: T;
+                    createdAt?: T;
+                  };
+            };
+      };
+  userSolutions?:
+    | T
+    | {
+        title?: T;
+        authorId?: T;
+        statement?: T;
+        views?: T;
+        votes?: T;
+        createdAt?: T;
+        comments?:
+          | T
+          | {
+              id?: T;
+              authorId?: T;
+              content?: T;
+              votes?: T;
+              createdAt?: T;
+              responses?:
+                | T
+                | {
+                    id?: T;
+                    authorId?: T;
+                    content?: T;
+                    votes?: T;
+                    createdAt?: T;
+                  };
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

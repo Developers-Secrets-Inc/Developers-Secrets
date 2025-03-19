@@ -1,7 +1,10 @@
 import { ChallengeHeader } from '../components/challenge-header'
 import { SubmissionsList } from '../components/submissions-list'
 
-export default function SubmissionsPage({ params }: { params: { challenge_slug: string } }) {
+export default async function SubmissionsPage({ params }: { params: Promise<{ challenge_slug: string }> }) {
+  // Attendre les paramètres avant de les utiliser
+  const { challenge_slug } = await params
+
   return (
     <div>
       <ChallengeHeader />

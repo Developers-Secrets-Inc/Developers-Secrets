@@ -29,9 +29,12 @@ function SolutionSkeleton() {
 export default async function SolutionDetailPage({
   params,
 }: {
-  params: { challenge_slug: string; solution_id: string }
+  params: Promise<{ challenge_slug: string; solution_id: string }>
 }) {
-  const solution = await getSolution(params.challenge_slug, params.solution_id)
+  // Attendre les paramètres avant de les utiliser
+  const { challenge_slug, solution_id } = await params
+
+  const solution = await getSolution(challenge_slug, solution_id)
 
   if (!solution) {
     notFound()
@@ -39,7 +42,7 @@ export default async function SolutionDetailPage({
 
   return (
     <Suspense fallback={<SolutionSkeleton />}>
-      <SolutionDetail solution={solution} challengeSlug={params.challenge_slug} />
+      <SolutionDetail solution={solution} challengeSlug={challenge_slug} />
     </Suspense>
   )
 }

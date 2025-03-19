@@ -15,14 +15,15 @@ function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
 }
 
-export default function ChallengeLayout({
+export default async function ChallengeLayout({
   children,
   params,
 }: {
   children: React.ReactNode
-  params: { challenge_slug: string }
+  params: Promise<{ challenge_slug: string }>
 }) {
-  const { challenge_slug } = params
+  // Attendre les paramètres avant de les utiliser
+  const { challenge_slug } = await params
 
   return (
     <div className="flex flex-col h-screen">
