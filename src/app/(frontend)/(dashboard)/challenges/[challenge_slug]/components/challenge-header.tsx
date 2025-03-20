@@ -1,30 +1,23 @@
 import { CheckCircle } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { ChallengeDifficulty } from '@/components/challenges/challenge-difficulty'
+import { ChallengeExperience } from '@/components/challenges/challenge-experience'
+import { ChallengeConcepts } from '@/components/challenges/challenge-concepts'
 
 type ChallengeHeaderProps = {
-  title?: string
-  difficulty?: 'Easy' | 'Medium' | 'Hard'
-  tags?: string[]
-  xp?: number
+  title: string
+  difficulty: 'easy' | 'medium' | 'hard' | 'horrible'
+  concepts: string[]
+  baseExperience: number
   status?: 'Attempted' | 'Completed' | 'Not Attempted'
 }
 
-export function ChallengeHeader({
-  title = 'Count Number of Maximum Bitwise-OR Subsets',
-  difficulty = 'Medium',
-  tags = ['Bit Manipulation', 'Dynamic Programming', 'Recursion'],
-  xp = 50,
-  status = 'Attempted',
-}: ChallengeHeaderProps) {
-  // Mapping des couleurs par difficulté
-  const difficultyColorMap = {
-    Easy: 'green',
-    Medium: 'yellow',
-    Hard: 'red',
-  }
-
-  const color = difficultyColorMap[difficulty]
-
+export const ChallengeHeader = ({
+  title,
+  difficulty,
+  concepts,
+  baseExperience,
+  status = 'Not Attempted',
+}: ChallengeHeaderProps) => {
   // Mapping des couleurs par statut
   const statusColorMap = {
     Attempted: 'amber',
@@ -44,25 +37,9 @@ export function ChallengeHeader({
         </div>
       </div>
       <div className="flex flex-wrap gap-2 mb-4">
-        <Badge
-          variant="outline"
-          className={`bg-${color}-500/10 text-${color}-500 border-${color}-500/20 rounded-sm`}
-        >
-          {difficulty}
-        </Badge>
-        {xp && (
-          <Badge
-            variant="outline"
-            className="bg-green-500/10 text-green-500 border-green-500/20 rounded-sm"
-          >
-            +{xp} XP
-          </Badge>
-        )}
-        {tags.map((tag) => (
-          <Badge key={tag} variant="outline" className="rounded-sm">
-            {tag}
-          </Badge>
-        ))}
+        <ChallengeDifficulty difficulty={difficulty} />
+        <ChallengeExperience experience={baseExperience} />
+        <ChallengeConcepts concepts={concepts} />
       </div>
     </>
   )

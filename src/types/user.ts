@@ -1,9 +1,8 @@
-export type User = {
-  id: string
-  email: string
-  // Statistiques de connexion
+import { User as SupabaseUser } from '@supabase/supabase-js'
+
+export type User = SupabaseUser & {
+  informations: UserInformations
   connectionStats?: UserConnectionStats
-  // Autres champs qui pourraient être ajoutés dans le futur
 }
 
 /**

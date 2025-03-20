@@ -82,6 +82,7 @@ export interface Config {
     achievements: Achievement;
     'user-achievements': UserAchievement;
     challenges: Challenge;
+    userChallengeProgression: UserChallengeProgression;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -104,6 +105,7 @@ export interface Config {
     achievements: AchievementsSelect<false> | AchievementsSelect<true>;
     'user-achievements': UserAchievementsSelect<false> | UserAchievementsSelect<true>;
     challenges: ChallengesSelect<false> | ChallengesSelect<true>;
+    userChallengeProgression: UserChallengeProgressionSelect<false> | UserChallengeProgressionSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -809,6 +811,23 @@ export interface Challenge {
    */
   baseExperience?: number | null;
   /**
+   * User ratings for this challenge
+   */
+  ratings?: {
+    /**
+     * Sum of all rating points
+     */
+    total?: number | null;
+    /**
+     * Number of ratings received
+     */
+    count?: number | null;
+    /**
+     * Average rating (0-5)
+     */
+    average?: number | null;
+  };
+  /**
    * Programming concepts covered by this challenge
    */
   concepts?:
@@ -885,7 +904,6 @@ export interface Challenge {
      */
     comments?:
       | {
-          id: string | null;
           /**
            * ID of the user who wrote this comment
            */
@@ -907,7 +925,6 @@ export interface Challenge {
            */
           responses?:
             | {
-                id: string | null;
                 /**
                  * ID of the user who wrote this response
                  */
@@ -924,8 +941,10 @@ export interface Challenge {
                  * When this response was created
                  */
                 createdAt?: string | null;
+                id?: string | null;
               }[]
             | null;
+          id?: string | null;
         }[]
       | null;
   };
@@ -942,7 +961,6 @@ export interface Challenge {
      */
     comments?:
       | {
-          id: string | null;
           /**
            * ID of the user who wrote this comment
            */
@@ -964,7 +982,6 @@ export interface Challenge {
            */
           responses?:
             | {
-                id: string | null;
                 /**
                  * ID of the user who wrote this response
                  */
@@ -981,8 +998,10 @@ export interface Challenge {
                  * When this response was created
                  */
                 createdAt?: string | null;
+                id?: string | null;
               }[]
             | null;
+          id?: string | null;
         }[]
       | null;
   };
@@ -1020,7 +1039,6 @@ export interface Challenge {
          */
         comments?:
           | {
-              id: string | null;
               /**
                * ID of the user who wrote this comment
                */
@@ -1042,7 +1060,6 @@ export interface Challenge {
                */
               responses?:
                 | {
-                    id: string | null;
                     /**
                      * ID of the user who wrote this response
                      */
@@ -1059,16 +1076,143 @@ export interface Challenge {
                      * When this response was created
                      */
                     createdAt?: string | null;
+                    id?: string | null;
                   }[]
                 | null;
+              id?: string | null;
             }[]
           | null;
         id?: string | null;
       }[]
     | null;
+  /**
+   * Submissions made by users for this challenge
+   */
+  submissions?:
+    | {
+        /**
+         * Type of submission result
+         */
+        submissionType: 'accepted' | 'runtimeError' | 'wrongAnswer' | 'timeLimitExceeded';
+        /**
+         * ID of the user who made this submission
+         */
+        authorId: string;
+        /**
+         * Number of test cases passed
+         */
+        testsPassed: number;
+        /**
+         * Total number of test cases
+         */
+        testsTotal: number;
+        /**
+         * When this submission was made
+         */
+        createdAt?: string | null;
+        /**
+         * Error message (for Runtime Error submissions)
+         */
+        error?: string | null;
+        /**
+         * Test case input (for Wrong Answer submissions)
+         */
+        input?: string | null;
+        /**
+         * User's output (for Wrong Answer submissions)
+         */
+        output?: string | null;
+        /**
+         * Expected output (for Wrong Answer submissions)
+         */
+        expectedOutput?: string | null;
+        /**
+         * Last expected output parameters (for Runtime Error and Time Limit Exceeded submissions)
+         */
+        lastExpectedOutput?:
+          | {
+              param: string;
+              value: string;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * The submitted code
+         */
+        code: {
+          /**
+           * Programming language of the submission
+           */
+          language: string;
+          /**
+           * The code content
+           */
+          content: string;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Code related information for this challenge
+   */
+  code: {
+    /**
+     * Default programming language for the challenge
+     */
+    language: string;
+    /**
+     * Initial code provided to users
+     */
+    initialCode: string;
+    /**
+     * Test cases for validating solutions
+     */
+    testCases?:
+      | {
+          /**
+           * Input data for the test case
+           */
+          input: string;
+          /**
+           * Expected output for this test case
+           */
+          expectedOutput: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeProgression".
+ */
+export interface UserChallengeProgression {
+  id: number;
+  /**
+   * ID of the user
+   */
+  userId: string;
+  /**
+   * Slug of the challenge
+   */
+  challengeSlug: string;
+  /**
+   * Whether the user has liked this challenge
+   */
+  hasLiked?: boolean | null;
+  /**
+   * Whether the user has disliked this challenge
+   */
+  hasDisliked?: boolean | null;
+  /**
+   * User rating for this challenge (1-5)
+   */
+  rating?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1140,6 +1284,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'challenges';
         value: number | Challenge;
+      } | null)
+    | ({
+        relationTo: 'userChallengeProgression';
+        value: number | UserChallengeProgression;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1533,6 +1681,13 @@ export interface ChallengesSelect<T extends boolean = true> {
   slug?: T;
   difficulty?: T;
   baseExperience?: T;
+  ratings?:
+    | T
+    | {
+        total?: T;
+        count?: T;
+        average?: T;
+      };
   concepts?:
     | T
     | {
@@ -1572,7 +1727,6 @@ export interface ChallengesSelect<T extends boolean = true> {
         comments?:
           | T
           | {
-              id?: T;
               authorId?: T;
               content?: T;
               votes?: T;
@@ -1580,12 +1734,13 @@ export interface ChallengesSelect<T extends boolean = true> {
               responses?:
                 | T
                 | {
-                    id?: T;
                     authorId?: T;
                     content?: T;
                     votes?: T;
                     createdAt?: T;
+                    id?: T;
                   };
+              id?: T;
             };
       };
   officialSolution?:
@@ -1595,7 +1750,6 @@ export interface ChallengesSelect<T extends boolean = true> {
         comments?:
           | T
           | {
-              id?: T;
               authorId?: T;
               content?: T;
               votes?: T;
@@ -1603,12 +1757,13 @@ export interface ChallengesSelect<T extends boolean = true> {
               responses?:
                 | T
                 | {
-                    id?: T;
                     authorId?: T;
                     content?: T;
                     votes?: T;
                     createdAt?: T;
+                    id?: T;
                   };
+              id?: T;
             };
       };
   userSolutions?:
@@ -1623,7 +1778,6 @@ export interface ChallengesSelect<T extends boolean = true> {
         comments?:
           | T
           | {
-              id?: T;
               authorId?: T;
               content?: T;
               votes?: T;
@@ -1631,18 +1785,72 @@ export interface ChallengesSelect<T extends boolean = true> {
               responses?:
                 | T
                 | {
-                    id?: T;
                     authorId?: T;
                     content?: T;
                     votes?: T;
                     createdAt?: T;
+                    id?: T;
                   };
+              id?: T;
             };
         id?: T;
+      };
+  submissions?:
+    | T
+    | {
+        submissionType?: T;
+        authorId?: T;
+        testsPassed?: T;
+        testsTotal?: T;
+        createdAt?: T;
+        error?: T;
+        input?: T;
+        output?: T;
+        expectedOutput?: T;
+        lastExpectedOutput?:
+          | T
+          | {
+              param?: T;
+              value?: T;
+              id?: T;
+            };
+        code?:
+          | T
+          | {
+              language?: T;
+              content?: T;
+            };
+        id?: T;
+      };
+  code?:
+    | T
+    | {
+        language?: T;
+        initialCode?: T;
+        testCases?:
+          | T
+          | {
+              input?: T;
+              expectedOutput?: T;
+              id?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeProgression_select".
+ */
+export interface UserChallengeProgressionSelect<T extends boolean = true> {
+  userId?: T;
+  challengeSlug?: T;
+  hasLiked?: T;
+  hasDisliked?: T;
+  rating?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

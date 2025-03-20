@@ -50,21 +50,6 @@ export type ChallengeSolution = {
   comments: CommentWithReplies[]
 }
 
-export type ChallengeSubmission = {
-  id: string 
-  status: 'wrong_answer' | 'time_limit_exceeded' | 'runtime_error' | 'accepted'
-  testsPassed: number 
-  testsTotal: number 
-  input: string 
-  output: string 
-  expectedOutput: string 
-  createdAt: Date 
-  code: {
-    language: string 
-    content: string 
-  }
-}
-
 
 export type RunTimeErrorSubmission = {
   id: string 
@@ -105,6 +90,17 @@ export type TimeLimitExceededSubmission = {
     param: string 
     value: string 
   }[]
+  code: {
+    language: string 
+    content: string 
+  }
+}
+
+export type AcceptedSubmission = {
+  id: string 
+  testsPassed: number 
+  testsTotal: number 
+  createdAt: Date 
   code: {
     language: string 
     content: string 

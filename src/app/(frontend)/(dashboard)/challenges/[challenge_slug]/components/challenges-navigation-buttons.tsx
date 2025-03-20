@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
@@ -5,6 +8,7 @@ import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import { ArrowLeft, ArrowRight, List, Shuffle } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 
 /**
  * Composant personnalisé pour le contenu des tooltips sans le losange (arrow)
@@ -111,22 +115,76 @@ const navigationButtons = [
   },
 ]
 
-/**
- * Composant principal pour les boutons de navigation des challenges
- */
-export const ChallengesNavigationButtons = () => {
+interface ChallengesNavigationButtonsProps {
+  challengeSlug: string
+  previousChallengeSlug: string
+  nextChallengeSlug: string
+}
+
+export function ChallengesNavigationButtons({
+  challengeSlug,
+  previousChallengeSlug,
+  nextChallengeSlug,
+}: ChallengesNavigationButtonsProps) {
   return (
     <>
-      {navigationButtons.map((button, index) => (
-        <NavigationButton
-          key={index}
-          href={button.href}
-          icon={button.icon}
-          label={button.label}
-          tooltipText={button.tooltipText}
-          showText={button.showText}
-        />
-      ))}
+      <Button
+        asChild
+        variant="outline"
+        className="rounded-r-none border-r-0 px-3"
+        aria-label="Previous challenge"
+      >
+        <Link href={`/challenges/${previousChallengeSlug}`} prefetch={true}>
+          <ArrowLeft size={16} />
+        </Link>
+      </Button>
+      <RandomChallengeButton currentSlug={challengeSlug} />
+      <Button
+        asChild
+        variant="outline"
+        className="rounded-l-none border-l-0 px-3"
+        aria-label="Next challenge"
+      >
+        <Link href={`/challenges/${nextChallengeSlug}`} prefetch={true}>
+          <ArrowRight size={16} />
+        </Link>
+      </Button>
     </>
+  )
+}
+
+// This needs to be a separate client component since it uses a random redirect
+interface RandomChallengeButtonProps {
+  currentSlug: string
+}
+
+function RandomChallengeButton({ currentSlug }: RandomChallengeButtonProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+
+  const handleClick = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/challenges/random?current=${currentSlug}`)
+      const data = await response.json()
+
+      // Navigate to the random challenge
+      router.push(`/challenges/${data.slug}`)
+    } catch (error) {
+      console.error('Error getting random challenge:', error)
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Button
+      variant="outline"
+      className="rounded-none border-x-0 px-3"
+      aria-label="Random challenge"
+      onClick={handleClick}
+      disabled={isLoading}
+    >
+      <Shuffle size={16} />
+    </Button>
   )
 }

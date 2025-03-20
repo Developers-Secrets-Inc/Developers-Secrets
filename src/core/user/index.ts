@@ -4,6 +4,7 @@ import 'server-only'
 
 import { UserInformation as PayloadUserInformation } from '@/payload-types'
 import {
+  User,
   UserConnectionStats,
   UserInformations,
   UserPermission,
@@ -12,6 +13,8 @@ import {
 } from '@/types/user'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { createClient } from '@/utils/supabase/server'
+import { User as SupabaseUser } from '@supabase/supabase-js'
 
 const convertPayloadUserInformationToUserInformations = (
   payloadUserInformation: PayloadUserInformation,
@@ -86,20 +89,7 @@ export const createInitialUserInformation = async (userId: string): Promise<void
   }
 }
 
-export const getUserInformation = async (userId: string): Promise<UserInformations> => {
-  const payload = await getPayload({ config })
 
-  const userInformation = await payload.find({
-    collection: 'user-informations',
-    where: { userId: { equals: userId } },
-  })
-
-  if (!userInformation.docs || userInformation.docs.length === 0) {
-    throw new Error(`User information not found for user ${userId}`)
-  }
-
-  return convertPayloadUserInformationToUserInformations(userInformation.docs[0])
-}
 
 // ================================================
 // User Connection Stats
@@ -280,3 +270,46 @@ export const getTheme = async (userId: string): Promise<'light' | 'dark' | 'syst
   return user.preferences.theme
 }
 
+
+
+
+
+export const getUserInformation = async (userId: string): Promise<UserInformations> => {
+  const payload = await getPayload({ config })
+
+  const userInformation = await payload.find({
+    collection: 'user-informations',
+    where: { userId: { equals: userId } },
+  })
+
+  if (!userInformation.docs || userInformation.docs.length === 0) {
+    throw new Error(`User information not found for user ${userId}`)
+  }
+
+  return convertPayloadUserInformationToUserInformations(userInformation.docs[0])
+}
+
+
+const getSupabaseUser = async (): Promise<SupabaseUser> => {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.auth.getUser()
+  
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data.user
+}
+
+
+export const getUser = async (): Promise<User> => {
+  const supabaseUser = await getSupabaseUser()
+
+  const user = await getUserInformation(supabaseUser.id)
+
+  return {
+    ...supabaseUser,
+    informations: user,
+  }
+}

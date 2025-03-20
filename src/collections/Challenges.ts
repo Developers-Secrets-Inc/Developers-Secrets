@@ -93,6 +93,59 @@ export const Challenges: CollectionConfig = {
       },
     },
     {
+      name: 'ratings',
+      label: 'Ratings',
+      type: 'group',
+      admin: {
+        description: 'User ratings for this challenge',
+        position: 'sidebar',
+      },
+      fields: [
+        {
+          name: 'total',
+          label: 'Total Rating Points',
+          type: 'number',
+          defaultValue: 0,
+          admin: {
+            description: 'Sum of all rating points',
+            readOnly: true,
+          },
+        },
+        {
+          name: 'count',
+          label: 'Rating Count',
+          type: 'number',
+          defaultValue: 0,
+          admin: {
+            description: 'Number of ratings received',
+            readOnly: true,
+          },
+        },
+        {
+          name: 'average',
+          label: 'Average Rating',
+          type: 'number',
+          admin: {
+            description: 'Average rating (0-5)',
+            readOnly: true,
+          },
+          hooks: {
+            beforeChange: [
+              ({ siblingData }) => {
+                const total = siblingData?.total || 0
+                const count = siblingData?.count || 0
+
+                if (count > 0) {
+                  return parseFloat((total / count).toFixed(1))
+                }
+                return 0
+              },
+            ],
+          },
+        },
+      ],
+    },
+    {
       name: 'concepts',
       label: 'Concepts',
       type: 'array',
@@ -260,15 +313,6 @@ export const Challenges: CollectionConfig = {
           },
           fields: [
             {
-              name: 'id',
-              label: 'Comment ID',
-              type: 'text',
-              required: true,
-              admin: {
-                description: 'Unique identifier for this comment',
-              },
-            },
-            {
               name: 'authorId',
               label: 'Author ID',
               type: 'text',
@@ -314,15 +358,6 @@ export const Challenges: CollectionConfig = {
                 description: 'Replies to this comment',
               },
               fields: [
-                {
-                  name: 'id',
-                  label: 'Response ID',
-                  type: 'text',
-                  required: true,
-                  admin: {
-                    description: 'Unique identifier for this response',
-                  },
-                },
                 {
                   name: 'authorId',
                   label: 'Author ID',
@@ -393,15 +428,6 @@ export const Challenges: CollectionConfig = {
           },
           fields: [
             {
-              name: 'id',
-              label: 'Comment ID',
-              type: 'text',
-              required: true,
-              admin: {
-                description: 'Unique identifier for this comment',
-              },
-            },
-            {
               name: 'authorId',
               label: 'Author ID',
               type: 'text',
@@ -447,15 +473,6 @@ export const Challenges: CollectionConfig = {
                 description: 'Replies to this comment',
               },
               fields: [
-                {
-                  name: 'id',
-                  label: 'Response ID',
-                  type: 'text',
-                  required: true,
-                  admin: {
-                    description: 'Unique identifier for this response',
-                  },
-                },
                 {
                   name: 'authorId',
                   label: 'Author ID',
@@ -573,15 +590,6 @@ export const Challenges: CollectionConfig = {
           },
           fields: [
             {
-              name: 'id',
-              label: 'Comment ID',
-              type: 'text',
-              required: true,
-              admin: {
-                description: 'Unique identifier for this comment',
-              },
-            },
-            {
               name: 'authorId',
               label: 'Author ID',
               type: 'text',
@@ -628,15 +636,6 @@ export const Challenges: CollectionConfig = {
               },
               fields: [
                 {
-                  name: 'id',
-                  label: 'Response ID',
-                  type: 'text',
-                  required: true,
-                  admin: {
-                    description: 'Unique identifier for this response',
-                  },
-                },
-                {
                   name: 'authorId',
                   label: 'Author ID',
                   type: 'text',
@@ -675,6 +674,219 @@ export const Challenges: CollectionConfig = {
                   },
                 },
               ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'submissions',
+      label: 'Submissions',
+      type: 'array',
+      admin: {
+        description: 'Submissions made by users for this challenge',
+      },
+      fields: [
+        {
+          name: 'submissionType',
+          label: 'Submission Type',
+          type: 'select',
+          required: true,
+          options: [
+            { label: 'Accepted', value: 'accepted' },
+            { label: 'Runtime Error', value: 'runtimeError' },
+            { label: 'Wrong Answer', value: 'wrongAnswer' },
+            { label: 'Time Limit Exceeded', value: 'timeLimitExceeded' },
+          ],
+          admin: {
+            description: 'Type of submission result',
+          },
+        },
+        {
+          name: 'authorId',
+          label: 'Author ID',
+          type: 'text',
+          required: true,
+          admin: {
+            description: 'ID of the user who made this submission',
+          },
+        },
+        {
+          name: 'testsPassed',
+          label: 'Tests Passed',
+          type: 'number',
+          required: true,
+          admin: {
+            description: 'Number of test cases passed',
+          },
+        },
+        {
+          name: 'testsTotal',
+          label: 'Tests Total',
+          type: 'number',
+          required: true,
+          admin: {
+            description: 'Total number of test cases',
+          },
+        },
+        {
+          name: 'createdAt',
+          label: 'Created At',
+          type: 'date',
+          admin: {
+            description: 'When this submission was made',
+            date: {
+              pickerAppearance: 'dayAndTime',
+            },
+          },
+        },
+        // Champs spécifiques au Runtime Error
+        {
+          name: 'error',
+          label: 'Error Message',
+          type: 'textarea',
+          admin: {
+            description: 'Error message (for Runtime Error submissions)',
+            condition: (data, siblingData) => siblingData?.submissionType === 'runtimeError',
+          },
+        },
+        // Champs spécifiques au Wrong Answer
+        {
+          name: 'input',
+          label: 'Input',
+          type: 'textarea',
+          admin: {
+            description: 'Test case input (for Wrong Answer submissions)',
+            condition: (data, siblingData) => siblingData?.submissionType === 'wrongAnswer',
+          },
+        },
+        {
+          name: 'output',
+          label: 'Output',
+          type: 'textarea',
+          admin: {
+            description: "User's output (for Wrong Answer submissions)",
+            condition: (data, siblingData) => siblingData?.submissionType === 'wrongAnswer',
+          },
+        },
+        {
+          name: 'expectedOutput',
+          label: 'Expected Output',
+          type: 'textarea',
+          admin: {
+            description: 'Expected output (for Wrong Answer submissions)',
+            condition: (data, siblingData) => siblingData?.submissionType === 'wrongAnswer',
+          },
+        },
+        // Champs communs à Runtime Error et Time Limit Exceeded
+        {
+          name: 'lastExpectedOutput',
+          label: 'Last Expected Output',
+          type: 'array',
+          admin: {
+            description:
+              'Last expected output parameters (for Runtime Error and Time Limit Exceeded submissions)',
+            condition: (data, siblingData) =>
+              siblingData?.submissionType === 'runtimeError' ||
+              siblingData?.submissionType === 'timeLimitExceeded',
+          },
+          fields: [
+            {
+              name: 'param',
+              label: 'Parameter Name',
+              type: 'text',
+              required: true,
+            },
+            {
+              name: 'value',
+              label: 'Parameter Value',
+              type: 'textarea',
+              required: true,
+            },
+          ],
+        },
+        // Code de soumission (commun à tous les types)
+        {
+          name: 'code',
+          label: 'Code',
+          type: 'group',
+          admin: {
+            description: 'The submitted code',
+          },
+          fields: [
+            {
+              name: 'language',
+              label: 'Language',
+              type: 'text',
+              required: true,
+              admin: {
+                description: 'Programming language of the submission',
+              },
+            },
+            {
+              name: 'content',
+              label: 'Content',
+              type: 'textarea',
+              required: true,
+              admin: {
+                description: 'The code content',
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'code',
+      label: 'Challenge Code',
+      type: 'group',
+      admin: {
+        description: 'Code related information for this challenge',
+      },
+      fields: [
+        {
+          name: 'language',
+          label: 'Language',
+          type: 'text',
+          required: true,
+          admin: {
+            description: 'Default programming language for the challenge',
+          },
+        },
+        {
+          name: 'initialCode',
+          label: 'Initial Code',
+          type: 'textarea',
+          required: true,
+          admin: {
+            description: 'Initial code provided to users',
+          },
+        },
+        {
+          name: 'testCases',
+          label: 'Test Cases',
+          type: 'array',
+          admin: {
+            description: 'Test cases for validating solutions',
+          },
+          fields: [
+            {
+              name: 'input',
+              label: 'Input',
+              type: 'textarea',
+              required: true,
+              admin: {
+                description: 'Input data for the test case',
+              },
+            },
+            {
+              name: 'expectedOutput',
+              label: 'Expected Output',
+              type: 'textarea',
+              required: true,
+              admin: {
+                description: 'Expected output for this test case',
+              },
             },
           ],
         },
