@@ -9,8 +9,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { MessageSquareText, Bot, SendHorizontal } from 'lucide-react'
-import { Textarea } from '@/components/ui/textarea'
+import { MessageSquareText, Bot, AlertCircle } from 'lucide-react'
 
 interface AIAssistantDialogProps {
   challengeSlug: string
@@ -18,23 +17,6 @@ interface AIAssistantDialogProps {
 
 export function AIAssistantDialog({ challengeSlug }: AIAssistantDialogProps) {
   const [open, setOpen] = useState(false)
-  const [message, setMessage] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!message.trim()) return
-
-    setIsLoading(true)
-
-    // Here you would typically call a server action or API to send the message
-    // For now, let's just simulate a delay
-    setTimeout(() => {
-      setIsLoading(false)
-      setMessage('')
-      // In a real implementation, you would handle the response
-    }, 1000)
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -45,29 +27,28 @@ export function AIAssistantDialog({ challengeSlug }: AIAssistantDialogProps) {
           <MessageSquareText className="ml-auto" size={16} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col">
+      <DialogContent className="sm:max-w-[500px] h-[500px] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bot size={18} /> AI Assistant
           </DialogTitle>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto p-4 border rounded-md my-4 bg-muted/30">
-          {/* Chat messages would be displayed here */}
-          <div className="text-center text-muted-foreground pt-20">
-            Ask the AI assistant for help with this challenge.
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center">
+          <AlertCircle size={48} className="text-muted-foreground" />
+          <h3 className="text-xl font-semibold">Coming Soon</h3>
+          <p className="text-muted-foreground max-w-[80%]">
+            The AI Assistant feature is not available yet. We&apos;re working hard to bring you
+            intelligent coding assistance in the near future!
+          </p>
+          <div className="text-sm text-muted-foreground mt-4">
+            Check back later for updates on this feature.
           </div>
         </div>
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Ask a question..."
-            className="resize-none min-h-[60px]"
-          />
-          <Button type="submit" disabled={isLoading || !message.trim()} className="self-end">
-            <SendHorizontal size={18} />
+        <div className="mt-auto pt-4 border-t">
+          <Button variant="outline" onClick={() => setOpen(false)} className="w-full">
+            Close
           </Button>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   )

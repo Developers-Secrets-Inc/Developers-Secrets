@@ -307,98 +307,17 @@ export const Challenges: CollectionConfig = {
         {
           name: 'comments',
           label: 'Comments',
-          type: 'array',
-          admin: {
-            description: 'User comments on this challenge',
+          type: 'relationship',
+          relationTo: 'comments',
+          hasMany: true,
+          filterOptions: {
+            targetType: {
+              equals: 'description',
+            },
           },
-          fields: [
-            {
-              name: 'authorId',
-              label: 'Author ID',
-              type: 'text',
-              required: true,
-              admin: {
-                description: 'ID of the user who wrote this comment',
-              },
-            },
-            {
-              name: 'content',
-              label: 'Content',
-              type: 'textarea',
-              required: true,
-              admin: {
-                description: 'The comment text',
-              },
-            },
-            {
-              name: 'votes',
-              label: 'Votes',
-              type: 'number',
-              defaultValue: 0,
-              admin: {
-                description: 'Number of votes on this comment',
-              },
-            },
-            {
-              name: 'createdAt',
-              label: 'Created At',
-              type: 'date',
-              admin: {
-                description: 'When this comment was created',
-                date: {
-                  pickerAppearance: 'dayAndTime',
-                },
-              },
-            },
-            {
-              name: 'responses',
-              label: 'Responses',
-              type: 'array',
-              admin: {
-                description: 'Replies to this comment',
-              },
-              fields: [
-                {
-                  name: 'authorId',
-                  label: 'Author ID',
-                  type: 'text',
-                  required: true,
-                  admin: {
-                    description: 'ID of the user who wrote this response',
-                  },
-                },
-                {
-                  name: 'content',
-                  label: 'Content',
-                  type: 'textarea',
-                  required: true,
-                  admin: {
-                    description: 'The response text',
-                  },
-                },
-                {
-                  name: 'votes',
-                  label: 'Votes',
-                  type: 'number',
-                  defaultValue: 0,
-                  admin: {
-                    description: 'Number of votes on this response',
-                  },
-                },
-                {
-                  name: 'createdAt',
-                  label: 'Created At',
-                  type: 'date',
-                  admin: {
-                    description: 'When this response was created',
-                    date: {
-                      pickerAppearance: 'dayAndTime',
-                    },
-                  },
-                },
-              ],
-            },
-          ],
+          admin: {
+            description: 'Comments on this challenge description',
+          },
         },
       ],
     },
@@ -422,98 +341,17 @@ export const Challenges: CollectionConfig = {
         {
           name: 'comments',
           label: 'Comments',
-          type: 'array',
-          admin: {
-            description: 'User comments on this solution',
+          type: 'relationship',
+          relationTo: 'comments',
+          hasMany: true,
+          filterOptions: {
+            targetType: {
+              equals: 'officialSolution',
+            },
           },
-          fields: [
-            {
-              name: 'authorId',
-              label: 'Author ID',
-              type: 'text',
-              required: true,
-              admin: {
-                description: 'ID of the user who wrote this comment',
-              },
-            },
-            {
-              name: 'content',
-              label: 'Content',
-              type: 'textarea',
-              required: true,
-              admin: {
-                description: 'The comment text',
-              },
-            },
-            {
-              name: 'votes',
-              label: 'Votes',
-              type: 'number',
-              defaultValue: 0,
-              admin: {
-                description: 'Number of votes on this comment',
-              },
-            },
-            {
-              name: 'createdAt',
-              label: 'Created At',
-              type: 'date',
-              admin: {
-                description: 'When this comment was created',
-                date: {
-                  pickerAppearance: 'dayAndTime',
-                },
-              },
-            },
-            {
-              name: 'responses',
-              label: 'Responses',
-              type: 'array',
-              admin: {
-                description: 'Replies to this comment',
-              },
-              fields: [
-                {
-                  name: 'authorId',
-                  label: 'Author ID',
-                  type: 'text',
-                  required: true,
-                  admin: {
-                    description: 'ID of the user who wrote this response',
-                  },
-                },
-                {
-                  name: 'content',
-                  label: 'Content',
-                  type: 'textarea',
-                  required: true,
-                  admin: {
-                    description: 'The response text',
-                  },
-                },
-                {
-                  name: 'votes',
-                  label: 'Votes',
-                  type: 'number',
-                  defaultValue: 0,
-                  admin: {
-                    description: 'Number of votes on this response',
-                  },
-                },
-                {
-                  name: 'createdAt',
-                  label: 'Created At',
-                  type: 'date',
-                  admin: {
-                    description: 'When this response was created',
-                    date: {
-                      pickerAppearance: 'dayAndTime',
-                    },
-                  },
-                },
-              ],
-            },
-          ],
+          admin: {
+            description: 'Comments on this official solution',
+          },
         },
       ],
     },
@@ -584,98 +422,17 @@ export const Challenges: CollectionConfig = {
         {
           name: 'comments',
           label: 'Comments',
-          type: 'array',
-          admin: {
-            description: 'User comments on this solution',
+          type: 'relationship',
+          relationTo: 'comments',
+          hasMany: true,
+          filterOptions: {
+            targetType: {
+              equals: 'userSolution',
+            },
           },
-          fields: [
-            {
-              name: 'authorId',
-              label: 'Author ID',
-              type: 'text',
-              required: true,
-              admin: {
-                description: 'ID of the user who wrote this comment',
-              },
-            },
-            {
-              name: 'content',
-              label: 'Content',
-              type: 'textarea',
-              required: true,
-              admin: {
-                description: 'The comment text',
-              },
-            },
-            {
-              name: 'votes',
-              label: 'Votes',
-              type: 'number',
-              defaultValue: 0,
-              admin: {
-                description: 'Number of votes on this comment',
-              },
-            },
-            {
-              name: 'createdAt',
-              label: 'Created At',
-              type: 'date',
-              admin: {
-                description: 'When this comment was created',
-                date: {
-                  pickerAppearance: 'dayAndTime',
-                },
-              },
-            },
-            {
-              name: 'responses',
-              label: 'Responses',
-              type: 'array',
-              admin: {
-                description: 'Replies to this comment',
-              },
-              fields: [
-                {
-                  name: 'authorId',
-                  label: 'Author ID',
-                  type: 'text',
-                  required: true,
-                  admin: {
-                    description: 'ID of the user who wrote this response',
-                  },
-                },
-                {
-                  name: 'content',
-                  label: 'Content',
-                  type: 'textarea',
-                  required: true,
-                  admin: {
-                    description: 'The response text',
-                  },
-                },
-                {
-                  name: 'votes',
-                  label: 'Votes',
-                  type: 'number',
-                  defaultValue: 0,
-                  admin: {
-                    description: 'Number of votes on this response',
-                  },
-                },
-                {
-                  name: 'createdAt',
-                  label: 'Created At',
-                  type: 'date',
-                  admin: {
-                    description: 'When this response was created',
-                    date: {
-                      pickerAppearance: 'dayAndTime',
-                    },
-                  },
-                },
-              ],
-            },
-          ],
+          admin: {
+            description: 'Comments on this user solution',
+          },
         },
       ],
     },

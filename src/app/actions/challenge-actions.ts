@@ -144,4 +144,66 @@ export async function toggleChallengeDislike(disliked: boolean, challengeSlug: s
   }
 }
 
-// ... rest of the file remains unchanged
+/**
+ * Rates a challenge with a score from 0 to 5
+ * @param challengeSlug The slug of the challenge to rate
+ * @param rating The rating value (0-5)
+ * @returns Success status and error message if applicable
+ */
+export async function rateChallenge(challengeSlug: string, rating: number) {
+  try {
+    console.log(`[ACTION] rateChallenge - Challenge: ${challengeSlug}, Rating: ${rating}`)
+
+    // Validate rating value
+    if (rating < 0 || rating > 5 || !Number.isInteger(rating)) {
+      throw new Error('Invalid rating value. Must be an integer between 0 and 5')
+    }
+
+    const user = await getUser()
+    if (!user || !user.id) {
+      throw new Error('Authentication required')
+    }
+
+    const userId = user.id
+    console.log(`[ACTION] Rating challenge by user: ${userId}`)
+
+    // Get current user progression
+    const progression = await getUserChallengeProgression(userId, challengeSlug)
+    const currentRating = progression?.rating || 0
+
+    console.log(
+      `[ACTION] Current progression: ${progression ? 'Found' : 'Not found'}`,
+      progression ? `(Current rating: ${currentRating})` : '',
+    )
+
+    // Prepare operations
+    const dbOperations = []
+
+    if (progression && currentRating > 0) {
+      // User has already rated, update the rating
+      console.log(`[ACTION] Updating existing rating from ${currentRating} to ${rating}`)
+      dbOperations.push(updateRatingForChallenge(challengeSlug, currentRating, rating))
+    } else {
+      // User hasn't rated yet, add a new rating
+      console.log(`[ACTION] Adding new rating: ${rating}`)
+      dbOperations.push(addRatingToChallenge(challengeSlug, rating))
+    }
+
+    // Always update user progression
+    console.log(`[ACTION] Updating user progression with rating: ${rating}`)
+    dbOperations.push(
+      updateUserChallengeProgression(userId, challengeSlug, {
+        rating,
+      }),
+    )
+
+    // Execute all operations in parallel
+    const results = await Promise.all(dbOperations)
+    console.log(`[ACTION] All rating operations completed successfully:`, results.length)
+
+    return { success: true }
+  } catch (error) {
+    console.error('[ACTION] Error rating challenge:', error)
+    return { success: false, error: (error as Error).message }
+  }
+}

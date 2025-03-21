@@ -83,6 +83,7 @@ export interface Config {
     'user-achievements': UserAchievement;
     challenges: Challenge;
     userChallengeProgression: UserChallengeProgression;
+    comments: Comment;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -106,6 +107,7 @@ export interface Config {
     'user-achievements': UserAchievementsSelect<false> | UserAchievementsSelect<true>;
     challenges: ChallengesSelect<false> | ChallengesSelect<true>;
     userChallengeProgression: UserChallengeProgressionSelect<false> | UserChallengeProgressionSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -900,53 +902,9 @@ export interface Challenge {
         }[]
       | null;
     /**
-     * User comments on this challenge
+     * Comments on this challenge description
      */
-    comments?:
-      | {
-          /**
-           * ID of the user who wrote this comment
-           */
-          authorId: string;
-          /**
-           * The comment text
-           */
-          content: string;
-          /**
-           * Number of votes on this comment
-           */
-          votes?: number | null;
-          /**
-           * When this comment was created
-           */
-          createdAt?: string | null;
-          /**
-           * Replies to this comment
-           */
-          responses?:
-            | {
-                /**
-                 * ID of the user who wrote this response
-                 */
-                authorId: string;
-                /**
-                 * The response text
-                 */
-                content: string;
-                /**
-                 * Number of votes on this response
-                 */
-                votes?: number | null;
-                /**
-                 * When this response was created
-                 */
-                createdAt?: string | null;
-                id?: string | null;
-              }[]
-            | null;
-          id?: string | null;
-        }[]
-      | null;
+    comments?: (number | Comment)[] | null;
   };
   /**
    * The official solution for this challenge
@@ -957,53 +915,9 @@ export interface Challenge {
      */
     statement: string;
     /**
-     * User comments on this solution
+     * Comments on this official solution
      */
-    comments?:
-      | {
-          /**
-           * ID of the user who wrote this comment
-           */
-          authorId: string;
-          /**
-           * The comment text
-           */
-          content: string;
-          /**
-           * Number of votes on this comment
-           */
-          votes?: number | null;
-          /**
-           * When this comment was created
-           */
-          createdAt?: string | null;
-          /**
-           * Replies to this comment
-           */
-          responses?:
-            | {
-                /**
-                 * ID of the user who wrote this response
-                 */
-                authorId: string;
-                /**
-                 * The response text
-                 */
-                content: string;
-                /**
-                 * Number of votes on this response
-                 */
-                votes?: number | null;
-                /**
-                 * When this response was created
-                 */
-                createdAt?: string | null;
-                id?: string | null;
-              }[]
-            | null;
-          id?: string | null;
-        }[]
-      | null;
+    comments?: (number | Comment)[] | null;
   };
   /**
    * Solutions submitted by users for this challenge
@@ -1035,53 +949,9 @@ export interface Challenge {
          */
         createdAt?: string | null;
         /**
-         * User comments on this solution
+         * Comments on this user solution
          */
-        comments?:
-          | {
-              /**
-               * ID of the user who wrote this comment
-               */
-              authorId: string;
-              /**
-               * The comment text
-               */
-              content: string;
-              /**
-               * Number of votes on this comment
-               */
-              votes?: number | null;
-              /**
-               * When this comment was created
-               */
-              createdAt?: string | null;
-              /**
-               * Replies to this comment
-               */
-              responses?:
-                | {
-                    /**
-                     * ID of the user who wrote this response
-                     */
-                    authorId: string;
-                    /**
-                     * The response text
-                     */
-                    content: string;
-                    /**
-                     * Number of votes on this response
-                     */
-                    votes?: number | null;
-                    /**
-                     * When this response was created
-                     */
-                    createdAt?: string | null;
-                    id?: string | null;
-                  }[]
-                | null;
-              id?: string | null;
-            }[]
-          | null;
+        comments?: (number | Comment)[] | null;
         id?: string | null;
       }[]
     | null;
@@ -1187,6 +1057,57 @@ export interface Challenge {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: number;
+  /**
+   * The content of the comment
+   */
+  content: string;
+  /**
+   * The ID of the user who created the comment
+   */
+  authorId: string;
+  /**
+   * The challenge this comment belongs to
+   */
+  challenge: number | Challenge;
+  /**
+   * The type of content this comment is associated with
+   */
+  targetType: 'description' | 'officialSolution' | 'userSolution';
+  /**
+   * The ID of the parent comment if this is a reply
+   */
+  parentId?: string | null;
+  /**
+   * The number of upvotes minus downvotes
+   */
+  votes?: number | null;
+  /**
+   * Reports made against this comment
+   */
+  reports?:
+    | {
+        userId: string;
+        reason: string;
+        details?: string | null;
+        createdAt: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * When the comment was created
+   */
+  createdAt: string;
+  /**
+   * When the comment was last updated
+   */
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "userChallengeProgression".
  */
 export interface UserChallengeProgression {
@@ -1288,6 +1209,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'userChallengeProgression';
         value: number | UserChallengeProgression;
+      } | null)
+    | ({
+        relationTo: 'comments';
+        value: number | Comment;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1724,47 +1649,13 @@ export interface ChallengesSelect<T extends boolean = true> {
               challenge?: T;
               id?: T;
             };
-        comments?:
-          | T
-          | {
-              authorId?: T;
-              content?: T;
-              votes?: T;
-              createdAt?: T;
-              responses?:
-                | T
-                | {
-                    authorId?: T;
-                    content?: T;
-                    votes?: T;
-                    createdAt?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
+        comments?: T;
       };
   officialSolution?:
     | T
     | {
         statement?: T;
-        comments?:
-          | T
-          | {
-              authorId?: T;
-              content?: T;
-              votes?: T;
-              createdAt?: T;
-              responses?:
-                | T
-                | {
-                    authorId?: T;
-                    content?: T;
-                    votes?: T;
-                    createdAt?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
+        comments?: T;
       };
   userSolutions?:
     | T
@@ -1775,24 +1666,7 @@ export interface ChallengesSelect<T extends boolean = true> {
         views?: T;
         votes?: T;
         createdAt?: T;
-        comments?:
-          | T
-          | {
-              authorId?: T;
-              content?: T;
-              votes?: T;
-              createdAt?: T;
-              responses?:
-                | T
-                | {
-                    authorId?: T;
-                    content?: T;
-                    votes?: T;
-                    createdAt?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
+        comments?: T;
         id?: T;
       };
   submissions?:
@@ -1851,6 +1725,29 @@ export interface UserChallengeProgressionSelect<T extends boolean = true> {
   rating?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  content?: T;
+  authorId?: T;
+  challenge?: T;
+  targetType?: T;
+  parentId?: T;
+  votes?: T;
+  reports?:
+    | T
+    | {
+        userId?: T;
+        reason?: T;
+        details?: T;
+        createdAt?: T;
+        id?: T;
+      };
+  createdAt?: T;
+  updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

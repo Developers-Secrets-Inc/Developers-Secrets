@@ -1,7 +1,11 @@
 import { ChallengeHeader } from '../components/challenge-header'
 import { CommentsSection } from '../components/comments-section'
 
-export default async function OfficialSolutionPage({ params }: { params: Promise<{ challenge_slug: string }> }) {
+export default async function OfficialSolutionPage({
+  params,
+}: {
+  params: Promise<{ challenge_slug: string }>
+}) {
   // Attendre les paramètres avant de les utiliser
   const { challenge_slug } = await params
 

@@ -11,15 +11,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { rateChallenge } from '@/app/actions/challenge-actions'
+import { toast } from 'sonner'
 
 interface RatingTextProps {
   text?: string
   className?: string
+  challengeSlug: string
+  initialRating?: number
 }
 
 export function RatingText({
   text = 'Rate this challenge',
   className = 'text-xs text-muted-foreground',
+  challengeSlug,
+  initialRating,
 }: RatingTextProps) {
   const [open, setOpen] = useState(false)
 
@@ -31,7 +37,12 @@ export function RatingText({
       >
         {text}
       </div>
-      <RatingDialog open={open} setOpen={setOpen} />
+      <RatingDialog
+        open={open}
+        setOpen={setOpen}
+        challengeSlug={challengeSlug}
+        initialRating={initialRating?.toString()}
+      />
     </>
   )
 }
@@ -39,16 +50,35 @@ export function RatingText({
 interface RatingDialogProps {
   open: boolean
   setOpen: (open: boolean) => void
+  challengeSlug: string
+  initialRating?: string
 }
 
-function RatingDialog({ open, setOpen }: RatingDialogProps) {
+function RatingDialog({ open, setOpen, challengeSlug, initialRating }: RatingDialogProps) {
   const id = useId()
-  const [rating, setRating] = useState<string | undefined>()
+  const [rating, setRating] = useState<string | undefined>(initialRating)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = () => {
-    // Here you would handle the submission of the rating
-    console.log('Rating submitted:', rating)
-    setOpen(false)
+  const handleSubmit = async () => {
+    if (!rating) return
+
+    setIsSubmitting(true)
+    try {
+      const numericRating = parseInt(rating, 10)
+      const result = await rateChallenge(challengeSlug, numericRating)
+
+      if (result.success) {
+        toast.success('Thank you for rating this challenge!')
+        setOpen(false)
+      } else {
+        toast.error(result.error || 'Failed to submit rating')
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error)
+      toast.error('Something went wrong while submitting your rating')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -62,7 +92,7 @@ function RatingDialog({ open, setOpen }: RatingDialogProps) {
         <div className="py-4">
           <fieldset className="space-y-4">
             <legend className="text-foreground text-sm leading-none font-medium">
-              How likely are you to recommend us?
+              How would you rate this challenge?
             </legend>
             <RadioGroup
               className="flex gap-0 -space-x-px rounded-md shadow-xs"
@@ -86,19 +116,21 @@ function RatingDialog({ open, setOpen }: RatingDialogProps) {
           </fieldset>
           <div className="mt-1 flex justify-between text-xs font-medium">
             <p>
-              <span className="text-base">😡</span> Not likely
+              <span className="text-base">😡</span> Not good
             </p>
             <p>
-              Very Likely <span className="text-base">😍</span>
+              Excellent <span className="text-base">😍</span>
             </p>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Submit Rating</Button>
+          <Button onClick={handleSubmit} disabled={!rating || isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Submit Rating'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

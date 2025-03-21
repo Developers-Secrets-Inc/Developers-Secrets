@@ -1,56 +1,59 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowUp, ArrowDown, Flag, Reply } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CustomTooltip } from './custom-tooltip'
 
 interface CommentActionsProps {
-  commentId: string
-  initialUpvotes?: number
-  initialDownvotes?: number
+  onReply: () => void
+  onReport: () => void
+  onUpvote: () => Promise<void>
+  onDownvote: () => Promise<void>
+  upvotes: number
+  downvotes: number
 }
 
 export function CommentActions({
-  commentId,
-  initialUpvotes = 0,
-  initialDownvotes = 0,
+  onReply,
+  onReport,
+  onUpvote,
+  onDownvote,
+  upvotes,
+  downvotes,
 }: CommentActionsProps) {
   const [vote, setVote] = useState<'up' | 'down' | null>(null)
-  const [upvotes, setUpvotes] = useState(initialUpvotes)
-  const [downvotes, setDownvotes] = useState(initialDownvotes)
 
-  const handleUpvote = () => {
+  const handleUpvote = async () => {
     if (vote === 'up') {
       // Cancel upvote
       setVote(null)
-      setUpvotes((prev) => prev - 1)
     } else {
       // Add upvote, remove downvote if exists
       if (vote === 'down') {
-        setDownvotes((prev) => prev - 1)
+        setVote(null)
       }
       setVote('up')
-      setUpvotes((prev) => prev + 1)
+      await onUpvote()
     }
   }
 
-  const handleDownvote = () => {
+  const handleDownvote = async () => {
     if (vote === 'down') {
       // Cancel downvote
       setVote(null)
-      setDownvotes((prev) => prev - 1)
     } else {
       // Add downvote, remove upvote if exists
       if (vote === 'up') {
-        setUpvotes((prev) => prev - 1)
+        setVote(null)
       }
       setVote('down')
-      setDownvotes((prev) => prev + 1)
+      await onDownvote()
     }
   }
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-2">
       <Button
         variant="ghost"
         size="sm"
@@ -70,6 +73,28 @@ export function CommentActions({
       >
         <ArrowDown className="h-3 w-3" />
       </Button>
+
+      <CustomTooltip content="Reply to this comment">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 text-muted-foreground"
+          onClick={onReply}
+        >
+          <Reply className="h-3 w-3" />
+        </Button>
+      </CustomTooltip>
+
+      <CustomTooltip content="Report this comment">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 text-muted-foreground"
+          onClick={onReport}
+        >
+          <Flag className="h-3 w-3" />
+        </Button>
+      </CustomTooltip>
     </div>
   )
 }

@@ -21,10 +21,13 @@ import {
 import { Label } from '@/components/ui/label'
 
 interface ReportCommentDialogProps {
-  commentId: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  onReport?: (commentId: string, reason: string, details: string) => void
+  onSubmit: () => void
+  reason: string
+  onReasonChange: (reason: string) => void
+  details: string
+  onDetailsChange: (details: string) => void
 }
 
 const REPORT_REASONS = [
@@ -36,27 +39,14 @@ const REPORT_REASONS = [
 ]
 
 export function ReportCommentDialog({
-  commentId,
   open,
   onOpenChange,
-  onReport,
+  onSubmit,
+  reason,
+  onReasonChange,
+  details,
+  onDetailsChange,
 }: ReportCommentDialogProps) {
-  const [reason, setReason] = useState<string>('')
-  const [details, setDetails] = useState<string>('')
-
-  const handleSubmit = () => {
-    if (reason && onReport) {
-      onReport(commentId, reason, details)
-      handleReset()
-      onOpenChange(false)
-    }
-  }
-
-  const handleReset = () => {
-    setReason('')
-    setDetails('')
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -70,7 +60,7 @@ export function ReportCommentDialog({
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label htmlFor="reason">Reason</Label>
-            <Select value={reason} onValueChange={setReason}>
+            <Select value={reason} onValueChange={onReasonChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a reason" />
               </SelectTrigger>
@@ -91,7 +81,7 @@ export function ReportCommentDialog({
               placeholder="Provide more information about your report..."
               className="min-h-[100px]"
               value={details}
-              onChange={(e) => setDetails(e.target.value)}
+              onChange={(e) => onDetailsChange(e.target.value)}
             />
           </div>
         </div>
@@ -100,7 +90,7 @@ export function ReportCommentDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!reason}>
+          <Button onClick={onSubmit} disabled={!reason}>
             Submit Report
           </Button>
         </DialogFooter>

@@ -89,8 +89,6 @@ export const createInitialUserInformation = async (userId: string): Promise<void
   }
 }
 
-
-
 // ================================================
 // User Connection Stats
 // ================================================
@@ -263,16 +261,11 @@ export const enableEmail = async (
   })
 }
 
-
 export const getTheme = async (userId: string): Promise<'light' | 'dark' | 'system'> => {
   const user = await getUserInformation(userId)
 
   return user.preferences.theme
 }
-
-
-
-
 
 export const getUserInformation = async (userId: string): Promise<UserInformations> => {
   const payload = await getPayload({ config })
@@ -289,19 +282,17 @@ export const getUserInformation = async (userId: string): Promise<UserInformatio
   return convertPayloadUserInformationToUserInformations(userInformation.docs[0])
 }
 
-
 const getSupabaseUser = async (): Promise<SupabaseUser> => {
   const supabase = await createClient()
 
   const { data, error } = await supabase.auth.getUser()
-  
+
   if (error) {
     throw new Error(error.message)
   }
 
   return data.user
 }
-
 
 export const getUser = async (): Promise<User> => {
   const supabaseUser = await getSupabaseUser()
@@ -310,6 +301,23 @@ export const getUser = async (): Promise<User> => {
 
   return {
     ...supabaseUser,
+    informations: user,
+  }
+}
+
+export const getUserById = async (userId: string): Promise<User> => {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.auth.admin.getUserById(userId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  const user = await getUserInformation(data.user.id)
+
+  return {
+    ...data.user,
     informations: user,
   }
 }

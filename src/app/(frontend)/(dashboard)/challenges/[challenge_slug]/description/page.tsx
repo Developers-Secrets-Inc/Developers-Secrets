@@ -23,8 +23,6 @@ export default async function ChallengeDescriptionPage({
 
   const user = await getUser()
 
-  console.log(challenge)
-
   return (
     <div>
       <ChallengeHeader
@@ -39,7 +37,7 @@ export default async function ChallengeDescriptionPage({
       </Markdown>
       <div className="mt-8 border-t pt-6">
         <h3 className="text-lg font-semibold mb-4">Comments</h3>
-        <CommentsSection challengeId={challenge.id} />
+        <CommentsSection challengeId={challenge.id.toString()} />
       </div>
     </div>
   )

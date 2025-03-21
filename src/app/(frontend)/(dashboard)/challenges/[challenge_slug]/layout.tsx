@@ -41,6 +41,7 @@ export default async function ChallengeLayout({
   let userId = ''
   let hasLiked = false
   let hasDisliked = false
+  let userRating = undefined
 
   try {
     const user = await getUser()
@@ -53,6 +54,7 @@ export default async function ChallengeLayout({
         if (userProgress) {
           hasLiked = !!userProgress.hasLiked
           hasDisliked = !!userProgress.hasDisliked
+          userRating = userProgress.rating !== undefined ? userProgress.rating : undefined
         }
       } catch (progressError) {
         console.error('Error fetching user progression:', progressError)
@@ -114,7 +116,7 @@ export default async function ChallengeLayout({
                     initialDisliked={hasDisliked}
                     challengeSlug={challenge_slug}
                   />
-                  <RatingText />
+                  <RatingText challengeSlug={challenge_slug} initialRating={userRating} />
                 </div>
               </div>
               <AIAssistantDialog challengeSlug={challenge_slug} />

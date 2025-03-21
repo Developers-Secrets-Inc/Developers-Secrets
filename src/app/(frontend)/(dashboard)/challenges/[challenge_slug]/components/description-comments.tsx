@@ -1,38 +1,67 @@
+'use server'
+
 import { Challenge as PayloadChallenge } from '@/payload-types'
+import { CommentsSection } from './comments-section'
+import { createComment, reportComment, voteComment, getCommentsByChallenge } from '@/core/comments'
+import { getUser } from '@/core/user'
+import { CommentType } from '@/core/types'
 
 interface DescriptionCommentsProps {
   challenge: PayloadChallenge
 }
 
-export const DescriptionComments = ({ challenge }: DescriptionCommentsProps) => {
-  return <div>DescriptionComments</div>
+export const DescriptionComments = async ({ challenge }: DescriptionCommentsProps) => {
+  const user = await getUser()
+  const { comments } = await getCommentsByChallenge(challenge.id.toString(), 'description')
+
+  const handleCreateComment = async (content: string, parentId?: string) => {
+    'use server'
+    await createComment({
+      content,
+      authorId: user.id.toString(),
+      challengeId: challenge.id.toString(),
+      targetType: 'description',
+      parentId,
+    })
+  }
+
+  const handleUpvote = async (commentId: string) => {
+    'use server'
+    await voteComment(commentId, user.id.toString(), 'up')
+  }
+
+  const handleDownvote = async (commentId: string) => {
+    'use server'
+    await voteComment(commentId, user.id.toString(), 'down')
+  }
+
+  const handleReportComment = async (commentId: string, reason: string, details: string) => {
+    'use server'
+    await reportComment(commentId, user.id.toString(), {
+      userId: user.id.toString(),
+      reason,
+      details,
+    })
+  }
+
+  const mappedComments: CommentType[] = comments.map((comment) => ({
+    id: comment.id.toString(),
+    content: comment.content,
+    author: comment.author,
+    date: comment.createdAt,
+    upvotes: comment.votes || 0,
+    downvotes: 0, // We don't store downvotes separately in the database
+    parentId: comment.parentId || undefined,
+  }))
+
+  return (
+    <CommentsSection
+      challengeId={challenge.id.toString()}
+      comments={mappedComments}
+      onCreateComment={handleCreateComment}
+      onUpvote={handleUpvote}
+      onDownvote={handleDownvote}
+      onReportComment={handleReportComment}
+    />
+  )
 }
-
-/*
-
-- On affiche un ensemble de commentaires
-- On peut intéragir avec chaque commentaire 
-    - On peut voter pour un commentaire
-    - On peut répondre à un commentaire
-- On peut envoyer un nouveau commentaire
-
-
-- onCommentCreation
-- onReplyCreation
-- onCommentVote
-- onCommentReply
-- onCommentReport
-
-
-On veut afficher les commentaires de façon statique càd aller récupérer les commentaires depuis la base de données puis les afficher bêtement. Le problème est qu'on veut aussi ajouter de l'intéractivité avec les différentes actions possibles avec les commentaires. 
-
-Le problème aussi est qu'on a trois types de commentaires :
-- les commentaires de la description du challenge
-- Les commentaires de la solution officielle du challenge
-- les commentaires des solutions des autres utilisateurs
-
-On veut pouvoir les afficher tous ensemble mais être capable de gérer les modifications séparément. C'est pour ça qu'on a crée le composant DescriptionComments qui gère uniquement les commentaires de la description du challenge. Quand on ajoute un commentaire, on doit l'ajouter à ceux de la description du challenge, etc. C'est la logique des commentaires uniquement pour la description du challenge.
-
-
-
-*/
