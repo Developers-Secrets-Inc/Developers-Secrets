@@ -81,7 +81,23 @@ export const getRandomChallenge = async (excludeSlug?: string): Promise<Challeng
   return availableChallenges[randomIndex]
 }
 
-export const getPayloadChallenge = async (slug: string): Promise<PayloadChallenge> => {
+export const getPayloadChallenge = async (id: number): Promise<PayloadChallenge> => {
+  const payload = await getPayload({ config })
+  const challenge = await payload.find({
+    collection: 'challenges',
+    where: {
+      id: {
+        equals: id,
+      },
+    },
+  })
+  if (!challenge.docs.length) {
+    throw new ChallengeNotFoundError()
+  }
+  return challenge.docs[0]
+}
+
+export const getChallengeBySlug = async (slug: string): Promise<PayloadChallenge> => {
   const payload = await getPayload({ config })
   const challenge = await payload.find({
     collection: 'challenges',
@@ -95,20 +111,6 @@ export const getPayloadChallenge = async (slug: string): Promise<PayloadChalleng
     throw new ChallengeNotFoundError()
   }
   return challenge.docs[0]
-}
-
-export const getChallengeBySlug = async (slug: string): Promise<Challenge> => {
-  const challenge = await getPayloadChallenge(slug)
-
-  // Transform the PayloadChallenge to Challenge type
-  return {
-    id: challenge.id,
-    slug: challenge.slug,
-    title: challenge.title,
-    difficulty: challenge.difficulty,
-    baseExperience: challenge.baseExperience,
-    // Add other fields as needed
-  } as Challenge
 }
 
 export const addDescriptionComment = async (

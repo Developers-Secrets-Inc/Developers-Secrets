@@ -310,11 +310,6 @@ export const Challenges: CollectionConfig = {
           type: 'relationship',
           relationTo: 'comments',
           hasMany: true,
-          filterOptions: {
-            targetType: {
-              equals: 'description',
-            },
-          },
           admin: {
             description: 'Comments on this challenge description',
           },
@@ -344,11 +339,6 @@ export const Challenges: CollectionConfig = {
           type: 'relationship',
           relationTo: 'comments',
           hasMany: true,
-          filterOptions: {
-            targetType: {
-              equals: 'officialSolution',
-            },
-          },
           admin: {
             description: 'Comments on this official solution',
           },
@@ -425,11 +415,6 @@ export const Challenges: CollectionConfig = {
           type: 'relationship',
           relationTo: 'comments',
           hasMany: true,
-          filterOptions: {
-            targetType: {
-              equals: 'userSolution',
-            },
-          },
           admin: {
             description: 'Comments on this user solution',
           },

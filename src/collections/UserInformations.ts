@@ -18,6 +18,21 @@ export const UserInformations: CollectionConfig = {
       required: true,
     },
     {
+      name: 'name',
+      label: 'Name',
+      type: 'text',
+    },
+    {
+      name: 'avatar',
+      label: 'Avatar',
+      type: 'text',
+    },
+    {
+      name: 'initials',
+      label: 'Initials',
+      type: 'text',
+    },
+    {
       name: 'role',
       label: 'Role',
       type: 'select',

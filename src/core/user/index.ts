@@ -294,6 +294,9 @@ const getSupabaseUser = async (): Promise<SupabaseUser> => {
   return data.user
 }
 
+
+
+
 export const getUser = async (): Promise<User> => {
   const supabaseUser = await getSupabaseUser()
 

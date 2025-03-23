@@ -5,17 +5,26 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import { UserGamificationInformation } from '../../types/gamification/level'
+import { UserGamification } from '@/payload-types'
 
-export type LevelUpFormulaFunction = (currentLevel: number) => number
 
-export const DEFAULT_LEVEL_UP_FORMULA: LevelUpFormulaFunction = (currentLevel: number) =>
+export const DEFAULT_LEVEL_UP_FORMULA = (currentLevel: number) =>
   currentLevel * 100
+
+
+// ================================================
+// Create Operations
+// ================================================
+
+
+const BASE_LEVEL = 1
+const BASE_EXPERIENCE = 0
 
 export async function initializeUser(userId: string): Promise<void> {
   const payload = await getPayload({ config })
 
-  if (await getUserGamificationInfo(userId)) {
+  // ! May not work because no null value is returned
+  if (await getGamificationInformations(userId)) {
     throw new Error('User already initialized')
   }
 
@@ -23,22 +32,79 @@ export async function initializeUser(userId: string): Promise<void> {
     collection: 'user-gamification',
     data: {
       userId,
-      currentLevel: 1,
-      currentExperience: 0,
-      totalExperience: 0,
+      currentLevel: BASE_LEVEL,
+      currentExperience: BASE_EXPERIENCE,
+      totalExperience: BASE_EXPERIENCE,
       lastLevelUpDate: new Date().toISOString(),
     },
   })
 }
 
+// ================================================
+// Read Operations
+// ================================================
+
+
+// TODO: Add UserGamificationNotFoundError
+export const getGamificationInformations = async (userId: string): Promise<UserGamification> => {
+  const payload = await getPayload({ config })
+
+  const informations = await payload.find({
+    collection: 'user-gamification',
+    where: {
+      userId: {
+        equals: userId,
+      },
+    },
+  })
+
+  if (informations.docs.length === 0) {
+    throw new Error('User not found')
+  }
+
+  return informations.docs[0]
+}
+
+
+export const getUserExperience = async (userId: string): Promise<number> => {
+  const informations = await getGamificationInformations(userId)
+
+  return informations.currentExperience
+}
+
+
+export const getUserLevel = async (userId: string): Promise<number> => {
+  const informations = await getGamificationInformations(userId)
+
+  return informations.currentLevel
+}
+
+
+export const getUserTotalExperience = async (userId: string): Promise<number> => {
+  const informations = await getGamificationInformations(userId)
+
+  return informations.totalExperience
+}
+
+
+export const getUserNextLevelExperience = async (userId: string): Promise<number> => {
+  const informations = await getGamificationInformations(userId)
+
+  return DEFAULT_LEVEL_UP_FORMULA(informations.currentLevel)
+}
+
+// ================================================
+// Update Operations
+// ================================================
+
 export async function addExperience(
   userId: string,
   experienceAmount: number,
-): Promise<UserGamificationInformation> {
+): Promise<UserGamification> {
   const payload = await getPayload({ config })
 
   // Récupérer les informations actuelles de l'utilisateur
-  const userInfo = await getUserGamificationInfo(userId)
+  const userInfo = await getGamificationInformations(userId)
   if (!userInfo) {
     throw new Error('User not found')
   }
@@ -94,13 +160,13 @@ export async function addExperience(
   })
 
   // Convertir le résultat en UserGamificationInformation
-  return convertToUserGamificationInfo(updatedUser.docs[0])
+  return updatedUser.docs[0]
 }
 
 export async function increaseLevel(
   userId: string,
   levelAmount: number,
-): Promise<UserGamificationInformation> {
+): Promise<UserGamification> {
   if (levelAmount <= 0) {
     throw new Error('Level amount must be positive')
   }
@@ -108,7 +174,7 @@ export async function increaseLevel(
   const payload = await getPayload({ config })
 
   // Récupérer les informations actuelles de l'utilisateur
-  const userInfo = await getUserGamificationInfo(userId)
+  const userInfo = await getGamificationInformations(userId)
   if (!userInfo) {
     throw new Error('User not found')
   }
@@ -131,17 +197,16 @@ export async function increaseLevel(
   })
 
   // Convertir le résultat en UserGamificationInformation
-  return convertToUserGamificationInfo(updatedUser.docs[0])
+  return updatedUser.docs[0]
 }
 
 export async function recalculateLevel(
   userId: string,
-  formula: LevelUpFormulaFunction,
-): Promise<UserGamificationInformation> {
+): Promise<UserGamification> {
   const payload = await getPayload({ config })
 
   // Récupérer les informations actuelles de l'utilisateur
-  const userInfo = await getUserGamificationInfo(userId)
+  const userInfo = await getGamificationInformations(userId)
   if (!userInfo) {
     throw new Error('User not found')
   }
@@ -153,7 +218,7 @@ export async function recalculateLevel(
   // Recalculer le niveau en fonction de l'expérience totale
   let shouldContinueChecking = true
   while (shouldContinueChecking) {
-    const experienceForNextLevel = formula(newLevel)
+    const experienceForNextLevel = DEFAULT_LEVEL_UP_FORMULA(newLevel)
 
     if (remainingExperience >= experienceForNextLevel) {
       // Monter de niveau
@@ -181,47 +246,6 @@ export async function recalculateLevel(
   })
 
   // Convertir le résultat en UserGamificationInformation
-  return convertToUserGamificationInfo(updatedUser.docs[0])
+  return updatedUser.docs[0]
 }
 
-export async function getUserGamificationInfo(
-  userId: string,
-): Promise<UserGamificationInformation | null> {
-  const payload = await getPayload({ config })
-
-  try {
-    // Rechercher l'utilisateur dans la base de données
-    const result = await payload.find({
-      collection: 'user-gamification',
-      where: {
-        userId: {
-          equals: userId,
-        },
-      },
-    })
-
-    // Vérifier si l'utilisateur a été trouvé
-    if (result.docs.length === 0) {
-      return null
-    }
-
-    // Convertir le résultat en UserGamificationInformation
-    return convertToUserGamificationInfo(result.docs[0])
-  } catch (error) {
-    console.error('Error fetching user gamification info:', error)
-    return null
-  }
-}
-
-/**
- * Convertit un document de la base de données en UserGamificationInformation
- */
-function convertToUserGamificationInfo(doc: any): UserGamificationInformation {
-  return {
-    userId: doc.userId,
-    currentLevel: doc.currentLevel,
-    currentExperience: doc.currentExperience,
-    totalExperience: doc.totalExperience,
-    lastLevelUpDate: doc.lastLevelUpDate ? new Date(doc.lastLevelUpDate) : new Date(),
-  }
-}

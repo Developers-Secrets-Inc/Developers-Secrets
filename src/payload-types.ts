@@ -441,6 +441,9 @@ export interface SupportSetting {
 export interface UserInformation {
   id: number;
   userId: string;
+  name?: string | null;
+  avatar?: string | null;
+  initials?: string | null;
   role: 'basic' | 'pro' | 'max';
   /**
    * Select permissions for this user
@@ -1070,21 +1073,17 @@ export interface Comment {
    */
   authorId: string;
   /**
-   * The challenge this comment belongs to
-   */
-  challenge: number | Challenge;
-  /**
-   * The type of content this comment is associated with
-   */
-  targetType: 'description' | 'officialSolution' | 'userSolution';
-  /**
-   * The ID of the parent comment if this is a reply
-   */
-  parentId?: string | null;
-  /**
    * The number of upvotes minus downvotes
    */
   votes?: number | null;
+  /**
+   * Whether this comment is a reply
+   */
+  isReply?: boolean | null;
+  /**
+   * Replies to this comment
+   */
+  replies?: (number | Comment)[] | null;
   /**
    * Reports made against this comment
    */
@@ -1097,14 +1096,8 @@ export interface Comment {
         id?: string | null;
       }[]
     | null;
-  /**
-   * When the comment was created
-   */
-  createdAt: string;
-  /**
-   * When the comment was last updated
-   */
   updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1435,6 +1428,9 @@ export interface SupportSettingsSelect<T extends boolean = true> {
  */
 export interface UserInformationsSelect<T extends boolean = true> {
   userId?: T;
+  name?: T;
+  avatar?: T;
+  initials?: T;
   role?: T;
   permissions?: T;
   preferences?:
@@ -1733,10 +1729,9 @@ export interface UserChallengeProgressionSelect<T extends boolean = true> {
 export interface CommentsSelect<T extends boolean = true> {
   content?: T;
   authorId?: T;
-  challenge?: T;
-  targetType?: T;
-  parentId?: T;
   votes?: T;
+  isReply?: T;
+  replies?: T;
   reports?:
     | T
     | {
@@ -1746,8 +1741,8 @@ export interface CommentsSelect<T extends boolean = true> {
         createdAt?: T;
         id?: T;
       };
-  createdAt?: T;
   updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

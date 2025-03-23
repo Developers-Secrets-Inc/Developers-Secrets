@@ -1,14 +1,10 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { useState } from 'react'
 
-interface CommentFormProps {
-  onSubmit?: (content: string) => void
-}
-
-export function CommentForm({ onSubmit }: CommentFormProps) {
+export const NewCommentForm = ({ onSubmit }: { onSubmit: (content: string) => void }) => {
   const [content, setContent] = useState('')
 
   const handleSubmit = () => {

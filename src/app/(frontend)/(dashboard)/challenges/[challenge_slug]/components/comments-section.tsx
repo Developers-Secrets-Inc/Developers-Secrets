@@ -1,22 +1,16 @@
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { formatDistanceToNow } from 'date-fns'
-import { CommentActions } from './comment-actions'
-import { CommentForm } from './comment-form'
-import { MessageSquare } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useState, useRef, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import { subscribeToComments } from '@/lib/real-time-utils'
-import { useToast } from '@/components/ui/use-toast'
+import { toast } from '@/components/ui/use-toast'
 import { CommentType } from '@/core/types'
-import { ReportCommentDialog } from './report-comment-dialog'
+import { subscribeToComments } from '@/lib/real-time-utils'
+import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { CommentForm } from './comment-form'
+import { UserComment } from './comments/user-comment'
 
 type CommentsProps = {
-  challengeId?: string
-  solutionId?: string
-  comments: CommentType[]
+  challengeId: string
+  comments?: CommentType[]
   onCreateComment: (content: string, parentId?: string) => Promise<void>
   onUpvote: (commentId: string) => Promise<void>
   onDownvote: (commentId: string) => Promise<void>
@@ -24,204 +18,180 @@ type CommentsProps = {
 }
 
 export function CommentsSection({
-  challengeId,
-  solutionId,
-  comments: initialComments,
+  comments: initialComments = [],
   onCreateComment,
   onUpvote,
   onDownvote,
   onReportComment,
 }: CommentsProps) {
   const params = useParams<{ challenge_slug: string }>()
-  const { toast } = useToast()
+  const challengeSlug = params.challenge_slug
   const [comments, setComments] = useState<CommentType[]>(initialComments)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [replyTo, setReplyTo] = useState<string | null>(null)
-  const [reportCommentId, setReportCommentId] = useState<string | null>(null)
-  const [reportReason, setReportReason] = useState('')
-  const [reportDetails, setReportDetails] = useState('')
-  const [showReportDialog, setShowReportDialog] = useState(false)
-  const [newComment, setNewComment] = useState('')
-  const [showCommentForm, setShowCommentForm] = useState(false)
-  const commentFormRef = useRef<HTMLTextAreaElement>(null)
 
+  // Handle for reporting comments
+
+  // Subscribe to real-time comments
   useEffect(() => {
-    if (challengeId) {
-      const unsubscribe = subscribeToComments(challengeId, (newComment) => {
-        setComments((prevComments) => [...prevComments, newComment])
+    // Subscribe to real-time updates for comments
+    const unsubscribe = subscribeToComments(challengeSlug, (newComment) => {
+      setComments((currentComments) => {
+        // Check if it's a reply to an existing comment
+        if (newComment.parentId) {
+          return currentComments.map((comment) => {
+            if (comment.id === newComment.parentId) {
+              // Add reply to parent comment
+              return {
+                ...comment,
+                replies: [...(comment.replies || []), newComment],
+              }
+            }
+            return comment
+          })
+        }
+        // If it's a new comment, add it to the list
+        return [...currentComments, newComment]
       })
-      return () => unsubscribe()
-    }
-  }, [challengeId])
+    })
 
-  const handleCommentSubmit = async (content: string, parentId?: string) => {
-    try {
-      setIsSubmitting(true)
-      await onCreateComment(content, parentId)
-      setNewComment('')
-      setShowCommentForm(false)
-      setReplyTo(null)
-      toast({
-        title: 'Comment posted',
-        description: 'Your comment has been posted successfully.',
-      })
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to post comment. Please try again.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsSubmitting(false)
+    // Cleanup on unmount
+    return () => {
+      unsubscribe()
     }
+  }, [challengeSlug, toast])
+
+  const handleCommentSubmit = async (content: string) => {
+    await onCreateComment(content)
   }
 
   const handleReportComment = async (commentId: string, reason: string, details: string) => {
-    try {
-      await onReportComment(commentId, reason, details)
-      setShowReportDialog(false)
-      setReportReason('')
-      setReportDetails('')
-      toast({
-        title: 'Comment reported',
-        description: 'Thank you for reporting this comment.',
-      })
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to report comment. Please try again.',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleUpvote = async (commentId: string) => {
-    try {
-      await onUpvote(commentId)
-      setComments((prevComments) =>
-        prevComments.map((comment) =>
-          comment.id === commentId ? { ...comment, upvotes: comment.upvotes + 1 } : comment,
-        ),
-      )
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to upvote comment. Please try again.',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleDownvote = async (commentId: string) => {
-    try {
-      await onDownvote(commentId)
-      setComments((prevComments) =>
-        prevComments.map((comment) =>
-          comment.id === commentId ? { ...comment, downvotes: comment.downvotes + 1 } : comment,
-        ),
-      )
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to downvote comment. Please try again.',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleReply = (commentId: string) => {
-    setReplyTo(commentId)
-    setShowCommentForm(true)
-    setTimeout(() => {
-      commentFormRef.current?.focus()
-    }, 0)
-  }
-
-  const handleReport = (commentId: string) => {
-    setReportCommentId(commentId)
-    setShowReportDialog(true)
-  }
-
-  const renderComment = (comment: CommentType) => {
-    const replies = comments.filter((c) => c.parentId === comment.id)
-    const hasReplies = replies.length > 0
-
-    return (
-      <div key={comment.id} className="space-y-4">
-        <div className="flex items-start space-x-4">
-          <Avatar>
-            <AvatarImage src={comment.author.avatar} />
-            <AvatarFallback>{comment.author.initials}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">{comment.author.name}</p>
-                <p className="text-sm text-gray-500">
-                  {formatDistanceToNow(new Date(comment.date), { addSuffix: true })}
-                </p>
-              </div>
-              <CommentActions
-                onReply={() => handleReply(comment.id)}
-                onReport={() => handleReport(comment.id)}
-                onUpvote={() => handleUpvote(comment.id)}
-                onDownvote={() => handleDownvote(comment.id)}
-                upvotes={comment.upvotes}
-                downvotes={comment.downvotes}
-              />
-            </div>
-            <p className="text-gray-700">{comment.content}</p>
-          </div>
-        </div>
-        {hasReplies && (
-          <div className="ml-12 space-y-4">{replies.map((reply) => renderComment(reply))}</div>
-        )}
-      </div>
-    )
+    await onReportComment(commentId, reason, details)
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Comments</h2>
-        <Button
-          variant="outline"
-          onClick={() => setShowCommentForm(!showCommentForm)}
-          className="flex items-center space-x-2"
-        >
-          <MessageSquare className="h-4 w-4" />
-          <span>Add Comment</span>
-        </Button>
+    <div className="space-y-4">
+      <div className="mb-6">
+        <CommentForm onSubmit={handleCommentSubmit} />
       </div>
 
-      {showCommentForm && (
-        <CommentForm
-          ref={commentFormRef}
-          onSubmit={handleCommentSubmit}
-          parentId={replyTo}
-          isSubmitting={isSubmitting}
-          onCancel={() => {
-            setShowCommentForm(false)
-            setReplyTo(null)
-          }}
-        />
-      )}
+      <div>
+        {comments?.map((comment, index) => (
+          <div key={comment.id} className={index !== 0 ? 'border-t pt-4' : ''}>
+            <CommentThread
+              comment={comment}
+              onReportComment={handleReportComment}
+              onUpvote={onUpvote}
+              onDownvote={onDownvote}
+            />
+            {index !== (comments?.length ?? 0) - 1 && <div className="h-4"></div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
-      <div className="space-y-6">{comments.filter((c) => !c.parentId).map(renderComment)}</div>
+function CommentThread({
+  comment,
+  onReportComment,
+  onUpvote,
+  onDownvote,
+}: {
+  comment: CommentType
+  onReportComment?: (commentId: string, reason: string, details: string) => void
+  onUpvote: (commentId: string) => Promise<void>
+  onDownvote: (commentId: string) => Promise<void>
+}) {
+  const [showReplies, setShowReplies] = useState(false)
+  const replies = comment.replies || []
 
-      <ReportCommentDialog
-        open={showReportDialog}
-        onOpenChange={setShowReportDialog}
-        onSubmit={() => {
-          if (reportCommentId) {
-            handleReportComment(reportCommentId, reportReason, reportDetails)
+  // Convertir le commentaire au format attendu par UserComment
+  const userComment = {
+    id: comment.id,
+    user: {
+      name: comment.author.name,
+      avatar: comment.author.avatar || '',
+      initials: comment.author.initials,
+    },
+    content: comment.content,
+    votes: comment.upvotes - comment.downvotes,
+    createdAt: comment.date,
+    replies: (comment.replies || []).map((reply) => ({
+      id: reply.id,
+      user: {
+        name: reply.author.name,
+        avatar: reply.author.avatar || '',
+        initials: reply.author.initials,
+      },
+      content: reply.content,
+      votes: reply.upvotes - reply.downvotes,
+      createdAt: reply.date,
+      replies: [], // Ajout d'un tableau vide pour les réponses
+    })),
+  }
+
+  return (
+    <div className="space-y-3">
+      <UserComment
+        comment={userComment}
+        onUpvote={async () => await onUpvote(comment.id)}
+        onDownvote={async () => await onDownvote(comment.id)}
+        onReport={async (reason: string, details: string) => {
+          if (onReportComment) {
+            await onReportComment(comment.id, reason, details)
           }
         }}
-        reason={reportReason}
-        onReasonChange={setReportReason}
-        details={reportDetails}
-        onDetailsChange={setReportDetails}
+        onReply={async (user, content) => {
+          // TODO: Implémenter la logique de réponse
+          console.log('Reply to comment', comment.id, ':', content)
+        }}
+        onToggleReplies={() => setShowReplies(!showReplies)}
+        isReply={false}
+        showReplies={showReplies}
       />
+
+      {showReplies && replies.length > 0 && (
+        <div className="my-3 py-3">
+          <div className="pl-8 space-y-3 border-l-2 border-muted ml-6">
+            {replies.map((reply, index) => {
+              const userReply = {
+                id: reply.id,
+                user: {
+                  name: reply.author.name,
+                  avatar: reply.author.avatar || '',
+                  initials: reply.author.initials,
+                },
+                content: reply.content,
+                votes: reply.upvotes - reply.downvotes,
+                createdAt: reply.date,
+                replies: [], // Ajout d'un tableau vide pour les réponses
+              }
+
+              return (
+                <div key={reply.id}>
+                  <UserComment
+                    comment={userReply}
+                    onUpvote={async () => await onUpvote(reply.id)}
+                    onDownvote={async () => await onDownvote(reply.id)}
+                    onReport={async (reason: string, details: string) => {
+                      if (onReportComment) {
+                        await onReportComment(reply.id, reason, details)
+                      }
+                    }}
+                    onReply={async (user, content) => {
+                      // TODO: Implémenter la logique de réponse
+                      console.log('Reply to comment', reply.id, ':', content)
+                    }}
+                    onToggleReplies={() => {}}
+                    isReply={true}
+                    showReplies={false}
+                  />
+                  {index !== replies.length - 1 && <div className="h-3 my-3"></div>}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

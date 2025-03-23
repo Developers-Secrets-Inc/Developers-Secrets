@@ -25,51 +25,31 @@ export const Comments: CollectionConfig = {
       },
     },
     {
-      name: 'challenge',
-      type: 'relationship',
-      relationTo: 'challenges',
-      required: true,
-      admin: {
-        description: 'The challenge this comment belongs to',
-      },
-    },
-    {
-      name: 'targetType',
-      type: 'select',
-      required: true,
-      options: [
-        {
-          label: 'Challenge Description',
-          value: 'description',
-        },
-        {
-          label: 'Official Solution',
-          value: 'officialSolution',
-        },
-        {
-          label: 'User Solution',
-          value: 'userSolution',
-        },
-      ],
-      admin: {
-        description: 'The type of content this comment is associated with',
-      },
-    },
-    {
-      name: 'parentId',
-      type: 'text',
-      required: false,
-      admin: {
-        description: 'The ID of the parent comment if this is a reply',
-      },
-    },
-    {
       name: 'votes',
       type: 'number',
       defaultValue: 0,
       admin: {
         description: 'The number of upvotes minus downvotes',
       },
+    },
+    {
+      name: 'isReply',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Whether this comment is a reply',
+      },
+    },
+    {
+      name: 'replies',
+      type: 'relationship',
+      relationTo: 'comments',
+      hasMany: true,
+      admin: {
+        description: 'Replies to this comment',
+        condition: (data) => !data.isReply,
+      },
+
     },
     {
       name: 'reports',
@@ -100,33 +80,5 @@ export const Comments: CollectionConfig = {
         },
       ],
     },
-    {
-      name: 'createdAt',
-      type: 'date',
-      required: true,
-      admin: {
-        description: 'When the comment was created',
-      },
-    },
-    {
-      name: 'updatedAt',
-      type: 'date',
-      required: true,
-      admin: {
-        description: 'When the comment was last updated',
-      },
-    },
   ],
-  hooks: {
-    beforeChange: [
-      ({ data }) => {
-        // Set createdAt and updatedAt on creation
-        if (!data.createdAt) {
-          data.createdAt = new Date()
-        }
-        data.updatedAt = new Date()
-        return data
-      },
-    ],
-  },
 }
