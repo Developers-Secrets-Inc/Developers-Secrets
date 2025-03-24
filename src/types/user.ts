@@ -1,8 +1,6 @@
 import { User as SupabaseUser } from '@supabase/supabase-js'
 
 export type User = SupabaseUser & {
-  name: string
-  avatar: string
   informations: UserInformations
   connectionStats?: UserConnectionStats
 }
@@ -18,6 +16,9 @@ export type UserConnectionStats = {
 }
 
 export type UserInformations = {
+  name: string
+  avatar: string
+  initials: string
   role: UserRole
   permissions: UserPermission[]
   preferences: UserPreferences

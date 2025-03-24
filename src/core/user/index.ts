@@ -45,6 +45,9 @@ const convertPayloadUserInformationToUserInformations = (
   }
 
   return {
+    name: payloadUserInformation.name || '',
+    avatar: payloadUserInformation.avatar || '',
+    initials: payloadUserInformation.initials || '',
     role: payloadUserInformation.role as UserRole,
     permissions,
     preferences,

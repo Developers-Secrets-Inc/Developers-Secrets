@@ -1073,9 +1073,21 @@ export interface Comment {
    */
   authorId: string;
   /**
-   * The number of upvotes minus downvotes
+   * The votes for this comment
    */
-  votes?: number | null;
+  votes?:
+    | {
+        /**
+         * The ID of the user who voted
+         */
+        userId: string;
+        /**
+         * The type of vote
+         */
+        vote: 'upvote' | 'downvote';
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Whether this comment is a reply
    */
@@ -1729,7 +1741,13 @@ export interface UserChallengeProgressionSelect<T extends boolean = true> {
 export interface CommentsSelect<T extends boolean = true> {
   content?: T;
   authorId?: T;
-  votes?: T;
+  votes?:
+    | T
+    | {
+        userId?: T;
+        vote?: T;
+        id?: T;
+      };
   isReply?: T;
   replies?: T;
   reports?:

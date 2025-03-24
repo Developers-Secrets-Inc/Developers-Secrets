@@ -26,10 +26,31 @@ export const Comments: CollectionConfig = {
     },
     {
       name: 'votes',
-      type: 'number',
-      defaultValue: 0,
+      type: 'array',
+      fields: [
+        {
+          name: 'userId',
+          type: 'text',
+          required: true,
+          admin: {
+            description: 'The ID of the user who voted',
+          },
+        },
+        {
+          name: 'vote',
+          type: 'select',
+          options: [
+            { label: 'Upvote', value: 'upvote' },
+            { label: 'Downvote', value: 'downvote' },
+          ],
+          required: true,
+          admin: {
+            description: 'The type of vote',
+          },
+        },
+      ],
       admin: {
-        description: 'The number of upvotes minus downvotes',
+        description: 'The votes for this comment',
       },
     },
     {
@@ -49,7 +70,6 @@ export const Comments: CollectionConfig = {
         description: 'Replies to this comment',
         condition: (data) => !data.isReply,
       },
-
     },
     {
       name: 'reports',

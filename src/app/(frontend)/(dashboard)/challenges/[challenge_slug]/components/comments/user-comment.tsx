@@ -76,14 +76,14 @@ export const CommentDate = ({ date }: { date: Date }) => {
 }
 
 export const CommentHeader = ({ onReportClick }: { onReportClick: () => void }) => {
-  const { comment, isHovered } = useComment()
+  const { comment, author, isHovered } = useComment()
 
   return (
     <div className="flex justify-between items-center mb-2">
-      <AuthorName name={comment.user.name} />
+      <AuthorName name={author.name} />
       <div className="flex items-center gap-2">
         <ReportButton isHovered={isHovered} onReportClick={onReportClick} />
-        <CommentDate date={comment.createdAt} />
+        <CommentDate date={new Date(comment.createdAt)} />
       </div>
     </div>
   )

@@ -1,15 +1,7 @@
 import { getUser } from '@/core/user'
-import { NewCommentForm } from './new-comment-form'
 import { Comment } from '@/payload-types'
-import {
-  modifyComment,
-  deleteComment,
-  replyToComment,
-  upvoteComment,
-  reportComment,
-  downvoteComment,
-} from '@/core/comments'
 import { CommentsHistory } from './comments-history'
+import { NewCommentForm } from './new-comment-form'
 
 export const CommentsSection = ({
   comments,
@@ -27,7 +19,6 @@ export const CommentsSection = ({
     await onCreateComment(challengeId, content, user.id)
   }
 
-  console.log(comments)
 
   return (
     <div className="space-y-4">
