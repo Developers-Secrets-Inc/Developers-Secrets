@@ -28,60 +28,6 @@ export const createComment = async (authorId: string, content: string): Promise<
   })
 }
 
-export const addCommentToChallengeDescription = async (
-  challengeId: number,
-  commentId: number,
-): Promise<void> => {
-  const payload = await getPayload({ config })
-  const challenge = await payload.findByID({
-    collection: 'challenges',
-    id: challengeId,
-  })
-
-  const existingComments = challenge?.description?.comments || []
-  await payload.update({
-    collection: 'challenges',
-    id: challengeId,
-    data: {
-      description: {
-        comments: [...existingComments, { id: commentId }],
-      },
-    },
-  })
-}
-
-export const addCommentToChallengeOfficialSolution = async (
-  challengeId: number,
-  commentId: number,
-): Promise<void> => {
-  const payload = await getPayload({ config })
-  const challenge = await payload.findByID({
-    collection: 'challenges',
-    id: challengeId,
-  })
-
-  const existingComments = challenge?.officialSolution?.comments || []
-  await payload.update({
-    collection: 'challenges',
-    id: challengeId,
-    data: {
-      officialSolution: {
-        comments: [...existingComments, { id: commentId }],
-      },
-    },
-  })
-}
-
-export const createDescriptionComment = async (
-  challengeId: number,
-  content: string,
-  authorId: string,
-): Promise<void> => {
-  await createComment(authorId, content)
-  const comment = await getLastComment()
-  await addCommentToChallengeDescription(challengeId, comment.id)
-}
-
 export const addReplyToComment = async (
   commentId: number,
   replyContent: string,
@@ -129,30 +75,6 @@ export const getLastComment = async (): Promise<Comment> => {
   }
 
   return comments.docs[0]
-}
-
-export const getChallengeDescriptionComments = async (challengeId: number): Promise<Comment[]> => {
-  const payload = await getPayload({ config })
-
-  const challenge = await payload.findByID({
-    collection: 'challenges',
-    id: challengeId,
-  })
-
-  return challenge.description.comments as Comment[]
-}
-
-export const getChallengeOfficialSolutionComments = async (
-  challengeId: number,
-): Promise<Comment[]> => {
-  const payload = await getPayload({ config })
-
-  const challenge = await payload.findByID({
-    collection: 'challenges',
-    id: challengeId,
-  })
-
-  return challenge.officialSolution.comments as Comment[]
 }
 
 export const modifyComment = async (commentId: number, newContent: string): Promise<void> => {

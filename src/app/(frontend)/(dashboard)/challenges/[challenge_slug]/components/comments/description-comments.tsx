@@ -1,9 +1,9 @@
-import { createDescriptionComment, getChallengeDescriptionComments } from '@/core/comments'
 import { Challenge } from '@/payload-types'
-import { CommentsSection } from './comments-section'
-
-
-
+import { CommentsSection } from '@/core/comments/components/comments-section'
+import {
+  getChallengeDescriptionComments,
+  createDescriptionComment,
+} from '@/core/challenges/comments'
 
 export const DescriptionComments = async ({ challenge }: { challenge: Challenge }) => {
   return (

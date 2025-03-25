@@ -1,5 +1,7 @@
+import { getChallengeBySlug } from '@/core/challenges'
 import { ChallengeHeader } from '../components/challenge-header'
 import { CommentsSection } from '../components/comments-section'
+import { OfficialSolutionComments } from '../components/comments/official-solution-comments'
 
 export default async function OfficialSolutionPage({
   params,
@@ -37,9 +39,22 @@ function countSubsets(nums: number[], index: number, currentOr: number, maxOr: n
   return include + exclude;
 }`
 
+  const challenge = await getChallengeBySlug(challenge_slug)
+
+  const conceptsList =
+    challenge.concepts
+      ?.map((concept: any) => (typeof concept === 'object' ? concept.concept : concept))
+      .filter(Boolean) || []
+
   return (
     <div>
-      <ChallengeHeader />
+      <ChallengeHeader
+        title={challenge.title}
+        difficulty={challenge.difficulty as 'easy' | 'medium' | 'hard' | 'horrible'}
+        concepts={conceptsList}
+        baseExperience={challenge.baseExperience || 0}
+        status="Not Attempted" // This could be dynamic based on user progress
+      />
       <div>
         <h3 className="text-lg font-semibold mb-3">Official Solution</h3>
         <p className="text-muted-foreground mb-4">
@@ -52,7 +67,7 @@ function countSubsets(nums: number[], index: number, currentOr: number, maxOr: n
 
       <div className="mt-8 border-t pt-6">
         <h3 className="text-lg font-semibold mb-4">Comments</h3>
-        <CommentsSection />
+        <OfficialSolutionComments challenge={challenge} />
       </div>
     </div>
   )

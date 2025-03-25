@@ -319,6 +319,10 @@ export interface Article {
 export interface Tag {
   id: number;
   name: string;
+  status: 'test' | 'public';
+  usageCount: number;
+  creatorId: string;
+  lastUsedAt: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -1407,6 +1411,10 @@ export interface TutorialsSelect<T extends boolean = true> {
  */
 export interface TagsSelect<T extends boolean = true> {
   name?: T;
+  status?: T;
+  usageCount?: T;
+  creatorId?: T;
+  lastUsedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

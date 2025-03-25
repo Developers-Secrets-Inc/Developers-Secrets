@@ -1,16 +1,15 @@
 'use client'
 
 import { useState, useMemo, useCallback, useTransition, useEffect } from 'react'
-import { CommunitySolutionCard, CommunitySolutionProps } from './community-solution-card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Search } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { CommunitySolutionCard } from '@/core/challenges/components/users-solutions/user-solution-card'
 import { useRouter } from 'next/navigation'
 import { SolutionDetailProps } from './solution-detail'
 import { EXAMPLE_SOLUTIONS } from '../data/solutions-data'
 import { subscribeToSolutions } from '@/lib/real-time-utils'
 import { useToast } from '@/components/ui/use-toast'
+import { UsersSolutionsSearchBar } from '@/core/challenges/components/users-solutions/users-solutions-search-bar'
+import { UsersSolutionsTagsFilter } from '@/core/challenges/components/users-solutions/users-solutions-tags-filter'
+import { UsersSolutionsSorting } from '@/core/challenges/components/users-solutions/users-solutions-sorting'
 
 type CommunitySolutionsProps = {
   challengeSlug: string
@@ -109,67 +108,20 @@ export function CommunitySolutions({ challengeSlug }: CommunitySolutionsProps) {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search solutions..."
-            className="pl-9"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <UsersSolutionsSearchBar
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+        />
         <div className="flex gap-2">
-          <div className="inline-flex">
-            <Button
-              variant={selectedLanguage === null ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleSetSelectedLanguage(null)}
-              className="rounded-r-none"
-            >
-              All
-            </Button>
-            {languages.map((lang) => (
-              <Button
-                key={lang}
-                variant={selectedLanguage === lang ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => handleSetSelectedLanguage(lang)}
-                className={
-                  lang === languages[languages.length - 1]
-                    ? 'rounded-l-none'
-                    : 'rounded-none border-l-0'
-                }
-              >
-                {lang}
-              </Button>
-            ))}
-          </div>
-          <div className="inline-flex">
-            <Button
-              variant={sortBy === 'upvotes' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleSetSortBy('upvotes')}
-              className="rounded-r-none"
-            >
-              Top
-            </Button>
-            <Button
-              variant={sortBy === 'date' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleSetSortBy('date')}
-              className="rounded-none border-l-0"
-            >
-              Recent
-            </Button>
-            <Button
-              variant={sortBy === 'comments' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleSetSortBy('comments')}
-              className="rounded-l-none border-l-0"
-            >
-              Most Discussed
-            </Button>
-          </div>
+          <UsersSolutionsTagsFilter
+            languages={languages}
+            selectedLanguage={selectedLanguage}
+            onSelectedLanguageChange={handleSetSelectedLanguage}
+          />
+          <UsersSolutionsSorting
+            sortBy={sortBy}
+            onSortByChange={handleSetSortBy}
+          />
         </div>
       </div>
 

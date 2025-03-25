@@ -19,7 +19,6 @@ export const CommentsSection = ({
     await onCreateComment(challengeId, content, user.id)
   }
 
-
   return (
     <div className="space-y-4">
       <div className="mb-6">
