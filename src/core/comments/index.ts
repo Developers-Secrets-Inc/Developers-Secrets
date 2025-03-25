@@ -82,8 +82,11 @@ export const createDescriptionComment = async (
   await addCommentToChallengeDescription(challengeId, comment.id)
 }
 
-
-export const addReplyToComment = async (commentId: number, replyContent: string, replyAuthorId: string): Promise<void> => {
+export const addReplyToComment = async (
+  commentId: number,
+  replyContent: string,
+  replyAuthorId: string,
+): Promise<void> => {
   if (isContentEmpty(replyContent) || isContentTooLong(replyContent)) {
     throw new Error('Content is empty or too long')
   }
@@ -152,10 +155,31 @@ export const getChallengeOfficialSolutionComments = async (
   return challenge.officialSolution.comments as Comment[]
 }
 
-export const modifyComment = async (commentId: number, newContent: string): Promise<void> => {}
-export const deleteComment = async (commentId: number): Promise<void> => {}
+export const modifyComment = async (commentId: number, newContent: string): Promise<void> => {
+  const payload = await getPayload({ config })
+  const comment = await payload.findByID({ collection: 'comments', id: commentId })
 
+  if (!comment) {
+    throw new Error('Comment not found')
+  } 
 
+  await payload.update({
+    collection: 'comments',
+    id: commentId,
+    data: { content: newContent },
+  })
+}
+
+export const deleteComment = async (commentId: number): Promise<void> => {
+  const payload = await getPayload({ config })
+  const comment = await payload.findByID({ collection: 'comments', id: commentId })
+
+  if (!comment) {
+    throw new Error('Comment not found')
+  } 
+
+  await payload.delete({ collection: 'comments', id: commentId })
+}
 
 export const addUpvote = async (commentId: number, userId: string): Promise<void> => {
   const payload = await getPayload({ config })
@@ -219,14 +243,38 @@ export const addDownvote = async (commentId: number, userId: string): Promise<vo
   })
 }
 
-
 export type CommentReport = {
   userId: string
   reason?: string
   details?: string
 }
 
-export const reportComment = async (commentId: number, report: CommentReport): Promise<void> => {}
+export const reportComment = async (commentId: number, report: CommentReport): Promise<void> => {
+  const payload = await getPayload({ config })
+  const comment = await payload.findByID({ collection: 'comments', id: commentId })
+
+  if (!comment) {
+    throw new Error('Comment not found')
+  }
+
+  const newReport = {
+    userId: report.userId,
+    reason: report.reason || 'unspecified',
+    details: report.details || '',
+    createdAt: new Date().toISOString(),
+  }
+
+  const existingReports = comment.reports || []
+
+  await payload.update({
+    collection: 'comments',
+    id: commentId,
+    data: {
+      reports: [...existingReports, newReport],
+    },
+  })
+}
+
 export const replyToComment = async (
   commentId: number,
   authorId: string,

@@ -1,7 +1,7 @@
 "use client"
 
 import { User } from "@/types/user"
-import { Comment as UserComment } from "./comment"
+import { Comment as UserComment } from "@/core/comments/components/comment"
 import { Comment } from "@/payload-types"
 import { useState } from "react"
 

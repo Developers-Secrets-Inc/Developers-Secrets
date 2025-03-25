@@ -1,9 +1,6 @@
-import { getChallengeBySlug } from '@/core/challenges'
-import { getPayloadChallenge } from '@/core/challenges'
-import { ChallengeHeader } from '../components/challenge-header'
-import { getUser } from '@/core/user'
-import { CommentsSection } from '../components/comments/comments-section'
 import { Markdown } from '@/components/markdown'
+import { getChallengeBySlug } from '@/core/challenges'
+import { ChallengeHeader } from '../components/challenge-header'
 import { DescriptionComments } from '../components/comments/description-comments'
 // This function enables ISR with a 10-minute revalidation period
 export const revalidate = 600 // 10 minutes in seconds
