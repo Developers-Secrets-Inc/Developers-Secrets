@@ -1,7 +1,6 @@
-import { SolutionDetailProps } from '../components/solution-detail'
 
 // Exemples de solutions pour démonstration - dans une application réelle, cela viendrait d'une API
-export const EXAMPLE_SOLUTIONS: SolutionDetailProps[] = [
+export const EXAMPLE_SOLUTIONS = [
   {
     id: '1',
     user: {

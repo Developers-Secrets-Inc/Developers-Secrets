@@ -105,7 +105,7 @@ export default async function ChallengeLayout({
         <ResizablePanel defaultSize={50}>
           <div className="flex flex-col h-full">
             <ChallengeNavigation challengeSlug={challenge_slug} />
-            <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 p-6 min-h-0">
+            <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
               <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
             </div>
             <div className="p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)]">

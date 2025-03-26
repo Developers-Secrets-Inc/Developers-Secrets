@@ -1,4 +1,4 @@
-import { SolutionDetailProps } from '@/app/(frontend)/(dashboard)/challenges/[challenge_slug]/components/solution-detail'
+// import { SolutionDetailProps } from '@/app/(frontend)/(dashboard)/challenges/[challenge_slug]/components/solution-detail'
 import { EXAMPLE_SOLUTIONS } from '@/app/(frontend)/(dashboard)/challenges/[challenge_slug]/data/solutions-data'
 import { unstable_cache } from 'next/cache'
 
@@ -10,7 +10,7 @@ const CACHE_TTL = 600
  * @param challengeSlug L'identifiant du challenge
  */
 export const prefetchChallengeSolutions = unstable_cache(
-  async (challengeSlug: string): Promise<SolutionDetailProps[]> => {
+  async (challengeSlug: string) => {
     // Dans une application réelle, nous ferions un appel API
     // Simulation d'un délai pour représenter un chargement asynchrone
     await new Promise((resolve) => setTimeout(resolve, 10))
@@ -28,7 +28,7 @@ export const prefetchChallengeSolutions = unstable_cache(
  * @param solutionId L'identifiant de la solution
  */
 export const getSolution = unstable_cache(
-  async (challengeSlug: string, solutionId: string): Promise<SolutionDetailProps | null> => {
+  async (challengeSlug: string, solutionId: string) => {
     const solutions = await prefetchChallengeSolutions(challengeSlug)
     return solutions.find((s) => s.id === solutionId) || null
   },
@@ -41,7 +41,7 @@ export const getSolution = unstable_cache(
  * @param challengeSlug L'identifiant du challenge
  */
 export const getAllSolutions = unstable_cache(
-  async (challengeSlug: string): Promise<SolutionDetailProps[]> => {
+  async (challengeSlug: string) => {
     return await prefetchChallengeSolutions(challengeSlug)
   },
   ['all-solutions'],

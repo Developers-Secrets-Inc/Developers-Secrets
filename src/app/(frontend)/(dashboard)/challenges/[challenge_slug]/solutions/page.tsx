@@ -39,7 +39,7 @@ export default async function SolutionsPage({ params }: { params: { challenge_sl
   await getAllSolutions(params.challenge_slug)
 
   return (
-    <div>
+    <div className="p-6">
       <ChallengeHeader />
       <Suspense fallback={<SolutionsLoading />}>
         <CommunitySolutions challengeSlug={params.challenge_slug} />

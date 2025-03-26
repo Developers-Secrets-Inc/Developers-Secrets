@@ -36,20 +36,23 @@ export const TagInput = ({
   const [isCreating, setIsCreating] = React.useState(false)
   const [suggestions, setSuggestions] = React.useState<Tag[]>([])
 
-  const fetchSuggestions = React.useCallback(async (query: string) => {
-    if (!query) return
+  const fetchSuggestions = React.useCallback(
+    async (query: string) => {
+      if (!query) return
 
-    try {
-      const tag = await getTagByName(query)
-      if (!suggestions.some((s) => s.id === tag.id)) {
-        setSuggestions((prev) => [...prev, tag])
+      try {
+        const tag = await getTagByName(query)
+        if (!suggestions.some((s) => s.id === tag.id)) {
+          setSuggestions((prev) => [...prev, tag])
+        }
+      } catch (error) {
+        if (!(error instanceof TagNotFoundError)) {
+          console.error('Error fetching tag suggestions:', error)
+        }
       }
-    } catch (error) {
-      if (!(error instanceof TagNotFoundError)) {
-        console.error('Error fetching tag suggestions:', error)
-      }
-    }
-  }, [suggestions])
+    },
+    [suggestions],
+  )
 
   const handleCreateTag = async () => {
     if (!searchQuery) return
@@ -70,7 +73,7 @@ export const TagInput = ({
 
   const handleSelect = async (selectedTag: Tag) => {
     const isSelected = value.some((tag) => tag.id === selectedTag.id)
-    
+
     if (isSelected) {
       onValueChange?.(value.filter((tag) => tag.id !== selectedTag.id))
     } else {
@@ -118,22 +121,18 @@ export const TagInput = ({
                   disabled={isCreating}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  Create "{searchQuery}"
+                  Create &quot;{searchQuery}&quot;
                 </Button>
               )}
             </CommandEmpty>
             {suggestions.length > 0 && (
               <CommandGroup heading="Suggestions">
                 {suggestions.map((tag) => (
-                  <CommandItem
-                    key={tag.id}
-                    value={tag.name}
-                    onSelect={() => handleSelect(tag)}
-                  >
+                  <CommandItem key={tag.id} value={tag.name} onSelect={() => handleSelect(tag)}>
                     <Check
                       className={cn(
                         'mr-2 h-4 w-4',
-                        value.some((v) => v.id === tag.id) ? 'opacity-100' : 'opacity-0'
+                        value.some((v) => v.id === tag.id) ? 'opacity-100' : 'opacity-0',
                       )}
                     />
                     {tag.name}
@@ -150,4 +149,4 @@ export const TagInput = ({
       </PopoverContent>
     </Popover>
   )
-} 
+}

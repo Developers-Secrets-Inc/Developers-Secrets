@@ -21,7 +21,7 @@ export default async function ChallengeDescriptionPage({
 
 
   return (
-    <div>
+    <div className="p-6">
       <ChallengeHeader
         title={challenge.title}
         difficulty={challenge.difficulty as 'easy' | 'medium' | 'hard' | 'horrible'}

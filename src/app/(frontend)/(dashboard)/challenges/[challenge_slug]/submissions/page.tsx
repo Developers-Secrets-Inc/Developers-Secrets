@@ -6,7 +6,7 @@ export default async function SubmissionsPage({ params }: { params: Promise<{ ch
   const { challenge_slug } = await params
 
   return (
-    <div>
+    <div className="p-6">
       <ChallengeHeader />
       <div>
         <h3 className="text-lg font-semibold mb-3">Your Submissions</h3>

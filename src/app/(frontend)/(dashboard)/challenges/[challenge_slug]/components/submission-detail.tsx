@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Separator } from '@/components/ui/separator'
 import { Copy, CheckCheck, X, CheckCircle, XCircle } from 'lucide-react'
 import { useState } from 'react'
-import { CommentsSection } from './comments-section'
 
 interface SubmissionDetailProps {
   submissionId: string
@@ -229,7 +228,6 @@ export function SubmissionDetail({ submissionId, open, onOpenChange }: Submissio
 
             <div className="p-6">
               <h3 className="text-lg font-semibold mb-4">Comments</h3>
-              <CommentsSection />
             </div>
           </div>
         </div>

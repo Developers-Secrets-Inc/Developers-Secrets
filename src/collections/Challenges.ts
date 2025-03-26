@@ -348,78 +348,12 @@ export const Challenges: CollectionConfig = {
     {
       name: 'userSolutions',
       label: 'User Solutions',
-      type: 'array',
+      type: 'relationship',
+      relationTo: 'user-solutions',
+      hasMany: true,
       admin: {
         description: 'Solutions submitted by users for this challenge',
       },
-      fields: [
-        {
-          name: 'title',
-          label: 'Title',
-          type: 'text',
-          required: true,
-          admin: {
-            description: 'Title of the solution',
-          },
-        },
-        {
-          name: 'authorId',
-          label: 'Author ID',
-          type: 'text',
-          required: true,
-          admin: {
-            description: 'ID of the user who submitted this solution',
-          },
-        },
-        {
-          name: 'statement',
-          label: 'Solution Statement',
-          type: 'textarea',
-          required: true,
-          admin: {
-            description: 'The content of the user solution',
-          },
-        },
-        {
-          name: 'views',
-          label: 'Views',
-          type: 'number',
-          defaultValue: 0,
-          admin: {
-            description: 'Number of times this solution has been viewed',
-          },
-        },
-        {
-          name: 'votes',
-          label: 'Votes',
-          type: 'number',
-          defaultValue: 0,
-          admin: {
-            description: 'Number of votes received for this solution',
-          },
-        },
-        {
-          name: 'createdAt',
-          label: 'Created At',
-          type: 'date',
-          admin: {
-            description: 'When this solution was submitted',
-            date: {
-              pickerAppearance: 'dayAndTime',
-            },
-          },
-        },
-        {
-          name: 'comments',
-          label: 'Comments',
-          type: 'relationship',
-          relationTo: 'comments',
-          hasMany: true,
-          admin: {
-            description: 'Comments on this user solution',
-          },
-        },
-      ],
     },
     {
       name: 'submissions',

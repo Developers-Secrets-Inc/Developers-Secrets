@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import { SolutionDetail } from '../../components/solution-detail'
 import { Suspense } from 'react'
 import { getSolution } from '@/lib/challenge-utils'
 
@@ -41,9 +40,12 @@ export default async function SolutionDetailPage({
   }
 
   return (
-    <Suspense fallback={<SolutionSkeleton />}>
-      <SolutionDetail solution={solution} challengeSlug={challenge_slug} />
-    </Suspense>
+    <div className="p-6">
+      <Suspense fallback={<SolutionSkeleton />}>
+        {/* <SolutionDetail solution={solution} challengeSlug={challenge_slug} /> */}
+        <div></div>
+      </Suspense>
+    </div>
   )
 }
 

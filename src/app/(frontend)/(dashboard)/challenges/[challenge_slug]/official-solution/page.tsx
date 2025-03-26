@@ -47,7 +47,7 @@ function countSubsets(nums: number[], index: number, currentOr: number, maxOr: n
       .filter(Boolean) || []
 
   return (
-    <div>
+    <div className="p-6">
       <ChallengeHeader
         title={challenge.title}
         difficulty={challenge.difficulty as 'easy' | 'medium' | 'hard' | 'horrible'}

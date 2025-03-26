@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, memo, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, Copy, CheckCheck, ThumbsUp, ThumbsDown, Eye, MessageSquare } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { formatDistanceToNow } from 'date-fns'
-import { Separator } from '@/components/ui/separator'
-import { CommentsSection } from './comments-section'
-import Link from 'next/link'
-import dynamic from 'next/dynamic'
+// import { useState, memo, useCallback } from 'react'
+// import { Button } from '@/components/ui/button'
+// import { ArrowLeft, Copy, CheckCheck, ThumbsUp, ThumbsDown, Eye, MessageSquare } from 'lucide-react'
+// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+// import { Badge } from '@/components/ui/badge'
+// import { formatDistanceToNow } from 'date-fns'
+// import { Separator } from '@/components/ui/separator'
+// import { CommentsSection } from './comments-section'
+// import Link from 'next/link'
+// import dynamic from 'next/dynamic'
 
 // Type de solution à afficher
 export type SolutionDetailProps = {
@@ -36,66 +36,20 @@ type Props = {
 }
 
 // Chargement dynamique de la section des commentaires pour accélérer le chargement initial
-const DynamicCommentsSection = dynamic(
-  () => import('./comments-section').then((mod) => ({ default: mod.CommentsSection })),
-  {
-    loading: () => <div className="h-40 bg-muted/30 animate-pulse rounded-md"></div>,
-    ssr: false,
-  },
-)
 
-// Composant mémorisé pour la carte utilisateur afin d'éviter les re-renders inutiles
-const UserCard = memo(({ user, date }: { user: SolutionDetailProps['user']; date: Date }) => (
-  <div className="flex items-center gap-2 mb-3">
-    <Avatar className="h-6 w-6">
-      <AvatarImage src={user.avatar} alt={user.name} />
-      <AvatarFallback>{user.initials}</AvatarFallback>
-    </Avatar>
-    <span className="text-sm font-medium">{user.name}</span>
-    <span className="text-xs text-muted-foreground">
-      {formatDistanceToNow(date, { addSuffix: true })}
-    </span>
-  </div>
-))
-
-// Composant mémorisé pour les statistiques
-const StatisticsGrid = memo(({ solution }: { solution: SolutionDetailProps }) => (
-  <div className="grid grid-cols-4 gap-4">
-    <div className="flex items-center text-sm">
-      <ThumbsUp className="h-4 w-4 mr-2 text-muted-foreground" />
-      <span className="font-medium">{solution.upvotes}</span>
-      <span className="mx-1 text-muted-foreground">upvotes</span>
-    </div>
-    <div className="flex items-center text-sm">
-      <ThumbsDown className="h-4 w-4 mr-2 text-muted-foreground" />
-      <span className="font-medium">{solution.downvotes}</span>
-      <span className="mx-1 text-muted-foreground">downvotes</span>
-    </div>
-    <div className="flex items-center text-sm">
-      <Eye className="h-4 w-4 mr-2 text-muted-foreground" />
-      <span className="font-medium">{solution.views}</span>
-      <span className="mx-1 text-muted-foreground">views</span>
-    </div>
-    <div className="flex items-center text-sm">
-      <MessageSquare className="h-4 w-4 mr-2 text-muted-foreground" />
-      <span className="font-medium">{solution.comments}</span>
-      <span className="mx-1 text-muted-foreground">comments</span>
-    </div>
-  </div>
-))
 
 export function SolutionDetail({ solution, challengeSlug }: Props) {
-  const [copied, setCopied] = useState(false)
+  // const [copied, setCopied] = useState(false)
 
-  const handleCopyCode = useCallback(() => {
-    navigator.clipboard.writeText(solution.code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }, [solution.code])
+  // const handleCopyCode = useCallback(() => {
+  //   navigator.clipboard.writeText(solution.code)
+  //   setCopied(true)
+  //   setTimeout(() => setCopied(false), 2000)
+  // }, [solution.code])
 
   return (
     <div className="space-y-4 -mt-6">
-      <div className="flex items-center justify-between py-2 border-b -mx-6 px-6">
+      {/* <div className="flex items-center justify-between py-2 border-b -mx-6 px-6">
         <Button variant="ghost" size="sm" className="gap-1.5" asChild>
           <Link href={`/challenges/${challengeSlug}/solutions`} prefetch={true}>
             <ArrowLeft className="h-4 w-4" />
@@ -155,7 +109,7 @@ export function SolutionDetail({ solution, challengeSlug }: Props) {
       <div>
         <h3 className="text-lg font-semibold mb-4">Comments</h3>
         <DynamicCommentsSection />
-      </div>
+      </div> */}
     </div>
   )
 }

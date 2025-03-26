@@ -48,6 +48,16 @@ export const createTag = async (name: string, creatorId: string): Promise<void> 
   }
 }
 
+export const getTags = async (): Promise<Tag[]> => {
+  const payload = await getPayload({ config })
+
+  const tags = await payload.find({
+    collection: 'tags',
+  })
+
+  return tags.docs as Tag[]
+}
+
 export const getTagByName = async (name: string): Promise<Tag> => {
   const payload = await getPayload({ config })
 
