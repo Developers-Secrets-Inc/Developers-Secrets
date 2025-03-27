@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
-import { getSolution } from '@/lib/challenge-utils'
+import { getUserSolutionById } from '@/core/challenges/users-solutions'
+import { SolutionDetail } from '../../components/solution-detail'
 
 // This function enables ISR with a 10-minute revalidation period
 export const revalidate = 600 // 10 minutes in seconds
@@ -21,6 +22,7 @@ function SolutionSkeleton() {
         </div>
         <div className="h-4 w-full bg-muted rounded mb-4"></div>
       </div>
+      <div className="h-64 bg-muted rounded"></div>
     </div>
   )
 }
@@ -30,10 +32,8 @@ export default async function SolutionDetailPage({
 }: {
   params: Promise<{ challenge_slug: string; solution_id: string }>
 }) {
-  // Attendre les paramètres avant de les utiliser
   const { challenge_slug, solution_id } = await params
-
-  const solution = await getSolution(challenge_slug, solution_id)
+  const solution = await getUserSolutionById(solution_id)
 
   if (!solution) {
     notFound()
@@ -42,8 +42,7 @@ export default async function SolutionDetailPage({
   return (
     <div className="p-6">
       <Suspense fallback={<SolutionSkeleton />}>
-        {/* <SolutionDetail solution={solution} challengeSlug={challenge_slug} /> */}
-        <div></div>
+        <SolutionDetail solution={solution} challengeSlug={params.challenge_slug} />
       </Suspense>
     </div>
   )

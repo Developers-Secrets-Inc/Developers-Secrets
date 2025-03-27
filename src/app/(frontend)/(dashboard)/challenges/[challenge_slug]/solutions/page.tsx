@@ -1,10 +1,12 @@
-import { ChallengeHeader } from '../components/challenge-header'
 import { CommunitySolutions } from '../components/community-solutions'
+import { NoSolutionsAvailable } from '@/core/challenges/users-solutions/components/no-solutions-available'
+import { CreateSolutionBanner } from '@/core/challenges/users-solutions/components/create-solution-banner'
 import { getAllSolutions } from '@/lib/challenge-utils'
+import { getChallengeBySlug } from '@/core/challenges'
 import { Suspense } from 'react'
 
 // Ajoutons la configuration ISR pour cette page
-export const revalidate = 600; // 10 minutes en secondes
+export const revalidate = 600 // 10 minutes en secondes
 
 // Composant de chargement pour éviter les flashs UI
 function SolutionsLoading() {
@@ -21,7 +23,11 @@ function SolutionsLoading() {
 }
 
 // Cette fonction sera exécutée au moment de la génération de la page
-export async function generateMetadata({ params }: { params: Promise<{ challenge_slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ challenge_slug: string }>
+}) {
   // Attendre les paramètres avant de les utiliser
   const { challenge_slug } = await params
 
@@ -34,15 +40,25 @@ export async function generateMetadata({ params }: { params: Promise<{ challenge
   }
 }
 
-export default async function SolutionsPage({ params }: { params: { challenge_slug: string } }) {
-  // Précharger les solutions au niveau du serveur
-  await getAllSolutions(params.challenge_slug)
+export default async function SolutionsPage({
+  params,
+}: {
+  params: Promise<{ challenge_slug: string }>
+}) {
+  const { challenge_slug } = await params
+  const solutions = await getAllSolutions(challenge_slug)
+  const challenge = await getChallengeBySlug(challenge_slug)
+  const hasSolutions = solutions && solutions.length > 0
 
   return (
     <div className="p-6">
-      <ChallengeHeader />
+      <CreateSolutionBanner challengeId={challenge.id} />
       <Suspense fallback={<SolutionsLoading />}>
-        <CommunitySolutions challengeSlug={params.challenge_slug} />
+        {hasSolutions ? (
+          <CommunitySolutions challengeSlug={challenge_slug} />
+        ) : (
+          <NoSolutionsAvailable />
+        )}
       </Suspense>
     </div>
   )

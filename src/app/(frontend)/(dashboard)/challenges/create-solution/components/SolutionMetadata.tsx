@@ -49,7 +49,7 @@ export default function SolutionMetadata({ onChange, userId }: SolutionMetadataP
   const [availableTags, setAvailableTags] = useState<Option[]>([])
   const [isLoadingTags, setIsLoadingTags] = useState(true)
   const [searchResults, setSearchResults] = useState<Option[]>([])
-  const [pendingTags, setPendingTags] = useState<Set<string>>(new Set())
+  const [isCreatingTag, setIsCreatingTag] = useState(false)
 
   const loadTags = async () => {
     try {
@@ -98,50 +98,6 @@ export default function SolutionMetadata({ onChange, userId }: SolutionMetadataP
     return null
   }
 
-  const handleCreateTag = async (tagName: string) => {
-    const error = validateTagName(tagName)
-    if (error) {
-      toast({
-        title: 'Invalid tag',
-        description: error,
-        variant: 'destructive',
-      })
-      return null
-    }
-
-    const normalizedTag = tagName.trim().toLowerCase()
-
-    // Éviter les doublons pendant la création
-    if (pendingTags.has(normalizedTag)) {
-      return null
-    }
-
-    try {
-      setPendingTags((prev) => new Set(prev).add(normalizedTag))
-      await createTag(normalizedTag, userId)
-      await loadTags()
-      toast({
-        title: 'Success',
-        description: `Tag "${normalizedTag}" created successfully`,
-      })
-      return normalizedTag
-    } catch (error) {
-      console.error('Error creating tag:', error)
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to create tag',
-        variant: 'destructive',
-      })
-      return null
-    } finally {
-      setPendingTags((prev) => {
-        const next = new Set(prev)
-        next.delete(normalizedTag)
-        return next
-      })
-    }
-  }
-
   const search = useCallback(
     (searchTerm: string) => {
       const filtered = availableTags.filter((tag) =>
@@ -154,8 +110,78 @@ export default function SolutionMetadata({ onChange, userId }: SolutionMetadataP
 
   const debouncedSearch = useDebounce(search, 300)
 
+  const handleSearch = async (value: string): Promise<Option[]> => {
+    if (!value || value.trim().length === 0) {
+      setSearchResults(availableTags)
+      return availableTags
+    }
+
+    const error = validateTagName(value)
+    if (!error) {
+      // Si la valeur est valide, on l'ajoute comme option possible
+      const normalizedValue = value.trim().toLowerCase()
+      const existingTag = availableTags.find((tag) => tag.label.toLowerCase() === normalizedValue)
+
+      if (!existingTag && !isCreatingTag) {
+        const newResults = [
+          ...availableTags.filter((tag) => tag.label.toLowerCase().includes(normalizedValue)),
+          { value: normalizedValue, label: normalizedValue },
+        ]
+        setSearchResults(newResults)
+        return newResults
+      }
+    }
+
+    debouncedSearch(value)
+    return searchResults
+  }
+
+  const handleSelect = async (options: Option[]) => {
+    const lastOption = options[options.length - 1]
+
+    // Si c'est un nouveau tag (pas d'ID numérique)
+    if (lastOption && !lastOption.value.match(/^\d+$/)) {
+      setIsCreatingTag(true)
+      try {
+        await createTag(lastOption.label, userId)
+        await loadTags()
+
+        // Attendre que les tags soient rechargés
+        const allTags = await getTags()
+        const newTag = allTags.find(
+          (tag) => tag.name.toLowerCase() === lastOption.label.toLowerCase(),
+        )
+
+        if (newTag) {
+          // Remplacer le tag temporaire par le vrai tag
+          const updatedOptions = options.map((opt) =>
+            opt.value === lastOption.value
+              ? { value: newTag.id.toString(), label: newTag.name }
+              : opt,
+          )
+          handleChange('tags', updatedOptions)
+          return
+        }
+      } catch (error) {
+        console.error('Error creating tag:', error)
+        toast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Failed to create tag',
+          variant: 'destructive',
+        })
+        // Retirer le tag qui n'a pas pu être créé
+        handleChange('tags', options.slice(0, -1))
+        return
+      } finally {
+        setIsCreatingTag(false)
+      }
+    }
+
+    handleChange('tags', options)
+  }
+
   return (
-    <div className="space-y-4 p-4 bg-[#1f1f1f] border-b">
+    <div className="space-y-4 rounded-lg border border-border bg-card p-4">
       <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
         <Input
@@ -163,7 +189,7 @@ export default function SolutionMetadata({ onChange, userId }: SolutionMetadataP
           placeholder="Enter solution title..."
           value={metadata.title}
           onChange={(e) => handleChange('title', e.target.value)}
-          className="bg-[#2d2d2d] border-0"
+          className="bg-background/50"
         />
       </div>
 
@@ -174,7 +200,7 @@ export default function SolutionMetadata({ onChange, userId }: SolutionMetadataP
           placeholder="Enter solution description..."
           value={metadata.description}
           onChange={(e) => handleChange('description', e.target.value)}
-          className="bg-[#2d2d2d] border-0 min-h-[100px]"
+          className="bg-background/50 min-h-[100px]"
         />
       </div>
 
@@ -182,7 +208,7 @@ export default function SolutionMetadata({ onChange, userId }: SolutionMetadataP
         <Label>Tags</Label>
         <MultipleSelector
           value={metadata.tags}
-          onChange={(value) => handleChange('tags', value)}
+          onChange={handleSelect}
           defaultOptions={availableTags}
           options={searchResults}
           placeholder={isLoadingTags ? 'Loading tags...' : 'Select or create tags...'}
@@ -190,14 +216,7 @@ export default function SolutionMetadata({ onChange, userId }: SolutionMetadataP
             label: 'Select or create tags',
           }}
           creatable
-          onSearch={async (value) => {
-            if (!value || value.trim().length === 0) {
-              setSearchResults(availableTags)
-              return availableTags
-            }
-            debouncedSearch(value)
-            return searchResults
-          }}
+          onSearch={handleSearch}
           onMaxSelected={(max) => {
             toast({
               title: 'Maximum tags reached',
@@ -208,6 +227,9 @@ export default function SolutionMetadata({ onChange, userId }: SolutionMetadataP
           maxSelected={5}
           hideClearAllButton={false}
           hidePlaceholderWhenSelected
+          loadingIndicator={
+            isCreatingTag ? <p className="text-center text-sm py-6">Creating tag...</p> : undefined
+          }
           emptyIndicator={
             isLoadingTags ? (
               <p className="text-center text-sm">Loading tags...</p>

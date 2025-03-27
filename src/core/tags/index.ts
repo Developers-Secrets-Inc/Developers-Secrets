@@ -58,6 +58,11 @@ export const getTags = async (): Promise<Tag[]> => {
   return tags.docs as Tag[]
 }
 
+export const getTagIds = async (): Promise<number[]> => {
+  const tags = await getTags()
+  return tags.map((tag) => tag.id)
+}
+
 export const getTagByName = async (name: string): Promise<Tag> => {
   const payload = await getPayload({ config })
 

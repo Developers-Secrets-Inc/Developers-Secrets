@@ -26,6 +26,7 @@ import { Challenges } from './collections/Challenges'
 import { UserChallengeProgression } from './collections/UserChallengeProgression'
 import { Comments } from './collections/Comments'
 import { UserSolutions } from './collections/UserSolutions'
+import { ChallengeSubmissions } from './collections/ChallengeSubmissions'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -57,6 +58,7 @@ export default buildConfig({
     UserChallengeProgression,
     Comments,
     UserSolutions,
+    ChallengeSubmissions,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

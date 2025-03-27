@@ -14,6 +14,8 @@ import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
 import { getChallengeBySlug, getPreviousChallenge, getNextChallenge } from '@/core/challenges'
 import { getUserChallengeProgression } from '@/core/user-progression'
 import { getUser } from '@/core/user'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { IconSidebar } from '@/components/sidebars/home-sidebar/icon-sidebar'
 
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
@@ -41,7 +43,7 @@ export default async function ChallengeLayout({
   let userId = ''
   let hasLiked = false
   let hasDisliked = false
-  let userRating = undefined
+  let userRating: number | undefined = undefined
 
   try {
     const user = await getUser()
@@ -54,7 +56,7 @@ export default async function ChallengeLayout({
         if (userProgress) {
           hasLiked = !!userProgress.hasLiked
           hasDisliked = !!userProgress.hasDisliked
-          userRating = userProgress.rating !== undefined ? userProgress.rating : undefined
+          userRating = userProgress.rating ?? undefined
         }
       } catch (progressError) {
         console.error('Error fetching user progression:', progressError)
@@ -67,69 +69,82 @@ export default async function ChallengeLayout({
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      <header className="border-b py-3 px-4 bg-background">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-4">
-            <Link href="/" prefetch={true}>
-              <Eclipse size={23} />
-            </Link>
-            <div className="inline-flex -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
-              <ChallengesNavigationButtons
-                challengeSlug={challenge_slug}
-                previousChallengeSlug={previousChallenge.slug}
-                nextChallengeSlug={nextChallenge.slug}
-              />
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button
-              asChild
-              variant="outline"
-              className="h-9 px-3 py-1.5 text-sm"
-              aria-label="Back to dashboard"
-            >
-              <Link href="/dashboard" prefetch={true}>
-                Dashboard
-              </Link>
-            </Button>
-            <Avatar className="h-9 w-9">
-              <AvatarImage src="https://github.com/shadcn.png" alt="User" />
-              <AvatarFallback>US</AvatarFallback>
-            </Avatar>
-          </div>
-        </div>
-      </header>
-
-      <ResizablePanelGroup direction="horizontal" className="flex-1">
-        <ResizablePanel defaultSize={50}>
-          <div className="flex flex-col h-full">
-            <ChallengeNavigation challengeSlug={challenge_slug} />
-            <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
-              <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
-            </div>
-            <div className="p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)]">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex-1 flex items-center justify-between">
-                  <ReactionButtons
-                    initialLiked={hasLiked}
-                    initialDisliked={hasDisliked}
-                    challengeSlug={challenge_slug}
-                  />
-                  <RatingText challengeSlug={challenge_slug} initialRating={userRating} />
+    <SidebarProvider>
+      <div className="flex h-screen">
+        <IconSidebar />
+        <SidebarInset>
+          <div className="flex flex-col h-full w-[calc(100vw-3.5rem)]">
+            <header className="flex-none border-b py-3 px-4 bg-background">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-4">
+                  <Link href="/" prefetch={true}>
+                    <Eclipse size={23} />
+                  </Link>
+                  <div className="inline-flex -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
+                    <ChallengesNavigationButtons
+                      challengeSlug={challenge_slug}
+                      previousChallengeSlug={previousChallenge.slug}
+                      nextChallengeSlug={nextChallenge.slug}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-9 px-3 py-1.5 text-sm"
+                    aria-label="Back to dashboard"
+                  >
+                    <Link href="/dashboard" prefetch={true}>
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src="https://github.com/shadcn.png" alt="User" />
+                    <AvatarFallback>US</AvatarFallback>
+                  </Avatar>
                 </div>
               </div>
-              <AIAssistantDialog challengeSlug={challenge_slug} />
+            </header>
+
+            <div className="flex-1 overflow-hidden">
+              <ResizablePanelGroup direction="horizontal">
+                <ResizablePanel defaultSize={50} minSize={30}>
+                  <div className="flex flex-col h-full">
+                    <ChallengeNavigation challengeSlug={challenge_slug} />
+                    <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
+                      <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
+                    </div>
+                    <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)]">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="flex-1 flex items-center justify-between">
+                          <ReactionButtons
+                            initialLiked={hasLiked}
+                            initialDisliked={hasDisliked}
+                            challengeSlug={challenge_slug}
+                          />
+                          <RatingText challengeSlug={challenge_slug} initialRating={userRating} />
+                        </div>
+                      </div>
+                      <AIAssistantDialog challengeSlug={challenge_slug} />
+                    </div>
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={50} minSize={30}>
+                  <div className="flex flex-col h-full">
+                    <CodeEditor
+                      initialCode={''}
+                      language={'typescript'}
+                      showLanguageSelector={true}
+                    />
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
             </div>
           </div>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={50}>
-          <div className="flex flex-col h-full overflow-hidden">
-            <CodeEditor initialCode={''} language={'typescript'} showLanguageSelector={true} />
-          </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
-    </div>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   )
 }

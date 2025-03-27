@@ -85,6 +85,7 @@ export interface Config {
     userChallengeProgression: UserChallengeProgression;
     comments: Comment;
     'user-solutions': UserSolution;
+    'challenge-submissions': ChallengeSubmission;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -110,6 +111,7 @@ export interface Config {
     userChallengeProgression: UserChallengeProgressionSelect<false> | UserChallengeProgressionSelect<true>;
     comments: CommentsSelect<false> | CommentsSelect<true>;
     'user-solutions': UserSolutionsSelect<false> | UserSolutionsSelect<true>;
+    'challenge-submissions': ChallengeSubmissionsSelect<false> | ChallengeSubmissionsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -1173,6 +1175,73 @@ export interface UserChallengeProgression {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-submissions".
+ */
+export interface ChallengeSubmission {
+  id: number;
+  /**
+   * Type of submission result
+   */
+  submissionType: 'accepted' | 'runtimeError' | 'wrongAnswer' | 'timeLimitExceeded';
+  /**
+   * The challenge this submission is for
+   */
+  challenge: number | Challenge;
+  /**
+   * The user who made this submission
+   */
+  author: number | User;
+  /**
+   * Number of test cases passed
+   */
+  testsPassed: number;
+  /**
+   * Total number of test cases
+   */
+  testsTotal: number;
+  code: {
+    /**
+     * Programming language used for the submission
+     */
+    language: string;
+    /**
+     * Source code of the submission
+     */
+    content: string;
+  };
+  /**
+   * Error message for runtime error submissions
+   */
+  error?: string | null;
+  /**
+   * Last expected outputs before the error occurred
+   */
+  lastExpectedOutput?:
+    | {
+        output?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Input that caused the wrong answer
+   */
+  input?: string | null;
+  /**
+   * Actual output produced by the submission
+   */
+  output?: string | null;
+  /**
+   * Expected output for the given input
+   */
+  expectedOutput?: string | null;
+  /**
+   * When this submission was made
+   */
+  createdAt: string;
+  updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -1253,6 +1322,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'user-solutions';
         value: number | UserSolution;
+      } | null)
+    | ({
+        relationTo: 'challenge-submissions';
+        value: number | ChallengeSubmission;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1812,6 +1885,35 @@ export interface UserSolutionsSelect<T extends boolean = true> {
   comments?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-submissions_select".
+ */
+export interface ChallengeSubmissionsSelect<T extends boolean = true> {
+  submissionType?: T;
+  challenge?: T;
+  author?: T;
+  testsPassed?: T;
+  testsTotal?: T;
+  code?:
+    | T
+    | {
+        language?: T;
+        content?: T;
+      };
+  error?: T;
+  lastExpectedOutput?:
+    | T
+    | {
+        output?: T;
+        id?: T;
+      };
+  input?: T;
+  output?: T;
+  expectedOutput?: T;
+  createdAt?: T;
+  updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
