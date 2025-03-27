@@ -42,7 +42,7 @@ export default async function SolutionDetailPage({
   return (
     <div className="p-6">
       <Suspense fallback={<SolutionSkeleton />}>
-        <SolutionDetail solution={solution} challengeSlug={params.challenge_slug} />
+        <SolutionDetail solution={solution} challengeSlug={challenge_slug} />
       </Suspense>
     </div>
   )
