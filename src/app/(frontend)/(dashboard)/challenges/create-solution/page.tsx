@@ -5,6 +5,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { getPayloadChallenge } from '@/core/challenges'
+import { getUserSolutions } from '@/core/challenges/users-solutions'
 
 interface CreateSolutionPageProps {
   searchParams: Promise<{
@@ -36,6 +37,18 @@ const CreateSolutionPage: FC<CreateSolutionPageProps> = async ({ searchParams })
       )
     }
 
+    // Récupérer toutes les solutions de l'utilisateur
+    const userSolutions = await getUserSolutions()
+
+    // Trouver la solution pour ce challenge spécifique
+    const existingSolution = userSolutions.find(
+      (solution) =>
+        typeof solution.challenge !== 'number' &&
+        solution.challenge.id === challengeId &&
+        solution.authorId === user.id,
+    )
+
+
     return (
       <SidebarProvider>
         <HomeSidebar />
@@ -47,6 +60,7 @@ const CreateSolutionPage: FC<CreateSolutionPageProps> = async ({ searchParams })
               userId={user.id}
               challengeTitle={challenge.title}
               challengeSlug={challenge.slug}
+              existingSolution={existingSolution || null}
             />
           </div>
         </SidebarInset>

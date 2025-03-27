@@ -2,40 +2,25 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Copy, CheckCheck, ThumbsUp, ThumbsDown, Eye, MessageSquare } from 'lucide-react'
+import {
+  ArrowLeft,
+  Copy,
+  CheckCheck,
+  ThumbsUp,
+  ThumbsDown,
+  Eye,
+  MessageSquare,
+  Pencil,
+} from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { formatDistanceToNow } from 'date-fns'
-import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import { UserSolution } from '@/payload-types'
 import { getUser } from '@/core/user'
-import {
-  addViews,
-  addUpvote,
-  addDownvote,
-  removeUpvote,
-  removeDownvote,
-} from '@/core/challenges/users-solutions'
-
-// Type de solution à afficher
-export type SolutionDetailProps = {
-  id: string
-  user: {
-    name: string
-    avatar: string
-    initials: string
-  }
-  title: string
-  description: string
-  language: string
-  upvotes: number
-  downvotes: number
-  views: number
-  comments: number
-  date: Date
-  code: string
-}
+import { addViews } from '@/core/challenges/users-solutions'
+import { Markdown } from '@/components/markdown'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type Props = {
   solution: UserSolution
@@ -44,17 +29,35 @@ type Props = {
 
 function UserCard({ authorId, date }: { authorId: string; date: Date }) {
   const [user, setUser] = useState<Awaited<ReturnType<typeof getUser>> | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchUser = async () => {
-      const userData = await getUser()
-      setUser(userData)
+      try {
+        const userData = await getUser()
+        setUser(userData)
+      } catch (error) {
+        console.error('Error fetching user:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
     fetchUser()
   }, [])
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-6 w-6 rounded-full" />
+        <div className="space-y-1">
+          <Skeleton className="h-4 w-24" />
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex items-center gap-2 mb-3">
+    <div className="flex items-center gap-2">
       <Avatar className="h-6 w-6">
         <AvatarImage src={user?.informations.avatar} />
         <AvatarFallback>
@@ -70,98 +73,46 @@ function UserCard({ authorId, date }: { authorId: string; date: Date }) {
   )
 }
 
-function StatisticsGrid({
-  solution,
-  onVoteChange,
-}: {
-  solution: UserSolution
-  onVoteChange: () => void
-}) {
-  const [currentUser, setCurrentUser] = useState<Awaited<ReturnType<typeof getUser>> | null>(null)
-  const [isUpvoted, setIsUpvoted] = useState(false)
-  const [isDownvoted, setIsDownvoted] = useState(false)
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const userData = await getUser()
-      setCurrentUser(userData)
-
-      if (userData) {
-        const userVote = solution.votes?.find((vote) => vote.authorId === userData.id)
-        setIsUpvoted(userVote?.status === 'upvote')
-        setIsDownvoted(userVote?.status === 'downvote')
-      }
-    }
-    fetchUser()
-  }, [solution.votes])
-
-  const handleUpvote = async () => {
-    if (!currentUser) return
-
-    if (isUpvoted) {
-      await removeUpvote(solution.id.toString(), currentUser.id)
-    } else {
-      await addUpvote(solution.id.toString(), currentUser.id)
-    }
-    onVoteChange()
-  }
-
-  const handleDownvote = async () => {
-    if (!currentUser) return
-
-    if (isDownvoted) {
-      await removeDownvote(solution.id.toString(), currentUser.id)
-    } else {
-      await addDownvote(solution.id.toString(), currentUser.id)
-    }
-    onVoteChange()
-  }
-
+function SolutionStats({ solution }: { solution: UserSolution }) {
   const upvotes = solution.votes?.filter((vote) => vote.status === 'upvote').length || 0
   const downvotes = solution.votes?.filter((vote) => vote.status === 'downvote').length || 0
 
   return (
-    <div className="grid grid-cols-4 gap-4 py-4">
-      <button
-        onClick={handleUpvote}
-        className={`flex flex-col items-center p-3 rounded-lg border ${
-          isUpvoted ? 'bg-primary/10 border-primary' : 'hover:bg-muted'
-        }`}
-      >
-        <ThumbsUp className={`h-5 w-5 mb-1 ${isUpvoted ? 'text-primary' : ''}`} />
-        <span className="text-sm font-medium">{upvotes}</span>
-        <span className="text-xs text-muted-foreground">Upvotes</span>
-      </button>
-
-      <button
-        onClick={handleDownvote}
-        className={`flex flex-col items-center p-3 rounded-lg border ${
-          isDownvoted ? 'bg-destructive/10 border-destructive' : 'hover:bg-muted'
-        }`}
-      >
-        <ThumbsDown className={`h-5 w-5 mb-1 ${isDownvoted ? 'text-destructive' : ''}`} />
-        <span className="text-sm font-medium">{downvotes}</span>
-        <span className="text-xs text-muted-foreground">Downvotes</span>
-      </button>
-
-      <div className="flex flex-col items-center p-3 rounded-lg border hover:bg-muted">
-        <Eye className="h-5 w-5 mb-1" />
-        <span className="text-sm font-medium">{solution.views || 0}</span>
-        <span className="text-xs text-muted-foreground">Views</span>
+    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+      <div className="flex items-center gap-1.5">
+        <ThumbsUp className="h-4 w-4" />
+        <span>{upvotes}</span>
       </div>
-
-      <div className="flex flex-col items-center p-3 rounded-lg border hover:bg-muted">
-        <MessageSquare className="h-5 w-5 mb-1" />
-        <span className="text-sm font-medium">{solution.comments?.length || 0}</span>
-        <span className="text-xs text-muted-foreground">Comments</span>
+      <div className="flex items-center gap-1.5">
+        <ThumbsDown className="h-4 w-4" />
+        <span>{downvotes}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <Eye className="h-4 w-4" />
+        <span>{solution.views || 0}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <MessageSquare className="h-4 w-4" />
+        <span>{solution.comments?.length || 0}</span>
       </div>
     </div>
   )
 }
 
 export function SolutionDetail({ solution, challengeSlug }: Props) {
-  const [copied, setCopied] = useState(false)
-  const [currentSolution, setCurrentSolution] = useState(solution)
+  const [currentUser, setCurrentUser] = useState<Awaited<ReturnType<typeof getUser>> | null>(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getUser()
+        setCurrentUser(userData)
+      } catch (error) {
+        console.error('Error fetching user:', error)
+      }
+    }
+    fetchUser()
+  }, [])
 
   useEffect(() => {
     const incrementViews = async () => {
@@ -170,31 +121,39 @@ export function SolutionDetail({ solution, challengeSlug }: Props) {
     incrementViews()
   }, [solution.id])
 
-  const handleCopyCode = useCallback(() => {
-    navigator.clipboard.writeText(currentSolution.content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }, [currentSolution.content])
-
-  const handleVoteChange = useCallback(async () => {
-    const updatedSolution = await getUserSolutionById(solution.id.toString())
-    if (updatedSolution) {
-      setCurrentSolution(updatedSolution)
-    }
-  }, [solution.id])
-
-  const firstTag = currentSolution.tags?.[0]
-  const language = typeof firstTag === 'number' ? 'Unknown' : firstTag?.name || 'Unknown'
+  const isCreator = currentUser?.id === solution.authorId
 
   return (
-    <div className="space-y-4 -mt-6">
+    <div className="space-y-6 -mt-6">
       <div className="flex items-center justify-between py-2 border-b -mx-6 px-6">
-        <Button variant="ghost" size="sm" className="gap-1.5" asChild>
-          <Link href={`/challenges/${challengeSlug}/solutions`} prefetch={true}>
-            <ArrowLeft className="h-4 w-4" />
-            Back to solutions
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="gap-1.5" asChild>
+            <Link href={`/challenges/${challengeSlug}/solutions`} prefetch={true}>
+              <ArrowLeft className="h-4 w-4" />
+              Back to solutions
+            </Link>
+          </Button>
+          {isCreator && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-primary hover:text-primary"
+              asChild
+            >
+              <Link
+                href={`/challenges/create-solution?challenge_id=${
+                  typeof solution.challenge === 'number'
+                    ? solution.challenge
+                    : solution.challenge.id
+                }`}
+                prefetch={true}
+              >
+                <Pencil className="h-4 w-4" />
+                Edit solution
+              </Link>
+            </Button>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="sm"
@@ -204,46 +163,23 @@ export function SolutionDetail({ solution, challengeSlug }: Props) {
         </Button>
       </div>
 
-      <div>
-        <h2 className="text-xl font-semibold mb-2">{currentSolution.title}</h2>
-        <UserCard authorId={currentSolution.authorId} date={new Date(currentSolution.createdAt)} />
-        <p className="text-sm text-muted-foreground mb-4">{currentSolution.description}</p>
-      </div>
-
-      <StatisticsGrid solution={currentSolution} onVoteChange={handleVoteChange} />
-
-      <Separator />
-
-      <div>
-        <div className="relative bg-muted p-4 rounded-md min-h-[200px] overflow-x-auto">
-          <div className="flex justify-between items-center mb-2">
-            <Badge variant="outline" className="bg-muted">
-              {language}
-            </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 gap-1 text-xs"
-              onClick={handleCopyCode}
-            >
-              {copied ? (
-                <>
-                  <CheckCheck className="h-3.5 w-3.5" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" />
-                  Copy Code
-                </>
-              )}
-            </Button>
-          </div>
-          <pre className="text-sm font-mono">{currentSolution.content}</pre>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold">{solution.title}</h2>
+          <UserCard authorId={solution.authorId} date={new Date(solution.createdAt)} />
         </div>
-      </div>
 
-      <Separator />
+        <div className="space-y-2">
+          <SolutionStats solution={solution} />
+          <Markdown className="text-sm text-muted-foreground prose-sm prose-slate max-w-none">
+            {solution.description}
+          </Markdown>
+        </div>
+
+        <Separator className="my-6" />
+
+        <Markdown className="p-4">{solution.content}</Markdown>
+      </div>
     </div>
   )
 }

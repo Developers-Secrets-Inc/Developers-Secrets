@@ -7,7 +7,7 @@ import { useCreateBlockNote } from '@blocknote/react'
 import { PartialBlock } from '@blocknote/core'
 import { useEffect, useCallback } from 'react'
 
-const initialContent: PartialBlock[] = [
+const defaultContent: PartialBlock[] = [
   {
     type: 'heading',
     props: {
@@ -22,11 +22,24 @@ const initialContent: PartialBlock[] = [
 
 interface EditorProps {
   onSaveContent?: (markdown: string) => void
+  initialContent?: string
 }
 
-export default function Editor({ onSaveContent }: EditorProps) {
+export default function Editor({ onSaveContent, initialContent }: EditorProps) {
   const editor = useCreateBlockNote({
-    initialContent,
+    initialContent: initialContent
+      ? [
+          {
+            type: 'paragraph',
+            props: {
+              textColor: 'default',
+              backgroundColor: 'default',
+              textAlignment: 'left',
+            },
+            content: initialContent,
+          },
+        ]
+      : defaultContent,
   })
 
   const updateContent = useCallback(async () => {

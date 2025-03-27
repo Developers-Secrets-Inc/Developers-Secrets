@@ -7,6 +7,7 @@ import MultipleSelector, { Option } from '@/components/ui/multiselect'
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { getTags, createTag } from '@/core/tags'
 import { useToast } from '@/components/ui/use-toast'
+import { Tag } from '@/payload-types'
 
 function useDebounce<T extends (...args: any[]) => any>(callback: T, delay: number) {
   const timeoutRef = useMemo(() => ({ current: null as NodeJS.Timeout | null }), [])
@@ -34,32 +35,50 @@ export interface SolutionMetadata {
 interface SolutionMetadataProps {
   onChange?: (metadata: SolutionMetadata) => void
   userId: string
+  initialData?: SolutionMetadata
 }
 
 const MIN_TAG_LENGTH = 2
 const MAX_TAG_LENGTH = 30
 
-export default function SolutionMetadata({ onChange, userId }: SolutionMetadataProps) {
+export default function SolutionMetadata({ onChange, userId, initialData }: SolutionMetadataProps) {
   const { toast } = useToast()
   const [metadata, setMetadata] = useState<SolutionMetadata>({
-    title: '',
-    description: '',
+    title: initialData?.title || '',
+    description: initialData?.description || '',
     tags: [],
   })
   const [availableTags, setAvailableTags] = useState<Option[]>([])
   const [isLoadingTags, setIsLoadingTags] = useState(true)
   const [searchResults, setSearchResults] = useState<Option[]>([])
   const [isCreatingTag, setIsCreatingTag] = useState(false)
+  const [allTags, setAllTags] = useState<Tag[]>([])
 
   const loadTags = async () => {
     try {
       const tags = await getTags()
+      setAllTags(tags)
       const tagOptions = tags.map((tag) => ({
         value: tag.id.toString(),
         label: tag.name,
       }))
       setAvailableTags(tagOptions)
       setSearchResults(tagOptions)
+
+      // Si nous avons des tags initiaux, trouvons leurs noms
+      if (initialData?.tags && initialData.tags.length > 0) {
+        const initialTagOptions = initialData.tags.map((tag) => {
+          const matchingTag = tags.find((t) => t.id.toString() === tag.value)
+          return {
+            value: tag.value,
+            label: matchingTag ? matchingTag.name : tag.value,
+          }
+        })
+        setMetadata((prev) => ({
+          ...prev,
+          tags: initialTagOptions,
+        }))
+      }
     } catch (error) {
       console.error('Error loading tags:', error)
       toast({

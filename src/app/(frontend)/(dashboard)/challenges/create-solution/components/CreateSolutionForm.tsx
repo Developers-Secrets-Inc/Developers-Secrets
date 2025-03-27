@@ -1,19 +1,27 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { createUserSolution } from '@/core/challenges/users-solutions'
+import { useState, useCallback, useEffect } from 'react'
+import {
+  createUserSolution,
+  updateUserSolutionContent,
+  updateUserSolutionDescription,
+  updateUserSolutionTitle,
+  updateTags,
+} from '@/core/challenges/users-solutions'
 import { toast } from '@/components/ui/use-toast'
 import SolutionEditor from '.'
 import SolutionMetadata, { type SolutionMetadata as SolutionMetadataType } from './SolutionMetadata'
 import { createTag, getTagIds } from '@/core/tags'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { UserSolution } from '@/payload-types'
 
 interface CreateSolutionFormProps {
   challengeId: number
   userId: string
   challengeTitle: string
   challengeSlug: string
+  existingSolution: UserSolution | null
 }
 
 export default function CreateSolutionForm({
@@ -21,20 +29,41 @@ export default function CreateSolutionForm({
   userId,
   challengeTitle,
   challengeSlug,
+  existingSolution,
 }: CreateSolutionFormProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState(existingSolution?.content || '')
   const [metadata, setMetadata] = useState<SolutionMetadataType>({
-    title: '',
-    description: '',
-    tags: [],
+    title: existingSolution?.title || '',
+    description: existingSolution?.description || '',
+    tags:
+      existingSolution?.tags?.map((tagId) => ({
+        value: tagId.toString(),
+        label: tagId.toString(),
+      })) || [],
   })
+
+  // Charger les données existantes si disponibles
+  useEffect(() => {
+    if (existingSolution) {
+      setContent(existingSolution.content)
+      setMetadata({
+        title: existingSolution.title,
+        description: existingSolution.description || '',
+        tags:
+          existingSolution.tags?.map((tagId) => ({
+            value: tagId.toString(),
+            label: tagId.toString(), // Idéalement, on devrait récupérer les noms des tags
+          })) || [],
+      })
+    }
+  }, [existingSolution])
 
   const handleSaveContent = useCallback((markdown: string) => {
     setContent(markdown)
   }, [])
 
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     try {
       if (!content.trim()) {
         toast({
@@ -46,7 +75,6 @@ export default function CreateSolutionForm({
       }
 
       setIsLoading(true)
-      console.log('Creating solution with content:', content)
 
       // Create new tags if needed
       const newTags = metadata.tags.filter((tag) => !tag.value.match(/^\d+$/))
@@ -58,35 +86,53 @@ export default function CreateSolutionForm({
       // Get tag IDs
       const tagsIds = await getTagIds()
 
-      // Create the solution
-      const solution = {
-        challengeId,
-        authorId: userId,
-        title: metadata.title.trim() || 'Untitled Solution',
-        description: metadata.description.trim() || 'No description provided',
-        content: content.trim(),
-        tagsIds,
+      if (existingSolution) {
+        // Update existing solution
+        await Promise.all([
+          updateUserSolutionTitle(existingSolution.id.toString(), metadata.title.trim()),
+          updateUserSolutionDescription(
+            existingSolution.id.toString(),
+            metadata.description.trim(),
+          ),
+          updateUserSolutionContent(existingSolution.id.toString(), content.trim()),
+          updateTags(existingSolution.id.toString(), tagsIds),
+        ])
+
+        toast({
+          title: 'Success',
+          description: 'Solution updated successfully!',
+        })
+      } else {
+        // Create new solution
+        const solution = {
+          challengeId,
+          authorId: userId,
+          title: metadata.title.trim() || 'Untitled Solution',
+          description: metadata.description.trim() || 'No description provided',
+          content: content.trim(),
+          tagsIds,
+        }
+
+        await createUserSolution(solution)
+
+        toast({
+          title: 'Success',
+          description: 'Solution created successfully!',
+        })
+
+        // Reset form only for new solutions
+        setContent('')
+        setMetadata({
+          title: '',
+          description: '',
+          tags: [],
+        })
       }
-
-      await createUserSolution(solution)
-
-      toast({
-        title: 'Success',
-        description: 'Solution created successfully!',
-      })
-
-      // Reset form
-      setContent('')
-      setMetadata({
-        title: '',
-        description: '',
-        tags: [],
-      })
     } catch (error) {
-      console.error('Error creating solution:', error)
+      console.error('Error handling solution:', error)
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to create solution',
+        description: error instanceof Error ? error.message : 'Failed to handle solution',
         variant: 'destructive',
       })
     } finally {
@@ -111,22 +157,28 @@ export default function CreateSolutionForm({
             <span className="text-sm font-medium truncate">{challengeTitle}</span>
           </div>
           <button
-            onClick={handleCreate}
+            onClick={handleSubmit}
             disabled={isLoading}
             className={`px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors ${
               isLoading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            {isLoading ? 'Creating...' : 'Create'}
+            {isLoading
+              ? existingSolution
+                ? 'Updating...'
+                : 'Creating...'
+              : existingSolution
+                ? 'Update'
+                : 'Create'}
           </button>
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <SolutionMetadata userId={userId} onChange={setMetadata} />
+        <SolutionMetadata userId={userId} onChange={setMetadata} initialData={metadata} />
         <div className="h-[600px] border border-border rounded-lg overflow-hidden">
-          <SolutionEditor onSaveContent={handleSaveContent} />
+          <SolutionEditor onSaveContent={handleSaveContent} initialContent={content} />
         </div>
       </div>
     </div>
