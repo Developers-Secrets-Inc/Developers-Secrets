@@ -32,9 +32,8 @@ export const ChallengeSubmissions: CollectionConfig = {
       },
     },
     {
-      name: 'author',
-      type: 'relationship',
-      relationTo: 'users',
+      name: 'authorId',
+      type: 'text',
       required: true,
       admin: {
         description: 'The user who made this submission',
@@ -63,7 +62,6 @@ export const ChallengeSubmissions: CollectionConfig = {
     {
       name: 'code',
       type: 'group',
-      required: true,
       fields: [
         {
           name: 'language',

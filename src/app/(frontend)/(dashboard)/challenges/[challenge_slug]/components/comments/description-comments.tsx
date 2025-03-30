@@ -10,7 +10,7 @@ export const DescriptionComments = async ({ challenge }: { challenge: Challenge 
     <CommentsSection
       comments={await getChallengeDescriptionComments(challenge.id)}
       onCreateComment={createDescriptionComment}
-      challengeId={challenge.id}
+      parentId={challenge.id}
     />
   )
 }

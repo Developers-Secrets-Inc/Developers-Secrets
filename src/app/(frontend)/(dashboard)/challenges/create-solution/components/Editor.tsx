@@ -5,7 +5,7 @@ import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/mantine/style.css'
 import { useCreateBlockNote } from '@blocknote/react'
 import { PartialBlock } from '@blocknote/core'
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, forwardRef, useImperativeHandle } from 'react'
 
 const defaultContent: PartialBlock[] = [
   {
@@ -25,43 +25,62 @@ interface EditorProps {
   initialContent?: string
 }
 
-export default function Editor({ onSaveContent, initialContent }: EditorProps) {
+export interface EditorRef {
+  getCurrentContent: () => Promise<string>
+}
+
+const Editor = forwardRef<EditorRef, EditorProps>(({ onSaveContent, initialContent }, ref) => {
   const editor = useCreateBlockNote({
-    initialContent: initialContent
-      ? [
-          {
-            type: 'paragraph',
-            props: {
-              textColor: 'default',
-              backgroundColor: 'default',
-              textAlignment: 'left',
-            },
-            content: initialContent,
-          },
-        ]
-      : defaultContent,
+    initialContent: defaultContent,
   })
 
-  const updateContent = useCallback(async () => {
-    if (onSaveContent && editor) {
-      const markdown = await editor.blocksToMarkdownLossy(editor.document)
-      onSaveContent(markdown)
+  const getCurrentContent = useCallback(async () => {
+    if (editor) {
+      const blocks = editor.document
+      const markdown = await editor.blocksToMarkdownLossy(blocks)
+      // Préserver les sauts de ligne multiples en ajoutant des espaces
+      return markdown.replace(/\n\n+/g, (match) => match.split('\n').join('\n \n'))
     }
-  }, [editor, onSaveContent])
+    return initialContent || ''
+  }, [editor, initialContent])
 
-  // Update content whenever the editor changes
+  useImperativeHandle(ref, () => ({
+    getCurrentContent,
+  }))
+
+  const updateContent = useCallback(async () => {
+    if (onSaveContent) {
+      const content = await getCurrentContent()
+      onSaveContent(content)
+    }
+  }, [getCurrentContent, onSaveContent])
+
+  // Parse and set initial content only once when the editor is ready
+  useEffect(() => {
+    const initializeContent = async () => {
+      if (editor && initialContent) {
+        try {
+          // Restaurer les sauts de ligne multiples
+          const restoredMarkdown = initialContent.replace(/\n \n/g, '\n\n')
+          const blocks = await editor.tryParseMarkdownToBlocks(restoredMarkdown)
+          if (blocks.length > 0) {
+            editor.replaceBlocks(editor.document, blocks)
+          }
+        } catch (error) {
+          console.error('Failed to parse markdown:', error)
+        }
+      }
+    }
+    initializeContent()
+  }, [editor, initialContent])
+
+  // Debounced content updates
   useEffect(() => {
     if (editor && onSaveContent) {
-      editor.onEditorContentChange(() => {
-        updateContent()
-      })
+      const timeout = setTimeout(updateContent, 500)
+      return () => clearTimeout(timeout)
     }
   }, [editor, onSaveContent, updateContent])
-
-  // Initial content update
-  useEffect(() => {
-    updateContent()
-  }, [updateContent])
 
   return (
     <BlockNoteView
@@ -70,4 +89,8 @@ export default function Editor({ onSaveContent, initialContent }: EditorProps) {
       className="h-full rounded-none bg-background/50"
     />
   )
-}
+})
+
+Editor.displayName = 'Editor'
+
+export default Editor

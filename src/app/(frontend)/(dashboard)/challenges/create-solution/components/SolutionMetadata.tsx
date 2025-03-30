@@ -1,30 +1,77 @@
 'use client'
 
-import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Option } from '@/components/ui/multiselect'
 import { Textarea } from '@/components/ui/textarea'
-import MultipleSelector, { Option } from '@/components/ui/multiselect'
-import { useEffect, useState, useMemo, useCallback } from 'react'
-import { getTags, createTag } from '@/core/tags'
-import { useToast } from '@/components/ui/use-toast'
-import { Tag } from '@/payload-types'
+import { useState } from 'react'
+import useUserSolutionMetadata from '../hooks/use-user-solution-metadata'
+import { UserSolutionTags } from './user-solution-tags'
 
-function useDebounce<T extends (...args: any[]) => any>(callback: T, delay: number) {
-  const timeoutRef = useMemo(() => ({ current: null as NodeJS.Timeout | null }), [])
 
-  return useCallback(
-    (...args: Parameters<T>) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
 
-      timeoutRef.current = setTimeout(() => {
-        callback(...args)
-      }, delay)
-    },
-    [callback, delay, timeoutRef],
+const UserSolutionTitle = ({
+  initialTitle,
+  onTitleChange,
+}: {
+  initialTitle: string
+  onTitleChange: (title: string) => void
+}) => {
+  const [title, setTitle] = useState(initialTitle)
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value
+    setTitle(newTitle)
+    onTitleChange(newTitle)
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="title">Title</Label>
+      <Input
+        id="title"
+        placeholder="Enter solution title..."
+        value={title}
+        onChange={handleTitleChange}
+        className="bg-background/50"
+        aria-label="Title"
+        aria-required="true"
+      />
+    </div>
   )
 }
+
+const UserSolutionDescription = ({
+  initialDescription,
+  onDescriptionChange,
+}: {
+  initialDescription: string
+  onDescriptionChange: (description: string) => void
+}) => {
+  const [description, setDescription] = useState(initialDescription)
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newDescription = e.target.value
+    setDescription(newDescription)
+    onDescriptionChange(newDescription)
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="description">Description</Label>
+      <Textarea
+        id="description"
+        placeholder="Enter solution description..."
+        value={description}
+        onChange={handleDescriptionChange}
+        className="bg-background/50 min-h-[100px]"
+        aria-label="Description"
+        aria-required="true"
+      />
+    </div>
+  )
+}
+
 
 export interface SolutionMetadata {
   title: string
@@ -33,239 +80,39 @@ export interface SolutionMetadata {
 }
 
 interface SolutionMetadataProps {
-  onChange?: (metadata: SolutionMetadata) => void
+  onMetadataChange?: (metadata: SolutionMetadata) => void
   userId: string
   initialData?: SolutionMetadata
 }
 
-const MIN_TAG_LENGTH = 2
-const MAX_TAG_LENGTH = 30
+export default function SolutionMetadata({ onMetadataChange, userId, initialData }: SolutionMetadataProps) {
+  const { metadata, updateField } = useUserSolutionMetadata(initialData)
 
-export default function SolutionMetadata({ onChange, userId, initialData }: SolutionMetadataProps) {
-  const { toast } = useToast()
-  const [metadata, setMetadata] = useState<SolutionMetadata>({
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    tags: [],
-  })
-  const [availableTags, setAvailableTags] = useState<Option[]>([])
-  const [isLoadingTags, setIsLoadingTags] = useState(true)
-  const [searchResults, setSearchResults] = useState<Option[]>([])
-  const [isCreatingTag, setIsCreatingTag] = useState(false)
-  const [allTags, setAllTags] = useState<Tag[]>([])
-
-  const loadTags = async () => {
-    try {
-      const tags = await getTags()
-      setAllTags(tags)
-      const tagOptions = tags.map((tag) => ({
-        value: tag.id.toString(),
-        label: tag.name,
-      }))
-      setAvailableTags(tagOptions)
-      setSearchResults(tagOptions)
-
-      // Si nous avons des tags initiaux, trouvons leurs noms
-      if (initialData?.tags && initialData.tags.length > 0) {
-        const initialTagOptions = initialData.tags.map((tag) => {
-          const matchingTag = tags.find((t) => t.id.toString() === tag.value)
-          return {
-            value: tag.value,
-            label: matchingTag ? matchingTag.name : tag.value,
-          }
-        })
-        setMetadata((prev) => ({
-          ...prev,
-          tags: initialTagOptions,
-        }))
-      }
-    } catch (error) {
-      console.error('Error loading tags:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load tags',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoadingTags(false)
-    }
-  }
-
-  useEffect(() => {
-    loadTags()
-  }, [])
-
-  const handleChange = (field: keyof SolutionMetadata, value: any) => {
-    const newMetadata = { ...metadata, [field]: value }
-    setMetadata(newMetadata)
-    onChange?.(newMetadata)
-  }
-
-  const validateTagName = (tagName: string): string | null => {
-    if (!tagName || tagName.trim().length === 0) {
-      return 'Tag name cannot be empty'
-    }
-    if (tagName.trim().length < MIN_TAG_LENGTH) {
-      return `Tag name must be at least ${MIN_TAG_LENGTH} characters`
-    }
-    if (tagName.trim().length > MAX_TAG_LENGTH) {
-      return `Tag name cannot exceed ${MAX_TAG_LENGTH} characters`
-    }
-    if (!/^[a-zA-Z0-9-]+$/.test(tagName)) {
-      return 'Tag name can only contain letters, numbers, and hyphens'
-    }
-    return null
-  }
-
-  const search = useCallback(
-    (searchTerm: string) => {
-      const filtered = availableTags.filter((tag) =>
-        tag.label.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-      setSearchResults(filtered)
-    },
-    [availableTags],
-  )
-
-  const debouncedSearch = useDebounce(search, 300)
-
-  const handleSearch = async (value: string): Promise<Option[]> => {
-    if (!value || value.trim().length === 0) {
-      setSearchResults(availableTags)
-      return availableTags
-    }
-
-    const error = validateTagName(value)
-    if (!error) {
-      // Si la valeur est valide, on l'ajoute comme option possible
-      const normalizedValue = value.trim().toLowerCase()
-      const existingTag = availableTags.find((tag) => tag.label.toLowerCase() === normalizedValue)
-
-      if (!existingTag && !isCreatingTag) {
-        const newResults = [
-          ...availableTags.filter((tag) => tag.label.toLowerCase().includes(normalizedValue)),
-          { value: normalizedValue, label: normalizedValue },
-        ]
-        setSearchResults(newResults)
-        return newResults
-      }
-    }
-
-    debouncedSearch(value)
-    return searchResults
-  }
-
-  const handleSelect = async (options: Option[]) => {
-    const lastOption = options[options.length - 1]
-
-    // Si c'est un nouveau tag (pas d'ID numérique)
-    if (lastOption && !lastOption.value.match(/^\d+$/)) {
-      setIsCreatingTag(true)
-      try {
-        await createTag(lastOption.label, userId)
-        await loadTags()
-
-        // Attendre que les tags soient rechargés
-        const allTags = await getTags()
-        const newTag = allTags.find(
-          (tag) => tag.name.toLowerCase() === lastOption.label.toLowerCase(),
-        )
-
-        if (newTag) {
-          // Remplacer le tag temporaire par le vrai tag
-          const updatedOptions = options.map((opt) =>
-            opt.value === lastOption.value
-              ? { value: newTag.id.toString(), label: newTag.name }
-              : opt,
-          )
-          handleChange('tags', updatedOptions)
-          return
-        }
-      } catch (error) {
-        console.error('Error creating tag:', error)
-        toast({
-          title: 'Error',
-          description: error instanceof Error ? error.message : 'Failed to create tag',
-          variant: 'destructive',
-        })
-        // Retirer le tag qui n'a pas pu être créé
-        handleChange('tags', options.slice(0, -1))
-        return
-      } finally {
-        setIsCreatingTag(false)
-      }
-    }
-
-    handleChange('tags', options)
+  const handleChange = (
+    field: keyof SolutionMetadata,
+    value: SolutionMetadata[keyof SolutionMetadata],
+  ) => {
+    updateField(field, value)
+    onMetadataChange?.({ ...metadata, [field]: value })
   }
 
   return (
     <div className="space-y-4 rounded-lg border border-border bg-card p-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input
-          id="title"
-          placeholder="Enter solution title..."
-          value={metadata.title}
-          onChange={(e) => handleChange('title', e.target.value)}
-          className="bg-background/50"
-        />
-      </div>
+      <UserSolutionTitle
+        initialTitle={metadata.title}
+        onTitleChange={(title) => handleChange('title', title)}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          placeholder="Enter solution description..."
-          value={metadata.description}
-          onChange={(e) => handleChange('description', e.target.value)}
-          className="bg-background/50 min-h-[100px]"
-        />
-      </div>
+      <UserSolutionDescription
+        initialDescription={metadata.description}
+        onDescriptionChange={(description) => handleChange('description', description)}
+      />
 
-      <div className="space-y-2">
-        <Label>Tags</Label>
-        <MultipleSelector
-          value={metadata.tags}
-          onChange={handleSelect}
-          defaultOptions={availableTags}
-          options={searchResults}
-          placeholder={isLoadingTags ? 'Loading tags...' : 'Select or create tags...'}
-          commandProps={{
-            label: 'Select or create tags',
-          }}
-          creatable
-          onSearch={handleSearch}
-          onMaxSelected={(max) => {
-            toast({
-              title: 'Maximum tags reached',
-              description: `You can only select up to ${max} tags`,
-              variant: 'destructive',
-            })
-          }}
-          maxSelected={5}
-          hideClearAllButton={false}
-          hidePlaceholderWhenSelected
-          loadingIndicator={
-            isCreatingTag ? <p className="text-center text-sm py-6">Creating tag...</p> : undefined
-          }
-          emptyIndicator={
-            isLoadingTags ? (
-              <p className="text-center text-sm">Loading tags...</p>
-            ) : (
-              <p className="text-center text-sm">
-                {metadata.tags.length >= 5
-                  ? 'Maximum tags reached'
-                  : 'No matching tags found. Type to create a new tag.'}
-              </p>
-            )
-          }
-        />
-        <p className="text-xs text-muted-foreground">
-          Tags must be {MIN_TAG_LENGTH}-{MAX_TAG_LENGTH} characters long and can only contain
-          letters, numbers, and hyphens
-        </p>
-      </div>
+      <UserSolutionTags
+        initialTags={metadata.tags}
+        onTagsChange={(tags) => handleChange('tags', tags)}
+        userId={userId}
+      />
     </div>
   )
 }

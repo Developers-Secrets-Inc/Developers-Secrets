@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { forwardRef } from 'react'
 
 const Editor = dynamic(() => import('./Editor'), {
   ssr: false,
@@ -16,6 +17,14 @@ interface DynamicEditorProps {
   initialContent?: string
 }
 
-export const DynamicEditor = ({ onSaveContent, initialContent }: DynamicEditorProps) => {
-  return <Editor onSaveContent={onSaveContent} initialContent={initialContent} />
+export interface DynamicEditorRef {
+  getCurrentContent: () => Promise<string>
 }
+
+export const DynamicEditor = forwardRef<DynamicEditorRef, DynamicEditorProps>(
+  ({ onSaveContent, initialContent }, ref) => {
+    return <Editor ref={ref} onSaveContent={onSaveContent} initialContent={initialContent} />
+  },
+)
+
+DynamicEditor.displayName = 'DynamicEditor'

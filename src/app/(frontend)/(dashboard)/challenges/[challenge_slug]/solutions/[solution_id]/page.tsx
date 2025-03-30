@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
-import { getUserSolutionById } from '@/core/challenges/users-solutions'
+import { createUserSolutionComment, getUserSolutionById, getUserSolutionComments } from '@/core/challenges/users-solutions'
 import { SolutionDetail } from '../../components/solution-detail'
+import { CommentsSection } from '@/core/comments/components/comments-section'
+import { Separator } from '@/components/ui/separator'
 
 // This function enables ISR with a 10-minute revalidation period
 export const revalidate = 600 // 10 minutes in seconds
@@ -44,20 +46,26 @@ export default async function SolutionDetailPage({
       <Suspense fallback={<SolutionSkeleton />}>
         <SolutionDetail solution={solution} challengeSlug={challenge_slug} />
       </Suspense>
+      <Separator className="my-6" />
+      <CommentsSection
+        comments={await getUserSolutionComments(solution.id)}
+        onCreateComment={createUserSolutionComment}
+        parentId={solution.id}
+      />
     </div>
   )
 }
 
-// Génération statique des paramètres pour les routes - améliore considérablement les performances
-// Ce code sera exécuté pendant le temps de build
-import { getAllSolutions } from '@/lib/challenge-utils'
-import { EXAMPLE_SOLUTIONS } from '../../data/solutions-data'
+// // Génération statique des paramètres pour les routes - améliore considérablement les performances
+// // Ce code sera exécuté pendant le temps de build
+// import { getAllSolutions } from '@/lib/challenge-utils'
+// import { EXAMPLE_SOLUTIONS } from '../../data/solutions-data'
 
-export async function generateStaticParams() {
-  // Note: Dans une application réelle, vous récupéreriez la liste des slugs de défis de votre API
-  // Ensuite, vous pourriez utiliser getAllSolutions pour chaque slug
-  // Pour l'exemple, on utilise directement EXAMPLE_SOLUTIONS
-  return EXAMPLE_SOLUTIONS.map((solution) => ({
-    solution_id: solution.id,
-  }))
-}
+// export async function generateStaticParams() {
+//   // Note: Dans une application réelle, vous récupéreriez la liste des slugs de défis de votre API
+//   // Ensuite, vous pourriez utiliser getAllSolutions pour chaque slug
+//   // Pour l'exemple, on utilise directement EXAMPLE_SOLUTIONS
+//   return EXAMPLE_SOLUTIONS.map((solution) => ({
+//     solution_id: solution.id,
+//   }))
+// }

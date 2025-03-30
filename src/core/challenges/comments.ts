@@ -6,9 +6,7 @@ import { Comment } from '@/payload-types'
 import { createComment } from '../comments'
 import { getLastComment } from '../comments'
 
-export const getChallengeDescriptionComments = async (
-  challengeId: number,
-): Promise<Comment[]> => {
+export const getChallengeDescriptionComments = async (challengeId: number): Promise<Comment[]> => {
   const payload = await getPayload({ config })
 
   const challenge = await payload.findByID({
@@ -77,15 +75,14 @@ export const addCommentToChallengeOfficialSolution = async (
 }
 
 export const createDescriptionComment = async (
-    challengeId: number,
-    content: string,
-    authorId: string,
-  ): Promise<void> => {
-    await createComment(authorId, content)
-    const comment = await getLastComment()
-    await addCommentToChallengeDescription(challengeId, comment.id)
-  }
-
+  challengeId: number,
+  content: string,
+  authorId: string,
+): Promise<void> => {
+  await createComment(authorId, content)
+  const comment = await getLastComment()
+  await addCommentToChallengeDescription(challengeId, comment.id)
+}
 
 export const createOfficialSolutionComment = async (
   challengeId: number,

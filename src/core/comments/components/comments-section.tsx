@@ -5,18 +5,18 @@ import { NewCommentForm } from './new-comment-form'
 
 export const CommentsSection = ({
   comments,
-  challengeId,
   onCreateComment,
+  parentId,
 }: {
   comments: Comment[]
-  onCreateComment: (challengeId: number, content: string, authorId: string) => Promise<void>
-  challengeId: number
+  onCreateComment: (parentId: number, content: string, authorId: string) => Promise<void>
+  parentId: number
 }) => {
   const handleCommentSubmit = async (content: string) => {
     'use server'
     const user = await getUser()
 
-    await onCreateComment(challengeId, content, user.id)
+    await onCreateComment(parentId, content, user.id)
   }
 
   return (

@@ -1,26 +1,37 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { Markdown } from '@/components/markdown'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Textarea } from '@/components/ui/textarea'
+import { addReportToUserSolution, addViews } from '@/core/challenges/users-solutions'
+import { getUser } from '@/core/user'
+import { UserSolution } from '@/payload-types'
+import { formatDistanceToNow } from 'date-fns'
+import {
+  AlertTriangle,
   ArrowLeft,
-  Copy,
-  CheckCheck,
-  ThumbsUp,
-  ThumbsDown,
   Eye,
   MessageSquare,
   Pencil,
+  ThumbsDown,
+  ThumbsUp
 } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
-import { UserSolution } from '@/payload-types'
-import { getUser } from '@/core/user'
-import { addViews } from '@/core/challenges/users-solutions'
-import { Markdown } from '@/components/markdown'
-import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 type Props = {
   solution: UserSolution
@@ -99,6 +110,95 @@ function SolutionStats({ solution }: { solution: UserSolution }) {
   )
 }
 
+function ReportDialog({ solutionId }: { solutionId: string }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [reason, setReason] = useState('')
+  const [details, setDetails] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async () => {
+    if (!reason.trim()) {
+      toast.error('Please provide a reason for the report')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const user = await getUser()
+      if (!user) throw new Error('User not found')
+
+      await addReportToUserSolution(solutionId, {
+        userId: user.id,
+        reason: reason.trim(),
+        details: details.trim(),
+        createdAt: new Date().toISOString(),
+      })
+
+      toast.success('Report submitted successfully')
+      setIsOpen(false)
+      setReason('')
+      setDetails('')
+    } catch (error) {
+      console.error('Error submitting report:', error)
+      toast.error('Failed to submit report')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-muted-foreground gap-1.5"
+        >
+          <AlertTriangle className="h-4 w-4" />
+          Report solution
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Report Solution</DialogTitle>
+          <DialogDescription>
+            Please provide details about why you are reporting this solution.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="reason">Reason</Label>
+            <Textarea
+              id="reason"
+              placeholder="Enter the main reason for reporting..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="details">Additional Details (Optional)</Label>
+            <Textarea
+              id="details"
+              placeholder="Provide any additional context..."
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Submit Report'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function SolutionDetail({ solution, challengeSlug }: Props) {
   const [currentUser, setCurrentUser] = useState<Awaited<ReturnType<typeof getUser>> | null>(null)
 
@@ -154,13 +254,7 @@ export function SolutionDetail({ solution, challengeSlug }: Props) {
             </Button>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground hover:text-muted-foreground"
-        >
-          Report solution
-        </Button>
+        <ReportDialog solutionId={solution.id.toString()} />
       </div>
 
       <div className="space-y-4">

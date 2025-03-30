@@ -1141,6 +1141,18 @@ export interface UserSolution {
    * Comments on this solution
    */
   comments?: (number | Comment)[] | null;
+  /**
+   * Reports made against this solution
+   */
+  reports?:
+    | {
+        userId: string;
+        reason: string;
+        details?: string | null;
+        createdAt: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1190,7 +1202,7 @@ export interface ChallengeSubmission {
   /**
    * The user who made this submission
    */
-  author: number | User;
+  authorId: string;
   /**
    * Number of test cases passed
    */
@@ -1883,6 +1895,15 @@ export interface UserSolutionsSelect<T extends boolean = true> {
   tags?: T;
   content?: T;
   comments?: T;
+  reports?:
+    | T
+    | {
+        userId?: T;
+        reason?: T;
+        details?: T;
+        createdAt?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1893,7 +1914,7 @@ export interface UserSolutionsSelect<T extends boolean = true> {
 export interface ChallengeSubmissionsSelect<T extends boolean = true> {
   submissionType?: T;
   challenge?: T;
-  author?: T;
+  authorId?: T;
   testsPassed?: T;
   testsTotal?: T;
   code?:

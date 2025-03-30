@@ -229,7 +229,6 @@ const compilePython = async (code: string): Promise<CompilationResult> => {
   }
 }
 
-// Main compile function that selects the appropriate compiler based on language
 export async function compileCode(code: string, language: string): Promise<CompilationResult> {
   try {
     switch (language) {

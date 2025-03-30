@@ -104,5 +104,34 @@ export const UserSolutions: CollectionConfig = {
         description: 'Comments on this solution',
       },
     },
+    {
+      name: 'reports',
+      type: 'array',
+      admin: {
+        description: 'Reports made against this solution',
+      },
+      fields: [
+        {
+          name: 'userId',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'reason',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'details',
+          type: 'text',
+          required: false,
+        },
+        {
+          name: 'createdAt',
+          type: 'date',
+          required: true,
+        },
+      ],
+    },
   ],
 }
