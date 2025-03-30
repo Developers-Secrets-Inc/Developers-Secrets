@@ -64,6 +64,7 @@ type CodeEditorProps = {
   availableLanguages?: ProgrammingLanguage[]
   onLanguageChange?: (language: string) => void
   tests?: Test[]
+  codeVersions?: Record<string, string>
 }
 
 // ==============================
@@ -320,18 +321,26 @@ export function CodeEditor({
   availableLanguages = DEFAULT_LANGUAGES,
   onLanguageChange,
   tests = [],
+  codeVersions = {},
 }: CodeEditorProps) {
   // ==============================
   // State
   // ==============================
-  const [code, setCode] = useState(initialCode)
+  const [codeByLanguage, setCodeByLanguage] = useState<Record<string, string>>(() => {
+    // Initialiser avec les versions de code fournies
+    const initialState = { ...codeVersions }
+    // Si le langage actuel n'a pas de code initial, utiliser initialCode
+    if (!initialState[language]) {
+      initialState[language] = initialCode
+    }
+    return initialState
+  })
   const [currentLanguage, setCurrentLanguage] = useState(language)
   const [testOutput, setTestOutput] = useState<string>('')
   const [executionOutput, setExecutionOutput] = useState<string>('')
   const [isTerminalOpen, setIsTerminalOpen] = useState(true)
   const [activeTab, setActiveTab] = useState<TerminalTab>('tests')
   const [isRunning, setIsRunning] = useState(false)
-  // State to track Pyodide loading status
   const [pyodideStatus, setPyodideStatus] = useState<
     'loading' | 'loaded' | 'error' | 'uninitialized'
   >(
@@ -343,8 +352,19 @@ export function CodeEditor({
           ? 'error'
           : 'uninitialized',
   )
-  // Using any for Monaco editor reference as the exact type depends on the Monaco instance
   const editorRef = useRef<unknown>(null)
+
+  // ==============================
+  // Effects
+  // ==============================
+
+  // Effet pour mettre à jour le code quand les codeVersions changent
+  useEffect(() => {
+    setCodeByLanguage((prev) => ({
+      ...prev,
+      ...codeVersions,
+    }))
+  }, [codeVersions])
 
   // Listen for Pyodide load events
   useEffect(() => {
@@ -409,7 +429,10 @@ export function CodeEditor({
    * Handles code changes in the editor
    */
   const handleCodeChange = (value: string = '') => {
-    setCode(value)
+    setCodeByLanguage((prev) => ({
+      ...prev,
+      [currentLanguage]: value,
+    }))
     onChange?.(value)
   }
 
@@ -417,7 +440,16 @@ export function CodeEditor({
    * Handles language selection changes
    */
   const handleLanguageChange = (value: string) => {
+    // Sauvegarder le code actuel avant de changer de langage
+    setCodeByLanguage((prev) => ({
+      ...prev,
+      [currentLanguage]: prev[currentLanguage] || '',
+    }))
+
+    // Changer de langage
     setCurrentLanguage(value)
+
+    // Notifier le parent du changement
     onLanguageChange?.(value)
   }
 
@@ -498,7 +530,7 @@ export function CodeEditor({
     // Execute code
     if (onRun) {
       try {
-        onRun(code)
+        onRun(codeByLanguage[currentLanguage] || '')
         setIsRunning(false)
       } catch (error) {
         setExecutionOutput(`Error: ${error instanceof Error ? error.message : String(error)}`)
@@ -541,7 +573,10 @@ export function CodeEditor({
         }
 
         // Use our compiler
-        const result: CompilationResult = await compileCode(code, currentLanguage)
+        const result: CompilationResult = await compileCode(
+          codeByLanguage[currentLanguage] || '',
+          currentLanguage,
+        )
 
         if (result.success) {
           setExecutionOutput(`// Execution result:\n${result.output || '(No output)'}`)
@@ -583,7 +618,7 @@ export function CodeEditor({
         <Editor
           height="100%"
           language={currentLanguage}
-          value={code}
+          value={codeByLanguage[currentLanguage] || ''}
           theme={theme}
           onChange={handleCodeChange}
           onMount={handleEditorDidMount}

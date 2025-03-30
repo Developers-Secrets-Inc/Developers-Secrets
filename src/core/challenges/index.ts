@@ -10,7 +10,7 @@ class ChallengeNotFoundError extends Error {
   }
 }
 
-export const getPreviousChallenge = async (slug: string): Promise<Challenge> => {
+export const getPreviousChallenge = async (slug: string): Promise<PayloadChallenge> => {
   const payload = await getPayload({ config })
 
   // Get all challenges sorted by creation date
@@ -33,7 +33,7 @@ export const getPreviousChallenge = async (slug: string): Promise<Challenge> => 
   return docs[currentIndex - 1]
 }
 
-export const getNextChallenge = async (slug: string): Promise<Challenge> => {
+export const getNextChallenge = async (slug: string): Promise<PayloadChallenge> => {
   const payload = await getPayload({ config })
 
   // Get all challenges sorted by creation date
@@ -56,7 +56,7 @@ export const getNextChallenge = async (slug: string): Promise<Challenge> => {
   return docs[currentIndex + 1]
 }
 
-export const getRandomChallenge = async (excludeSlug?: string): Promise<Challenge> => {
+export const getRandomChallenge = async (excludeSlug?: string): Promise<PayloadChallenge> => {
   const payload = await getPayload({ config })
 
   // Get all challenges
@@ -270,4 +270,22 @@ export const updateRatingForChallenge = async (
       },
     },
   })
+}
+
+
+
+// ===============================
+
+
+export const getAllChallenges = async (): Promise<PayloadChallenge[]> => {
+  const payload = await getPayload({ config })
+  const challenges = await payload.find({
+    collection: 'challenges',
+  })
+  return challenges.docs
+}
+
+export const getAllChallengesSlugs = async (): Promise<string[]> => {
+  const challenges = await getAllChallenges()
+  return challenges.map((challenge) => challenge.slug)
 }

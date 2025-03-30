@@ -1002,7 +1002,7 @@ export interface Challenge {
       }[]
     | null;
   /**
-   * Code related information for this challenge
+   * Code related information for this challenge (Legacy field - Use codeVersions instead)
    */
   code: {
     /**
@@ -1030,6 +1030,38 @@ export interface Challenge {
         }[]
       | null;
   };
+  /**
+   * Different programming language versions of this challenge
+   */
+  codeVersions?:
+    | {
+        /**
+         * Programming language for this version
+         */
+        language: string;
+        /**
+         * Initial code provided to users for this language
+         */
+        initialCode: string;
+        /**
+         * Test cases for validating solutions in this language
+         */
+        testCases?:
+          | {
+              /**
+               * Input data for the test case
+               */
+              input: string;
+              /**
+               * Expected output for this test case
+               */
+              expectedOutput: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1829,6 +1861,20 @@ export interface ChallengesSelect<T extends boolean = true> {
               expectedOutput?: T;
               id?: T;
             };
+      };
+  codeVersions?:
+    | T
+    | {
+        language?: T;
+        initialCode?: T;
+        testCases?:
+          | T
+          | {
+              input?: T;
+              expectedOutput?: T;
+              id?: T;
+            };
+        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;

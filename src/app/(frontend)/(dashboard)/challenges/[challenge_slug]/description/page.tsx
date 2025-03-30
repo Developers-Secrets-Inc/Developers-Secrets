@@ -1,9 +1,16 @@
 import { Markdown } from '@/components/markdown'
-import { getChallengeBySlug } from '@/core/challenges'
+import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges'
 import { ChallengeHeader } from '../components/challenge-header'
 import { DescriptionComments } from '../components/comments/description-comments'
-// This function enables ISR with a 10-minute revalidation period
+
 export const revalidate = 600 // 10 minutes in seconds
+
+export async function generateStaticParams() {
+  const slugs = await getAllChallengesSlugs()
+  return slugs.map((slug: string) => ({
+    challenge_slug: slug,
+  }))
+}
 
 export default async function ChallengeDescriptionPage({
   params,
@@ -13,20 +20,19 @@ export default async function ChallengeDescriptionPage({
   const { challenge_slug } = await params
   const challenge = await getChallengeBySlug(challenge_slug)
 
+  console.log(challenge.codeVersions?.[0]?.initialCode)
+
   // Extract concepts from challenge data
   const conceptsList =
     challenge.concepts
       ?.map((concept: any) => (typeof concept === 'object' ? concept.concept : concept))
       .filter(Boolean) || []
 
-
   return (
     <div className="p-6">
       <ChallengeHeader
-        title={challenge.title}
-        difficulty={challenge.difficulty as 'easy' | 'medium' | 'hard' | 'horrible'}
+        challenge={challenge}
         concepts={conceptsList}
-        baseExperience={challenge.baseExperience || 0}
         status="Not Attempted" // This could be dynamic based on user progress
       />
       <Markdown className="prose prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-h5:text-sm prose-h6:text-xs">

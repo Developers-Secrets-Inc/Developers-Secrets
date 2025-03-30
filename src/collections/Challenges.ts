@@ -517,7 +517,8 @@ export const Challenges: CollectionConfig = {
       label: 'Challenge Code',
       type: 'group',
       admin: {
-        description: 'Code related information for this challenge',
+        description:
+          'Code related information for this challenge (Legacy field - Use codeVersions instead)',
       },
       fields: [
         {
@@ -544,6 +545,62 @@ export const Challenges: CollectionConfig = {
           type: 'array',
           admin: {
             description: 'Test cases for validating solutions',
+          },
+          fields: [
+            {
+              name: 'input',
+              label: 'Input',
+              type: 'textarea',
+              required: true,
+              admin: {
+                description: 'Input data for the test case',
+              },
+            },
+            {
+              name: 'expectedOutput',
+              label: 'Expected Output',
+              type: 'textarea',
+              required: true,
+              admin: {
+                description: 'Expected output for this test case',
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'codeVersions',
+      label: 'Challenge Code Versions',
+      type: 'array',
+      admin: {
+        description: 'Different programming language versions of this challenge',
+      },
+      fields: [
+        {
+          name: 'language',
+          label: 'Programming Language',
+          type: 'text',
+          required: true,
+          admin: {
+            description: 'Programming language for this version',
+          },
+        },
+        {
+          name: 'initialCode',
+          label: 'Initial Code',
+          type: 'textarea',
+          required: true,
+          admin: {
+            description: 'Initial code provided to users for this language',
+          },
+        },
+        {
+          name: 'testCases',
+          label: 'Test Cases',
+          type: 'array',
+          admin: {
+            description: 'Test cases for validating solutions in this language',
           },
           fields: [
             {
