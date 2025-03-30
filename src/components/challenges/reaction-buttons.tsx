@@ -1,24 +1,31 @@
-import { getUserChallengeProgression } from '@/core/user-progression'
-import { ReactionButtons as ClientReactionButtons } from './reaction-buttons.client'
+'use client'
 
-export const ReactionButtons = async ({
+import { useReaction } from '@/core/challenges/hooks/use-reaction'
+import { DislikeButton } from './dislike-button'
+import { LikeButton } from './like-button'
+
+/**
+ * Affiche les boutons de réaction (like/dislike) pour un défi.
+ *
+ * @param {string} challengeSlug - Le slug du défi.
+ * @param {string} userId - L'ID de l'utilisateur.
+ */
+export const ReactionButtons = ({
   challengeSlug,
   userId,
 }: {
   challengeSlug: string
   userId: string
 }) => {
-  const userProgress = await getUserChallengeProgression(userId, challengeSlug)
-  const { hasLiked, hasDisliked } = {
-    hasLiked: userProgress?.hasLiked || false,
-    hasDisliked: userProgress?.hasDisliked || false,
-  }
+  const {state, actions, error} = useReaction(challengeSlug, userId)
 
   return (
-    <ClientReactionButtons
-      initialLiked={hasLiked}
-      initialDisliked={hasDisliked}
-      challengeSlug={challengeSlug}
-    />
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <LikeButton liked={state.liked} onClick={actions.handleLikeClick} />
+        <DislikeButton disliked={state.disliked} onClick={actions.handleDislikeClick} />
+      </div>
+      {error && <div className="text-red-500">{error}</div>}
+    </div>
   )
 }

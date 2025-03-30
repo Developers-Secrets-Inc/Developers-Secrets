@@ -1,29 +1,31 @@
 'use client'
 
-import { useState } from 'react'
-import { LikeButton } from './like-button'
-import { DislikeButton } from './dislike-button'
+import { useState, useEffect } from 'react'
 import { toggleChallengeLike, toggleChallengeDislike } from '@/app/actions/challenge-actions'
+import { getUserChallengeProgression } from '@/core/user-progression'
 
-interface ReactionButtonsProps {
-  initialLiked: boolean
-  initialDisliked: boolean
-  challengeSlug: string
-}
+type ToggleAction = (state: boolean, slug: string) => Promise<{ success: boolean; error?: string }>
 
-export function ReactionButtons({
-  initialLiked,
-  initialDisliked,
-  challengeSlug,
-}: ReactionButtonsProps) {
-  const [liked, setLiked] = useState(initialLiked)
-  const [disliked, setDisliked] = useState(initialDisliked)
+export const useReaction = (challengeSlug: string, userId: string) => {
+  const [liked, setLiked] = useState(false)
+  const [disliked, setDisliked] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Récupérer les états initiaux côté client
+  useEffect(() => {
+    const fetchInitialStates = async () => {
+      const userProgress = await getUserChallengeProgression(userId, challengeSlug)
+      setLiked(userProgress?.hasLiked || false)
+      setDisliked(userProgress?.hasDisliked || false)
+    }
+    fetchInitialStates()
+  }, [challengeSlug, userId])
 
   const toggleReaction = async (
     reactionType: 'like' | 'dislike',
     newState: boolean,
     setState: (value: boolean) => void,
-    toggleAction: (state: boolean, slug: string) => Promise<{ success: boolean; error?: string }>,
+    toggleAction: ToggleAction,
   ) => {
     // Mise à jour optimiste de l'état
     setState(newState)
@@ -33,6 +35,7 @@ export function ReactionButtons({
       await toggleAction(newState, challengeSlug)
     } catch (error) {
       console.error(`Error with ${reactionType} action:`, error)
+      setError(`Error with ${reactionType} action: ${error}`)
       // Revenir à l'état précédent en cas d'erreur
       setState(!newState)
     }
@@ -54,10 +57,15 @@ export function ReactionButtons({
     await toggleReaction('dislike', newDisliked, setDisliked, toggleChallengeDislike)
   }
 
-  return (
-    <div className="flex items-center gap-2">
-      <LikeButton liked={liked} onClick={handleLikeClick} />
-      <DislikeButton disliked={disliked} onClick={handleDislikeClick} />
-    </div>
-  )
+  return {
+    state: {
+      liked,
+      disliked,
+    },
+    actions: {
+      handleLikeClick,
+      handleDislikeClick,
+    },
+    error,
+  }
 }
