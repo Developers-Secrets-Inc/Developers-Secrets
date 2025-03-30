@@ -5,17 +5,17 @@ import { CodeEditor } from '@/components/code-editor'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ChallengeNavigation } from './components/challenge-navigation'
-import { ChallengesNavigationButtons } from './components/challenges-navigation-buttons'
 import { Bot, MessageSquareText } from 'lucide-react'
 import { RatingText } from '@/components/rating-dialog'
 import { Suspense } from 'react'
-import { ReactionButtons } from '@/components/challenges/reaction-buttons'
+import { ReactionButtons } from '@/core/challenges/components/reaction-buttons'
 import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
 import { getChallengeBySlug, getPreviousChallenge, getNextChallenge } from '@/core/challenges'
 import { getUserChallengeProgression } from '@/core/user-progression'
 import { getUser } from '@/core/user'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { IconSidebar } from '@/components/sidebars/home-sidebar/icon-sidebar'
+import { ChallengeNavigationButtons } from '@/core/challenges/components/challenge-navigation-buttons'
 
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
@@ -39,11 +39,7 @@ const ChallengeLayoutHeader = ({
             <Eclipse size={23} />
           </Link>
           <div className="inline-flex -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
-            <ChallengesNavigationButtons
-              challengeSlug={challengeSlug}
-              previousChallengeSlug={previousChallengeSlug}
-              nextChallengeSlug={nextChallengeSlug}
-            />
+            <ChallengeNavigationButtons currentChallengeSlug={challengeSlug} />
           </div>
         </div>
         <div className="flex items-center gap-4">
