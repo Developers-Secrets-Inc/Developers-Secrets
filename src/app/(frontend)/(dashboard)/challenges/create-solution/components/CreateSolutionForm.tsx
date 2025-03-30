@@ -1,20 +1,13 @@
 'use client'
 
-import { type Option } from '@/components/ui/multiselect'
 import { submitUserSolution } from '@/core/challenges/users-solutions/actions'
-import { Tag as PayloadTag, UserSolution } from '@/payload-types'
+import { Challenge, Tag as PayloadTag, UserSolution } from '@/payload-types'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { useCallback, useEffect, useState, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import SolutionEditor from '.'
-import SolutionMetadata, { type SolutionMetadata as SolutionMetadataType } from './SolutionMetadata'
-import { useToast } from '@/components/ui/use-toast'
-
-interface Challenge {
-  id: number
-  title: string
-  slug: string
-}
+import { useUserSolution } from '../hooks/use-user-solution'
+import SolutionMetadata from './SolutionMetadata'
 
 interface CreateSolutionFormProps {
   challenge: Challenge
@@ -22,10 +15,7 @@ interface CreateSolutionFormProps {
   existingSolution: (Omit<UserSolution, 'tags'> & { tags: PayloadTag[] }) | null
 }
 
-const convertTagToOption = (tag: PayloadTag): Option => ({
-  value: tag.id.toString(),
-  label: tag.name,
-})
+
 
 const SubmitButton = ({
   isLoading,
@@ -78,72 +68,40 @@ export const SolutionFormHeader = ({
   )
 }
 
+const getCurrentContent = async (
+  editorRef: React.RefObject<{ getCurrentContent: () => Promise<string> }>,
+) => {
+  return editorRef.current ? await editorRef.current.getCurrentContent() : ''
+}
+
 export default function CreateSolutionForm({
   challenge,
   userId,
   existingSolution,
 }: CreateSolutionFormProps) {
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [content, setContent] = useState(existingSolution?.content || '')
-  const editorRef = useRef<{ getCurrentContent: () => Promise<string> }>()
-  const [metadata, setMetadata] = useState<SolutionMetadataType>({
-    title: existingSolution?.title || '',
-    description: existingSolution?.description || '',
-    tags: existingSolution?.tags ? existingSolution.tags.map(convertTagToOption) : [],
-  })
-
-  // Charger les données existantes si disponibles
-  useEffect(() => {
-    if (existingSolution) {
-      setContent(existingSolution.content)
-      setMetadata({
-        title: existingSolution.title,
-        description: existingSolution.description || '',
-        tags: existingSolution.tags.map(convertTagToOption),
-      })
-    }
-  }, [existingSolution])
-
-  const handleSaveContent = useCallback((markdown: string) => {
-    setContent(markdown)
-  }, [])
+  const editorRef = useRef<{ getCurrentContent: () => Promise<string> }>(null)
+  const { metadata, content, isLoading, setIsLoading, setMetadata, setContent } = useUserSolution(
+    challenge,
+    userId,
+  )
 
   const handleSubmit = async () => {
-    try {
-      setIsLoading(true)
+    setIsLoading(true)
 
-      // Récupérer le contenu le plus récent de l'éditeur
-      const currentContent = editorRef.current
-        ? await editorRef.current.getCurrentContent()
-        : content
+    const currentContent = await getCurrentContent(editorRef)
 
-      const response = await submitUserSolution({
-        content: currentContent,
-        metadata,
-        challengeId: challenge.id,
-        userId,
-        existingSolutionId: existingSolution?.id?.toString(),
-      })
+    const response = await submitUserSolution({
+      content: currentContent,
+      metadata,
+      challengeId: challenge.id,
+      userId,
+      existingSolutionId: existingSolution?.id?.toString(),
+    })
 
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to submit solution')
-      }
-
-      toast({
-        title: 'Success',
-        description: response.message || 'Solution saved successfully',
-      })
-    } catch (error) {
-      console.error('Error submitting solution:', error)
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to submit solution',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoading(false)
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to submit solution')
     }
+    setIsLoading(false)
   }
 
   return (
@@ -158,14 +116,26 @@ export default function CreateSolutionForm({
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <SolutionMetadata userId={userId} onMetadataChange={setMetadata} initialData={metadata} />
-        <div className="h-[600px] border border-border rounded-lg overflow-hidden">
-          <SolutionEditor
-            ref={editorRef}
-            onSaveContent={handleSaveContent}
-            initialContent={content}
-          />
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <>
+            <SolutionMetadata
+              userId={userId}
+              onMetadataChange={setMetadata}
+              initialData={metadata}
+            />
+            <div className="h-[600px] border border-border rounded-lg overflow-hidden">
+              <SolutionEditor
+                ref={editorRef}
+                onSaveContent={() => setContent(content)}
+                initialContent={content}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

@@ -37,26 +37,6 @@ type Test = {
 }
 
 /**
- * Represents the result of a single test execution
- */
-type TestResult = {
-  passed: boolean
-  input: string
-  output: string
-  expectedOutput: string
-}
-
-/**
- * Represents the result of a code submission
- */
-type SubmissionResult = {
-  type: 'accepted' | 'runtimeError' | 'wrongAnswer' | 'timeLimitExceeded'
-  testResults?: TestResult[]
-  error?: string
-  lastExpectedOutput?: string[]
-}
-
-/**
  * Available terminal tabs
  */
 type TerminalTab = 'tests' | 'output'
@@ -84,8 +64,6 @@ type CodeEditorProps = {
   availableLanguages?: ProgrammingLanguage[]
   onLanguageChange?: (language: string) => void
   tests?: Test[]
-  challengeId?: string
-  authorId?: string
 }
 
 // ==============================
@@ -143,11 +121,9 @@ type EditorHeaderProps = {
   showLanguageSelector: boolean
   availableLanguages: ProgrammingLanguage[]
   isRunning: boolean
-  isSubmitting: boolean
   readOnly: boolean
   onLanguageChange: (value: string) => void
   onRunCode: () => void
-  onSubmitCode: () => void
   pyodideStatus: 'loading' | 'loaded' | 'error' | 'uninitialized'
 }
 
@@ -156,11 +132,9 @@ const EditorHeader = ({
   showLanguageSelector,
   availableLanguages,
   isRunning,
-  isSubmitting,
   readOnly,
   onLanguageChange,
   onRunCode,
-  onSubmitCode,
   pyodideStatus,
 }: EditorHeaderProps) => {
   const languageLabel = currentLanguage.charAt(0).toUpperCase() + currentLanguage.slice(1)
@@ -207,18 +181,13 @@ const EditorHeader = ({
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center">
         <Button
-          variant="outline"
+          variant="default"
           size="sm"
           className="h-8"
           onClick={onRunCode}
-          disabled={
-            isRunning ||
-            isSubmitting ||
-            readOnly ||
-            (isPythonSelected && pyodideStatus !== 'loaded')
-          }
+          disabled={isRunning || readOnly || (isPythonSelected && pyodideStatus !== 'loaded')}
         >
           {isRunning ? (
             <>
@@ -229,31 +198,6 @@ const EditorHeader = ({
             <>
               <Play size={14} className="mr-1" />
               Run
-            </>
-          )}
-        </Button>
-
-        <Button
-          variant="default"
-          size="sm"
-          className="h-8"
-          onClick={onSubmitCode}
-          disabled={
-            isRunning ||
-            isSubmitting ||
-            readOnly ||
-            (isPythonSelected && pyodideStatus !== 'loaded')
-          }
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 size={14} className="mr-1 animate-spin" />
-              Submitting...
-            </>
-          ) : (
-            <>
-              <FileOutput size={14} className="mr-1" />
-              Submit
             </>
           )}
         </Button>
@@ -376,8 +320,6 @@ export function CodeEditor({
   availableLanguages = DEFAULT_LANGUAGES,
   onLanguageChange,
   tests = [],
-  challengeId = '',
-  authorId = '',
 }: CodeEditorProps) {
   // ==============================
   // State
@@ -389,8 +331,6 @@ export function CodeEditor({
   const [isTerminalOpen, setIsTerminalOpen] = useState(true)
   const [activeTab, setActiveTab] = useState<TerminalTab>('tests')
   const [isRunning, setIsRunning] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [testResults, setTestResults] = useState<TestResult[]>([])
   // State to track Pyodide loading status
   const [pyodideStatus, setPyodideStatus] = useState<
     'loading' | 'loaded' | 'error' | 'uninitialized'
@@ -518,28 +458,23 @@ export function CodeEditor({
   /**
    * Formats test results for display
    */
-  const formatTestResults = (results: TestResult[]) => {
-    if (results.length === 0) {
-      return '> No test results available.'
+  const formatTestResults = () => {
+    if (tests.length === 0) {
+      return '> No tests available for this challenge.'
     }
 
-    let output = '> Test Results:\n\n'
-    results.forEach((result, index) => {
-      const icon = result.passed ? '🟢' : '🔴'
-      output += `${icon} Test #${index + 1}\n`
-      output += `Input: ${result.input}\n`
-      output += `Your Output: ${result.output}\n`
-      if (!result.passed) {
-        output += `Expected: ${result.expectedOutput}\n`
-      }
-      output += '\n'
+    let result = '> Running tests...\n\n'
+
+    tests.forEach((test, index) => {
+      const testNumber = index + 1
+      const testDescription = test.description ? test.description : `Test #${testNumber}`
+
+      result += `Test ${testNumber}: ${testDescription}\n`
+      result += `Input: ${test.input}\n`
+      result += `Expected Output: ${test.expectedOutput}\n\n`
     })
 
-    return output
-  }
-
-  const formatError = (error: string) => {
-    return `> Error:\n\n🔴 ${error}`
+    return result
   }
 
   /**
@@ -557,7 +492,7 @@ export function CodeEditor({
     }
 
     // Display test results
-    setTestOutput(formatTestResults(testResults))
+    setTestOutput(formatTestResults())
     setActiveTab('tests')
 
     // Execute code
@@ -621,62 +556,6 @@ export function CodeEditor({
     }
   }
 
-  const handleSubmitCode = async () => {
-    if (!challengeId || !authorId) {
-      setTestOutput('Error: Missing challenge or user information')
-      return
-    }
-
-    setIsSubmitting(true)
-    setActiveTab('tests')
-    setIsTerminalOpen(true)
-
-    try {
-      const response = await fetch('/api/challenges/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          code: {
-            content: code,
-            language: currentLanguage,
-          },
-          tests,
-          challengeId,
-          authorId,
-        }),
-      })
-
-      const result: SubmissionResult = await response.json()
-
-      switch (result.type) {
-        case 'accepted':
-          if (result.testResults) {
-            setTestResults(result.testResults)
-            setTestOutput(formatTestResults(result.testResults))
-          }
-          break
-        case 'wrongAnswer':
-          if (result.testResults) {
-            setTestResults(result.testResults)
-            setTestOutput(formatTestResults(result.testResults))
-          }
-          break
-        case 'runtimeError':
-          setTestOutput(formatError(result.error || 'Unknown runtime error'))
-          break
-        case 'timeLimitExceeded':
-          setTestOutput(formatError('Time limit exceeded'))
-          break
-      }
-    } catch (error) {
-      setTestOutput(formatError(error instanceof Error ? error.message : 'Unknown error'))
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   // ==============================
   // Render
   // ==============================
@@ -688,11 +567,9 @@ export function CodeEditor({
         showLanguageSelector={showLanguageSelector}
         availableLanguages={availableLanguages}
         isRunning={isRunning}
-        isSubmitting={isSubmitting}
         readOnly={readOnly}
         onLanguageChange={handleLanguageChange}
         onRunCode={handleRunCode}
-        onSubmitCode={handleSubmitCode}
         pyodideStatus={pyodideStatus}
       />
 

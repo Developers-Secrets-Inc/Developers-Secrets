@@ -134,17 +134,9 @@ export default async function ChallengeLayout({
                 <ResizablePanel defaultSize={50} minSize={30}>
                   <div className="flex flex-col h-full">
                     <CodeEditor
-                      initialCode={challenge.code?.initialCode || ''}
-                      language={challenge.code?.language || 'typescript'}
+                      initialCode={''}
+                      language={'typescript'}
                       showLanguageSelector={true}
-                      tests={(challenge.code?.testCases || []).map((test) => ({
-                        input: test.input,
-                        expectedOutput: test.expectedOutput,
-                        id: test.id?.toString(),
-                        description: `Test case ${test.id}`,
-                      }))}
-                      challengeId={challenge.id.toString()}
-                      authorId={userId}
                     />
                   </div>
                 </ResizablePanel>

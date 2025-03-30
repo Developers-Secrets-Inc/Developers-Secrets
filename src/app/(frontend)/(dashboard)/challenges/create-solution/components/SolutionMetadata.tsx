@@ -96,6 +96,8 @@ export default function SolutionMetadata({ onMetadataChange, userId, initialData
     onMetadataChange?.({ ...metadata, [field]: value })
   }
 
+  console.log('Inside SolutionMetadata', metadata)
+
   return (
     <div className="space-y-4 rounded-lg border border-border bg-card p-4">
       <UserSolutionTitle

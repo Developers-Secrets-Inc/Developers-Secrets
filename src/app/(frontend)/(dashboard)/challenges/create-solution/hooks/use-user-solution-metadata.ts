@@ -1,4 +1,6 @@
-import { useState } from 'react'
+'use client'
+
+import { useEffect, useState } from 'react'
 import { Option } from '@/components/ui/multiselect'
 
 export interface SolutionMetadata {
@@ -13,6 +15,16 @@ const useUserSolutionMetadata = (initialData?: SolutionMetadata) => {
     description: initialData?.description || '',
     tags: initialData?.tags || [],
   })
+
+  useEffect(() => {
+    if (initialData) {
+      setMetadata({
+        title: initialData.title || metadata.title,
+        description: initialData.description || metadata.description,
+        tags: initialData.tags || metadata.tags,
+      })
+    }
+  }, [initialData])
 
   const updateField = (field: keyof SolutionMetadata, value: any) => {
     setMetadata((prev) => ({ ...prev, [field]: value }))
