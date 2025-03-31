@@ -1,7 +1,7 @@
 import { Eclipse } from 'lucide-react'
 import Link from 'next/link'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
-import { CodeEditor } from '@/components/code-editor'
+import { CodeEditor } from '@/core/compiler/components/editor'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ChallengeNavigation } from './components/challenge-navigation'
@@ -16,6 +16,7 @@ import { getUser } from '@/core/user'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { IconSidebar } from '@/components/sidebars/home-sidebar/icon-sidebar'
 import { ChallengeNavigationButtons } from '@/core/challenges/components/challenge-navigation-buttons'
+import { submitCode } from '@/core/challenges/submissions'
 
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
@@ -62,7 +63,6 @@ const ChallengeLayoutHeader = ({
     </header>
   )
 }
-
 
 export default async function ChallengeLayout({
   children,

@@ -21,6 +21,9 @@ import {
   isPyodideLoading,
   getPyodideLoadError,
 } from '@/core/compiler'
+import { EditorHeader } from './header'
+import { TerminalContent } from './terminal'
+import { TerminalTabs } from './terminal'
 
 // ==============================
 // Types
@@ -90,15 +93,7 @@ const DEFAULT_LANGUAGES: ProgrammingLanguage[] = [
 /**
  * Default terminal style
  */
-const TERMINAL_STYLE = {
-  backgroundColor: '#1a1b26',
-  color: '#ffffff',
-  fontFamily: 'monospace',
-  padding: '12px',
-  height: '100%',
-  overflow: 'auto',
-  whiteSpace: 'pre-wrap' as const,
-}
+
 
 // ==============================
 // Sub-components
@@ -114,194 +109,7 @@ const EditorLoading = () => (
   </div>
 )
 
-/**
- * Header component with language selector and run button
- */
-type EditorHeaderProps = {
-  currentLanguage: string
-  showLanguageSelector: boolean
-  availableLanguages: ProgrammingLanguage[]
-  isRunning: boolean
-  readOnly: boolean
-  onLanguageChange: (value: string) => void
-  onRunCode: () => void
-  pyodideStatus: 'loading' | 'loaded' | 'error' | 'uninitialized'
-}
 
-const EditorHeader = ({
-  currentLanguage,
-  showLanguageSelector,
-  availableLanguages,
-  isRunning,
-  readOnly,
-  onLanguageChange,
-  onRunCode,
-  pyodideStatus,
-}: EditorHeaderProps) => {
-  const languageLabel = currentLanguage.charAt(0).toUpperCase() + currentLanguage.slice(1)
-  const isPythonSelected = currentLanguage === 'python'
-  const showPythonStatus = isPythonSelected && pyodideStatus !== 'loaded'
-
-  return (
-    <div className="border-b flex items-center justify-between px-3 py-2 bg-muted/20">
-      <div className="flex items-center">
-        {showLanguageSelector ? (
-          <div className="flex items-center gap-2">
-            <Select value={currentLanguage} onValueChange={onLanguageChange}>
-              <SelectTrigger className="w-[155px] h-8">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableLanguages.map((lang) => (
-                  <SelectItem key={lang.value} value={lang.value}>
-                    {lang.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {showPythonStatus && (
-              <div className="text-xs flex items-center">
-                {pyodideStatus === 'loading' && (
-                  <>
-                    <Loader2 size={12} className="animate-spin mr-1" />
-                    <span className="text-yellow-500">Loading Python...</span>
-                  </>
-                )}
-                {pyodideStatus === 'error' && (
-                  <span className="text-red-500">Python load failed</span>
-                )}
-                {pyodideStatus === 'uninitialized' && (
-                  <span className="text-gray-500">Python not initialized</span>
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          <span className="font-medium text-sm">{languageLabel}</span>
-        )}
-      </div>
-
-      <div className="flex items-center">
-        <Button
-          variant="default"
-          size="sm"
-          className="h-8"
-          onClick={onRunCode}
-          disabled={isRunning || readOnly || (isPythonSelected && pyodideStatus !== 'loaded')}
-        >
-          {isRunning ? (
-            <>
-              <Loader2 size={14} className="mr-1 animate-spin" />
-              Running...
-            </>
-          ) : (
-            <>
-              <Play size={14} className="mr-1" />
-              Run
-            </>
-          )}
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-/**
- * Terminal tabs component
- */
-type TerminalTabsProps = {
-  activeTab: TerminalTab
-  isTerminalOpen: boolean
-  onTabChange: (value: string) => void
-  onChevronClick: (e: React.MouseEvent) => void
-  onDoubleClick: (e: React.MouseEvent) => void
-}
-
-const TerminalTabs = ({
-  activeTab,
-  isTerminalOpen,
-  onTabChange,
-  onChevronClick,
-  onDoubleClick,
-}: TerminalTabsProps) => (
-  <div
-    className={cn(
-      'border-t flex items-center justify-between px-1 h-10',
-      isTerminalOpen ? 'border-b-0' : '',
-    )}
-    onDoubleClick={onDoubleClick}
-  >
-    <Tabs value={activeTab} onValueChange={onTabChange} className="h-full">
-      <TabsList className="bg-transparent tabs-list-container">
-        <TabsTrigger value="tests" className="flex items-center gap-1.5">
-          <Beaker size={14} />
-          <span>Test Results</span>
-        </TabsTrigger>
-
-        <Separator orientation="vertical" className="h-3 mx-1" />
-
-        <TabsTrigger value="output" className="flex items-center gap-1.5">
-          <FileOutput size={14} />
-          <span>Output</span>
-        </TabsTrigger>
-      </TabsList>
-    </Tabs>
-
-    {/* Icon to indicate if terminal is open or closed */}
-    <div
-      className="flex items-center cursor-pointer p-1 hover:bg-muted rounded-sm"
-      onClick={onChevronClick}
-      title={isTerminalOpen ? 'Close terminal' : 'Open terminal'}
-    >
-      {isTerminalOpen ? (
-        <ChevronDown size={16} className="text-muted-foreground" />
-      ) : (
-        <ChevronUp size={16} className="text-muted-foreground" />
-      )}
-    </div>
-  </div>
-)
-
-/**
- * Terminal content component
- */
-type TerminalContentProps = {
-  activeTab: TerminalTab
-  testOutput: string
-  executionOutput: string
-  onTabChange: (value: string) => void
-  isTerminalOpen: boolean
-}
-
-const TerminalContent = ({
-  activeTab,
-  testOutput,
-  executionOutput,
-  onTabChange,
-  isTerminalOpen,
-}: TerminalContentProps) => (
-  <div
-    className={cn(
-      'transition-all duration-300 ease-in-out overflow-hidden',
-      isTerminalOpen ? 'h-[30%] opacity-100' : 'h-0 opacity-0',
-    )}
-  >
-    <Tabs value={activeTab} onValueChange={(value) => onTabChange(value)} className="h-full">
-      <TabsContent value="tests" className="h-full p-0 m-0">
-        <div style={TERMINAL_STYLE}>
-          {testOutput || '> Test results will appear here after running your code.'}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="output" className="h-full p-0 m-0">
-        <div style={TERMINAL_STYLE}>
-          {executionOutput || '> No output available. Run your code to see results.'}
-        </div>
-      </TabsContent>
-    </Tabs>
-  </div>
-)
 
 // ==============================
 // Main Component
@@ -643,7 +451,7 @@ export function CodeEditor({
       </div>
 
       {/* Terminal tabs */}
-      <TerminalTabs
+      <TerminalTabs 
         activeTab={activeTab}
         isTerminalOpen={isTerminalOpen}
         onTabChange={handleTabChange}

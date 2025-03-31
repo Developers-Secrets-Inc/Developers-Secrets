@@ -1,3 +1,5 @@
+'use server'
+
 import { compileCode, CompilationResult } from '../../compiler'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -13,7 +15,7 @@ type Submission = {
 
 type RunTimeErrorSubmission = Submission & {
   error: string
-  lastExpectedOutput: string[]
+  lastExpectedOutput: { output: string }[]
 }
 
 type WrongAnswerSubmission = Submission & {
@@ -23,7 +25,7 @@ type WrongAnswerSubmission = Submission & {
 }
 
 type TimeLimitExceededSubmission = Submission & {
-  lastExpectedOutput: string[]
+  lastExpectedOutput: { output: string }[]
 }
 
 type AcceptedSubmission = Submission
@@ -58,7 +60,7 @@ const handleCompilationError = (
 ): RunTimeErrorSubmission => ({
   ...baseSubmission,
   error,
-  lastExpectedOutput: [expectedOutput],
+  lastExpectedOutput: [{ output: expectedOutput }],
 })
 
 const handleWrongAnswer = (
@@ -78,7 +80,7 @@ const handleTimeLimitExceeded = (
   expectedOutput: string,
 ): TimeLimitExceededSubmission => ({
   ...baseSubmission,
-  lastExpectedOutput: [expectedOutput],
+  lastExpectedOutput: [{ output: expectedOutput }],
 })
 
 const handleRuntimeError = (
@@ -88,7 +90,7 @@ const handleRuntimeError = (
 ): RunTimeErrorSubmission => ({
   ...baseSubmission,
   error: error instanceof Error ? error.message : 'Unknown error',
-  lastExpectedOutput: [expectedOutput],
+  lastExpectedOutput: [{ output: expectedOutput }],
 })
 
 const createSubmissionInDatabase = async (
@@ -97,21 +99,34 @@ const createSubmissionInDatabase = async (
     | RunTimeErrorSubmission
     | WrongAnswerSubmission
     | TimeLimitExceededSubmission,
-  challengeId: string,
+  challengeId: number,
   authorId: string,
 ) => {
   const payload = await getPayload({ config })
 
   let submissionType: 'accepted' | 'runtimeError' | 'wrongAnswer' | 'timeLimitExceeded'
-  const submissionData: any = {
+  const submissionData: {
+    challenge: number
+    authorId: string
+    testsPassed: number
+    testsTotal: number
+    code: { language: string; content: string }
+    submissionType: 'accepted' | 'runtimeError' | 'wrongAnswer' | 'timeLimitExceeded'
+    error?: string
+    lastExpectedOutput?: { output: string }[]
+    input?: string
+    output?: string
+    expectedOutput?: string
+  } = {
     challenge: challengeId,
     authorId,
     testsPassed: submission.testsPassed,
     testsTotal: submission.testsTotal,
     code: submission.code,
+    submissionType: 'accepted', // Set a default value that will be updated below
   }
 
-  // Déterminer le type de soumission et ajouter les champs spécifiques
+  // Determine submission type and add specific fields
   if ('error' in submission) {
     submissionType = 'runtimeError'
     submissionData.error = submission.error
@@ -130,7 +145,7 @@ const createSubmissionInDatabase = async (
 
   submissionData.submissionType = submissionType
 
-  // Créer la soumission dans la base de données
+  // Create submission in database
   await payload.create({
     collection: 'challenge-submissions',
     data: submissionData,
@@ -185,7 +200,7 @@ export const submitCode = async (
     input: string
     expectedOutput: string
   }[],
-  challengeId: string,
+  challengeId: string | number,
   authorId: string,
 ): Promise<
   AcceptedSubmission | RunTimeErrorSubmission | WrongAnswerSubmission | TimeLimitExceededSubmission
@@ -198,7 +213,10 @@ export const submitCode = async (
       const testResult = await executeTest(code, test, baseSubmission)
 
       if (testResult) {
-        await createSubmissionInDatabase(testResult, challengeId, authorId)
+        // Convert challengeId to number if it's a string
+        const numericChallengeId =
+          typeof challengeId === 'string' ? parseInt(challengeId, 10) : challengeId
+        await createSubmissionInDatabase(testResult, numericChallengeId, authorId)
         return testResult
       }
 
@@ -211,7 +229,10 @@ export const submitCode = async (
       testsPassed,
     } as AcceptedSubmission
 
-    await createSubmissionInDatabase(acceptedSubmission, challengeId, authorId)
+    // Convert challengeId to number if it's a string
+    const numericChallengeId =
+      typeof challengeId === 'string' ? parseInt(challengeId, 10) : challengeId
+    await createSubmissionInDatabase(acceptedSubmission, numericChallengeId, authorId)
     return acceptedSubmission
   } catch (error: unknown) {
     const errorSubmission = handleRuntimeError(
@@ -219,7 +240,10 @@ export const submitCode = async (
       error,
       tests[testsPassed]?.expectedOutput || '',
     )
-    await createSubmissionInDatabase(errorSubmission, challengeId, authorId)
+    // Convert challengeId to number if it's a string
+    const numericChallengeId =
+      typeof challengeId === 'string' ? parseInt(challengeId, 10) : challengeId
+    await createSubmissionInDatabase(errorSubmission, numericChallengeId, authorId)
     return errorSubmission
   }
 }

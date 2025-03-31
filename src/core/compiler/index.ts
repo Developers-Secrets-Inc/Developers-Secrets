@@ -7,8 +7,37 @@ export type CompilationResult = {
   error?: string
 }
 
+// Check if we're in a browser environment before using workers
+export const isBrowser = typeof window !== 'undefined'
+
+// Helper function to check if Pyodide is loaded
+export const isPyodideLoaded = (): boolean => {
+  if (!isBrowser) return false
+  return !!(window as any).isPyodideLoaded && !!(window as any).pyodide
+}
+
+// Helper function to check if Pyodide is currently loading
+export const isPyodideLoading = (): boolean => {
+  if (!isBrowser) return false
+  return !!(window as any).isPyodideLoading
+}
+
+// Helper function to get any Pyodide load error
+export const getPyodideLoadError = (): string | null => {
+  if (!isBrowser) return null
+  return (window as any).pyodideLoadError || null
+}
+
 // JavaScript Worker
 const createJavaScriptWorker = (code: string): Promise<CompilationResult> => {
+  if (!isBrowser) {
+    return Promise.resolve({
+      success: false,
+      output: '',
+      error: 'JavaScript execution is only available in the browser',
+    })
+  }
+
   return new Promise((resolve) => {
     // Create a blob that contains the worker code
     const blob = new Blob([
@@ -50,21 +79,15 @@ const createJavaScriptWorker = (code: string): Promise<CompilationResult> => {
 
     // Handle messages from the worker
     worker.onmessage = (e) => {
-      // Revoke the blob URL to free memory
       URL.revokeObjectURL(blobURL)
-      // Terminate the worker
       worker.terminate()
-      // Resolve with the result
       resolve(e.data)
     }
 
     // Handle errors
     worker.onerror = (e) => {
-      // Revoke the blob URL to free memory
       URL.revokeObjectURL(blobURL)
-      // Terminate the worker
       worker.terminate()
-      // Resolve with the error
       resolve({
         success: false,
         output: '',
@@ -79,19 +102,19 @@ const createJavaScriptWorker = (code: string): Promise<CompilationResult> => {
 
 // TypeScript Worker
 const createTypeScriptWorker = (code: string): Promise<CompilationResult> => {
-  return new Promise((resolve) => {
-    // We'll use the same worker approach but with TypeScript transpilation
-    // In a real app, you would use the TypeScript compiler API
-    // For this example, we'll just execute it as JavaScript
+  if (!isBrowser) {
+    return Promise.resolve({
+      success: false,
+      output: '',
+      error: 'TypeScript execution is only available in the browser',
+    })
+  }
 
-    // Create a blob that contains the worker code
+  return new Promise((resolve) => {
     const blob = new Blob([
       `
       self.onmessage = function(e) {
         try {
-          // In a real app, you would transpile TypeScript to JavaScript here
-          // For this example, we'll just execute it as JavaScript
-          
           // Capture console.log output
           let output = '';
           const originalLog = console.log;
@@ -116,29 +139,18 @@ const createTypeScriptWorker = (code: string): Promise<CompilationResult> => {
       `,
     ])
 
-    // Create a URL for the blob
     const blobURL = URL.createObjectURL(blob)
-
-    // Create a new worker
     const worker = new Worker(blobURL)
 
-    // Handle messages from the worker
     worker.onmessage = (e) => {
-      // Revoke the blob URL to free memory
       URL.revokeObjectURL(blobURL)
-      // Terminate the worker
       worker.terminate()
-      // Resolve with the result
       resolve(e.data)
     }
 
-    // Handle errors
     worker.onerror = (e) => {
-      // Revoke the blob URL to free memory
       URL.revokeObjectURL(blobURL)
-      // Terminate the worker
       worker.terminate()
-      // Resolve with the error
       resolve({
         success: false,
         output: '',
@@ -146,15 +158,21 @@ const createTypeScriptWorker = (code: string): Promise<CompilationResult> => {
       })
     }
 
-    // Send the code to the worker
     worker.postMessage(code)
   })
 }
 
 // Python compilation using Pyodide
 const compilePython = async (code: string): Promise<CompilationResult> => {
+  if (!isBrowser) {
+    return {
+      success: false,
+      output: '',
+      error: 'Python execution is only available in the browser',
+    }
+  }
+
   try {
-    // Check if Pyodide is still loading
     if (isPyodideLoading()) {
       return {
         success: false,
@@ -163,7 +181,6 @@ const compilePython = async (code: string): Promise<CompilationResult> => {
       }
     }
 
-    // Check if Pyodide failed to load
     const loadError = getPyodideLoadError()
     if (loadError) {
       return {
@@ -173,9 +190,7 @@ const compilePython = async (code: string): Promise<CompilationResult> => {
       }
     }
 
-    // Get the Pyodide instance from the window object
     const pyodide = (window as any).pyodide
-
     if (!pyodide) {
       return {
         success: false,
@@ -206,13 +221,10 @@ const compilePython = async (code: string): Promise<CompilationResult> => {
       output,
     }
   } catch (error) {
-    // Handle Python errors specifically
     let errorMessage = error instanceof Error ? error.message : String(error)
 
-    // Try to extract cleaner Python error message if possible
     if (errorMessage.includes('PythonError:')) {
       const errorLines = errorMessage.split('\n')
-      // Find the line with the actual error message
       const pythonErrorLine = errorLines.find(
         (line) => line.includes('PythonError:') && !line.includes('Traceback'),
       )
@@ -230,6 +242,14 @@ const compilePython = async (code: string): Promise<CompilationResult> => {
 }
 
 export async function compileCode(code: string, language: string): Promise<CompilationResult> {
+  if (!isBrowser) {
+    return {
+      success: false,
+      output: '',
+      error: 'Code compilation is only available in the browser',
+    }
+  }
+
   try {
     switch (language) {
       case 'python':
@@ -246,35 +266,12 @@ export async function compileCode(code: string, language: string): Promise<Compi
         }
     }
   } catch (error) {
-    toast.error(`Compilation error: ${error instanceof Error ? error.message : String(error)}`)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    toast.error(`Compilation error: ${errorMessage}`)
     return {
       success: false,
       output: '',
-      error: error instanceof Error ? error.message : String(error),
+      error: errorMessage,
     }
   }
-}
-
-// Check if we're in a browser environment before using workers
-export const isBrowser = typeof window !== 'undefined'
-
-// Helper function to check if Pyodide is loaded
-export const isPyodideLoaded = (): boolean => {
-  if (!isBrowser) return false
-
-  return !!(window as any).isPyodideLoaded && !!(window as any).pyodide
-}
-
-// Helper function to check if Pyodide is currently loading
-export const isPyodideLoading = (): boolean => {
-  if (!isBrowser) return false
-
-  return !!(window as any).isPyodideLoading
-}
-
-// Helper function to get any Pyodide load error
-export const getPyodideLoadError = (): string | null => {
-  if (!isBrowser) return null
-
-  return (window as any).pyodideLoadError || null
 }
