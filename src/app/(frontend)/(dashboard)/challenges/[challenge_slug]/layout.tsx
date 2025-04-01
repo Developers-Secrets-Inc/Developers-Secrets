@@ -1,22 +1,22 @@
-import { Eclipse } from 'lucide-react'
-import Link from 'next/link'
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
-import { CodeEditor } from '@/core/compiler/components/editor'
+import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
+import { RatingText } from '@/components/rating-dialog'
+import { IconSidebar } from '@/components/sidebars/home-sidebar/icon-sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { ChallengeNavigation } from './components/challenge-navigation'
-import { Bot, MessageSquareText } from 'lucide-react'
-import { RatingText } from '@/components/rating-dialog'
-import { Suspense } from 'react'
-import { ReactionButtons } from '@/core/challenges/components/reaction-buttons'
-import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
-import { getChallengeBySlug, getPreviousChallenge, getNextChallenge } from '@/core/challenges'
-import { getUserChallengeProgression } from '@/core/user-progression'
-import { getUser } from '@/core/user'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { IconSidebar } from '@/components/sidebars/home-sidebar/icon-sidebar'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { getChallengeBySlug, getNextChallenge, getPreviousChallenge } from '@/core/challenges'
 import { ChallengeNavigationButtons } from '@/core/challenges/components/challenge-navigation-buttons'
-import { submitCode } from '@/core/challenges/submissions'
+import { ReactionButtons } from '@/core/challenges/components/reaction-buttons'
+import { handleSubmission } from '@/core/challenges/submissions/actions'
+import { CodeEditor } from '@/core/compiler/components/editor'
+import { getUser } from '@/core/user'
+import { getUserChallengeProgression } from '@/core/user-progression'
+import { Eclipse } from 'lucide-react'
+import Link from 'next/link'
+import { Suspense } from 'react'
+import { ChallengeNavigation } from './components/challenge-navigation'
+import { ChallengeEditor } from './components/challenge-editor'
 
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
@@ -93,6 +93,23 @@ export default async function ChallengeLayout({
       {} as Record<string, string>,
     ) || {}
 
+  // Create a map of test cases for each language
+  const testCasesByLanguage =
+    challenge.codeVersions?.reduce(
+      (acc, version) => {
+        acc[version.language] =
+          version.testCases?.map((test) => ({
+            input: test.input,
+            expectedOutput: test.expectedOutput,
+          })) || []
+        return acc
+      },
+      {} as Record<string, { input: string; expectedOutput: string }[]>,
+    ) || {}
+
+  // Get initial language
+  const initialLanguage = challenge.codeVersions?.[0]?.language || 'javascript'
+
   // Get previous and next challenges
   const previousChallenge = await getPreviousChallenge(challenge_slug)
   const nextChallenge = await getNextChallenge(challenge_slug)
@@ -120,6 +137,19 @@ export default async function ChallengeLayout({
   } catch (userError) {
     console.error('Error fetching user:', userError)
     // Continue as guest user
+  }
+
+  const handleSubmit = async (
+    code: {
+      content: string
+      language: string
+    },
+    tests: {
+      input: string
+      expectedOutput: string
+    }[],
+  ) => {
+    await handleSubmission(code, tests, challenge_slug, userId)
   }
 
   return (
@@ -156,16 +186,14 @@ export default async function ChallengeLayout({
                 <ResizableHandle withHandle />
                 <ResizablePanel defaultSize={50} minSize={40}>
                   <div className="flex flex-col h-full">
-                    <CodeEditor
-                      initialCode={
-                        initialCodeVersions[
-                          challenge.codeVersions?.[0]?.language || 'javascript'
-                        ] || ''
-                      }
-                      language={challenge.codeVersions?.[0]?.language || 'javascript'}
-                      showLanguageSelector={true}
+                    <ChallengeEditor
+                      initialCode={initialCodeVersions[initialLanguage] || ''}
+                      language={initialLanguage}
                       availableLanguages={availableLanguages}
                       codeVersions={initialCodeVersions}
+                      tests={testCasesByLanguage}
+                      challengeId={challenge.id}
+                      userId={userId}
                     />
                   </div>
                 </ResizablePanel>

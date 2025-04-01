@@ -20,10 +20,11 @@ import {
   isPyodideLoaded,
   isPyodideLoading,
   getPyodideLoadError,
+  testCode,
 } from '@/core/compiler'
 import { EditorHeader } from './header'
-import { TerminalContent } from './terminal'
-import { TerminalTabs } from './terminal'
+import { TerminalContent, TerminalTabs, TestResult } from './terminal'
+import { submitCode } from '@/core/challenges/submissions/index.client'
 
 // ==============================
 // Types
@@ -60,13 +61,17 @@ type CodeEditorProps = {
   language: string
   onChange?: (value: string) => void
   onRun?: (code: string) => void
+  onSubmit?: (
+    code: { content: string; language: string },
+    tests: { input: string; expectedOutput: string }[],
+  ) => void
   readOnly?: boolean
   height?: string
   theme?: 'vs' | 'vs-dark' | 'hc-black'
   showLanguageSelector?: boolean
   availableLanguages?: ProgrammingLanguage[]
   onLanguageChange?: (language: string) => void
-  tests?: Test[]
+  tests?: Record<string, { input: string; expectedOutput: string }[]>
   codeVersions?: Record<string, string>
 }
 
@@ -90,10 +95,11 @@ const DEFAULT_LANGUAGES: ProgrammingLanguage[] = [
   { value: 'rust', label: 'Rust' },
 ]
 
+type Language = 'python' | 'javascript' | 'typescript'
+
 /**
  * Default terminal style
  */
-
 
 // ==============================
 // Sub-components
@@ -109,8 +115,6 @@ const EditorLoading = () => (
   </div>
 )
 
-
-
 // ==============================
 // Main Component
 // ==============================
@@ -123,12 +127,13 @@ export function CodeEditor({
   language = 'javascript',
   onChange,
   onRun,
+  onSubmit,
   readOnly = false,
   theme = 'vs-dark',
   showLanguageSelector = true,
   availableLanguages = DEFAULT_LANGUAGES,
   onLanguageChange,
-  tests = [],
+  tests = {},
   codeVersions = {},
 }: CodeEditorProps) {
   // ==============================
@@ -161,6 +166,7 @@ export function CodeEditor({
           : 'uninitialized',
   )
   const editorRef = useRef<unknown>(null)
+  const [testResults, setTestResults] = useState<TestResult[]>([])
 
   // ==============================
   // Effects
@@ -168,8 +174,6 @@ export function CodeEditor({
 
   // Effet pour mettre à jour le code quand les codeVersions changent
   useEffect(() => {
-
-    
     setCodeByLanguage((prev) => ({
       ...prev,
       ...codeVersions,
@@ -298,28 +302,6 @@ export function CodeEditor({
   }
 
   /**
-   * Formats test results for display
-   */
-  const formatTestResults = () => {
-    if (tests.length === 0) {
-      return '> No tests available for this challenge.'
-    }
-
-    let result = '> Running tests...\n\n'
-
-    tests.forEach((test, index) => {
-      const testNumber = index + 1
-      const testDescription = test.description ? test.description : `Test #${testNumber}`
-
-      result += `Test ${testNumber}: ${testDescription}\n`
-      result += `Input: ${test.input}\n`
-      result += `Expected Output: ${test.expectedOutput}\n\n`
-    })
-
-    return result
-  }
-
-  /**
    * Handles code execution
    */
   const handleRunCode = async () => {
@@ -327,77 +309,104 @@ export function CodeEditor({
 
     // Clear previous outputs
     setExecutionOutput('')
+    setTestResults([])
 
     // Open terminal if closed
     if (!isTerminalOpen) {
       setIsTerminalOpen(true)
     }
 
-    // Display test results
-    setTestOutput(formatTestResults())
-    setActiveTab('tests')
+    try {
+      const currentCode = codeByLanguage[currentLanguage] || ''
 
-    // Execute code
-    if (onRun) {
-      try {
-        onRun(codeByLanguage[currentLanguage] || '')
-        setIsRunning(false)
-      } catch (error) {
-        setExecutionOutput(`Error: ${error instanceof Error ? error.message : String(error)}`)
-        setIsRunning(false)
+      // First, execute the code without tests to get the general output
+      const executionResult = await compileCode(currentCode, currentLanguage)
+      setExecutionOutput(
+        executionResult.success
+          ? executionResult.output || '(No output)'
+          : `Error: ${executionResult.error || 'Unknown error'}`,
+      )
+
+      // Then run the tests for the current language
+      const currentTests = tests[currentLanguage] || []
+      const results: TestResult[] = []
+
+      for (const test of currentTests) {
+        const testCode = `${currentCode}\n${test.input}`
+        const result = await compileCode(testCode, currentLanguage)
+
+        results.push({
+          success: result.success && result.output.trim() === test.expectedOutput.trim(),
+          input: test.input,
+          expectedOutput: test.expectedOutput,
+          actualOutput: result.success ? result.output : result.error || 'No output',
+        })
       }
-    } else {
-      try {
-        // Switch to output tab for execution results
-        setActiveTab('output')
 
-        // Check if we're trying to run Python
-        if (currentLanguage === 'python') {
-          // Check if Pyodide is being loaded
-          if (isPyodideLoading()) {
-            setExecutionOutput(
-              'Python interpreter (Pyodide) is still loading. Please wait a moment and try again.',
-            )
-            setIsRunning(false)
-            return
-          }
+      setTestResults(results)
 
-          // Check if Pyodide load failed
-          const pyodideError = getPyodideLoadError()
-          if (pyodideError) {
-            setExecutionOutput(
-              `Python interpreter (Pyodide) failed to load: ${pyodideError}. Please refresh the page.`,
-            )
-            setIsRunning(false)
-            return
-          }
+      // Switch to output tab to show execution result
+      setActiveTab('output')
+    } catch (error) {
+      setExecutionOutput(`Error: ${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      setIsRunning(false)
+    }
+  }
 
-          // Check if Pyodide is not loaded
-          if (!isPyodideLoaded()) {
-            setExecutionOutput(
-              'Python interpreter (Pyodide) is not initialized yet. Please wait a moment and try again.',
-            )
-            setIsRunning(false)
-            return
-          }
-        }
+  /**
+   * Handles code submission
+   */
+  const handleSubmitCode = async () => {
+    // First run the tests
+    setIsRunning(true)
+    setTestResults([])
 
-        // Use our compiler
-        const result: CompilationResult = await compileCode(
-          codeByLanguage[currentLanguage] || '',
-          currentLanguage,
-        )
+    try {
+      const currentCode = codeByLanguage[currentLanguage] || ''
+      const currentTests = tests[currentLanguage] || []
+      const results: TestResult[] = []
 
-        if (result.success) {
-          setExecutionOutput(`// Execution result:\n${result.output || '(No output)'}`)
-        } else {
-          setExecutionOutput(`// Execution error:\n${result.error || 'Unknown error'}`)
-        }
-      } catch (error) {
-        setExecutionOutput(`Error: ${error instanceof Error ? error.message : String(error)}`)
-      } finally {
-        setIsRunning(false)
+      for (const test of currentTests) {
+        const testCode = `${currentCode}\n${test.input}`
+        const result = await compileCode(testCode, currentLanguage)
+
+        results.push({
+          success: result.success && result.output.trim() === test.expectedOutput.trim(),
+          input: test.input,
+          expectedOutput: test.expectedOutput,
+          actualOutput: result.success ? result.output : result.error || 'No output',
+        })
       }
+
+      setTestResults(results)
+
+      // Submit the code regardless of test results
+
+      
+      const submission = await submitCode(
+        {
+          content: currentCode,
+          language: currentLanguage as Language,
+        },
+        currentTests.map((test) => ({
+          input: {
+            content: test.input,
+            language: currentLanguage as Language,
+          },
+          expectedOutput: {
+            content: test.expectedOutput,
+            language: currentLanguage as Language,
+          },
+        })),
+      )
+
+      console.log('Submission', submission)
+      setActiveTab('output')
+    } catch (error) {
+      setExecutionOutput(`Error: ${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      setIsRunning(false)
     }
   }
 
@@ -415,6 +424,7 @@ export function CodeEditor({
         readOnly={readOnly}
         onLanguageChange={handleLanguageChange}
         onRunCode={handleRunCode}
+        onSubmitCode={onSubmit ? handleSubmitCode : undefined}
         pyodideStatus={pyodideStatus}
       />
 
@@ -451,7 +461,7 @@ export function CodeEditor({
       </div>
 
       {/* Terminal tabs */}
-      <TerminalTabs 
+      <TerminalTabs
         activeTab={activeTab}
         isTerminalOpen={isTerminalOpen}
         onTabChange={handleTabChange}
@@ -462,7 +472,7 @@ export function CodeEditor({
       {/* Terminal content */}
       <TerminalContent
         activeTab={activeTab}
-        testOutput={testOutput}
+        testResults={testResults}
         executionOutput={executionOutput}
         onTabChange={handleTabChange}
         isTerminalOpen={isTerminalOpen}

@@ -6,14 +6,21 @@ import { Beaker, ChevronDown, ChevronUp, FileOutput } from 'lucide-react'
 type TerminalTab = 'tests' | 'output'
 
 const TERMINAL_STYLE = {
-    backgroundColor: '#1a1b26',
-    color: '#ffffff',
-    fontFamily: 'monospace',
-    padding: '12px',
-    height: '100%',
-    overflow: 'auto',
-    whiteSpace: 'pre-wrap' as const,
-  }
+  backgroundColor: '#1a1b26',
+  color: '#ffffff',
+  fontFamily: 'monospace',
+  padding: '12px',
+  height: '100%',
+  overflow: 'auto',
+  whiteSpace: 'pre-wrap' as const,
+}
+
+export type TestResult = {
+  success: boolean
+  input: string
+  expectedOutput: string
+  actualOutput: string
+}
 
 /**
  * Terminal tabs component
@@ -56,7 +63,6 @@ export const TerminalTabs = ({
       </TabsList>
     </Tabs>
 
-    {/* Icon to indicate if terminal is open or closed */}
     <div
       className="flex items-center cursor-pointer p-1 hover:bg-muted rounded-sm"
       onClick={onChevronClick}
@@ -71,12 +77,48 @@ export const TerminalTabs = ({
   </div>
 )
 
+type TestCaseDisplayProps = {
+  testResult: TestResult
+  index: number
+}
+
+const TestCaseDisplay = ({ testResult, index }: TestCaseDisplayProps) => (
+  <div className="space-y-4 p-4">
+    <div className="grid grid-cols-3 gap-4">
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium text-muted-foreground">Input</h3>
+        <pre className="p-2 rounded bg-muted/50 text-xs">{testResult.input}</pre>
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium text-muted-foreground">Expected Output</h3>
+        <pre className="p-2 rounded bg-muted/50 text-xs">{testResult.expectedOutput}</pre>
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium text-muted-foreground">Actual Output</h3>
+        <pre
+          className={cn(
+            'p-2 rounded text-xs',
+            testResult.success ? 'bg-green-500/10' : 'bg-red-500/10',
+          )}
+        >
+          {testResult.actualOutput}
+        </pre>
+      </div>
+    </div>
+    <div
+      className={cn('text-sm font-medium', testResult.success ? 'text-green-500' : 'text-red-500')}
+    >
+      Test Case #{index + 1}: {testResult.success ? 'Passed' : 'Failed'}
+    </div>
+  </div>
+)
+
 /**
  * Terminal content component
  */
 type TerminalContentProps = {
   activeTab: TerminalTab
-  testOutput: string
+  testResults: TestResult[]
   executionOutput: string
   onTabChange: (value: string) => void
   isTerminalOpen: boolean
@@ -84,7 +126,7 @@ type TerminalContentProps = {
 
 export const TerminalContent = ({
   activeTab,
-  testOutput,
+  testResults,
   executionOutput,
   onTabChange,
   isTerminalOpen,
@@ -97,9 +139,30 @@ export const TerminalContent = ({
   >
     <Tabs value={activeTab} onValueChange={(value) => onTabChange(value)} className="h-full">
       <TabsContent value="tests" className="h-full p-0 m-0">
-        <div style={TERMINAL_STYLE}>
-          {testOutput || '> Test results will appear here after running your code.'}
-        </div>
+        {testResults.length > 0 ? (
+          <div className="h-full overflow-auto">
+            <Tabs defaultValue="0" className="h-full">
+              <div className="border-b px-4">
+                <TabsList>
+                  {testResults.map((_, index) => (
+                    <TabsTrigger key={index} value={index.toString()}>
+                      Test {index + 1}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
+              {testResults.map((result, index) => (
+                <TabsContent key={index} value={index.toString()}>
+                  <TestCaseDisplay testResult={result} index={index} />
+                </TabsContent>
+              ))}
+            </Tabs>
+          </div>
+        ) : (
+          <div style={TERMINAL_STYLE}>
+            {'> No test results available. Run your code to see test results.'}
+          </div>
+        )}
       </TabsContent>
 
       <TabsContent value="output" className="h-full p-0 m-0">

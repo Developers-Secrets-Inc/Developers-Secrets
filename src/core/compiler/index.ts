@@ -211,7 +211,8 @@ const compilePython = async (code: string): Promise<CompilationResult> => {
     await pyodide.runPythonAsync(code)
 
     // Get the captured stdout
-    const output = await pyodide.runPythonAsync(`sys.stdout.getvalue()`)
+    let output: string = await pyodide.runPythonAsync(`sys.stdout.getvalue()`)
+    output = output.trim()
 
     // Reset stdout
     await pyodide.runPythonAsync(`sys.stdout = sys.__stdout__`)
@@ -274,4 +275,45 @@ export async function compileCode(code: string, language: string): Promise<Compi
       error: errorMessage,
     }
   }
+}
+
+type Language = 'python' | 'javascript' | 'typescript'
+
+type Code = {
+  content: string
+  language: Language
+}
+
+type Test = {
+  input: Code
+  expectedOutput: Code
+}
+
+type TestResult = {
+  success: boolean
+  output: string
+}
+
+const mergeCode = (first: Code, second: Code): Code => {
+  return {
+    content: `${first.content}\n${second.content}`,
+    language: first.language,
+  }
+}
+
+export const testCode = async (code: Code, tests: Test[]): Promise<TestResult[]> => {
+  const results: TestResult[] = []
+
+  for (const test of tests) {
+    const mergedCode = mergeCode(code, test.input)
+    console.log(mergedCode)
+    const result = await compileCode(mergedCode.content, mergedCode.language)
+
+    results.push({
+      success: result.output === test.expectedOutput.content,
+      output: result.output,
+    })
+  }
+
+  return results
 }

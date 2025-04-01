@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, Play } from 'lucide-react'
+import { Loader2, Play, Send } from 'lucide-react'
 
 type ProgrammingLanguage = {
   value: string
@@ -24,6 +24,7 @@ type EditorHeaderProps = {
   readOnly: boolean
   onLanguageChange: (value: string) => void
   onRunCode: () => void
+  onSubmitCode?: () => void
   pyodideStatus: 'loading' | 'loaded' | 'error' | 'uninitialized'
 }
 
@@ -97,7 +98,7 @@ export const RunButton = ({
 }) => {
   return (
     <Button
-      variant="default"
+      variant="secondary"
       size="sm"
       className="h-8"
       onClick={onRunCode}
@@ -118,6 +119,29 @@ export const RunButton = ({
   )
 }
 
+export const SubmitButton = ({
+  isRunning,
+  readOnly,
+  onSubmit,
+}: {
+  isRunning: boolean
+  readOnly: boolean
+  onSubmit: () => void
+}) => {
+  return (
+    <Button
+      variant="default"
+      size="sm"
+      className="h-8"
+      onClick={onSubmit}
+      disabled={isRunning || readOnly}
+    >
+      <Send size={14} className="mr-1" />
+      Submit
+    </Button>
+  )
+}
+
 export const EditorHeader = ({
   currentLanguage,
   showLanguageSelector,
@@ -126,6 +150,7 @@ export const EditorHeader = ({
   readOnly,
   onLanguageChange,
   onRunCode,
+  onSubmitCode,
   pyodideStatus,
 }: EditorHeaderProps) => {
   const languageLabel = currentLanguage.charAt(0).toUpperCase() + currentLanguage.slice(1)
@@ -146,7 +171,7 @@ export const EditorHeader = ({
         )}
       </div>
 
-      <div className="flex items-center">
+      <div className="flex items-center gap-2">
         <RunButton
           isRunning={isRunning}
           readOnly={readOnly}
@@ -154,6 +179,9 @@ export const EditorHeader = ({
           isPythonSelected={isPythonSelected}
           pyodideStatus={pyodideStatus}
         />
+        {onSubmitCode && (
+          <SubmitButton isRunning={isRunning} readOnly={readOnly} onSubmit={onSubmitCode} />
+        )}
       </div>
     </div>
   )
