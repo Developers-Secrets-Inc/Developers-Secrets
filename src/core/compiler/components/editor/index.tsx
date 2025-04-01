@@ -24,7 +24,7 @@ import {
 } from '@/core/compiler'
 import { EditorHeader } from './header'
 import { TerminalContent, TerminalTabs, TestResult } from './terminal'
-import { submitCode } from '@/core/challenges/submissions/index.client'
+import { RunTimeErrorSubmission, TimeLimitExceededSubmission, WrongAnswerSubmission, AcceptedSubmission, submitCode } from '@/core/challenges/submissions/index.client'
 
 // ==============================
 // Types
@@ -62,8 +62,7 @@ type CodeEditorProps = {
   onChange?: (value: string) => void
   onRun?: (code: string) => void
   onSubmit?: (
-    code: { content: string; language: string },
-    tests: { input: string; expectedOutput: string }[],
+    submission: AcceptedSubmission | RunTimeErrorSubmission | WrongAnswerSubmission | TimeLimitExceededSubmission,
   ) => void
   readOnly?: boolean
   height?: string
@@ -401,8 +400,8 @@ export function CodeEditor({
         })),
       )
 
-      console.log('Submission', submission)
-      setActiveTab('output')
+      onSubmit?.(submission)
+      setActiveTab('tests')
     } catch (error) {
       setExecutionOutput(`Error: ${error instanceof Error ? error.message : String(error)}`)
     } finally {

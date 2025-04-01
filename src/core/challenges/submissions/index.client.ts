@@ -1,6 +1,6 @@
 import { CompilationResult, compileCode, testCode } from '@/core/compiler'
 
-type Submission = {
+export type Submission = {
   testsPassed: number
   testsTotal: number
   code: {
@@ -9,25 +9,25 @@ type Submission = {
   }
 }
 
-type RunTimeErrorSubmission = Submission & {
+export type RunTimeErrorSubmission = Submission & {
   type: 'runtimeError'
   error: string
   lastExpectedOutput: { output: string }[]
 }
 
-type WrongAnswerSubmission = Submission & {
+export type WrongAnswerSubmission = Submission & {
   type: 'wrongAnswer'
   input: string
   output: string
   expectedOutput: string
 }
 
-type TimeLimitExceededSubmission = Submission & {
+export type TimeLimitExceededSubmission = Submission & {
   type: 'timeLimitExceeded'
   lastExpectedOutput: { output: string }[]
 }
 
-type AcceptedSubmission = Submission & {
+export type AcceptedSubmission = Submission & {
   type: 'accepted'
 }
 

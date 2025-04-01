@@ -2,6 +2,12 @@
 
 import { CodeEditor } from '@/core/compiler/components/editor'
 import { handleSubmission } from '@/core/challenges/submissions/actions'
+import {
+  WrongAnswerSubmission,
+  TimeLimitExceededSubmission,
+  RunTimeErrorSubmission,
+  AcceptedSubmission,
+} from '@/core/challenges/submissions/index.client'
 
 type ChallengeEditorProps = {
   initialCode: string
@@ -26,16 +32,13 @@ export function ChallengeEditor({
   userId,
 }: ChallengeEditorProps) {
   const handleSubmit = async (
-    code: {
-      content: string
-      language: string
-    },
-    tests: {
-      input: string
-      expectedOutput: string
-    }[],
+    submission:
+      | AcceptedSubmission
+      | RunTimeErrorSubmission
+      | WrongAnswerSubmission
+      | TimeLimitExceededSubmission,
   ) => {
-    await handleSubmission(code, tests, challengeId, userId)
+    await handleSubmission(submission, challengeId, userId)
   }
 
   return (
