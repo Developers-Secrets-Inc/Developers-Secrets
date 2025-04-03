@@ -1,30 +1,18 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
-import { Editor, OnMount } from '@monaco-editor/react'
-import { Loader2, FileOutput, ChevronUp, ChevronDown, Play, Beaker } from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
+import { AcceptedSubmission, RunTimeErrorSubmission, submitCode, TimeLimitExceededSubmission, WrongAnswerSubmission } from '@/core/challenges/submissions/index.client'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { cn } from '@/lib/utils'
-import {
-  compileCode,
-  CompilationResult,
-  isPyodideLoaded,
-  isPyodideLoading,
-  getPyodideLoadError,
-  testCode,
+    compileCode,
+    getPyodideLoadError,
+    isPyodideLoaded,
+    isPyodideLoading
 } from '@/core/compiler'
+import { cn } from '@/lib/utils'
+import { Editor, OnMount } from '@monaco-editor/react'
+import { Loader2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { EditorHeader } from './header'
 import { TerminalContent, TerminalTabs, TestResult } from './terminal'
-import { RunTimeErrorSubmission, TimeLimitExceededSubmission, WrongAnswerSubmission, AcceptedSubmission, submitCode } from '@/core/challenges/submissions/index.client'
 
 // ==============================
 // Types

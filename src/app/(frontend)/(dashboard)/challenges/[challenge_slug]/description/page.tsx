@@ -1,7 +1,9 @@
-import { Markdown } from '@/components/markdown'
 import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges'
 import { ChallengeHeader } from '../components/challenge-header'
-import { DescriptionComments } from '../components/comments/description-comments'
+import { ChallengeDescriptionContent } from './components/challenge-description-content'
+import { ChallengeDescriptionFooter } from './components/challenge-description-footer'
+import { Suspense } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export const revalidate = 600 // 10 minutes in seconds
 
@@ -18,30 +20,59 @@ export default async function ChallengeDescriptionPage({
   params: Promise<{ challenge_slug: string }>
 }) {
   const { challenge_slug } = await params
-  const challenge = await getChallengeBySlug(challenge_slug)
 
-  console.log(challenge.codeVersions?.[0]?.initialCode)
+  try {
+    const challenge = await getChallengeBySlug(challenge_slug)
 
-  // Extract concepts from challenge data
-  const conceptsList =
-    challenge.concepts
-      ?.map((concept: any) => (typeof concept === 'object' ? concept.concept : concept))
-      .filter(Boolean) || []
-
-  return (
-    <div className="p-6">
-      <ChallengeHeader
-        challenge={challenge}
-        concepts={conceptsList}
-        status="Not Attempted" // This could be dynamic based on user progress
-      />
-      <Markdown className="prose prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-h5:text-sm prose-h6:text-xs">
-        {challenge.description?.statement || 'No description available.'}
-      </Markdown>
-      <div className="mt-8 border-t pt-6">
-        <h3 className="text-lg font-semibold mb-4">Comments</h3>
-        <DescriptionComments challenge={challenge} />
+    return (
+      <div className="p-6">
+        <Suspense fallback={<ChallengeDescriptionSkeleton />}>
+          <ChallengeHeader challenge={challenge} status="Not Attempted" />
+          <ChallengeDescriptionContent
+            descriptionStatement={challenge.description?.statement || 'No description available.'}
+          />
+        </Suspense>
+        <Suspense fallback={<ChallengeDescriptionFooterSkeleton />}>
+          <ChallengeDescriptionFooter challenge={challenge} />
+        </Suspense>
       </div>
+    )
+  } catch (error) {
+    console.error('Error fetching challenge:', error)
+    return <ChallengeNotFound challengeSlug={challenge_slug} />
+  }
+}
+
+const ChallengeDescriptionSkeleton = () => {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-8 w-3/4" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-5/6" />
+      <Skeleton className="h-4 w-4/6" />
+      <Skeleton className="h-4 w-5/6" />
+      <Skeleton className="h-4 w-3/4" />
+    </div>
+  )
+}
+
+const ChallengeDescriptionFooterSkeleton = () => {
+  return (
+    <div className="mt-8 border-t pt-6">
+      <Skeleton className="h-6 w-24 mb-4" />
+      <div className="space-y-4">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-20 w-full" />
+      </div>
+    </div>
+  )
+}
+
+const ChallengeNotFound = ({ challengeSlug }: { challengeSlug: string }) => {
+  return (
+    <div>
+      <h1>Challenge not found</h1>
+      <p>The challenge with slug {challengeSlug} was not found.</p>
     </div>
   )
 }

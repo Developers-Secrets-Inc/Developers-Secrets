@@ -30,7 +30,6 @@ export const hasDownvoted = (comment: PayloadComment, userId: string): boolean =
   return comment.votes?.some((vote) => vote.userId === userId && vote.vote === 'downvote') || false
 }
 
-
 const VoteCount = ({ count }: { count: number }) => {
   return <span className="text-xs mx-1.5 text-muted-foreground">{count}</span>
 }
@@ -74,7 +73,7 @@ const DownvoteButton = ({
 }
 
 // TODO: On doit modifier le système pour retenir quel utilisateur a upvoté ou downvoté. Ca sera ensuite utilisé pour afficher s'il a été downvoté ou upvoté au rechargement de la page.
-export const CommentVotes = ({ comment, userId }: { comment: PayloadComment, userId: string }) => {
+export const CommentVotes = ({ comment, userId }: { comment: PayloadComment; userId: string }) => {
   const [votes, setVotes] = useState(getVotesCount(comment))
   const [isUpvoted, setIsUpvoted] = useState(hasUpvoted(comment, userId))
   const [isDownvoted, setIsDownvoted] = useState(hasDownvoted(comment, userId))

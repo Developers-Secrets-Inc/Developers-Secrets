@@ -1,19 +1,15 @@
 import { CheckCircle } from 'lucide-react'
-import { ChallengeDifficulty } from '@/components/challenges/challenge-difficulty'
-import { ChallengeExperience } from '@/components/challenges/challenge-experience'
-import { ChallengeConcepts } from '@/components/challenges/challenge-concepts'
+import { Difficulty } from '@/components/challenges/challenge-difficulty'
+import { Experience } from '@/components/challenges/challenge-experience'
+import { Concepts } from '@/components/challenges/challenge-concepts'
 import { Challenge as PayloadChallenge } from '@/payload-types'
+
 type ChallengeHeaderProps = {
   challenge: PayloadChallenge
-  concepts: string[]
   status?: 'Attempted' | 'Completed' | 'Not Attempted'
 }
 
-export const ChallengeHeader = ({
-  challenge,
-  concepts,
-  status = 'Not Attempted',
-}: ChallengeHeaderProps) => {
+export const ChallengeHeader = ({ challenge, status = 'Not Attempted' }: ChallengeHeaderProps) => {
   // Mapping des couleurs par statut
   const statusColorMap = {
     Attempted: 'amber',
@@ -32,11 +28,22 @@ export const ChallengeHeader = ({
           <span className="text-sm font-medium">{status}</span>
         </div>
       </div>
-      <div className="flex flex-wrap gap-2 mb-4">
-        <ChallengeDifficulty difficulty={challenge.difficulty} />
-        <ChallengeExperience experience={challenge.baseExperience || 0} />
-        <ChallengeConcepts concepts={concepts} />
-      </div>
+      <ChallengeHeaderTags challenge={challenge} />
     </>
+  )
+}
+
+const ChallengeHeaderTags = ({ challenge }: { challenge: PayloadChallenge }) => {
+  const conceptsList =
+    challenge.concepts
+      ?.map((concept: any) => (typeof concept === 'object' ? concept.concept : concept))
+      .filter(Boolean) || []
+
+  return (
+    <div className="flex flex-wrap gap-2 mb-4">
+      <Difficulty difficulty={challenge.difficulty} />
+      <Experience quantity={challenge.baseExperience || 0} />
+      <Concepts concepts={conceptsList} />
+    </div>
   )
 }

@@ -1,10 +1,8 @@
 'use server'
 
-import { getPayload } from 'payload'
-import config from '@payload-config'
 import { Comment } from '@/payload-types'
-import { createComment } from '../comments'
-import { getLastComment } from '../comments'
+import config from '@payload-config'
+import { getPayload } from 'payload'
 
 export const getChallengeDescriptionComments = async (challengeId: number): Promise<Comment[]> => {
   const payload = await getPayload({ config })
@@ -78,18 +76,80 @@ export const createDescriptionComment = async (
   challengeId: number,
   content: string,
   authorId: string,
-): Promise<void> => {
-  await createComment(authorId, content)
-  const comment = await getLastComment()
-  await addCommentToChallengeDescription(challengeId, comment.id)
+): Promise<Comment> => {
+  'use server'
+  const payload = await getPayload({ config })
+
+  // Créer d'abord le commentaire
+  const newComment = await payload.create({
+    collection: 'comments',
+    data: {
+      content,
+      authorId,
+      isReply: false,
+    },
+  })
+
+  // Récupérer le challenge
+  const challenge = await payload.findByID({
+    collection: 'challenges',
+    id: challengeId,
+  })
+
+  const existingComments = challenge?.description?.comments || []
+
+  // Mettre à jour le challenge avec la référence au nouveau commentaire
+  await payload.update({
+    collection: 'challenges',
+    id: challengeId,
+    data: {
+      description: {
+        ...challenge?.description,
+        comments: [...existingComments, newComment.id],
+      },
+    },
+  })
+
+  return newComment
 }
 
 export const createOfficialSolutionComment = async (
   challengeId: number,
   content: string,
   authorId: string,
-): Promise<void> => {
-  await createComment(authorId, content)
-  const comment = await getLastComment()
-  await addCommentToChallengeOfficialSolution(challengeId, comment.id)
+): Promise<Comment> => {
+  'use server'
+  const payload = await getPayload({ config })
+
+  // Créer d'abord le commentaire
+  const newComment = await payload.create({
+    collection: 'comments',
+    data: {
+      content,
+      authorId,
+      isReply: false,
+    },
+  })
+
+  // Récupérer le challenge
+  const challenge = await payload.findByID({
+    collection: 'challenges',
+    id: challengeId,
+  })
+
+  const existingComments = challenge?.officialSolution?.comments || []
+
+  // Mettre à jour le challenge avec la référence au nouveau commentaire
+  await payload.update({
+    collection: 'challenges',
+    id: challengeId,
+    data: {
+      officialSolution: {
+        ...challenge?.officialSolution,
+        comments: [...existingComments, newComment.id],
+      },
+    },
+  })
+
+  return newComment
 }

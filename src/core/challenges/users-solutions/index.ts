@@ -119,10 +119,35 @@ export const createUserSolutionComment = async (
   solutionId: number,
   content: string,
   authorId: string,
-): Promise<void> => {
-  await createComment(authorId, content)
-  const comment = await getLastComment()
-  await addCommentToUserSolution(solutionId, comment.id)
+): Promise<Comment> => {
+  'use server'
+  const payload = await getPayload({ config })
+
+  // Créer le commentaire
+  const newComment = await payload.create({
+    collection: 'comments',
+    data: {
+      content,
+      authorId,
+      isReply: false,
+    },
+  })
+
+  // Ajouter le commentaire à la solution
+  const solution = await payload.findByID({
+    collection: 'user-solutions',
+    id: solutionId,
+  })
+
+  await payload.update({
+    collection: 'user-solutions',
+    id: solutionId,
+    data: {
+      comments: [...(solution?.comments || []), newComment.id],
+    },
+  })
+
+  return newComment
 }
 
 export const updateUserSolutionTitle = async (id: string, title: string): Promise<void> => {

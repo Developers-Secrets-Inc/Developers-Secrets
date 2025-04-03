@@ -139,19 +139,6 @@ export default async function ChallengeLayout({
     // Continue as guest user
   }
 
-  const handleSubmit = async (
-    code: {
-      content: string
-      language: string
-    },
-    tests: {
-      input: string
-      expectedOutput: string
-    }[],
-  ) => {
-    await handleSubmission(code, tests, challenge_slug, userId)
-  }
-
   return (
     <SidebarProvider>
       <div className="flex h-screen">

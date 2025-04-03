@@ -1,24 +1,18 @@
 import { Badge } from '@/components/ui/badge'
 
-interface ChallengeConceptsProps {
-  concepts: string[]
+const Concept = ({ name }: { name: string }) => {
+  return (
+    <Badge variant="outline" className="rounded-sm">
+      {name}
+    </Badge>
+  )
 }
 
-export function ChallengeConcepts({ concepts }: ChallengeConceptsProps) {
-  if (!concepts || concepts.length === 0) {
-    return null
-  }
-
+export const Concepts = ({ concepts }: { concepts: string[] }) => {
   return (
     <div className="flex flex-wrap gap-1.5">
       {concepts.map((concept, index) => (
-        <Badge
-          key={index}
-          variant="outline" 
-          className="rounded-sm"
-        >
-          {concept}
-        </Badge>
+        <Concept key={index} name={concept} />
       ))}
     </div>
   )

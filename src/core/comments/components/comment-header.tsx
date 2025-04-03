@@ -53,29 +53,22 @@ export const ReportButton = ({ onReportClick }: { onReportClick: () => void }) =
   )
 }
 
-export const CommentHeader = ({ onReportClick }: { onReportClick: () => void }) => {
+export const CommentHeader = ({
+  onReportClick,
+  onDelete,
+  canDelete,
+}: {
+  onReportClick: () => void
+  onDelete: () => Promise<void>
+  canDelete: boolean
+}) => {
   const { comment, author } = useComment()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [isCommentOwner, setIsCommentOwner] = useState(false)
-
-  useEffect(() => {
-    const checkCommentOwnership = async () => {
-      try {
-        const currentUser = await getUser()
-        setIsCommentOwner(currentUser.id === comment.authorId)
-      } catch (error) {
-        console.error('Error checking comment ownership:', error)
-        setIsCommentOwner(false)
-      }
-    }
-
-    checkCommentOwnership()
-  }, [comment.authorId])
 
   const handleDelete = async () => {
     setDeleteDialogOpen(false)
-    await deleteComment(comment.id)
+    await onDelete()
   }
 
   return (
@@ -84,7 +77,7 @@ export const CommentHeader = ({ onReportClick }: { onReportClick: () => void }) 
         <AuthorName author={author} />
         <div className="flex items-center gap-2">
           <ReportButton onReportClick={onReportClick} />
-          {isCommentOwner && (
+          {canDelete && (
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button

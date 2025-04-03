@@ -1,15 +1,35 @@
-import { getUserById } from '@/core/user'
-import { Comment } from '@/payload-types'
+'use client'
+
+import { User } from '@/payload-types'
 import { CommentThread } from './comment-thread'
+import { Comment } from '@/payload-types'
 
-export const CommentsHistory = async ({ comments }: { comments: Comment[] }) => {
-  const commentItems = await Promise.all(
-    comments.map(async (comment, index) => (
-      <div key={comment.id} className={index !== 0 ? 'border-t pt-4' : ''}>
-        <CommentThread comment={comment} author={await getUserById(comment.authorId)} />
-      </div>
-    )),
+interface CommentsHistoryProps {
+  comments: Array<{
+    comment: Comment
+    author: User | null
+  }>
+  onDelete: (commentId: number) => Promise<void>
+  onAddReply: (params: {
+    parentCommentId: number
+    content: string
+    authorId: string
+  }) => Promise<void>
+}
+
+export const CommentsHistory = ({ comments, onDelete, onAddReply }: CommentsHistoryProps) => {
+  return (
+    <div>
+      {comments.map((item, index) => (
+        <div key={item.comment.id} className={index !== 0 ? 'border-t pt-4' : ''}>
+          <CommentThread
+            comment={item.comment}
+            author={item.author}
+            onDelete={onDelete}
+            onAddReply={onAddReply}
+          />
+        </div>
+      ))}
+    </div>
   )
-
-  return <div>{commentItems}</div>
 }

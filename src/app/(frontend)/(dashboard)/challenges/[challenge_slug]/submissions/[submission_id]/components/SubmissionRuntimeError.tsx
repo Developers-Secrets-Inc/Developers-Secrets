@@ -1,4 +1,6 @@
 import { Badge } from '@/components/ui/badge'
+import { CodeBlock, CodeBlockCode, CodeBlockGroup } from '@/components/code-block'
+import { AlertTriangle } from 'lucide-react'
 
 type SubmissionRuntimeErrorProps = {
   testsPassed: number
@@ -19,42 +21,62 @@ export function SubmissionRuntimeError({
   lastExpectedOutput,
 }: SubmissionRuntimeErrorProps) {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-red-500">Runtime Error</h2>
-        <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">
+    <div className="space-y-8">
+      <div className="flex items-center justify-between border-b pb-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-6 w-6 text-red-500" />
+            <h2 className="text-2xl font-semibold text-red-500">Runtime Error</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Your code encountered an error during execution
+          </p>
+        </div>
+        <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20 px-3 py-1">
           {testsPassed}/{testsTotal} tests passed
         </Badge>
       </div>
 
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Error Message</h3>
-        <div className="rounded-lg bg-red-500/5 border border-red-500/10 p-4">
-          <pre className="text-sm text-red-500 whitespace-pre-wrap">
-            <code>{error}</code>
-          </pre>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">Error Details</h3>
         </div>
+        <CodeBlock>
+          <CodeBlockGroup>
+            <span>Error Message</span>
+          </CodeBlockGroup>
+          <CodeBlockCode code={error} language="plaintext" className="text-red-500" />
+        </CodeBlock>
       </div>
 
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Last Expected Outputs</h3>
-        <div className="rounded-lg bg-muted p-4 space-y-2">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">Last Expected Outputs</h3>
+        </div>
+        <div className="grid gap-4">
           {lastExpectedOutput.map((output, index) => (
-            <div key={index} className="text-sm">
-              <span className="font-medium">Output {index + 1}:</span> {output.output}
-            </div>
+            <CodeBlock key={index}>
+              <CodeBlockGroup>
+                <span>Output {index + 1}</span>
+              </CodeBlockGroup>
+              <CodeBlockCode code={output.output} language="plaintext" />
+            </CodeBlock>
           ))}
         </div>
       </div>
 
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Your Code</h3>
-        <div className="rounded-lg bg-muted p-4">
-          <pre className="text-sm">
-            <code>{code.content}</code>
-          </pre>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">Your Code</h3>
+          <span className="text-sm text-muted-foreground">Language: {code.language}</span>
         </div>
-        <p className="text-xs text-muted-foreground">Language: {code.language}</p>
+        <CodeBlock>
+          <CodeBlockGroup>
+            <span>Solution Code</span>
+            <span className="text-red-500">⚠ Runtime Error</span>
+          </CodeBlockGroup>
+          <CodeBlockCode code={code.content} language={code.language} />
+        </CodeBlock>
       </div>
     </div>
   )
