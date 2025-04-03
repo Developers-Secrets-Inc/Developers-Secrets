@@ -203,6 +203,44 @@ export const useComments = (context: CommentContext, userId?: string) => {
     },
   })
 
+  const editComment = useMutation({
+    mutationFn: async ({ commentId, content }: { commentId: number; content: string }) => {
+      return await context.updateComment(commentId, content)
+    },
+    onMutate: async ({ commentId, content }) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previousData = queryClient.getQueryData<CommentResponse>(queryKey)
+
+      queryClient.setQueryData<CommentResponse>(queryKey, (old) => {
+        if (!old) return { comments: [], totalPages: 1, totalComments: 0 }
+
+        return {
+          ...old,
+          comments: old.comments.map((comment) => {
+            if (comment.id === commentId) {
+              return {
+                ...comment,
+                content,
+                updatedAt: new Date().toISOString(),
+              }
+            }
+            return comment
+          }),
+        }
+      })
+
+      return { previousData }
+    },
+    onError: (_, __, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+    },
+  })
+
   return {
     comments: commentsWithAuthors,
     totalPages: data?.totalPages ?? 1,
@@ -214,5 +252,6 @@ export const useComments = (context: CommentContext, userId?: string) => {
     addComment,
     deleteComment,
     addReply,
+    editComment,
   }
 }

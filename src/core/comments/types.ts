@@ -83,6 +83,7 @@ export interface CommentContext {
   createComment: (parentId: number, content: string, authorId: string) => Promise<Comment>
   deleteComment: (commentId: number) => Promise<void>
   createReply: (parentCommentId: number, content: string, authorId: string) => Promise<Comment>
+  updateComment: (commentId: number, content: string) => Promise<Comment>
 }
 
 export interface GetCommentsOptions {
@@ -122,6 +123,11 @@ export const commentContexts = {
       const { createReply } = await import('@/core/comments')
       return createReply(parentCommentId, content, authorId)
     },
+    updateComment: async (commentId: number, content: string) => {
+      'use server'
+      const { modifyComment } = await import('@/core/comments')
+      return modifyComment(commentId, content)
+    },
   }),
 
   challengeSolution: (challengeId: number): CommentContext => ({
@@ -147,6 +153,11 @@ export const commentContexts = {
       const { createReply } = await import('@/core/comments')
       return createReply(parentCommentId, content, authorId)
     },
+    updateComment: async (commentId: number, content: string) => {
+      'use server'
+      const { modifyComment } = await import('@/core/comments')
+      return modifyComment(commentId, content)
+    },
   }),
 
   userSolution: (solutionId: number): CommentContext => ({
@@ -171,6 +182,11 @@ export const commentContexts = {
       'use server'
       const { createReply } = await import('@/core/comments')
       return createReply(parentCommentId, content, authorId)
+    },
+    updateComment: async (commentId: number, content: string) => {
+      'use server'
+      const { modifyComment } = await import('@/core/comments')
+      return modifyComment(commentId, content)
     },
   }),
 }

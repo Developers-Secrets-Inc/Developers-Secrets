@@ -129,7 +129,7 @@ export const addReplyToComment = async (
   })
 }
 
-export const modifyComment = async (commentId: number, newContent: string): Promise<void> => {
+export const modifyComment = async (commentId: number, newContent: string): Promise<Comment> => {
   const payload = await getPayload({ config })
   const comment = await payload.findByID({ collection: 'comments', id: commentId })
 
@@ -137,7 +137,7 @@ export const modifyComment = async (commentId: number, newContent: string): Prom
     throw new Error('Comment not found')
   }
 
-  await payload.update({
+  return await payload.update({
     collection: 'comments',
     id: commentId,
     data: { content: newContent },

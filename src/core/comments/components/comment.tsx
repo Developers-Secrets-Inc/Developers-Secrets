@@ -10,6 +10,7 @@ import { CommentHeader } from './comment-header'
 import { CommentResponseTextArea } from './comment-response-text'
 import { ReportCommentDialog } from './report-comment-dialog'
 import { CommentAvatar } from './comment-avatar'
+import { EditCommentDialog } from './edit-comment-dialog'
 
 interface CommentProps {
   comment: PayloadComment
@@ -22,6 +23,7 @@ interface CommentProps {
     content: string
     authorId: string
   }) => Promise<void>
+  onEdit: (commentId: number, content: string) => Promise<void>
 }
 
 export const Comment = ({
@@ -31,8 +33,10 @@ export const Comment = ({
   onToggleReplies,
   onDelete,
   onAddReply,
+  onEdit,
 }: CommentProps) => {
   const [reportDialogOpen, setReportDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [isReplying, setIsReplying] = useState(false)
   const [replyContent, setReplyContent] = useState('')
 
@@ -57,6 +61,10 @@ export const Comment = ({
     await onDelete(comment.id)
   }
 
+  const handleEdit = async (commentId: number, content: string) => {
+    await onEdit(commentId, content)
+  }
+
   return (
     <CommentProvider comment={comment} author={author}>
       <div className="group space-y-3">
@@ -67,7 +75,9 @@ export const Comment = ({
               <CommentHeader
                 onReportClick={() => setReportDialogOpen(true)}
                 onDelete={handleDelete}
+                onEdit={() => setEditDialogOpen(true)}
                 canDelete={comment.authorId === author.id}
+                canEdit={comment.authorId === author.id}
               />
               <CommentContent />
               <CommentActions
@@ -97,6 +107,14 @@ export const Comment = ({
         userId={author.id}
         open={reportDialogOpen}
         onOpenChange={setReportDialogOpen}
+      />
+
+      <EditCommentDialog
+        commentId={comment.id}
+        initialContent={comment.content}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onEdit={handleEdit}
       />
     </CommentProvider>
   )

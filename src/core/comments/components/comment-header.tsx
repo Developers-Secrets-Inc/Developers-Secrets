@@ -56,11 +56,15 @@ export const ReportButton = ({ onReportClick }: { onReportClick: () => void }) =
 export const CommentHeader = ({
   onReportClick,
   onDelete,
+  onEdit,
   canDelete,
+  canEdit,
 }: {
   onReportClick: () => void
   onDelete: () => Promise<void>
+  onEdit: () => void
   canDelete: boolean
+  canEdit: boolean
 }) => {
   const { comment, author } = useComment()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -77,7 +81,7 @@ export const CommentHeader = ({
         <AuthorName author={author} />
         <div className="flex items-center gap-2">
           <ReportButton onReportClick={onReportClick} />
-          {canDelete && (
+          {(canDelete || canEdit) && (
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -89,17 +93,27 @@ export const CommentHeader = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[140px]">
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
-                  <Edit2 className="h-4 w-4" />
-                  <span>Edit</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="flex items-center gap-2 cursor-pointer"
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                  <span className="text-red-500">Delete</span>
-                </DropdownMenuItem>
+                {canEdit && (
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      onEdit()
+                    }}
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    <span>Edit</span>
+                  </DropdownMenuItem>
+                )}
+                {canDelete && (
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                    <span className="text-red-500">Delete</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

@@ -24,11 +24,28 @@ export const CommentsSection = ({ context }: CommentsSectionProps) => {
     addComment,
     deleteComment,
     addReply,
+    editComment,
   } = useComments(context, user?.id)
 
   const handleCommentSubmit = async (content: string) => {
     if (!user) return
     await addComment.mutateAsync({ content, authorId: user.id })
+  }
+
+  const handleDelete = async (commentId: number) => {
+    await deleteComment.mutateAsync(commentId)
+  }
+
+  const handleAddReply = async (params: {
+    parentCommentId: number
+    content: string
+    authorId: string
+  }) => {
+    await addReply.mutateAsync(params)
+  }
+
+  const handleEdit = async (commentId: number, content: string) => {
+    await editComment.mutateAsync({ commentId, content })
   }
 
   return (
@@ -45,8 +62,9 @@ export const CommentsSection = ({ context }: CommentsSectionProps) => {
         <>
           <CommentsHistory
             comments={comments}
-            onDelete={deleteComment.mutateAsync}
-            onAddReply={addReply.mutateAsync}
+            onDelete={handleDelete}
+            onAddReply={handleAddReply}
+            onEdit={handleEdit}
           />
 
           {totalPages > 1 && (
