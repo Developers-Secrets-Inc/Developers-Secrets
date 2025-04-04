@@ -4,7 +4,14 @@ export const UserChallengeProgression: CollectionConfig = {
   slug: 'userChallengeProgression',
   admin: {
     useAsTitle: 'userId',
-    defaultColumns: ['userId', 'challengeSlug', 'hasLiked', 'hasDisliked', 'createdAt'],
+    defaultColumns: [
+      'userId',
+      'challenge',
+      'hasLiked',
+      'hasDisliked',
+      'completionStatus',
+      'createdAt',
+    ],
   },
   fields: [
     {
@@ -16,11 +23,12 @@ export const UserChallengeProgression: CollectionConfig = {
       },
     },
     {
-      name: 'challengeSlug',
-      type: 'text',
+      name: 'challenge',
+      type: 'relationship',
+      relationTo: 'challenges',
       required: true,
       admin: {
-        description: 'Slug of the challenge',
+        description: 'Related challenge',
       },
     },
     {
@@ -44,15 +52,66 @@ export const UserChallengeProgression: CollectionConfig = {
       type: 'number',
       min: 1,
       max: 5,
+      required: false,
       admin: {
         description: 'User rating for this challenge (1-5)',
       },
     },
-  ],
-  indexes: [
     {
-      fields: ['userId', 'challengeSlug'],
-      unique: true,
+      name: 'completionStatus',
+      type: 'select',
+      required: true,
+      defaultValue: 'not_started',
+      options: [
+        {
+          label: 'Not Started',
+          value: 'not_started',
+        },
+        {
+          label: 'In Progress',
+          value: 'in_progress',
+        },
+        {
+          label: 'Completed',
+          value: 'completed',
+        },
+      ],
+      admin: {
+        description: 'Current completion status of the challenge',
+      },
+    },
+    {
+      name: 'isSolutionUnlocked',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Whether the solution has been unlocked by the user',
+      },
+    },
+    {
+      name: 'code',
+      type: 'array',
+      admin: {
+        description: 'Code submissions for this challenge',
+      },
+      fields: [
+        {
+          name: 'language',
+          type: 'text',
+          required: true,
+          admin: {
+            description: 'Programming language of the code',
+          },
+        },
+        {
+          name: 'content',
+          type: 'code',
+          required: true,
+          admin: {
+            description: 'The actual code content',
+          },
+        },
+      ],
     },
   ],
 }

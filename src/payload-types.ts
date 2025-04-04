@@ -1199,9 +1199,9 @@ export interface UserChallengeProgression {
    */
   userId: string;
   /**
-   * Slug of the challenge
+   * Related challenge
    */
-  challengeSlug: string;
+  challenge: number | Challenge;
   /**
    * Whether the user has liked this challenge
    */
@@ -1214,6 +1214,30 @@ export interface UserChallengeProgression {
    * User rating for this challenge (1-5)
    */
   rating?: number | null;
+  /**
+   * Current completion status of the challenge
+   */
+  completionStatus: 'not_started' | 'in_progress' | 'completed';
+  /**
+   * Whether the solution has been unlocked by the user
+   */
+  isSolutionUnlocked?: boolean | null;
+  /**
+   * Code submissions for this challenge
+   */
+  code?:
+    | {
+        /**
+         * Programming language of the code
+         */
+        language: string;
+        /**
+         * The actual code content
+         */
+        content: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1886,10 +1910,19 @@ export interface ChallengesSelect<T extends boolean = true> {
  */
 export interface UserChallengeProgressionSelect<T extends boolean = true> {
   userId?: T;
-  challengeSlug?: T;
+  challenge?: T;
   hasLiked?: T;
   hasDisliked?: T;
   rating?: T;
+  completionStatus?: T;
+  isSolutionUnlocked?: T;
+  code?:
+    | T
+    | {
+        language?: T;
+        content?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

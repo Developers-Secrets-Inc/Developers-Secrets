@@ -1,10 +1,10 @@
-import { DescriptionComments } from "../../components/comments/description-comments"
-import { Challenge as PayloadChallenge } from "@/payload-types"
+import { DescriptionComments } from '../../components/comments/description-comments'
+import { Challenge as PayloadChallenge } from '@/payload-types'
 
-export const ChallengeDescriptionFooter = ({
-    challenge
+export const ChallengeDescriptionFooter = async ({
+  challenge,
 }: {
-    challenge: PayloadChallenge
+  challenge: PayloadChallenge
 }) => {
   return (
     <div className="mt-8 border-t pt-6">

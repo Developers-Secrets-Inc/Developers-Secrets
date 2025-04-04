@@ -4,6 +4,8 @@ import { ChallengeDescriptionContent } from './components/challenge-description-
 import { ChallengeDescriptionFooter } from './components/challenge-description-footer'
 import { Suspense } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { getUser } from '@/core/user'
+import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 
 export const revalidate = 600 // 10 minutes in seconds
 
@@ -23,11 +25,15 @@ export default async function ChallengeDescriptionPage({
 
   try {
     const challenge = await getChallengeBySlug(challenge_slug)
+    const user = await getUser()
+
+    // Get the completion status for this challenge
+    const status = await getUserCompletionStatus(user.id, challenge.id)
 
     return (
       <div className="p-6">
         <Suspense fallback={<ChallengeDescriptionSkeleton />}>
-          <ChallengeHeader challenge={challenge} status="Not Attempted" />
+          <ChallengeHeader challenge={challenge} status={status} />
           <ChallengeDescriptionContent
             descriptionStatement={challenge.description?.statement || 'No description available.'}
           />

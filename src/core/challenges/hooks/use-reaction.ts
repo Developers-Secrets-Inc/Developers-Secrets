@@ -1,25 +1,40 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { toggleChallengeLike, toggleChallengeDislike } from '@/app/actions/challenge-actions'
-import { getUserChallengeProgression } from '@/core/user-progression'
+import {
+  toggleChallengeLike,
+  toggleChallengeDislike,
+} from '@/core/challenges/user-progression/actions'
+import { hasUserLikedChallenge, hasUserDislikedChallenge } from '@/core/challenges/user-progression'
 
-type ToggleAction = (state: boolean, slug: string) => Promise<{ success: boolean; error?: string }>
+type ToggleAction = (
+  state: boolean,
+  challengeId: number,
+) => Promise<{ success: boolean; error?: string }>
 
-export const useReaction = (challengeSlug: string, userId: string) => {
+export const useReaction = (challengeId: number, userId: string) => {
   const [liked, setLiked] = useState(false)
   const [disliked, setDisliked] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Récupérer les états initiaux côté client
   useEffect(() => {
     const fetchInitialStates = async () => {
-      const userProgress = await getUserChallengeProgression(userId, challengeSlug)
-      setLiked(userProgress?.hasLiked || false)
-      setDisliked(userProgress?.hasDisliked || false)
+      try {
+        const [isLiked, isDisliked] = await Promise.all([
+          hasUserLikedChallenge(userId, challengeId),
+          hasUserDislikedChallenge(userId, challengeId),
+        ])
+        setLiked(isLiked)
+        setDisliked(isDisliked)
+      } catch (error) {
+        console.error('Error fetching reaction states:', error)
+        // In case of error, we set both states to false and don't show error to user
+        setLiked(false)
+        setDisliked(false)
+      }
     }
     fetchInitialStates()
-  }, [challengeSlug, userId])
+  }, [challengeId, userId])
 
   const toggleReaction = async (
     reactionType: 'like' | 'dislike',
@@ -27,16 +42,13 @@ export const useReaction = (challengeSlug: string, userId: string) => {
     setState: (value: boolean) => void,
     toggleAction: ToggleAction,
   ) => {
-    // Mise à jour optimiste de l'état
     setState(newState)
 
     try {
-      // Appel de l'action serveur
-      await toggleAction(newState, challengeSlug)
+      await toggleAction(newState, challengeId)
     } catch (error) {
       console.error(`Error with ${reactionType} action:`, error)
       setError(`Error with ${reactionType} action: ${error}`)
-      // Revenir à l'état précédent en cas d'erreur
       setState(!newState)
     }
   }

@@ -1,6 +1,5 @@
 import { getChallengeBySlug } from '@/core/challenges'
 import { ChallengeHeader } from '../components/challenge-header'
-import { CommentsSection } from '../components/comments-section'
 import { OfficialSolutionComments } from '../components/comments/official-solution-comments'
 
 export default async function OfficialSolutionPage({

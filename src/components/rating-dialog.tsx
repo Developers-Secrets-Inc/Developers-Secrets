@@ -11,20 +11,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { rateChallenge } from '@/app/actions/challenge-actions'
+import { rateChallenge } from '@/core/challenges/user-progression/actions'
 import { toast } from 'sonner'
 
 interface RatingTextProps {
   text?: string
   className?: string
-  challengeSlug: string
+  challengeId: number
   initialRating?: number
 }
 
 export function RatingText({
   text = 'Rate this challenge',
   className = 'text-xs text-muted-foreground',
-  challengeSlug,
+  challengeId,
   initialRating,
 }: RatingTextProps) {
   const [open, setOpen] = useState(false)
@@ -40,7 +40,7 @@ export function RatingText({
       <RatingDialog
         open={open}
         setOpen={setOpen}
-        challengeSlug={challengeSlug}
+        challengeId={challengeId}
         initialRating={initialRating?.toString()}
       />
     </>
@@ -50,11 +50,11 @@ export function RatingText({
 interface RatingDialogProps {
   open: boolean
   setOpen: (open: boolean) => void
-  challengeSlug: string
+  challengeId: number
   initialRating?: string
 }
 
-function RatingDialog({ open, setOpen, challengeSlug, initialRating }: RatingDialogProps) {
+function RatingDialog({ open, setOpen, challengeId, initialRating }: RatingDialogProps) {
   const id = useId()
   const [rating, setRating] = useState<string | undefined>(initialRating)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -65,7 +65,7 @@ function RatingDialog({ open, setOpen, challengeSlug, initialRating }: RatingDia
     setIsSubmitting(true)
     try {
       const numericRating = parseInt(rating, 10)
-      const result = await rateChallenge(challengeSlug, numericRating)
+      const result = await rateChallenge(challengeId, numericRating)
 
       if (result.success) {
         toast.success('Thank you for rating this challenge!')

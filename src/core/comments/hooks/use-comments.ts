@@ -10,10 +10,8 @@ let tempIdCounter = -1
 
 export const useComments = (context: CommentContext, userId?: string) => {
   const queryClient = useQueryClient()
-  const [page, setPage] = useState(1)
-  const COMMENTS_PER_PAGE = 10
 
-  const queryKey = ['comments', context.type, context.parentId, userId, page] as const
+  const queryKey = ['comments', context.type, context.parentId, userId] as const
 
   const {
     data,
@@ -24,8 +22,6 @@ export const useComments = (context: CommentContext, userId?: string) => {
     queryFn: () =>
       getComments({
         context,
-        page,
-        limit: COMMENTS_PER_PAGE,
         userId,
       }),
     staleTime: 60000,
@@ -74,7 +70,6 @@ export const useComments = (context: CommentContext, userId?: string) => {
 
       queryClient.setQueryData<CommentResponse>(queryKey, (old) => ({
         comments: [tempComment, ...(old?.comments || [])],
-        totalPages: old?.totalPages ?? 1,
         totalComments: (old?.totalComments ?? 0) + 1,
       }))
 
@@ -101,7 +96,7 @@ export const useComments = (context: CommentContext, userId?: string) => {
       const previousData = queryClient.getQueryData<CommentResponse>(queryKey)
 
       queryClient.setQueryData<CommentResponse>(queryKey, (old) => {
-        if (!old) return { comments: [], totalPages: 1, totalComments: 0 }
+        if (!old) return { comments: [], totalComments: 0 }
 
         // Fonction pour supprimer une réponse d'un commentaire
         const removeReplyFromComment = (comment: Comment): Comment => ({
@@ -122,14 +117,12 @@ export const useComments = (context: CommentContext, userId?: string) => {
           // Supprimer le commentaire principal
           return {
             comments: old.comments.filter((comment) => comment.id !== commentId),
-            totalPages: old.totalPages,
             totalComments: Math.max(0, old.totalComments - 1),
           }
         } else {
           // Supprimer la réponse du commentaire parent
           return {
             comments: old.comments.map((comment) => removeReplyFromComment(comment)),
-            totalPages: old.totalPages,
             totalComments: Math.max(0, old.totalComments - 1),
           }
         }
@@ -187,7 +180,6 @@ export const useComments = (context: CommentContext, userId?: string) => {
                 }
               : comment,
           ) ?? [],
-        totalPages: old?.totalPages ?? 1,
         totalComments: old?.totalComments ?? 0,
       }))
 
@@ -212,7 +204,7 @@ export const useComments = (context: CommentContext, userId?: string) => {
       const previousData = queryClient.getQueryData<CommentResponse>(queryKey)
 
       queryClient.setQueryData<CommentResponse>(queryKey, (old) => {
-        if (!old) return { comments: [], totalPages: 1, totalComments: 0 }
+        if (!old) return { comments: [], totalComments: 0 }
 
         return {
           ...old,
@@ -243,10 +235,7 @@ export const useComments = (context: CommentContext, userId?: string) => {
 
   return {
     comments: commentsWithAuthors,
-    totalPages: data?.totalPages ?? 1,
     totalComments: data?.totalComments ?? 0,
-    currentPage: page,
-    setPage,
     isLoading: isLoadingComments || isLoadingAuthors,
     isFetching,
     addComment,

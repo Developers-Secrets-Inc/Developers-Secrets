@@ -28,47 +28,28 @@ export const createComment = async (authorId: string, content: string): Promise<
 
 export const getComments = async ({
   context,
-  page = 1,
-  limit = 10,
   userId,
 }: GetCommentsOptions): Promise<CommentResponse> => {
-  const payload = await getPayload({ config })
+  const comments = await context.getComments(context.parentId)
 
-  // Récupérer les commentaires existants selon le contexte
-  const existingComments = await context.getComments(context.parentId)
+  // Trier les commentaires par date de création (du plus récent au plus ancien)
+  const sortedComments = comments.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  )
 
-  // Récupérer les commentaires de l'utilisateur en premier
-  const userComments = userId
-    ? await payload.find({
-        collection: 'comments',
-        where: {
-          and: [
-            { authorId: { equals: userId } },
-            { id: { in: existingComments.map((c) => c.id) } },
-          ],
-        },
-        sort: '-createdAt',
-      })
-    : { docs: [] }
-
-  // Puis les autres commentaires
-  const otherComments = await payload.find({
-    collection: 'comments',
-    where: {
-      and: [
-        { id: { in: existingComments.map((c) => c.id) } },
-        ...(userId ? [{ authorId: { not_equals: userId } }] : []),
-      ],
-    },
-    page,
-    limit: userId ? Math.max(0, limit - userComments.docs.length) : limit,
-    sort: '-createdAt',
-  })
+  // Si un userId est fourni, mettre les commentaires de l'utilisateur en premier
+  if (userId) {
+    const userComments = sortedComments.filter((comment) => comment.authorId === userId)
+    const otherComments = sortedComments.filter((comment) => comment.authorId !== userId)
+    return {
+      comments: [...userComments, ...otherComments],
+      totalComments: comments.length,
+    }
+  }
 
   return {
-    comments: [...userComments.docs, ...otherComments.docs].slice(0, limit),
-    totalPages: Math.ceil(otherComments.totalDocs / limit),
-    totalComments: otherComments.totalDocs + userComments.docs.length,
+    comments: sortedComments,
+    totalComments: comments.length,
   }
 }
 

@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Loader2, Play, Send } from 'lucide-react'
+import { PyodideLoadingStatus } from './pyodide-loading-status'
 
 type ProgrammingLanguage = {
   value: string
@@ -28,26 +29,6 @@ type EditorHeaderProps = {
   pyodideStatus: 'loading' | 'loaded' | 'error' | 'uninitialized'
 }
 
-const PyodideLoadingStatus = ({
-  pyodideStatus,
-}: {
-  pyodideStatus: 'loading' | 'loaded' | 'error' | 'uninitialized'
-}) => {
-  return (
-    <div className="text-xs flex items-center">
-      {pyodideStatus === 'loading' && (
-        <>
-          <Loader2 size={12} className="animate-spin mr-1" />
-          <span className="text-yellow-500">Loading Python...</span>
-        </>
-      )}
-      {pyodideStatus === 'error' && <span className="text-red-500">Python load failed</span>}
-      {pyodideStatus === 'uninitialized' && (
-        <span className="text-gray-500">Python not initialized</span>
-      )}
-    </div>
-  )
-}
 
 const LanguageSelector = ({
   currentLanguage,

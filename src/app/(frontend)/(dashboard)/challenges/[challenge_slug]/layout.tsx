@@ -1,4 +1,3 @@
-import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
 import { RatingText } from '@/components/rating-dialog'
 import { IconSidebar } from '@/components/sidebars/home-sidebar/icon-sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -8,15 +7,15 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { getChallengeBySlug, getNextChallenge, getPreviousChallenge } from '@/core/challenges'
 import { ChallengeNavigationButtons } from '@/core/challenges/components/challenge-navigation-buttons'
 import { ReactionButtons } from '@/core/challenges/components/reaction-buttons'
-import { handleSubmission } from '@/core/challenges/submissions/actions'
-import { CodeEditor } from '@/core/compiler/components/editor'
+import { getUserRating } from '@/core/challenges/user-progression'
 import { getUser } from '@/core/user'
-import { getUserChallengeProgression } from '@/core/user-progression'
 import { Eclipse } from 'lucide-react'
 import Link from 'next/link'
-import { Suspense } from 'react'
-import { ChallengeNavigation } from './components/challenge-navigation'
 import { ChallengeEditor } from './components/challenge-editor'
+import { ChallengeNavigation } from './components/challenge-navigation'
+import { ChallengeContent } from './components/content/challenge-content'
+import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
+import { Suspense } from 'react'
 
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
@@ -116,7 +115,7 @@ export default async function ChallengeLayout({
 
   // Get user info
   let userId = ''
-  let userRating: number | undefined = undefined
+  let userRating: number | null | undefined = undefined
 
   try {
     const user = await getUser()
@@ -125,10 +124,7 @@ export default async function ChallengeLayout({
     // Fetch user progression if we have a user ID
     if (userId) {
       try {
-        const userProgress = await getUserChallengeProgression(userId, challenge_slug)
-        if (userProgress) {
-          userRating = userProgress.rating ?? undefined
-        }
+        userRating = await getUserRating(userId, challenge.id)
       } catch (progressError) {
         console.error('Error fetching user progression:', progressError)
         // Continue with default values
@@ -159,14 +155,17 @@ export default async function ChallengeLayout({
                     <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
                       <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
                     </div>
-                    <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)]">
+                    <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="flex-1 flex items-center justify-between">
-                          <ReactionButtons challengeSlug={challenge_slug} userId={userId} />
-                          <RatingText challengeSlug={challenge_slug} initialRating={userRating} />
+                        <div className="flex items-center gap-3 mb-3">
+                          <ReactionButtons challengeId={challenge.id} userId={userId} />
+                          <RatingText
+                            challengeId={challenge.id}
+                            initialRating={userRating ?? undefined}
+                          />
                         </div>
                       </div>
-                      <AIAssistantDialog challengeSlug={challenge_slug} />
+                      <AIAssistantDialog challengeSlug={challenge.slug} />
                     </div>
                   </div>
                 </ResizablePanel>

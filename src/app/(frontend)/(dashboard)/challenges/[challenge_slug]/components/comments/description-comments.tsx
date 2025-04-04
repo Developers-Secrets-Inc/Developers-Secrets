@@ -1,7 +1,19 @@
 import { Challenge } from '@/payload-types'
 import { CommentsSection } from '@/core/comments/components/comments-section'
 import { commentContexts } from '@/core/comments/types'
+import { getUser } from '@/core/user'
 
-export const DescriptionComments = ({ challenge }: { challenge: Challenge }) => {
-  return <CommentsSection context={commentContexts.challengeDescription(challenge.id)} />
+export const DescriptionComments = async ({ challenge }: { challenge: Challenge }) => {
+  let userId = ''
+
+  try {
+    const user = await getUser()
+    userId = user.id
+  } catch (error) {
+    console.error('Error fetching user for comments:', error)
+  }
+
+  return (
+    <CommentsSection context={commentContexts.challengeDescription(challenge.id)} userId={userId} />
+  )
 }

@@ -123,7 +123,7 @@ export const addDescriptionComment = async (
   const payload = await getPayload({ config })
 
   // First, get the challenge to access existing comments
-  const challenge = await getPayloadChallenge(challengeSlug)
+  const challenge = await getChallengeBySlug(challengeSlug)
 
   // Get existing comments or initialize an empty array if none exist
   const existingComments = challenge.description?.comments || []
@@ -144,17 +144,13 @@ export const addDescriptionComment = async (
   })
 }
 
-export const addLikeToChallenge = async (slug: string): Promise<void> => {
+export const addLikeToChallenge = async (challengeId: number): Promise<void> => {
   const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(slug)
+  const challenge = await getPayloadChallenge(challengeId)
   const currentLikes = challenge.engagement?.likes || 0 // Get current likes
   await payload.update({
     collection: 'challenges',
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
+    id: challenge.id,
     data: {
       engagement: {
         likes: currentLikes + 1, // Increment likes by 1
@@ -163,17 +159,13 @@ export const addLikeToChallenge = async (slug: string): Promise<void> => {
   })
 }
 
-export const removeLikeFromChallenge = async (slug: string): Promise<void> => {
+export const removeLikeFromChallenge = async (challengeId: number): Promise<void> => {
   const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(slug)
+  const challenge = await getPayloadChallenge(challengeId)
   const currentLikes = challenge.engagement?.likes || 0 // Get current likes
   await payload.update({
     collection: 'challenges',
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
+    id: challenge.id,
     data: {
       engagement: {
         likes: Math.max(0, currentLikes - 1), // Decrement likes by 1, ensuring it doesn't go below 0
@@ -182,17 +174,13 @@ export const removeLikeFromChallenge = async (slug: string): Promise<void> => {
   })
 }
 
-export const addDislikeToChallenge = async (slug: string): Promise<void> => {
+export const addDislikeToChallenge = async (challengeId: number): Promise<void> => {
   const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(slug)
+  const challenge = await getPayloadChallenge(challengeId)
   const currentDislikes = challenge.engagement?.dislikes || 0
   await payload.update({
     collection: 'challenges',
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
+    id: challenge.id,
     data: {
       engagement: {
         dislikes: currentDislikes + 1,
@@ -201,17 +189,13 @@ export const addDislikeToChallenge = async (slug: string): Promise<void> => {
   })
 }
 
-export const removeDislikeFromChallenge = async (slug: string): Promise<void> => {
+export const removeDislikeFromChallenge = async (challengeId: number): Promise<void> => {
   const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(slug)
+  const challenge = await getPayloadChallenge(challengeId)
   const currentDislikes = challenge.engagement?.dislikes || 0
   await payload.update({
     collection: 'challenges',
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
+    id: challenge.id,
     data: {
       engagement: {
         dislikes: Math.max(0, currentDislikes - 1),
@@ -220,20 +204,16 @@ export const removeDislikeFromChallenge = async (slug: string): Promise<void> =>
   })
 }
 
-export const addRatingToChallenge = async (slug: string, rating: number): Promise<void> => {
+export const addRatingToChallenge = async (challengeId: number, rating: number): Promise<void> => {
   const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(slug)
+  const challenge = await getPayloadChallenge(challengeId)
 
   const currentTotal = challenge.ratings?.total || 0
   const currentCount = challenge.ratings?.count || 0
 
   await payload.update({
     collection: 'challenges',
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
+    id: challenge.id,
     data: {
       ratings: {
         total: currentTotal + rating,
@@ -245,22 +225,18 @@ export const addRatingToChallenge = async (slug: string, rating: number): Promis
 }
 
 export const updateRatingForChallenge = async (
-  slug: string,
+  challengeId: number,
   oldRating: number,
   newRating: number,
 ): Promise<void> => {
   const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(slug)
+  const challenge = await getPayloadChallenge(challengeId)
 
   const currentTotal = challenge.ratings?.total || 0
 
   await payload.update({
     collection: 'challenges',
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
+    id: challenge.id,
     data: {
       ratings: {
         total: currentTotal - oldRating + newRating,
@@ -272,10 +248,7 @@ export const updateRatingForChallenge = async (
   })
 }
 
-
-
 // ===============================
-
 
 export const getAllChallenges = async (): Promise<PayloadChallenge[]> => {
   const payload = await getPayload({ config })

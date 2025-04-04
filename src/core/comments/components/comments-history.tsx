@@ -1,10 +1,8 @@
 'use client'
 
+import { Comment } from '@/payload-types'
 import { User } from '@/types/user'
 import { CommentThread } from './comment-thread'
-import { Comment } from '@/payload-types'
-import { UserInformations } from '@/payload-types'
-import { UserConnectionStats } from '@/payload-types'
 
 interface CommentsHistoryProps {
   comments: Array<{

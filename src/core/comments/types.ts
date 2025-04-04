@@ -88,14 +88,11 @@ export interface CommentContext {
 
 export interface GetCommentsOptions {
   context: CommentContext
-  page: number
-  limit: number
   userId?: string
 }
 
 export interface CommentResponse {
   comments: Comment[]
-  totalPages: number
   totalComments: number
 }
 

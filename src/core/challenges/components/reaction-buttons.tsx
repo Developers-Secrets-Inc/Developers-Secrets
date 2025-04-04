@@ -7,17 +7,17 @@ import { LikeButton } from './like-button'
 /**
  * Affiche les boutons de réaction (like/dislike) pour un défi.
  *
- * @param {string} challengeSlug - Le slug du défi.
+ * @param {number} challengeId - L'ID du défi.
  * @param {string} userId - L'ID de l'utilisateur.
  */
 export const ReactionButtons = ({
-  challengeSlug,
+  challengeId,
   userId,
 }: {
-  challengeSlug: string
+  challengeId: number
   userId: string
 }) => {
-  const {state, actions, error} = useReaction(challengeSlug, userId)
+  const {state, actions, error} = useReaction(challengeId, userId)
 
   return (
     <div className="flex flex-col gap-2">

@@ -1,35 +1,26 @@
 'use client'
 
-import { useComments } from '../hooks/use-comments'
 import { CommentContext } from '../types'
-import { CommentsHistory } from './comments-history'
 import { NewCommentForm } from './new-comment-form'
-import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
-import { useUser } from '@/core/user/hooks/use-user'
+import { CommentsHistory } from './comments-history'
+import { useComments } from '../hooks/use-comments'
+import { cn } from '@/lib/utils'
 
 interface CommentsSectionProps {
   context: CommentContext
+  userId?: string
+  className?: string
 }
 
-export const CommentsSection = ({ context }: CommentsSectionProps) => {
-  const { user } = useUser()
-  const {
-    comments,
-    totalPages,
-    currentPage,
-    setPage,
-    isLoading,
-    isFetching,
-    addComment,
-    deleteComment,
-    addReply,
-    editComment,
-  } = useComments(context, user?.id)
+export const CommentsSection = ({ context, userId, className }: CommentsSectionProps) => {
+  const { comments, totalComments, isLoading, addComment, deleteComment, addReply, editComment } =
+    useComments(context, userId)
 
-  const handleCommentSubmit = async (content: string) => {
-    if (!user) return
-    await addComment.mutateAsync({ content, authorId: user.id })
+  console.log('comments', comments)
+
+  const handleSubmit = async (content: string) => {
+    if (!userId) return
+    await addComment.mutateAsync({ content, authorId: userId })
   }
 
   const handleDelete = async (commentId: number) => {
@@ -49,66 +40,20 @@ export const CommentsSection = ({ context }: CommentsSectionProps) => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="mb-6">
-        <NewCommentForm onSubmit={handleCommentSubmit} />
-      </div>
+    <div className={cn('flex flex-col gap-4', className)}>
+      <NewCommentForm onSubmit={handleSubmit} />
 
       {isLoading ? (
         <div className="flex justify-center">
-          <span className="loading loading-spinner">Loading...</span>
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         </div>
       ) : (
-        <>
-          <CommentsHistory
-            comments={comments}
-            onDelete={handleDelete}
-            onAddReply={handleAddReply}
-            onEdit={handleEdit}
-          />
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage(1)}
-                disabled={currentPage === 1 || isFetching}
-              >
-                <ChevronsLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage(currentPage - 1)}
-                disabled={currentPage === 1 || isFetching}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-
-              <span className="text-sm">
-                Page {currentPage} sur {totalPages}
-              </span>
-
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage(currentPage + 1)}
-                disabled={currentPage === totalPages || isFetching}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setPage(totalPages)}
-                disabled={currentPage === totalPages || isFetching}
-              >
-                <ChevronsRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </>
+        <CommentsHistory
+          comments={comments}
+          onDelete={handleDelete}
+          onAddReply={handleAddReply}
+          onEdit={handleEdit}
+        />
       )}
     </div>
   )
