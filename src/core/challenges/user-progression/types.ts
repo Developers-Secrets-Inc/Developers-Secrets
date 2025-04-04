@@ -50,8 +50,6 @@ const UserProgressionSchema = z.object({
 export type UserProgression = z.infer<typeof UserProgressionSchema>
 
 export const validateChallengeId = (challengeId: number): ChallengeId => {
-  console.log('challengeId', challengeId)
-
   const result = ChallengeIdSchema.safeParse(challengeId)
   if (!result.success) {
     throw new Error('Invalid challenge ID')

@@ -50,15 +50,20 @@ export default async function SolutionsPage({
   const challenge = await getChallengeBySlug(challenge_slug)
   const hasSolutions = solutions && solutions.length > 0
 
+  if (!hasSolutions) {
+    return (
+      <div className="p-6">
+        <CreateSolutionBanner challengeId={challenge.id} />
+        <NoSolutionsAvailable />
+      </div>
+    )
+  }
+
   return (
     <div className="p-6">
       <CreateSolutionBanner challengeId={challenge.id} />
       <Suspense fallback={<SolutionsLoading />}>
-        {hasSolutions ? (
-          <CommunitySolutions challengeSlug={challenge_slug} />
-        ) : (
-          <NoSolutionsAvailable />
-        )}
+        <CommunitySolutions challengeSlug={challenge_slug} />
       </Suspense>
     </div>
   )
