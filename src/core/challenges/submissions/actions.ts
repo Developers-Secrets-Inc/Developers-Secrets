@@ -9,6 +9,20 @@ import {
   AcceptedSubmission,
 } from './index.client'
 
+type SubmissionData = {
+  challenge: number
+  authorId: string
+  testsPassed: number
+  testsTotal: number
+  code: { language: string; content: string }
+  submissionType: 'accepted' | 'runtimeError' | 'wrongAnswer' | 'timeLimitExceeded'
+  error?: string
+  lastExpectedOutput?: { output: string }[]
+  input?: string
+  output?: string
+  expectedOutput?: string
+}
+
 export async function handleSubmission(
   submission:
     | AcceptedSubmission
@@ -20,19 +34,7 @@ export async function handleSubmission(
 ) {
   const payload = await getPayload({ config })
 
-  const submissionData: {
-    challenge: number
-    authorId: string
-    testsPassed: number
-    testsTotal: number
-    code: { language: string; content: string }
-    submissionType: 'accepted' | 'runtimeError' | 'wrongAnswer' | 'timeLimitExceeded'
-    error?: string
-    lastExpectedOutput?: { output: string }[]
-    input?: string
-    output?: string
-    expectedOutput?: string
-  } = {
+  const submissionData: SubmissionData = {
     challenge: challengeId,
     authorId,
     testsPassed: submission.testsPassed,

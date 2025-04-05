@@ -401,7 +401,7 @@ export function CodeEditor({
   // Render
   // ==============================
   return (
-    <div className="h-full flex flex-col border overflow-hidden">
+    <div className="h-full flex flex-col border-t overflow-hidden">
       {/* Editor header */}
       <EditorHeader
         currentLanguage={currentLanguage}

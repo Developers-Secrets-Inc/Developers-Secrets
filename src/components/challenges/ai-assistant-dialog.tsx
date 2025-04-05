@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { useChat } from '@ai-sdk/react'
 import { Button } from '@/components/ui/button'
 import { MessageSquareText, Bot, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Markdown } from '@/components/markdown'
 
 interface AIAssistantDialogProps {
   challengeSlug: string
@@ -13,6 +15,7 @@ interface AIAssistantDialogProps {
 
 export function AIAssistantDialog({ challengeSlug }: AIAssistantDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const { messages, input, handleInputChange, handleSubmit } = useChat()
 
   return (
     <div className="relative">
@@ -51,19 +54,63 @@ export function AIAssistantDialog({ challengeSlug }: AIAssistantDialogProps) {
           </CardHeader>
 
           <CardContent className="flex-1 overflow-y-auto p-4">
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-center text-muted-foreground">
-              <Bot size={48} />
-              <p>Start a conversation with Pearl</p>
-            </div>
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full gap-4 text-center text-muted-foreground">
+                <Bot size={48} />
+                <p>Start a conversation with Pearl</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      'rounded-lg p-4',
+                      message.role === 'user'
+                        ? 'bg-primary text-primary-foreground ml-8'
+                        : 'bg-muted mr-8',
+                    )}
+                  >
+                    {message.parts.map((part, i) => {
+                      switch (part.type) {
+                        case 'text':
+                          return message.role === 'user' ? (
+                            <div key={`${message.id}-${i}`} className="whitespace-pre-wrap">
+                              {part.text}
+                            </div>
+                          ) : (
+                            <Markdown
+                              key={`${message.id}-${i}`}
+                              className={cn(
+                                'prose prose-sm dark:prose-invert max-w-none',
+                                'prose-p:leading-relaxed prose-pre:p-0',
+                                '[&_p:first-child]:mt-0 [&_p:last-child]:mb-0',
+                              )}
+                            >
+                              {part.text}
+                            </Markdown>
+                          )
+                      }
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="p-4 border-t">
-            <div className="flex gap-2 w-full">
-              <Input type="text" placeholder="Type your message..." className="flex-1" disabled />
-              <Button variant="default" disabled>
+            <form onSubmit={handleSubmit} className="flex gap-2 w-full">
+              <Input
+                type="text"
+                placeholder="Type your message..."
+                className="flex-1"
+                value={input}
+                onChange={handleInputChange}
+              />
+              <Button type="submit" variant="default">
                 Send
               </Button>
-            </div>
+            </form>
           </CardFooter>
         </Card>
       </div>

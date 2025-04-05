@@ -15,7 +15,7 @@ export default async function SubmissionsPage({
 
   const submissionsData = await getSubmissions(challenge.id, user.id)
 
-  const submissions = submissionsData.map((submission) => ({
+  const initialSubmissions = submissionsData.map((submission) => ({
     id: submission.id.toString(),
     submissionType: submission.submissionType,
     testsPassed: submission.testsPassed,
@@ -27,7 +27,11 @@ export default async function SubmissionsPage({
     <div className="p-6">
       <div>
         <h3 className="text-lg font-semibold mb-3">Your Submissions</h3>
-        <SubmissionsList submissions={submissions} />
+        <SubmissionsList
+          challengeId={challenge.id}
+          userId={user.id}
+          initialSubmissions={initialSubmissions}
+        />
       </div>
     </div>
   )

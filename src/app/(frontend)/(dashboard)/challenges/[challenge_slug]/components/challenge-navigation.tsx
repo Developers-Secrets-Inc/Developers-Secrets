@@ -244,7 +244,7 @@ export function ChallengeNavigation({
 
   return (
     <>
-      <div className="border-b">
+      <div>
         <div className="flex justify-start w-full rounded-none bg-background">
           {tabs.map((tab) => (
             <NavigationTab

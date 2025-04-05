@@ -32,7 +32,7 @@ const ChallengeLayoutHeader = ({
   nextChallengeSlug: string
 }) => {
   return (
-    <header className="flex-none border-b py-3 px-4 bg-background">
+    <header className="flex-none py-3 px-4 bg-background">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-4">
           <Link href="/" prefetch={true}>
@@ -160,14 +160,12 @@ export default async function ChallengeLayout({
                       <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
                     </div>
                     <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="flex items-center gap-3 mb-3">
-                          <ReactionButtons challengeId={challenge.id} userId={userId} />
-                          <RatingText
-                            challengeId={challenge.id}
-                            initialRating={userRating ?? undefined}
-                          />
-                        </div>
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <ReactionButtons challengeId={challenge.id} userId={userId} />
+                        <RatingText
+                          challengeId={challenge.id}
+                          initialRating={userRating ?? undefined}
+                        />
                       </div>
                       <AIAssistantDialog challengeSlug={challenge.slug} />
                     </div>
