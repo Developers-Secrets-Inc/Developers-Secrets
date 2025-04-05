@@ -34,6 +34,7 @@ function useNavigationState(
   initialState: Partial<NavigationState> = {},
   challengeId: number,
   userId: string,
+  challengeSlug: string,
 ) {
   const [state, setState] = useState<NavigationState>({
     showConfirmDialog: false,
@@ -62,7 +63,7 @@ function useNavigationState(
     }
 
     checkSolutionUnlock()
-  }, [challengeId, userId])
+  }, [challengeId, userId, challengeSlug])
 
   const setShowConfirmDialog = (show: boolean) =>
     setState((prev) => ({ ...prev, showConfirmDialog: show }))
@@ -70,8 +71,7 @@ function useNavigationState(
   const setPendingPath = (path: string | null) =>
     setState((prev) => ({ ...prev, pendingPath: path }))
 
-  const unlockPath = async (path: string, challengeSlug: string) => {
-    // Optimistic update
+  const unlockPath = async (path: string) => {
     setState((prev) => ({
       ...prev,
       unlockedPaths: [
@@ -85,19 +85,8 @@ function useNavigationState(
     try {
       await setUserIsSolutionUnlocked(userId, challengeId, true)
     } catch (error) {
-      // Rollback on error
       console.error('Failed to unlock solution:', error)
-      setState((prev) => ({
-        ...prev,
-        unlockedPaths: prev.unlockedPaths.filter(
-          (p) =>
-            ![
-              path,
-              `/challenges/${challengeSlug}/official-solution`,
-              `/challenges/${challengeSlug}/solutions`,
-            ].includes(p),
-        ),
-      }))
+      // Optionally handle error state here
     }
   }
 
@@ -222,7 +211,7 @@ export function ChallengeNavigation({
     setPendingPath,
     unlockPath,
     isPathUnlocked,
-  } = useNavigationState({}, challengeId, userId)
+  } = useNavigationState({}, challengeId, userId, challengeSlug)
 
   const tabs = useTabsConfiguration(challengeSlug, pathname, unlockedPaths)
 
@@ -243,12 +232,13 @@ export function ChallengeNavigation({
     router.push(href)
   }
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (pendingPath) {
-      await unlockPath(pendingPath, challengeSlug)
-      router.push(pendingPath)
+      const pathToNavigate = pendingPath
       setShowConfirmDialog(false)
       setPendingPath(null)
+      unlockPath(pathToNavigate)
+      router.push(pathToNavigate)
     }
   }
 
