@@ -64,15 +64,19 @@ export function AIAssistantDialog({ challengeSlug }: AIAssistantDialogProps) {
                     <p>Start a conversation with Pearl</p>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-4">
-                    {messages.map((message) => (
-                      <div
+                  <div className="flex flex-col gap-2">
+                    {messages.map((message, index) => (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: 'spring', stiffness: 500, damping: 50 }}
                         key={message.id}
                         className={cn(
-                          'rounded-lg p-4',
+                          'rounded-2xl py-2 px-4 shadow-sm max-w-[85%]',
                           message.role === 'user'
-                            ? 'bg-primary text-primary-foreground ml-8'
-                            : 'bg-muted mr-8',
+                            ? 'bg-primary text-primary-foreground ml-auto rounded-br-sm'
+                            : 'bg-muted mr-auto rounded-bl-sm border border-border/50',
+                          index === 0 ? 'mt-0' : 'mt-1',
                         )}
                       >
                         {message.parts.map((part, i) => {
@@ -89,6 +93,8 @@ export function AIAssistantDialog({ challengeSlug }: AIAssistantDialogProps) {
                                     'prose prose-sm dark:prose-invert max-w-none',
                                     'prose-p:leading-relaxed prose-pre:p-0',
                                     '[&_p:first-child]:mt-0 [&_p:last-child]:mb-0',
+                                    'prose-code:bg-muted-foreground/20 prose-code:rounded prose-code:px-1 prose-code:py-0.5',
+                                    'prose-a:text-primary prose-a:no-underline hover:prose-a:underline',
                                   )}
                                 >
                                   {part.text}
@@ -96,7 +102,7 @@ export function AIAssistantDialog({ challengeSlug }: AIAssistantDialogProps) {
                               )
                           }
                         })}
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 )}

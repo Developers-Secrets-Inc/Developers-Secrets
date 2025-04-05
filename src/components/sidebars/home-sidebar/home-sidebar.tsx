@@ -139,7 +139,7 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
             </SidebarMenuItem>
             <SidebarMenuItem key="challenges">
               <SidebarMenuButton asChild>
-                <Link href="#">
+                <Link href="/challenges">
                   <Trophy className="size-4" />
                   <span>Challenges</span>
                 </Link>
