@@ -1,4 +1,7 @@
+'use server'
+
 import { setUserCompletionStatus } from './user-progression'
+import { revalidatePath } from 'next/cache'
 
 /**
  * Handles all the logic when a challenge is completed by a user.
@@ -9,10 +12,10 @@ export const handleChallengeCompletion = async (challengeId: number, userId: str
   try {
     // Mark the challenge as completed
     await setUserCompletionStatus(userId, challengeId, 'completed')
-
+    revalidatePath(`/challenges/${challengeId}`)
     // TODO: Future implementations
     // - Add experience points
-    // - Update user skills
+    // - Update user skills 
     // - Track statistics
     // - Unlock achievements
     // etc.

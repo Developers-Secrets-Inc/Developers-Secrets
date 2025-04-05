@@ -73,6 +73,17 @@ export const getUserSolutionsByChallengeId = async (
   return existingSolution || null
 }
 
+export const hasUserSolution = async (challengeId: number, userId: string): Promise<boolean> => {
+  const userSolutions = await getUserSolutions()
+
+  return userSolutions.some(
+    (solution) =>
+      typeof solution.challenge !== 'number' &&
+      solution.challenge.id === challengeId &&
+      solution.authorId === userId,
+  )
+}
+
 export const getUserSolutionById = async (id: string): Promise<UserSolution | null> => {
   const payload = await getPayload({ config })
 

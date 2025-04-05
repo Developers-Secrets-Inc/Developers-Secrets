@@ -16,6 +16,8 @@ import {
   setUserLike,
   setUserDislike,
   setUserRating,
+  getUserIsSolutionUnlocked,
+  getUserCompletionStatus,
 } from '@/core/challenges/user-progression'
 
 /**
@@ -147,4 +149,14 @@ export async function rateChallenge(challengeId: number, rating: number) {
   } catch (error) {
     return { success: false, error: (error as Error).message }
   }
+}
+
+
+
+
+export const isSolutionUnlocked = async (userId: string, challengeId: number) => {
+  const solutionUnlocked = await getUserIsSolutionUnlocked(userId, challengeId)
+  const challengeStatus = await getUserCompletionStatus(userId, challengeId)
+
+  return solutionUnlocked || challengeStatus === 'completed'
 }

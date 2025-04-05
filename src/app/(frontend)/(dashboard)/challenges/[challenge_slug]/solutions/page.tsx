@@ -4,6 +4,7 @@ import { CreateSolutionBanner } from '@/core/challenges/users-solutions/componen
 import { getAllSolutions } from '@/lib/challenge-utils'
 import { getChallengeBySlug } from '@/core/challenges'
 import { Suspense } from 'react'
+import { getUser } from '@/core/user'
 
 // Ajoutons la configuration ISR pour cette page
 export const revalidate = 600 // 10 minutes en secondes
@@ -49,11 +50,12 @@ export default async function SolutionsPage({
   const solutions = await getAllSolutions(challenge_slug)
   const challenge = await getChallengeBySlug(challenge_slug)
   const hasSolutions = solutions && solutions.length > 0
+  const user = await getUser()
 
   if (!hasSolutions) {
     return (
       <div className="p-6">
-        <CreateSolutionBanner challengeId={challenge.id} />
+        <CreateSolutionBanner challengeId={challenge.id} userId={user.id} />
         <NoSolutionsAvailable />
       </div>
     )
@@ -61,7 +63,7 @@ export default async function SolutionsPage({
 
   return (
     <div className="p-6">
-      <CreateSolutionBanner challengeId={challenge.id} />
+      <CreateSolutionBanner challengeId={challenge.id} userId={user.id} />
       <Suspense fallback={<SolutionsLoading />}>
         <CommunitySolutions challengeSlug={challenge_slug} />
       </Suspense>

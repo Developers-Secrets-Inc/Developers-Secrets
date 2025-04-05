@@ -1,11 +1,10 @@
 import { Button, ButtonProps } from '@/components/ui/button'
 import { Tooltip, TooltipTrigger } from '@/components/ui/tooltip'
-import { ArrowLeft, ArrowRight, Shuffle } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Shuffle, List } from 'lucide-react'
 import Link from 'next/link'
 import { ReactNode } from 'react'
 import { getNextChallenge, getPreviousChallenge, getRandomChallenge } from '..'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
-
 
 interface NavigationButtonProps extends ButtonProps {
   tooltipText: string
@@ -23,6 +22,22 @@ const NavigationButton = ({ tooltipText, children, ...props }: NavigationButtonP
   )
 }
 
+const ListChallengesButton = () => {
+  return (
+    <NavigationButton
+      variant="outline"
+      className="rounded-r-none border-r-0 px-3"
+      aria-label="Back to challenges"
+      tooltipText="Back to challenges"
+      asChild
+    >
+      <Link href="/challenges">
+        <List size={16} />
+      </Link>
+    </NavigationButton>
+  )
+}
+
 const PreviousChallengeButton = async ({
   currentChallengeSlug,
 }: {
@@ -33,7 +48,7 @@ const PreviousChallengeButton = async ({
   return (
     <NavigationButton
       variant="outline"
-      className="rounded-r-none border-r-0 px-3"
+      className="rounded-none border-x-0 px-3"
       aria-label="Previous challenge"
       tooltipText="Previous challenge"
       asChild
@@ -88,6 +103,7 @@ export const ChallengeNavigationButtons = ({
 }) => {
   return (
     <>
+      <ListChallengesButton />
       <PreviousChallengeButton currentChallengeSlug={currentChallengeSlug} />
       <RandomChallengeButton />
       <NextChallengeButton currentChallengeSlug={currentChallengeSlug} />
