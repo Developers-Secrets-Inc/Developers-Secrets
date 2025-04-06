@@ -86,6 +86,7 @@ export interface Config {
     comments: Comment;
     'user-solutions': UserSolution;
     'challenge-submissions': ChallengeSubmission;
+    notifications: Notification;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -112,6 +113,7 @@ export interface Config {
     comments: CommentsSelect<false> | CommentsSelect<true>;
     'user-solutions': UserSolutionsSelect<false> | UserSolutionsSelect<true>;
     'challenge-submissions': ChallengeSubmissionsSelect<false> | ChallengeSubmissionsSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -1310,6 +1312,28 @@ export interface ChallengeSubmission {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: number;
+  userId: string;
+  content: string;
+  importance: 'high' | 'medium' | 'low';
+  type: 'system' | 'challenge' | 'achievement' | 'social';
+  isRead?: boolean | null;
+  /**
+   * Optional URL or route for the notification action
+   */
+  actionUrl?: string | null;
+  /**
+   * Optional expiration date for the notification
+   */
+  expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -1394,6 +1418,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'challenge-submissions';
         value: number | ChallengeSubmission;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: number | Notification;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2014,6 +2042,21 @@ export interface ChallengeSubmissionsSelect<T extends boolean = true> {
   expectedOutput?: T;
   createdAt?: T;
   updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  userId?: T;
+  content?: T;
+  importance?: T;
+  type?: T;
+  isRead?: T;
+  actionUrl?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

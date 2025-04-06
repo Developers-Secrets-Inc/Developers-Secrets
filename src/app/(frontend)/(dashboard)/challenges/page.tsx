@@ -7,8 +7,32 @@ import { ChallengesTable } from './components/challenges-table'
 import { UserProfile } from './components/user-profile'
 import { ChallengesLeaderboard } from './components/challenges-leaderboard'
 import { ChallengeCategories } from './components/challenge-categories'
+import { createNotification } from '@/core/notifications'
+import { getUser } from '@/core/user'
 
-export default function ChallengesPage() {
+export default async function ChallengesPage() {
+  const user = await getUser()
+  await createNotification({
+    userId: user.id,
+    content: 'You have a new notification',
+    importance: 'high',
+    type: 'challenge',
+  })
+
+  await createNotification({
+    userId: user.id,
+    content: 'You have a new notification',
+    importance: 'medium',
+    type: 'challenge',
+  })
+
+  await createNotification({
+    userId: user.id,
+    content: 'You have a new notification',
+    importance: 'low',
+    type: 'challenge',
+  })
+
   return (
     <SidebarProvider>
       <HomeSidebar />
