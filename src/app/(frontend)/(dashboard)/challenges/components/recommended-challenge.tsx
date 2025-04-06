@@ -1,27 +1,13 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardDescription, CardTitle } from '@/components/ui/card'
+import { getRandomChallenge } from '@/core/challenges'
 import { Brain, Trophy } from 'lucide-react'
 import Link from 'next/link'
 
-// Sample challenge data - replace with real data from your API
-const sampleChallenge = {
-  id: '1',
-  title: 'Build a REST API',
-  difficulty: 'medium',
-  baseExperience: 150,
-  concepts: ['Node.js', 'Express', 'REST', 'API Design'],
-  slug: 'build-rest-api',
-}
+export const RecommendedChallenge = async () => {
+  const challenge = await getRandomChallenge()
 
-export const RecommendedChallenge = () => {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
       case 'easy':
@@ -40,28 +26,28 @@ export const RecommendedChallenge = () => {
       <div className="flex justify-between items-center p-6">
         <div className="flex-1 mr-6">
           <div className="flex items-center gap-2 mb-1.5">
-            <CardTitle className="text-xl">{sampleChallenge.title}</CardTitle>
-            <Badge className={getDifficultyColor(sampleChallenge.difficulty)} variant="secondary">
-              {sampleChallenge.difficulty}
+            <CardTitle className="text-xl">{challenge.title}</CardTitle>
+            <Badge className={getDifficultyColor(challenge.difficulty)} variant="secondary">
+              {challenge.difficulty}
             </Badge>
           </div>
           <div className="flex items-center gap-4">
             <CardDescription className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
-              <span>{sampleChallenge.baseExperience} XP</span>
+              <span>{challenge.baseExperience} XP</span>
             </CardDescription>
             <div className="flex flex-wrap gap-2">
-              {sampleChallenge.concepts.map((concept) => (
-                <Badge key={concept} variant="outline" className="flex items-center gap-1">
+              {challenge.concepts?.map((conceptObj) => (
+                <Badge key={conceptObj.id} variant="outline" className="flex items-center gap-1">
                   <Brain className="h-3 w-3" />
-                  {concept}
+                  {conceptObj.concept}
                 </Badge>
               ))}
             </div>
           </div>
         </div>
         <Button asChild>
-          <Link href={`/challenges/${sampleChallenge.slug}`}>Start Challenge</Link>
+          <Link href={`/challenges/${challenge.slug}`}>Start Challenge</Link>
         </Button>
       </div>
     </Card>

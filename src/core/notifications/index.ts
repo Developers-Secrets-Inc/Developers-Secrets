@@ -70,3 +70,19 @@ export const setAllNotificationsAsRead = async (): Promise<void> => {
     },
   })
 }
+
+export const getReadNotifications = async (): Promise<Notification[]> => {
+  const payload = await getPayload({ config })
+
+  const notifications = await payload.find({
+    collection: 'notifications',
+    where: {
+      isRead: {
+        equals: true,
+      },
+    },
+    sort: '-createdAt',
+  })
+
+  return notifications.docs
+}

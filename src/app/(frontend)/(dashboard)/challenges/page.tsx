@@ -12,19 +12,6 @@ import { getUser } from '@/core/user'
 
 export default async function ChallengesPage() {
   const user = await getUser()
-  await createNotification({
-    userId: user.id,
-    content: 'You have a new notification',
-    importance: 'high',
-    type: 'challenge',
-  })
-
-  await createNotification({
-    userId: user.id,
-    content: 'You have a new notification',
-    importance: 'medium',
-    type: 'challenge',
-  })
 
   await createNotification({
     userId: user.id,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/react-table'
 import {
   flexRender,
@@ -24,17 +24,21 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
+import { getUserCompletionStatus } from '@/core/challenges/user-progression'
+import { getUser } from '@/core/user'
+import { getAllChallenges } from '@/core/challenges'
+import { Skeleton } from '@/components/ui/skeleton'
 
-type Challenge = {
-  id: string
+type ChallengeWithProgress = {
+  id: number
   title: string
-  difficulty: 'easy' | 'medium' | 'hard'
-  experience: number
+  difficulty: 'easy' | 'medium' | 'hard' | 'horrible'
+  baseExperience: number
   slug: string
   status: 'not_started' | 'in_progress' | 'completed'
 }
 
-const columns: ColumnDef<Challenge>[] = [
+const columns: ColumnDef<ChallengeWithProgress>[] = [
   {
     header: '',
     accessorKey: 'status',
@@ -82,6 +86,7 @@ const columns: ColumnDef<Challenge>[] = [
         easy: 'bg-emerald-500/10 text-emerald-500',
         medium: 'bg-amber-500/10 text-amber-500',
         hard: 'bg-red-500/10 text-red-500',
+        horrible: 'bg-purple-500/10 text-purple-500',
       }[difficulty]
 
       return (
@@ -93,65 +98,105 @@ const columns: ColumnDef<Challenge>[] = [
   },
   {
     header: 'Experience',
-    accessorKey: 'experience',
+    accessorKey: 'baseExperience',
     cell: ({ row }) => {
-      const xp = row.getValue('experience') as number
+      const xp = row.getValue('baseExperience') as number
       return <span className="font-medium">{xp} XP</span>
     },
   },
 ]
 
-const challenges: Challenge[] = [
-  {
-    id: '1',
-    title: 'Basic Authentication',
-    difficulty: 'easy',
-    experience: 50,
-    slug: 'basic-auth',
-    status: 'completed',
-  },
-  {
-    id: '2',
-    title: 'SQL Injection Prevention',
-    difficulty: 'medium',
-    experience: 100,
-    slug: 'sql-injection',
-    status: 'in_progress',
-  },
-  {
-    id: '3',
-    title: 'XSS Attack Mitigation',
-    difficulty: 'medium',
-    experience: 75,
-    slug: 'xss',
-    status: 'not_started',
-  },
-  {
-    id: '4',
-    title: 'Advanced Encryption',
-    difficulty: 'hard',
-    experience: 150,
-    slug: 'encryption',
-    status: 'not_started',
-  },
-  {
-    id: '5',
-    title: 'CSRF Protection',
-    difficulty: 'medium',
-    experience: 100,
-    slug: 'csrf',
-    status: 'in_progress',
-  },
-]
+const TableSkeleton = () => {
+  return (
+    <div className="space-y-6 border rounded-lg">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="w-8">
+              <Skeleton className="h-4 w-4" />
+            </TableHead>
+            <TableHead>
+              <Skeleton className="h-4 w-32" />
+            </TableHead>
+            <TableHead>
+              <Skeleton className="h-4 w-24" />
+            </TableHead>
+            <TableHead>
+              <Skeleton className="h-4 w-20" />
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <TableRow key={index}>
+              <TableCell>
+                <Skeleton className="h-4 w-4" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-48" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-6 w-16" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-12" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
 
 export const ChallengesTable = () => {
+  const [challenges, setChallenges] = useState<ChallengeWithProgress[]>([])
+  const [loading, setLoading] = useState(true)
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: 'experience',
+      id: 'baseExperience',
       desc: true,
     },
   ])
+
+  useEffect(() => {
+    const fetchChallenges = async () => {
+      try {
+        // Get current user
+        const user = await getUser()
+        if (!user?.id) {
+          throw new Error('User not authenticated')
+        }
+
+        // Get all challenges
+        const challengesData = await getAllChallenges()
+
+        // Get status for each challenge
+        const challengesWithProgress = await Promise.all(
+          challengesData.map(async (challenge) => {
+            const status = await getUserCompletionStatus(user.id, challenge.id as number)
+            return {
+              id: challenge.id as number,
+              title: challenge.title,
+              difficulty: challenge.difficulty as 'easy' | 'medium' | 'hard' | 'horrible',
+              baseExperience: challenge.baseExperience || 0, // Default to 0 if undefined
+              slug: challenge.slug,
+              status,
+            }
+          }),
+        )
+
+        setChallenges(challengesWithProgress)
+      } catch (error) {
+        console.error('Error fetching challenges:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchChallenges()
+  }, [])
 
   const table = useReactTable({
     data: challenges,
@@ -167,6 +212,10 @@ export const ChallengesTable = () => {
     onSortingChange: setSorting,
     enableSortingRemoval: false,
   })
+
+  if (loading) {
+    return <TableSkeleton />
+  }
 
   return (
     <div className="space-y-6 border rounded-lg">
