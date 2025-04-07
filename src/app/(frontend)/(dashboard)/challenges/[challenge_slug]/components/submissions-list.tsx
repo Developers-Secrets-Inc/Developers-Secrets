@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 type Submission = {
   id: string
@@ -31,8 +31,8 @@ export function SubmissionsList({ challengeId, userId, initialSubmissions }: Sub
   const [submissions, setSubmissions] = useState<Submission[]>(initialSubmissions)
   const tempSubmissionRef = useRef<{ id: string; submission: Submission } | null>(null)
 
-  // Expose les fonctions pour la gestion des soumissions
-  if (typeof window !== 'undefined') {
+  // Initialize window functions in useEffect to ensure they're set after mount
+  useEffect(() => {
     window.addTempSubmission = (submission: Submission) => {
       tempSubmissionRef.current = { id: submission.id, submission }
       setSubmissions((prev) => [submission, ...prev])
@@ -44,7 +44,13 @@ export function SubmissionsList({ challengeId, userId, initialSubmissions }: Sub
         setSubmissions((prev) => prev.map((sub) => (sub.id === tempId ? serverSubmission : sub)))
       }
     }
-  }
+
+    // Cleanup function to remove window functions when component unmounts
+    return () => {
+      window.addTempSubmission = null as unknown as undefined
+      window.updateSubmission = null as unknown as undefined
+    }
+  }, []) // Empty dependency array since these functions don't depend on any props/state
 
   const getStatusBadgeClass = (submission: Submission) => {
     if (submission.testsPassed === submission.testsTotal) {
@@ -119,7 +125,7 @@ export function SubmissionsList({ challengeId, userId, initialSubmissions }: Sub
 
 declare global {
   interface Window {
-    addTempSubmission: (submission: Submission) => void
-    updateSubmission: (tempId: string, serverSubmission: Submission) => void
+    addTempSubmission?: (submission: Submission) => void
+    updateSubmission?: (tempId: string, serverSubmission: Submission) => void
   }
 }

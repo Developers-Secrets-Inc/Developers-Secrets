@@ -1,3 +1,4 @@
+import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
 import { RatingText } from '@/components/rating-dialog'
 import { IconSidebar } from '@/components/sidebars/home-sidebar/icon-sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -7,15 +8,14 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { getChallengeBySlug, getNextChallenge, getPreviousChallenge } from '@/core/challenges'
 import { ChallengeNavigationButtons } from '@/core/challenges/components/challenge-navigation-buttons'
 import { ReactionButtons } from '@/core/challenges/components/reaction-buttons'
-import { getUserRating } from '@/core/challenges/user-progression'
+import { getUserRating, getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { getUser } from '@/core/user'
 import { Eclipse } from 'lucide-react'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { ChallengeEditor } from './components/challenge-editor'
 import { ChallengeNavigation } from './components/challenge-navigation'
-import { ChallengeContent } from './components/content/challenge-content'
-import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
-import { Suspense } from 'react'
+import { ChallengeStatusProvider } from '@/core/challenges/components/challenge-status-provider'
 
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
@@ -135,11 +135,18 @@ export default async function ChallengeLayout({
     // Continue as guest user
   }
 
+  const initialStatus = await getUserCompletionStatus(userId, challenge.id)
+
   return (
     <SidebarProvider>
-      <div className="flex h-screen">
-        <IconSidebar />
-        <SidebarInset>
+      <ChallengeStatusProvider
+        challengeId={challenge.id}
+        userId={userId}
+        initialStatus={initialStatus}
+      >
+        <div className="flex h-screen">
+          <IconSidebar />
+          <SidebarInset>
           <div className="flex flex-col h-full w-[calc(100vw-3.5rem)]">
             <ChallengeLayoutHeader
               challengeSlug={challenge_slug}
@@ -189,7 +196,8 @@ export default async function ChallengeLayout({
             </div>
           </div>
         </SidebarInset>
-      </div>
+      </div>  
+      </ChallengeStatusProvider>
     </SidebarProvider>
   )
 }

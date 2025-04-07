@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { CodeEditor } from '@/core/compiler/components/editor'
 import { handleSubmission } from '@/core/challenges/submissions/client-actions'
 import { handleChallengeCompletion } from '@/core/challenges/actions'
@@ -11,7 +11,7 @@ import {
   AcceptedSubmission,
 } from '@/core/challenges/submissions/index.client'
 import { ChallengeCompletionDialog } from '@/components/challenges/challenge-completion-dialog'
-import { getUserCompletionStatus } from '@/core/challenges/user-progression'
+import { ChallengeStatusContext } from '@/core/challenges/components/challenge-status-provider'
 import { toast } from 'sonner'
 import { nanoid } from 'nanoid'
 
@@ -38,6 +38,7 @@ export function ChallengeEditor({
   userId,
 }: ChallengeEditorProps) {
   const [showCompletionDialog, setShowCompletionDialog] = useState(false)
+  const { status, updateStatus } = useContext(ChallengeStatusContext)!
 
   const handleSubmit = async (
     submission:
@@ -47,6 +48,11 @@ export function ChallengeEditor({
       | TimeLimitExceededSubmission,
   ) => {
     try {
+      // Si c'est la première soumission et que le statut est 'not_started'
+      if (status === 'not_started') {
+        await updateStatus('in_progress')
+      }
+
       // Créer un ID temporaire
       const tempId = nanoid()
 
@@ -61,7 +67,11 @@ export function ChallengeEditor({
       }
 
       // Ajouter la soumission temporaire à la liste
-      window.addTempSubmission(tempSubmission)
+      if (typeof window.addTempSubmission === 'function') {
+        window.addTempSubmission(tempSubmission)
+      } else {
+        console.warn('addTempSubmission not available - skipping optimistic update')
+      }
 
       // Envoyer la soumission au serveur
       const result = await handleSubmission(submission, challengeId, userId)
@@ -71,27 +81,29 @@ export function ChallengeEditor({
       }
 
       // Mettre à jour la soumission avec les données du serveur
-      window.updateSubmission(tempId, {
-        id: result.data.id.toString(),
-        submissionType: result.data.submissionType,
-        testsPassed: result.data.testsPassed,
-        testsTotal: result.data.testsTotal,
-        createdAt: result.data.createdAt,
-        code: result.data.code,
-      })
+      if (typeof window.updateSubmission === 'function') {
+        window.updateSubmission(tempId, {
+          id: result.data.id.toString(),
+          submissionType: result.data.submissionType,
+          testsPassed: result.data.testsPassed,
+          testsTotal: result.data.testsTotal,
+          createdAt: result.data.createdAt,
+          code: result.data.code,
+        })
+      } else {
+        console.warn('updateSubmission not available - skipping optimistic update')
+      }
 
       // If the submission is successful and all tests passed
-      if (submission.type === 'accepted') {
-        // Check if the challenge is not already completed
-        const completionStatus = await getUserCompletionStatus(userId, challengeId)
+      if (submission.type === 'accepted' && status !== 'completed') {
+        // Show completion dialog immediately (optimistic UI)
+        setShowCompletionDialog(true)
 
-        if (completionStatus !== 'completed') {
-          // Show completion dialog immediately (optimistic UI)
-          setShowCompletionDialog(true)
+        // Update status to completed
+        await updateStatus('completed')
 
-          // Handle challenge completion in the background
-          handleChallengeCompletion(challengeId, userId).catch(console.error)
-        }
+        // Handle challenge completion in the background
+        handleChallengeCompletion(challengeId, userId).catch(console.error)
       }
     } catch (error) {
       console.error('Error submitting code:', error)
