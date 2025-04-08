@@ -1,19 +1,5 @@
-import { HomeHeader } from './components/home-header'
-import Link from 'next/link'
-import {
-  MoveRight,
-  BookOpen,
-  Code,
-  Sparkles,
-  Globe,
-  Zap,
-  Lock,
-  Star,
-  CheckCircle,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import Image from 'next/image'
 import { Metadata } from 'next'
+import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 
 export const metadata: Metadata = {
   title: 'Developer Documentation Platform',
@@ -30,7 +16,7 @@ export const metadata: Metadata = {
   },
 }
 
-import { ArrowRight, Rocket, ShieldCheck, BarChart, Users, Heart } from 'lucide-react';
+import { ArrowRight, BarChart, Heart, Rocket, ShieldCheck, Users } from 'lucide-react'
 
 function CompanySection() {
   return (
@@ -50,7 +36,7 @@ function CompanySection() {
         <CompanyLink icon={BarChart} label="Learn More" />
       </div>
     </section>
-  );
+  )
 }
 
 function CompanyLink({ icon: Icon, label }: { icon: any; label: string }) {
@@ -68,31 +54,26 @@ function CompanyLink({ icon: Icon, label }: { icon: any; label: string }) {
         </span>
       </div>
     </a>
-  );
+  )
 }
 
-
-import {
-  Quote,
-  User,
-  MessageSquare,
-  Settings,
-  Lightning,
-  TrendingUp,
-  Shield,
-} from 'lucide-react';
+import { MessageSquare, User } from 'lucide-react'
 
 function QuoteSection() {
   return (
-    <section id="quote" className="flex flex-col items-center justify-center gap-8 w-full p-14 bg-accent z-20">
+    <section
+      id="quote"
+      className="flex flex-col items-center justify-center gap-8 w-full p-14 bg-accent z-20"
+    >
       <blockquote className="max-w-3xl text-left px-4">
         <p className="text-xl md:text-2xl text-primary leading-relaxed tracking-tighter font-medium mb-6">
-          SkyAgent has transformed our daily operations. Tasks that once consumed hours now complete in moments,
-          freeing our team to focus on creativity and strategic growth.
+          SkyAgent has transformed our daily operations. Tasks that once consumed hours now complete
+          in moments, freeing our team to focus on creativity and strategic growth.
         </p>
         <div className="flex gap-4">
           <div className="size-10 rounded-full bg-primary border border-border">
-            <User className="size-full rounded-full object-contain text-background" /> {/* Replacing the image with an icon */}
+            <User className="size-full rounded-full object-contain text-background" />{' '}
+            {/* Replacing the image with an icon */}
           </div>
           <div className="text-left">
             <cite className="text-lg font-medium text-primary not-italic">Alex Johnson</cite>
@@ -101,12 +82,15 @@ function QuoteSection() {
         </div>
       </blockquote>
     </section>
-  );
+  )
 }
 
 function FeaturesSection() {
   return (
-    <section id="features" className="flex flex-col items-center justify-center gap-5 w-full relative">
+    <section
+      id="features"
+      className="flex flex-col items-center justify-center gap-5 w-full relative"
+    >
       <div className="border-b w-full h-full p-10 md:p-14">
         <div className="max-w-xl mx-auto flex flex-col items-center justify-center gap-2">
           <h2 className="text-3xl md:text-4xl font-medium tracking-tighter text-center text-balance">
@@ -131,7 +115,8 @@ function FeaturesSection() {
                   <FeatureAccordion title="Receive Instant, Actionable Results" />
                   <FeatureAccordion title="Continuous Improvement">
                     <div className="p-3">
-                      We are constantly updating and improving our features to provide the best experience.
+                      We are constantly updating and improving our features to provide the best
+                      experience.
                     </div>
                   </FeatureAccordion>
                 </div>
@@ -145,12 +130,18 @@ function FeaturesSection() {
                   </div>
                 </div>
               </div>
-              <ul className="col-span-5 flex snap-x flex-nowrap overflow-x-auto [-ms-overflow-style:none] [-webkit-mask-image:linear-gradient(90deg,transparent,black_10%,white_90%,transparent)] [mask-image:linear-gradient(90deg,transparent,black_10%,white_90%,transparent)] [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden snap-mandatory" style={{ padding: '50px calc(50%)' }}>
+              <ul
+                className="col-span-5 flex snap-x flex-nowrap overflow-x-auto [-ms-overflow-style:none] [-webkit-mask-image:linear-gradient(90deg,transparent,black_10%,white_90%,transparent)] [mask-image:linear-gradient(90deg,transparent,black_10%,white_90%,transparent)] [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden snap-mandatory"
+                style={{ padding: '50px calc(50%)' }}
+              >
                 <MobileFeatureCard
                   title="Ask Your AI Agent Directly"
                   description="Speak or type your command—let SkyAgent capture your intent. Your request instantly sets the process in motion."
                 />
-                <MobileFeatureCard title="Let SkyAgent Process It" description="We prioritize the needs and preferences of our users in our design process." />
+                <MobileFeatureCard
+                  title="Let SkyAgent Process It"
+                  description="We prioritize the needs and preferences of our users in our design process."
+                />
                 <MobileFeatureCard
                   title="Receive Instant, Actionable Results"
                   description="Our features seamlessly integrate with your existing systems for a smooth experience."
@@ -165,12 +156,15 @@ function FeaturesSection() {
         </div>
       </div>
     </section>
-  );
+  )
 }
 
 function GrowthSection() {
   return (
-    <section id="growth" className="flex flex-col items-center justify-center w-full relative px-5 md:px-10">
+    <section
+      id="growth"
+      className="flex flex-col items-center justify-center w-full relative px-5 md:px-10"
+    >
       <div className="border-x mx-5 md:mx-10 relative">
         <div className="absolute top-0 -left-4 md:-left-14 h-full w-4 md:w-14 text-gray-950/5 bg-[size:10px_10px] [background-image:repeating-linear-gradient(315deg,currentColor_0_1px,#0000_0_50%)]" />
         <div className="absolute top-0 -right-4 md:-right-14 h-full w-4 md:w-14 text-gray-950/5 bg-[size:10px_10px] [background-image:repeating-linear-gradient(315deg,currentColor_0_1px,#0000_0_50%)]" />
@@ -180,7 +174,8 @@ function GrowthSection() {
               Built for Secure Growth
             </h2>
             <p className="text-muted-foreground text-center text-balance font-medium">
-              Where advanced security meets seamless scalability—designed to protect your data and empower your growth.
+              Where advanced security meets seamless scalability—designed to protect your data and
+              empower your growth.
             </p>
           </div>
         </div>
@@ -192,7 +187,8 @@ function GrowthSection() {
             </div>
             <h3 className="text-lg tracking-tighter font-semibold">Advanced Task Security</h3>
             <p className="text-muted-foreground">
-              Safeguard your tasks with state-of-art encryption and secure access to your workflow data.
+              Safeguard your tasks with state-of-art encryption and secure access to your workflow
+              data.
             </p>
           </div>
           <div className="flex flex-col items-start justify-end gap-2 p-6 min-h-[500px]">
@@ -212,14 +208,32 @@ function GrowthSection() {
         </div>
       </div>
     </section>
-  );
+  )
 }
 
-function FeatureAccordion({ title, description, children }: { title: string; description?: string; children?: React.ReactNode }) {
+function FeatureAccordion({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description?: string
+  children?: React.ReactNode
+}) {
   return (
-    <div data-state="closed" data-orientation="vertical" className="mt-px overflow-hidden focus-within:relative focus-within:z-10 relative data-[state=open]:bg-white dark:data-[state=open]:bg-[#27272A] rounded-lg data-[state=closed]:rounded-none data-[state=closed]:border-0 dark:data-[state=open]:shadow-[0px_0px_0px_1px_rgba(249,250,251,0.06),0px_0px_0px_1px_var(--color-zinc-800,#27272A),0px_1px_2px_-0.5px_rgba(0,0,0,0.24),0px_2px_4px_-1px_rgba(0,0,0,0.24)] data-[state=open]:shadow-[0px_0px_1px_0px_rgba(0,0,0,0.16),0px_1px_2px_-0.5px_rgba(0,0,0,0.16)]">
-      <div className="absolute overflow-hidden rounded-lg transition-opacity data-[state=closed]:opacity-0 data-[state=open]:opacity-100 bg-neutral-300/50 dark:bg-neutral-300/30 left-0 right-0 bottom-0 h-0.5 w-full" data-state="closed">
-        <div className="absolute transition-all ease-linear bg-secondary left-0 top-0 h-full w-0" style={{ transitionDuration: '0s' }} />
+    <div
+      data-state="closed"
+      data-orientation="vertical"
+      className="mt-px overflow-hidden focus-within:relative focus-within:z-10 relative data-[state=open]:bg-white dark:data-[state=open]:bg-[#27272A] rounded-lg data-[state=closed]:rounded-none data-[state=closed]:border-0 dark:data-[state=open]:shadow-[0px_0px_0px_1px_rgba(249,250,251,0.06),0px_0px_0px_1px_var(--color-zinc-800,#27272A),0px_1px_2px_-0.5px_rgba(0,0,0,0.24),0px_2px_4px_-1px_rgba(0,0,0,0.24)] data-[state=open]:shadow-[0px_0px_1px_0px_rgba(0,0,0,0.16),0px_1px_2px_-0.5px_rgba(0,0,0,0.16)]"
+    >
+      <div
+        className="absolute overflow-hidden rounded-lg transition-opacity data-[state=closed]:opacity-0 data-[state=open]:opacity-100 bg-neutral-300/50 dark:bg-neutral-300/30 left-0 right-0 bottom-0 h-0.5 w-full"
+        data-state="closed"
+      >
+        <div
+          className="absolute transition-all ease-linear bg-secondary left-0 top-0 h-full w-0"
+          style={{ transitionDuration: '0s' }}
+        />
       </div>
       <h3 data-orientation="vertical" data-state="closed" className="flex">
         <button
@@ -252,7 +266,7 @@ function FeatureAccordion({ title, description, children }: { title: string; des
         {children}
       </div>
     </div>
-  );
+  )
 }
 
 function MobileFeatureCard({ title, description }: { title: string; description: string }) {
@@ -265,19 +279,20 @@ function MobileFeatureCard({ title, description }: { title: string; description:
         className="absolute overflow-hidden rounded-lg transition-opacity data-[state=closed]:opacity-0 data-[state=open]:opacity-100 bg-neutral-300/50 dark:bg-neutral-300/30 left-0 right-0 bottom-0 h-0.5 w-full"
         data-state="closed"
       >
-        <div className="absolute transition-all ease-linear bg-secondary left-0 top-0 h-full w-0" style={{ transitionDuration: '0s' }} />
+        <div
+          className="absolute transition-all ease-linear bg-secondary left-0 top-0 h-full w-0"
+          style={{ transitionDuration: '0s' }}
+        />
       </div>
       <div className="flex flex-col gap-2">
         <h2 className="text-lg font-bold">{title}</h2>
-        <p className="mx-0 max-w-sm text-balance text-sm font-medium leading-relaxed">{description}</p>
+        <p className="mx-0 max-w-sm text-balance text-sm font-medium leading-relaxed">
+          {description}
+        </p>
       </div>
     </a>
-  );
+  )
 }
-
-
-
-
 
 export default async function HomePage() {
   return (

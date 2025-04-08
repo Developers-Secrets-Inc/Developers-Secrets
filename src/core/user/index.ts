@@ -5,16 +5,17 @@ import 'server-only'
 import { UserInformation as PayloadUserInformation } from '@/payload-types'
 import {
   User,
-  UserConnectionStats,
   UserInformations,
   UserPermission,
-  UserPreferences,
-  UserRole,
+  UserRole
 } from '@/types/user'
-import { getPayload } from 'payload'
-import config from '@payload-config'
 import { createClient } from '@/utils/supabase/server'
+import config from '@payload-config'
 import { User as SupabaseUser } from '@supabase/supabase-js'
+import { getPayload } from 'payload'
+import { SupabaseUserNotFoundError, UserInformationsNotFoundError, UserNotFoundError } from './errors'
+import { isError, Result } from './result'
+import { UserId, validateUserId } from './types'
 
 const convertPayloadUserInformationToUserInformations = (
   payloadUserInformation: PayloadUserInformation,
@@ -82,7 +83,6 @@ export const createInitialUserInformation = async (userId: string): Promise<void
     }
 
     // Créer les informations initiales de l'utilisateur
-
     console.log(`Created initial user information for user ${userId}`)
   } catch (error) {
     console.error('Error creating initial user information:', error)
@@ -90,184 +90,6 @@ export const createInitialUserInformation = async (userId: string): Promise<void
       `Failed to create initial user information: ${error instanceof Error ? error.message : 'Unknown error'}`,
     )
   }
-}
-
-// ================================================
-// User Connection Stats
-// ================================================
-
-export const getUserConnectionStats = async (userId: string): Promise<UserConnectionStats> => {
-  return {} as UserConnectionStats
-}
-
-export const incrementConnectionDays = async (userId: string): Promise<void> => {}
-
-export const incrementCurrentStreak = async (userId: string): Promise<void> => {}
-
-export const resetCurrentStreak = async (userId: string): Promise<void> => {}
-
-export const setMaxStreak = async (userId: string, maxStreak: number): Promise<void> => {}
-
-export const setLastConnectionDate = async (
-  userId: string,
-  lastConnectionDate: Date,
-): Promise<void> => {}
-
-// ================================================
-// User Role
-// ================================================
-
-export const getUserRole = async (userId: string): Promise<UserRole> => {
-  const payload = await getPayload({ config })
-
-  const user = await payload.find({
-    collection: 'user-informations',
-    where: { userId: { equals: userId } },
-  })
-
-  if (!user.docs || user.docs.length === 0) {
-    throw new Error(`User information not found for user ${userId}`)
-  }
-
-  return user.docs[0].role
-}
-
-export const setUserRole = async (userId: string, role: UserRole): Promise<void> => {
-  const payload = await getPayload({ config })
-
-  await payload.update({
-    collection: 'user-informations',
-    where: { userId: { equals: userId } },
-    data: { role },
-  })
-}
-
-export const upgradeToPro = async (userId: string): Promise<void> => {
-  return await setUserRole(userId, 'pro')
-}
-
-export const upgradeToMax = async (userId: string): Promise<void> => {
-  return await setUserRole(userId, 'max')
-}
-
-export const downgradeToBasic = async (userId: string): Promise<void> => {
-  return await setUserRole(userId, 'basic')
-}
-
-export const downgradeToPro = async (userId: string): Promise<void> => {
-  return await setUserRole(userId, 'pro')
-}
-
-// ================================================
-// User Preferences
-// ================================================
-
-export const getUserPreferences = async (userId: string): Promise<UserPreferences> => {
-  const user = await getUserInformation(userId)
-
-  return user.preferences
-}
-
-export const disableNotification = async (
-  userId: string,
-  notificationType: 'friends',
-): Promise<void> => {
-  const payload = await getPayload({ config })
-
-  const updateData: {
-    preferences: {
-      notifications: Record<string, boolean>
-    }
-  } = {
-    preferences: {
-      notifications: {},
-    },
-  }
-  updateData.preferences.notifications[notificationType] = false
-
-  await payload.update({
-    collection: 'user-informations',
-    where: { userId: { equals: userId } },
-    data: updateData,
-  })
-}
-
-export const enableNofication = async (
-  userId: string,
-  notificationType: 'friends',
-): Promise<void> => {
-  const payload = await getPayload({ config })
-
-  const updateData: {
-    preferences: {
-      notifications: Record<string, boolean>
-    }
-  } = {
-    preferences: {
-      notifications: {},
-    },
-  }
-  updateData.preferences.notifications[notificationType] = true
-
-  await payload.update({
-    collection: 'user-informations',
-    where: { userId: { equals: userId } },
-    data: updateData,
-  })
-}
-
-export const disableEmail = async (
-  userId: string,
-  emailType: 'marketing' | 'affiliates',
-): Promise<void> => {
-  const payload = await getPayload({ config })
-
-  const updateData: {
-    preferences: {
-      emails: Record<string, boolean>
-    }
-  } = {
-    preferences: {
-      emails: {},
-    },
-  }
-  updateData.preferences.emails[emailType] = false
-
-  await payload.update({
-    collection: 'user-informations',
-    where: { userId: { equals: userId } },
-    data: updateData,
-  })
-}
-
-export const enableEmail = async (
-  userId: string,
-  emailType: 'marketing' | 'affiliates',
-): Promise<void> => {
-  const payload = await getPayload({ config })
-
-  const updateData: {
-    preferences: {
-      emails: Record<string, boolean>
-    }
-  } = {
-    preferences: {
-      emails: {},
-    },
-  }
-  updateData.preferences.emails[emailType] = true
-
-  await payload.update({
-    collection: 'user-informations',
-    where: { userId: { equals: userId } },
-    data: updateData,
-  })
-}
-
-export const getTheme = async (userId: string): Promise<'light' | 'dark' | 'system'> => {
-  const user = await getUserInformation(userId)
-
-  return user.preferences.theme
 }
 
 export const getUserInformation = async (userId: string): Promise<UserInformations> => {
@@ -285,13 +107,13 @@ export const getUserInformation = async (userId: string): Promise<UserInformatio
   return convertPayloadUserInformationToUserInformations(userInformation.docs[0])
 }
 
-const getSupabaseUser = async (): Promise<SupabaseUser> => {
+const getSupabaseUser = async (): Promise<SupabaseUser | null> => {
   const supabase = await createClient()
 
   const { data, error } = await supabase.auth.getUser()
 
-  if (error) {
-    throw new Error(error.message)
+  if (!data.user || error) {
+    return null
   }
 
   return data.user
@@ -300,8 +122,12 @@ const getSupabaseUser = async (): Promise<SupabaseUser> => {
 
 
 
-export const getUser = async (): Promise<User> => {
+export const getUser = async (): Promise<User | null> => {
   const supabaseUser = await getSupabaseUser()
+
+  if (!supabaseUser) {
+    return null
+  }
 
   const user = await getUserInformation(supabaseUser.id)
 
@@ -311,19 +137,117 @@ export const getUser = async (): Promise<User> => {
   }
 }
 
-export const getUserById = async (userId: string): Promise<User> => {
+export const getUserById = async (userId: UserId): Promise<Result<User, UserNotFoundError>> => {
+  const validatedUserId = validateUserId(userId)
   const supabase = await createClient()
 
   const { data, error } = await supabase.auth.admin.getUserById(userId)
 
   if (error) {
-    throw new Error(error.message)
+    return { success: false, error: new UserNotFoundError(userId) }
   }
 
   const user = await getUserInformation(data.user.id)
 
-  return {
-    ...data.user,
-    informations: user,
+  return { success: true, value: { ...data.user, informations: user } }
+}
+
+
+
+
+
+
+const getSessionUserInformations = async (
+  supabaseUser: SupabaseUser,
+): Promise<Result<UserInformations, UserInformationsNotFoundError>> => {
+  const userInformations = await getUserInformation(supabaseUser.id)
+  return { success: true, value: userInformations }
+}
+
+
+const getSupabaseSessionUser = async (): Promise<Result<SupabaseUser, SupabaseUserNotFoundError>> => {
+  try {
+    const supabaseClient = await createClient()
+    const { data, error } = await supabaseClient.auth.getUser()
+
+    if (error) {
+      throw new SupabaseUserNotFoundError()
+    }
+
+    return { success: true, value: data.user }
+  } catch (error) {
+    if (error instanceof SupabaseUserNotFoundError) {
+      return { success: false, error: error }
+    }
+    throw error
   }
 }
+
+export const getSessionUser = async (): Promise<Result<User, UserNotFoundError>> => {
+  const supabaseSessionUser = await getSupabaseSessionUser()
+
+  if (isError(supabaseSessionUser)) {
+    return { success: false, error: new UserNotFoundError(supabaseSessionUser.error.message) }
+  }
+
+  const userInformations = await getSessionUserInformations(supabaseSessionUser.value)
+
+
+  if (isError(userInformations)) {
+    return { success: false, error: new UserNotFoundError(userInformations.error.message) }
+  }
+
+  return { success: true, value: { ...supabaseSessionUser.value, informations: userInformations.value } }
+}
+
+
+
+const getAllSupabaseUsers = async (): Promise<Result<SupabaseUser[], SupabaseUserNotFoundError>> => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.admin.listUsers()
+
+  if (error) {
+    return { success: false, error: new Error(error.message) }
+  }
+
+  return { success: true, value: data.users }
+}
+
+const getSupabaseUserByEmail = async (email: string): Promise<Result<SupabaseUser, SupabaseUserNotFoundError>> => {
+  const allSupabaseUsers = await getAllSupabaseUsers()
+
+  if (isError(allSupabaseUsers)) {
+    return { success: false, error: new SupabaseUserNotFoundError() }
+  }
+
+  const user = allSupabaseUsers.value.find((user) => user.email === email)
+
+  if (!user) {
+    return { success: false, error: new SupabaseUserNotFoundError() }
+  }
+
+  return { success: true, value: user }
+}
+
+export const getUserByEmail = async (email: string): Promise<Result<User, UserNotFoundError>> => {
+  const supabaseUser = await getSupabaseUserByEmail(email)
+
+  if (isError(supabaseUser)) {
+    return { success: false, error: new UserNotFoundError(supabaseUser.error.message) }
+  }
+
+  const userInformations = await getUserInformation(supabaseUser.value.id)
+
+  return { success: true, value: { ...supabaseUser.value, informations: userInformations } }
+}
+
+
+
+
+// ============= 
+
+
+
+
+
+
