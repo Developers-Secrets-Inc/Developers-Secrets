@@ -87,6 +87,7 @@ export const UserDropdownMenu = ({ user }: UserDropdownMenuProps) => {
       <SettingsDialog
         showSettingsDialog={showSettingsDialog}
         setShowSettingsDialog={setShowSettingsDialog}
+        user={user}
       />
     </>
   )

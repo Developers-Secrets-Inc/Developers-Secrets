@@ -18,8 +18,11 @@ export type UserAvatar = z.infer<typeof UserAvatarSchema>
 const UserInitialsSchema = z.string().min(1).max(3).nullable().optional()
 export type UserInitials = z.infer<typeof UserInitialsSchema>
 
-const UserRoleSchema = z.enum(['basic', 'pro', 'max'])
+const UserRoleSchema = z.enum(['basic', 'lite', 'pro', 'max'])
 export type UserRole = z.infer<typeof UserRoleSchema>
+
+export const UserCustomerIdSchema = z.string().nullable().optional()
+export type UserCustomerId = z.infer<typeof UserCustomerIdSchema>
 
 // TODO: Add permissions schema
 
@@ -149,3 +152,10 @@ export const validateUserInformations = (informations: UserInformations): UserIn
 }
 
 
+export const validateUserCustomerId = (customerId: string | null | undefined): UserCustomerId => {
+  const result = UserCustomerIdSchema.safeParse(customerId)
+  if (!result.success) {
+    throw new Error('Invalid user customer ID')
+  }
+  return result.data
+}

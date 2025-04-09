@@ -1,6 +1,6 @@
 'use server'
 
-import { UserId, UserInformations, UserInformationsFields, validateUserInformationField, validateUserId, validateUserInformations, validateUserInitials, validateUserName, validateUserAvatar, validateUserRole, UserPreferences, validateUserPreferences, UserName, UserAvatar, UserInitials } from './types'
+import { UserId, UserInformations, UserInformationsFields, validateUserInformationField, validateUserId, validateUserInformations, validateUserInitials, validateUserName, validateUserAvatar, validateUserRole, UserPreferences, validateUserPreferences, UserName, UserAvatar, UserInitials, validateUserCustomerId, UserCustomerId } from './types'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { UserNotFoundError } from './errors'
@@ -56,9 +56,8 @@ export const updateUserInitials = async (userId: UserId, initials: UserInitials)
   await updateUserInformations(validatedUserId, 'initials', validatedInitials)
 }
 
-type UserRole = 'basic' | 'pro' | 'max'
+type UserRole = 'basic' | 'lite' | 'pro' | 'max'
 export const updateUserRole = async (userId: UserId, role: UserRole): Promise<void> => {
-  console.log('userId from updateUserRole', userId)
   const validatedUserId = validateUserId(userId)
   const validatedRole = validateUserRole(role)
 
@@ -81,5 +80,22 @@ export const updateUserPreferences = async (userId: UserId, preferences: UserPre
   const validatedPreferences = validateUserPreferences(preferences)
 
   await updateUserInformations(validatedUserId, 'preferences', validatedPreferences)
+}
+
+export const updateUserCustomerId = async (userId: UserId, customerId: UserCustomerId): Promise<void> => {
+  const validatedUserId = validateUserId(userId)
+  const validatedCustomerId = validateUserCustomerId(customerId)
+
+  const payload = await getPayload({ config })
+
+  await payload.update({
+    collection: 'user-informations',
+    where: {
+      userId: {
+        equals: validatedUserId,
+      },
+    },
+    data: { customerId: validatedCustomerId },
+  })
 }
 

@@ -22,6 +22,7 @@ export type UserInformations = {
   role: UserRole
   permissions: UserPermission[]
   preferences: UserPreferences
+  customerId: string
 }
 
 export type UserRole = 'basic' | 'pro' | 'max'

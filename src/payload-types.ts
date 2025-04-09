@@ -454,7 +454,7 @@ export interface UserInformation {
   name?: string | null;
   avatar?: string | null;
   initials?: string | null;
-  role: 'basic' | 'pro' | 'max';
+  role: 'basic' | 'lite' | 'pro' | 'max';
   /**
    * Select permissions for this user
    */
@@ -469,6 +469,7 @@ export interface UserInformation {
     };
     theme?: ('light' | 'dark' | 'system') | null;
   };
+  customerId?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1669,6 +1670,7 @@ export interface UserInformationsSelect<T extends boolean = true> {
             };
         theme?: T;
       };
+  customerId?: T;
   updatedAt?: T;
   createdAt?: T;
 }

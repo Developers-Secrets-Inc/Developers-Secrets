@@ -42,6 +42,10 @@ export const UserInformations: CollectionConfig = {
           value: 'basic',
         },
         {
+          label: 'Lite',
+          value: 'lite',
+        },
+        {
           label: 'Pro',
           value: 'pro',
         },
@@ -121,6 +125,11 @@ export const UserInformations: CollectionConfig = {
           defaultValue: 'system',
         },
       ],
+    },
+    {
+      name: 'customerId',
+      label: 'Customer ID',
+      type: 'text',
     },
   ],
 }

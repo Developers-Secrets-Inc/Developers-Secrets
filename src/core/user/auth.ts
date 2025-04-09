@@ -5,7 +5,28 @@ import { Email, Password } from './types'
 import { createInitialUserInformation, getUserInformation } from '.'
 import { createClient } from '@/utils/supabase/server'
 import { User } from '@/types/user'
+import { User as SupabaseUser } from '@supabase/supabase-js'
 
+export const createSupabaseUser = async (
+  email: Email,
+  password: Password,
+): Promise<{
+  user: SupabaseUser | null
+  error: UserCreationError | null
+}> => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signUp({ email, password })
+
+  if (error) {
+    return { user: null, error: new UserCreationError(error.message) }
+  }
+
+  if (!data.user) {
+    return { user: null, error: new UserCreationError('User not found') }
+  }
+
+  return { user: data.user, error: null }
+}
 
 /**
  * Creates a new Supabase user and initializes their user information.
@@ -22,21 +43,17 @@ export const createUser = async (
   user: User | null
   error: UserCreationError | null
 }> => {
-  const supabase = await createClient()
-  const { data, error } = await supabase.auth.signUp({ email, password })
+  const { user, error } = await createSupabaseUser(email, password)
 
-  if (error) {
-    return { user: null, error: new UserCreationError(error.message) }
+  const IS_SUPABASE_USER_CREATED = !error && user
+  
+  if (IS_SUPABASE_USER_CREATED) {
+    await createInitialUserInformation(user.id)
+    const userInformations = await getUserInformation(user.id)
+    return { user: { ...user, informations: userInformations }, error: null }
   }
 
-  if (!data.user) {
-    return { user: null, error: new UserCreationError('User not found') }
-  }
-
-  await createInitialUserInformation(data.user.id)
-  const userInformations = await getUserInformation(data.user.id)
-
-  return { user: { ...data.user, informations: userInformations }, error: null }
+  return { user: null, error }
 }
 
 

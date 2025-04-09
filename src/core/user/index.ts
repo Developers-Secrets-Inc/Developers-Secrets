@@ -52,6 +52,7 @@ const convertPayloadUserInformationToUserInformations = (
     role: payloadUserInformation.role as UserRole,
     permissions,
     preferences,
+    customerId: payloadUserInformation.customerId || '',
   }
 }
 

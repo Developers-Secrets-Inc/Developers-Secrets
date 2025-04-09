@@ -12,6 +12,7 @@ import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { getUser } from '@/core/user'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle2Icon } from 'lucide-react'
+import { getSubscriptionsByCustomerId } from '@/core/payments/subscriptions'
 
 const api = new Polar({
   accessToken: process.env.POLAR_ACCESS_TOKEN!,
@@ -98,7 +99,11 @@ export default async function Page() {
       const indexB = PRODUCT_ORDER.indexOf(b.name)
       return indexA - indexB
     })
-
+    
+    const user = await getUser()
+    console.log(user?.informations.customerId)
+    const subscriptions = await getSubscriptionsByCustomerId(user?.informations.customerId)
+    // console.log(subscriptions)
 
   return (
     <div className="min-h-screen flex flex-col">

@@ -1,7 +1,7 @@
 // src/app/api/webhook/polar/route.ts
 import { getUserByEmail } from '@/core/user'
 import { isError } from '@/core/user/result'
-import { updateUserRole } from '@/core/user/user-informations'
+import { updateUserCustomerId, updateUserRole } from '@/core/user/user-informations'
 import { Webhooks } from '@polar-sh/nextjs'
 
 export const POST = Webhooks({
@@ -37,9 +37,13 @@ export const POST = Webhooks({
         }
         if (payload.data.product.name === 'Pro Membership') {
           await updateUserRole(user.value.id, 'pro')
-        } else {
+        } else if (payload.data.product.name === 'Max Membership') {
           await updateUserRole(user.value.id, 'max')
+        } else if (payload.data.product.name === 'Lite Membership') {
+          await updateUserRole(user.value.id, 'lite')
         }
+
+        await updateUserCustomerId(user.value.id, payload.data.customer.id)
 
         break
     //   case 'subscription.revoked':
