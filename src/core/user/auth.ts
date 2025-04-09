@@ -46,7 +46,7 @@ export const createUser = async (
   const { user, error } = await createSupabaseUser(email, password)
 
   const IS_SUPABASE_USER_CREATED = !error && user
-  
+
   if (IS_SUPABASE_USER_CREATED) {
     await createInitialUserInformation(user.id)
     const userInformations = await getUserInformation(user.id)
@@ -61,6 +61,25 @@ export const logoutSessionUser = async () => {
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signOut()
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+
+export const changeUserEmail = async (newEmail: Email) => {
+  const supabase = await createClient()
+
+  const { error } = await supabase.auth.updateUser({ email: newEmail })
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export const changeUserPassword = async (newPassword: Password) => {
+  const supabase = await createClient()
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword })
   if (error) {
     throw new Error(error.message)
   }

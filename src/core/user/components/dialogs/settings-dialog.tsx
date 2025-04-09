@@ -62,6 +62,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { revokeUserSubscription } from '@/core/payments/subscriptions'
 import { updateUserRole } from '@/core/user/user-informations'
+import { changeUserEmail, changeUserPassword } from '@/core/user/auth'
 
 const data = {
   nav: [
@@ -161,10 +162,20 @@ function EmailForm() {
       email: '',
     },
   })
+  const [isPending, setIsPending] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
 
-  function onSubmit(values: z.infer<typeof emailFormSchema>) {
-    // TODO: Implement email update logic
-    console.log(values)
+  async function onSubmit(values: z.infer<typeof emailFormSchema>) {
+    try {
+      setIsPending(true)
+      setError(null)
+      await changeUserEmail(values.email)
+      window.location.reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update email')
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return (
@@ -184,7 +195,10 @@ function EmailForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Update Email</Button>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" disabled={isPending}>
+          {isPending ? 'Updating...' : 'Update Email'}
+        </Button>
       </form>
     </Form>
   )
@@ -199,10 +213,20 @@ function PasswordForm() {
       confirmPassword: '',
     },
   })
+  const [isPending, setIsPending] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
 
-  function onSubmit(values: z.infer<typeof passwordFormSchema>) {
-    // TODO: Implement password update logic
-    console.log(values)
+  async function onSubmit(values: z.infer<typeof passwordFormSchema>) {
+    try {
+      setIsPending(true)
+      setError(null)
+      await changeUserPassword(values.newPassword)
+      form.reset()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update password')
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return (
@@ -247,7 +271,10 @@ function PasswordForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Change Password</Button>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" disabled={isPending}>
+          {isPending ? 'Updating...' : 'Change Password'}
+        </Button>
       </form>
     </Form>
   )

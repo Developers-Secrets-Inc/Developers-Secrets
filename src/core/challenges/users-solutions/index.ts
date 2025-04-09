@@ -56,6 +56,15 @@ export const getUserSolutions = async (): Promise<UserSolution[]> => {
   return userSolutions.docs
 }
 
+export const getChallengeSolutions = async (challengeId: number): Promise<UserSolution[]> => {
+  const userSolutions = await getUserSolutions()
+
+  return userSolutions.filter((solution) => {
+    if (typeof solution.challenge === 'number') return false
+    return solution.challenge.id === challengeId
+  })
+}
+
 export const getUserSolutionsByChallengeId = async (
   challengeId: number,
   userId: string,

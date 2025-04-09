@@ -3,51 +3,24 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ThumbsUp, ThumbsDown, Eye, MessageSquare, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
+import { CommunitySolution, UserSolutionUser } from '../types'
 
-export interface CommunitySolutionProps {
-  id: string
-  user: {
-    name: string
-    avatar: string
-    initials: string
-  }
-  title: string
-  description: string
-  language: string
-  upvotes: number
-  downvotes: number
-  views: number
-  comments: number
-  date: Date
+
+
+
+const SolutionAuthorAvatar = ({ user }: { user: UserSolutionUser }) => {
+  return (
+    <Avatar className="h-6 w-6">
+      <AvatarImage src={user.avatar} alt={user.name} />
+      <AvatarFallback>{user.initials}</AvatarFallback>
+    </Avatar>
+  )
 }
 
-export function CommunitySolutionCard({
-  solution,
-  onViewSolution,
-}: {
-  solution: CommunitySolutionProps
-  onViewSolution?: (id: string) => void
-}) {
+
+const SolutionStatistics = ({ solution }: { solution: CommunitySolution }) => {
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={solution.user.avatar} alt={solution.user.name} />
-              <AvatarFallback>{solution.user.initials}</AvatarFallback>
-            </Avatar>
-            <span className="font-medium">{solution.user.name}</span>
-          </div>
-          <Badge variant="outline" className="text-xs">
-            {solution.language}
-          </Badge>
-        </div>
-
-        <h4 className="font-medium mb-1">{solution.title}</h4>
-        <p className="text-sm text-muted-foreground mb-4">{solution.description}</p>
-
-        <div className="flex items-center text-xs text-muted-foreground gap-3">
+    <div className="flex items-center text-xs text-muted-foreground gap-3">
           <div className="flex items-center gap-1">
             <ThumbsUp className="h-3.5 w-3.5" />
             <span>{solution.upvotes}</span>
@@ -63,7 +36,32 @@ export function CommunitySolutionCard({
           <div className="flex items-center gap-1">
             <MessageSquare className="h-3.5 w-3.5" />
             <span>{solution.comments} comments</span>
+      </div>
+    </div>
+  )
+}
+
+
+export function CommunitySolutionCard({
+  solution,
+}: {
+  solution: CommunitySolution
+}) {
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <SolutionAuthorAvatar user={solution.user} />
+            <span className="font-medium">{solution.user.name}</span>
           </div>
+        </div>
+
+        <h4 className="font-medium mb-1">{solution.title}</h4>
+        <p className="text-sm text-muted-foreground mb-4">{solution.description}</p>
+
+        <div className="flex items-center text-xs text-muted-foreground gap-3">
+          <SolutionStatistics solution={solution} />
         </div>
       </div>
 
@@ -79,10 +77,12 @@ export function CommunitySolutionCard({
           variant="ghost"
           size="sm"
           className="h-8 gap-1 text-xs"
-          onClick={() => onViewSolution && onViewSolution(solution.id)}
+          asChild
         >
-          View Solution
-          <ExternalLink className="h-3.5 w-3.5" />
+          <Link href={solution.url}>
+            View Solution
+            <ExternalLink className="h-3.5 w-3.5" />
+          </Link>
         </Button>
       </div>
     </div>

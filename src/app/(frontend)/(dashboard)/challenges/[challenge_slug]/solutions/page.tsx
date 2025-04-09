@@ -5,7 +5,7 @@ import { getAllSolutions } from '@/lib/challenge-utils'
 import { getChallengeBySlug } from '@/core/challenges'
 import { Suspense } from 'react'
 import { getUser } from '@/core/user'
-
+import { redirect } from 'next/navigation'
 // Ajoutons la configuration ISR pour cette page
 export const revalidate = 600 // 10 minutes en secondes
 
@@ -51,6 +51,10 @@ export default async function SolutionsPage({
   const challenge = await getChallengeBySlug(challenge_slug)
   const hasSolutions = solutions && solutions.length > 0
   const user = await getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
 
   if (!hasSolutions) {
     return (
