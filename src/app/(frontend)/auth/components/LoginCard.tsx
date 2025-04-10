@@ -64,14 +64,12 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
     setErrors({})
 
     try {
-      const result = await onSubmit(email, password, rememberMe)
-
-      if (!result.success) {
-        toast.error(result.error || 'An error occurred during login.')
-      } else if (result.url) {
-        router.push(result.url)
+      await onSubmit(email, password, rememberMe)
+    } catch (error: any) {
+      // Si c'est une redirection Next.js, ne pas traiter comme une erreur
+      if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+        return
       }
-    } catch (error) {
       console.error('Login error:', error)
       toast.error('An error occurred during login.')
     }
@@ -83,10 +81,14 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
 
       if (result && result.success && result.url) {
         router.push(result.url)
-      } else {
+      } else if (!result?.success) {
         toast.error(result?.error || 'An error occurred during Google login.')
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Si c'est une redirection Next.js, ne pas traiter comme une erreur
+      if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+        return
+      }
       console.error('Google login error:', error)
       toast.error('An error occurred during Google login.')
     }
@@ -98,10 +100,14 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
 
       if (result && result.success && result.url) {
         router.push(result.url)
-      } else {
+      } else if (!result?.success) {
         toast.error(result?.error || 'An error occurred during GitHub login.')
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Si c'est une redirection Next.js, ne pas traiter comme une erreur
+      if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+        return
+      }
       console.error('GitHub login error:', error)
       toast.error('An error occurred during GitHub login.')
     }

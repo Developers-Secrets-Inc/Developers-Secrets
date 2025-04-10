@@ -16,7 +16,7 @@ import { getSubscriptionsByCustomerId } from '@/core/payments/subscriptions'
 
 const api = new Polar({
   accessToken: process.env.POLAR_ACCESS_TOKEN!,
-  server: 'sandbox',
+  server: process.env.NEXT_PUBLIC_POLAR_SERVER as 'sandbox' | 'production',
 })
 
 interface Benefit {

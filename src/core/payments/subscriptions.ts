@@ -8,7 +8,7 @@ import { Polar } from '@polar-sh/sdk'
 export const getSubscriptionsByCustomerId = async (customerId: string): Promise<Subscription[]> => {
   const polar = new Polar({
     accessToken: process.env.POLAR_ACCESS_TOKEN!,
-    server: 'sandbox',
+    server: process.env.NEXT_PUBLIC_POLAR_SERVER as 'sandbox' | 'production',
 })
 
   const subscriptions = await polar.subscriptions.list({
@@ -22,7 +22,7 @@ export const getSubscriptionsByCustomerId = async (customerId: string): Promise<
 export const revokeUserSubscription = async (customerId: string) => {
   const polar = new Polar({
     accessToken: process.env.POLAR_ACCESS_TOKEN!,
-    server: 'sandbox',
+    server: process.env.NEXT_PUBLIC_POLAR_SERVER as 'sandbox' | 'production',
   })
 
   const subscriptions = await getSubscriptionsByCustomerId(customerId)
