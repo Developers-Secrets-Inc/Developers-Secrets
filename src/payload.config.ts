@@ -22,6 +22,12 @@ import { UserCurrency } from './collections/UserCurrency'
 import { Quests } from './collections/Quests'
 import { Achievements } from './collections/Achievements'
 import { UserAchievements } from './collections/UserAchievements'
+import { Challenges } from './collections/Challenges'
+import { UserChallengeProgression } from './collections/UserChallengeProgression'
+import { Comments } from './collections/Comments'
+import { UserSolutions } from './collections/UserSolutions'
+import { ChallengeSubmissions } from './collections/ChallengeSubmissions'
+import { Notifications } from './collections/Notifications'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -49,6 +55,12 @@ export default buildConfig({
     Quests,
     Achievements,
     UserAchievements,
+    Challenges,
+    UserChallengeProgression,
+    Comments,
+    UserSolutions,
+    ChallengeSubmissions,
+    Notifications,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

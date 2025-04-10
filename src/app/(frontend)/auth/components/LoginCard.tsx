@@ -8,6 +8,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { OAuth2Buttons } from '@/components/buttons/OAuth2Buttons'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
+import { loginWithGoogle, loginWithGitHub } from '@/actions/auth'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import {
   Card,
   CardContent,
@@ -18,22 +21,23 @@ import {
 } from '@/components/ui/card'
 
 interface LoginCardProps {
-  onSubmit: (email: string, password: string, rememberMe: boolean) => Promise<void>
-  isLoading?: boolean
-  onGoogleClick?: () => void
-  onGitHubClick?: () => void
+  onSubmit: (
+    email: string,
+    password: string,
+    rememberMe: boolean,
+  ) => Promise<{
+    success: boolean
+    error?: string
+    url?: string
+  }>
 }
 
-export function LoginCard({
-  onSubmit,
-  isLoading = false,
-  onGoogleClick,
-  onGitHubClick,
-}: LoginCardProps) {
+export function LoginCard({ onSubmit }: LoginCardProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,9 +64,50 @@ export function LoginCard({
     setErrors({})
 
     try {
-      await onSubmit(email, password, rememberMe)
-    } catch (error) {
-      console.error('Login error:', error)
+      const result = await onSubmit(email, password, rememberMe)
+      if (!result.success) {
+        toast.error(result.error || 'An error occurred during login.')
+      }
+    } catch (error: any) {
+      // Ignore Next.js redirect "errors" as they are expected
+      if (!error.digest?.startsWith('NEXT_REDIRECT')) {
+        console.error('Login error:', error)
+        toast.error('An error occurred during login.')
+      }
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await loginWithGoogle()
+      if (result.success && result.url) {
+        router.push(result.url)
+      } else if (!result.success) {
+        toast.error(result.error || 'An error occurred during Google login.')
+      }
+    } catch (error: any) {
+      // Ignore Next.js redirect "errors" as they are expected
+      if (!error.digest?.startsWith('NEXT_REDIRECT')) {
+        console.error('Google login error:', error)
+        toast.error('An error occurred during Google login.')
+      }
+    }
+  }
+
+  const handleGitHubLogin = async () => {
+    try {
+      const result = await loginWithGitHub()
+      if (result.success && result.url) {
+        router.push(result.url)
+      } else if (!result.success) {
+        toast.error(result.error || 'An error occurred during GitHub login.')
+      }
+    } catch (error: any) {
+      // Ignore Next.js redirect "errors" as they are expected
+      if (!error.digest?.startsWith('NEXT_REDIRECT')) {
+        console.error('GitHub login error:', error)
+        toast.error('An error occurred during GitHub login.')
+      }
     }
   }
 
@@ -80,7 +125,6 @@ export function LoginCard({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={errors.email}
-            disabled={isLoading}
             required
           />
 
@@ -90,7 +134,6 @@ export function LoginCard({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
-            disabled={isLoading}
             required
           />
 
@@ -100,7 +143,6 @@ export function LoginCard({
                 id="remember-me"
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked === true)}
-                disabled={isLoading}
               />
               <label
                 htmlFor="remember-me"
@@ -118,8 +160,8 @@ export function LoginCard({
             </Link>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign in'}
+          <Button type="submit" className="w-full">
+            Sign in
           </Button>
 
           <div className="relative my-6">
@@ -131,11 +173,7 @@ export function LoginCard({
             </div>
           </div>
 
-          <OAuth2Buttons
-            isLoading={isLoading}
-            onGoogleClick={onGoogleClick}
-            onGitHubClick={onGitHubClick}
-          />
+          <OAuth2Buttons onGoogleClick={handleGoogleLogin} onGitHubClick={handleGitHubLogin} />
         </form>
       </CardContent>
       <CardFooter className="flex justify-center">

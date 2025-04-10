@@ -20,7 +20,7 @@ export function GitHubAuthButton({
     <Button
       variant={variant}
       className={cn('flex items-center gap-2 w-full', className)}
-      disabled={isLoading}
+      disabled={true}
       {...props}
     >
       {isLoading ? (

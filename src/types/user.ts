@@ -1,9 +1,8 @@
-export type User = {
-  id: string
-  email: string
-  // Statistiques de connexion
+import { User as SupabaseUser } from '@supabase/supabase-js'
+
+export type User = SupabaseUser & {
+  informations: UserInformations
   connectionStats?: UserConnectionStats
-  // Autres champs qui pourraient être ajoutés dans le futur
 }
 
 /**
@@ -17,9 +16,13 @@ export type UserConnectionStats = {
 }
 
 export type UserInformations = {
+  name: string
+  avatar: string
+  initials: string
   role: UserRole
   permissions: UserPermission[]
   preferences: UserPreferences
+  customerId: string
 }
 
 export type UserRole = 'basic' | 'pro' | 'max'

@@ -18,6 +18,21 @@ export const UserInformations: CollectionConfig = {
       required: true,
     },
     {
+      name: 'name',
+      label: 'Name',
+      type: 'text',
+    },
+    {
+      name: 'avatar',
+      label: 'Avatar',
+      type: 'text',
+    },
+    {
+      name: 'initials',
+      label: 'Initials',
+      type: 'text',
+    },
+    {
       name: 'role',
       label: 'Role',
       type: 'select',
@@ -25,6 +40,10 @@ export const UserInformations: CollectionConfig = {
         {
           label: 'Basic',
           value: 'basic',
+        },
+        {
+          label: 'Lite',
+          value: 'lite',
         },
         {
           label: 'Pro',
@@ -106,6 +125,11 @@ export const UserInformations: CollectionConfig = {
           defaultValue: 'system',
         },
       ],
+    },
+    {
+      name: 'customerId',
+      label: 'Customer ID',
+      type: 'text',
     },
   ],
 }

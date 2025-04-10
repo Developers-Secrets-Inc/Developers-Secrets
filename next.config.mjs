@@ -1,5 +1,6 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 
+
 const nextConfig = {
   // Your Next.js config here
   experimental: {
@@ -15,6 +16,7 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  reactStrictMode: false, // Disable strict mode for BlockNote compatibility
 }
 
 export default withPayload(nextConfig)

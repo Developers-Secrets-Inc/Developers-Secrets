@@ -1,10 +1,14 @@
-import { createClient } from "@/utils/supabase/server";
-import { AuthButtonsClient } from "./AuthButtons.client";
+import { getUser } from '@/core/user'
+import { AuthButtonsClient } from './AuthButtons.client'
 
 export const AuthButtons = async () => {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
+  try {
+    const user = await getUser()
     return <AuthButtonsClient user={user} />
+  } catch (error) {
+    // Log error on server side for debugging
+    console.error('AuthButtons: Failed to get user:', error)
+    // If error occurs, render the client component with null user (not logged in)
+    return <AuthButtonsClient user={null} />
+  }
 }
-
