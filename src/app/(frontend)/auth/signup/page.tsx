@@ -2,7 +2,6 @@ import { SignUpCard } from '../components/SignUpCard'
 import { signup } from '@/actions/auth'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 
-
 export default function SignUpPage() {
   const handleSignUp = async (
     username: string,
@@ -11,13 +10,7 @@ export default function SignUpPage() {
     rememberMe: boolean,
   ) => {
     'use server'
-    try {
-      const result = await signup(username, email, password)
-      return result
-    } catch (error) {
-      console.error('Signup error:', error)
-      return { success: false, error: 'An error occurred during registration.' }
-    }
+    return await signup(username, email, password)
   }
 
   return (

@@ -64,52 +64,50 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
     setErrors({})
 
     try {
-      await onSubmit(email, password, rememberMe)
-    } catch (error: any) {
-      // Si c'est une redirection Next.js, ne pas traiter comme une erreur
-      if (error?.digest?.startsWith('NEXT_REDIRECT')) {
-        return
+      const result = await onSubmit(email, password, rememberMe)
+      if (!result.success) {
+        toast.error(result.error || 'An error occurred during login.')
       }
-      console.error('Login error:', error)
-      toast.error('An error occurred during login.')
+    } catch (error: any) {
+      // Ignore Next.js redirect "errors" as they are expected
+      if (!error.digest?.startsWith('NEXT_REDIRECT')) {
+        console.error('Login error:', error)
+        toast.error('An error occurred during login.')
+      }
     }
   }
 
   const handleGoogleLogin = async () => {
     try {
       const result = await loginWithGoogle()
-
-      if (result && result.success && result.url) {
+      if (result.success && result.url) {
         router.push(result.url)
-      } else if (!result?.success) {
-        toast.error(result?.error || 'An error occurred during Google login.')
+      } else if (!result.success) {
+        toast.error(result.error || 'An error occurred during Google login.')
       }
     } catch (error: any) {
-      // Si c'est une redirection Next.js, ne pas traiter comme une erreur
-      if (error?.digest?.startsWith('NEXT_REDIRECT')) {
-        return
+      // Ignore Next.js redirect "errors" as they are expected
+      if (!error.digest?.startsWith('NEXT_REDIRECT')) {
+        console.error('Google login error:', error)
+        toast.error('An error occurred during Google login.')
       }
-      console.error('Google login error:', error)
-      toast.error('An error occurred during Google login.')
     }
   }
 
   const handleGitHubLogin = async () => {
     try {
       const result = await loginWithGitHub()
-
-      if (result && result.success && result.url) {
+      if (result.success && result.url) {
         router.push(result.url)
-      } else if (!result?.success) {
-        toast.error(result?.error || 'An error occurred during GitHub login.')
+      } else if (!result.success) {
+        toast.error(result.error || 'An error occurred during GitHub login.')
       }
     } catch (error: any) {
-      // Si c'est une redirection Next.js, ne pas traiter comme une erreur
-      if (error?.digest?.startsWith('NEXT_REDIRECT')) {
-        return
+      // Ignore Next.js redirect "errors" as they are expected
+      if (!error.digest?.startsWith('NEXT_REDIRECT')) {
+        console.error('GitHub login error:', error)
+        toast.error('An error occurred during GitHub login.')
       }
-      console.error('GitHub login error:', error)
-      toast.error('An error occurred during GitHub login.')
     }
   }
 
