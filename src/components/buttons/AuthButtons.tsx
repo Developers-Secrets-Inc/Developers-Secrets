@@ -1,9 +1,5 @@
 import { getUser } from '@/core/user'
 import { AuthButtonsClient } from './AuthButtons.client'
-import { isError } from '@/core/user/result'
-
-export const dynamic = 'force-dynamic'
-export const runtime = 'edge'
 
 export const AuthButtons = async () => {
   try {

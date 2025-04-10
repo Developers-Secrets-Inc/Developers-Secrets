@@ -5,7 +5,6 @@ import { Markdown } from '@/components/markdown'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { getUser } from '@/core/user'
 
-export const dynamic = 'force-dynamic'
 export const revalidate = 600 // 10 minutes in seconds
 
 export async function generateStaticParams() {
@@ -28,11 +27,12 @@ export default async function OfficialSolutionPage({
 
   return (
     <div className="p-6">
-      <ChallengeHeader challenge={challenge} status={status} />
+      <ChallengeHeader
+        challenge={challenge}
+        status={status}
+      />
       <div>
-        <Markdown>
-          {challenge.officialSolution.statement || 'No official solution available.'}
-        </Markdown>
+        <Markdown>{challenge.officialSolution.statement || 'No official solution available.'}</Markdown>
       </div>
 
       <div className="mt-8 border-t pt-6">

@@ -752,7 +752,7 @@ function MobileFeatureCard({ title, description }: { title: string; description:
 //   )
 // }
 
-
+export const dynamic = 'force-dynamic'
 
 export default function Home() {
   return (

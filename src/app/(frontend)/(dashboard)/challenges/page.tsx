@@ -10,8 +10,6 @@ import { ChallengeCategories } from './components/challenge-categories'
 import { createNotification } from '@/core/notifications'
 import { getUser } from '@/core/user'
 
-export const dynamic = 'force-dynamic'
-
 export default async function ChallengesPage() {
   return (
     <SidebarProvider>
