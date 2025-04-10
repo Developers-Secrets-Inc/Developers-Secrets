@@ -89,21 +89,23 @@ const PricingCard = ({ product }: { product: any }) => {
   )
 }
 
-export default async function Page() {
-    const { result } = await api.products.list({
-      isArchived: false,
-    })
+export const dynamic = 'force-dynamic'
 
-    const sortedProducts = [...result.items].sort((a, b) => {
-      const indexA = PRODUCT_ORDER.indexOf(a.name)
-      const indexB = PRODUCT_ORDER.indexOf(b.name)
-      return indexA - indexB
-    })
-    
-    const user = await getUser()
-    console.log(user?.informations.customerId)
-    const subscriptions = await getSubscriptionsByCustomerId(user?.informations.customerId)
-    // console.log(subscriptions)
+export default async function Page() {
+  const { result } = await api.products.list({
+    isArchived: false,
+  })
+
+  const sortedProducts = [...result.items].sort((a, b) => {
+    const indexA = PRODUCT_ORDER.indexOf(a.name)
+    const indexB = PRODUCT_ORDER.indexOf(b.name)
+    return indexA - indexB
+  })
+
+  const user = await getUser()
+  const customerId = user?.informations?.customerId
+  const subscriptions = customerId ? await getSubscriptionsByCustomerId(customerId) : null
+  // console.log(subscriptions)
 
   return (
     <div className="min-h-screen flex flex-col">

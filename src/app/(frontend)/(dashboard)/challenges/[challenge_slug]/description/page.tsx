@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { getUser } from '@/core/user'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 
+export const dynamic = 'force-dynamic'
 export const revalidate = 600 // 10 minutes in seconds
 
 export async function generateStaticParams() {
@@ -26,6 +27,17 @@ export default async function ChallengeDescriptionPage({
   try {
     const challenge = await getChallengeBySlug(challenge_slug)
     const user = await getUser()
+
+    if (!user) {
+      return (
+        <div className="p-6">
+          <div className="text-center">
+            <h2 className="text-lg font-semibold">Authentication Required</h2>
+            <p className="text-muted-foreground">Please log in to view this challenge.</p>
+          </div>
+        </div>
+      )
+    }
 
     // Get the completion status for this challenge
     const status = await getUserCompletionStatus(user.id, challenge.id)

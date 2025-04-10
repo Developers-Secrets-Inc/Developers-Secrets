@@ -8,6 +8,7 @@ import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
 // Ajoutons la configuration ISR pour cette page
 export const revalidate = 600 // 10 minutes en secondes
+export const dynamic = 'force-dynamic'
 
 // Composant de chargement pour éviter les flashs UI
 function SolutionsLoading() {

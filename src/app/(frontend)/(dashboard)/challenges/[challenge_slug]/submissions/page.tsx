@@ -3,6 +3,8 @@ import { SubmissionsList } from '../components/submissions-list'
 import { getChallengeBySlug } from '@/core/challenges/'
 import { getSubmissions } from '@/core/challenges/submissions'
 
+export const dynamic = 'force-dynamic'
+
 export default async function SubmissionsPage({
   params,
 }: {
@@ -12,6 +14,17 @@ export default async function SubmissionsPage({
   const { challenge_slug } = await params
   const challenge = await getChallengeBySlug(challenge_slug)
   const user = await getUser()
+
+  if (!user) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold">Authentication Required</h2>
+          <p className="text-muted-foreground">Please log in to view your submissions.</p>
+        </div>
+      </div>
+    )
+  }
 
   const submissionsData = await getSubmissions(challenge.id, user.id)
 
