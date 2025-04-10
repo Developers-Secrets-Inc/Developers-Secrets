@@ -11,7 +11,7 @@ type Metadata = {
 
 const convertTagToOption = (tag: Tag): Option => ({
   value: tag.id.toString(),
-  label: tag.name,
+  label: tag.status === 'test' ? `${tag.name} (private)` : tag.name,
 })
 
 export const useUserSolution = (

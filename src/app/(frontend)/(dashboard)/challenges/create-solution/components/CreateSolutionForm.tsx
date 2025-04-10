@@ -85,6 +85,8 @@ export default function CreateSolutionForm({
     userId,
   )
 
+  console.log('metadata', metadata.tags)
+
   const handleSubmit = async () => {
     setIsLoading(true)
 
@@ -123,7 +125,6 @@ export default function CreateSolutionForm({
         ) : (
           <>
             <SolutionMetadata
-              userId={userId}
               onMetadataChange={setMetadata}
               initialData={metadata}
             />

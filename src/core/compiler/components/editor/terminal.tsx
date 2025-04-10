@@ -141,11 +141,15 @@ export const TerminalContent = ({
       <TabsContent value="tests" className="h-full p-0 m-0">
         {testResults.length > 0 ? (
           <div className="h-full overflow-auto">
-            <Tabs defaultValue="0" className="h-full">
-              <div className="border-b px-4">
-                <TabsList>
+            <Tabs defaultValue="0" className="h-full border-t">
+              <div className="border-b">
+                <TabsList className="bg-background h-auto -space-x-px p-0 shadow-xs rtl:space-x-reverse">
                   {testResults.map((_, index) => (
-                    <TabsTrigger key={index} value={index.toString()}>
+                    <TabsTrigger
+                      key={index}
+                      value={index.toString()}
+                      className="data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
+                    >
                       Test {index + 1}
                     </TabsTrigger>
                   ))}

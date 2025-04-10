@@ -319,3 +319,68 @@ export const setUserDislike = async (
     },
   })
 }
+
+export const getCompletedChallengesPerDay = async (
+  userId: string,
+): Promise<{ [date: string]: number }> => {
+  const validatedUserId = validateUserId(userId)
+  const payload = await getPayload({ config })
+
+  // Get the start and end dates for the current month
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  startOfMonth.setHours(0, 0, 0, 0)
+
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  endOfMonth.setHours(23, 59, 59, 999)
+
+  // Query all completed challenges for the user in the current month
+  const userProgressions = await payload.find({
+    collection: 'userChallengeProgression',
+    where: {
+      and: [
+        {
+          userId: {
+            equals: validatedUserId,
+          },
+        },
+        {
+          completionStatus: {
+            equals: 'completed',
+          },
+        },
+        {
+          updatedAt: {
+            greater_than_equal: startOfMonth.toISOString(),
+          },
+        },
+        {
+          updatedAt: {
+            less_than_equal: endOfMonth.toISOString(),
+          },
+        },
+      ],
+    },
+  })
+
+  // Create a map of date -> number of completed challenges
+  const completedChallengesPerDay: { [date: string]: number } = {}
+
+  // Initialize all days of the month with 0
+  for (let day = 1; day <= endOfMonth.getDate(); day++) {
+    const date = new Date(now.getFullYear(), now.getMonth(), day)
+    date.setHours(0, 0, 0, 0)
+    const dateString = date.toISOString().split('T')[0]
+    completedChallengesPerDay[dateString] = 0
+  }
+
+  // Count completed challenges for each day
+  userProgressions.docs.forEach((progression) => {
+    const completionDate = new Date(progression.updatedAt)
+    completionDate.setHours(0, 0, 0, 0)
+    const dateString = completionDate.toISOString().split('T')[0]
+    completedChallengesPerDay[dateString] = (completedChallengesPerDay[dateString] || 0) + 1
+  })
+
+  return completedChallengesPerDay
+}

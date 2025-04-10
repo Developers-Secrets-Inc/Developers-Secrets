@@ -1,19 +1,20 @@
 'use client'
 
-import { useState, useContext } from 'react'
-import { CodeEditor } from '@/core/compiler/components/editor'
-import { handleSubmission } from '@/core/challenges/submissions/client-actions'
-import { handleChallengeCompletion } from '@/core/challenges/actions'
-import {
-  WrongAnswerSubmission,
-  TimeLimitExceededSubmission,
-  RunTimeErrorSubmission,
-  AcceptedSubmission,
-} from '@/core/challenges/submissions/index.client'
 import { ChallengeCompletionDialog } from '@/components/challenges/challenge-completion-dialog'
+import { handleChallengeCompletion } from '@/core/challenges/actions'
 import { ChallengeStatusContext } from '@/core/challenges/components/challenge-status-provider'
-import { toast } from 'sonner'
+import { handleSubmission } from '@/core/challenges/submissions/client-actions'
+import {
+  AcceptedSubmission,
+  RunTimeErrorSubmission,
+  TimeLimitExceededSubmission,
+  WrongAnswerSubmission,
+} from '@/core/challenges/submissions/index.client'
+import { CodeEditor } from '@/core/compiler/components/editor'
+import { Challenge } from '@/payload-types'
 import { nanoid } from 'nanoid'
+import { useContext, useState } from 'react'
+import { toast } from 'sonner'
 
 type ChallengeEditorProps = {
   initialCode: string
@@ -24,7 +25,7 @@ type ChallengeEditorProps = {
   }[]
   codeVersions: Record<string, string>
   tests: Record<string, { input: string; expectedOutput: string }[]>
-  challengeId: number
+  challenge: Challenge
   userId: string
 }
 
@@ -34,7 +35,7 @@ export function ChallengeEditor({
   availableLanguages,
   codeVersions,
   tests,
-  challengeId,
+  challenge,
   userId,
 }: ChallengeEditorProps) {
   const [showCompletionDialog, setShowCompletionDialog] = useState(false)
@@ -74,7 +75,7 @@ export function ChallengeEditor({
       }
 
       // Envoyer la soumission au serveur
-      const result = await handleSubmission(submission, challengeId, userId)
+      const result = await handleSubmission(submission, challenge.id, userId)
 
       if (!result.success || !result.data) {
         throw new Error(result.error || 'Failed to submit')
@@ -102,8 +103,10 @@ export function ChallengeEditor({
         // Update status to completed
         await updateStatus('completed')
 
+
+
         // Handle challenge completion in the background
-        handleChallengeCompletion(challengeId, userId).catch(console.error)
+        handleChallengeCompletion(challenge, userId).catch(console.error)
       }
     } catch (error) {
       console.error('Error submitting code:', error)
@@ -116,7 +119,7 @@ export function ChallengeEditor({
       <CodeEditor
         initialCode={initialCode}
         language={language}
-        showLanguageSelector={true}
+        showLanguageSelector={availableLanguages.length > 1}
         availableLanguages={availableLanguages}
         codeVersions={codeVersions}
         tests={tests}
@@ -126,7 +129,7 @@ export function ChallengeEditor({
       <ChallengeCompletionDialog
         isOpen={showCompletionDialog}
         onClose={() => setShowCompletionDialog(false)}
-        challengeId={challengeId}
+        challengeId={challenge.id}
         userId={userId}
       />
     </>

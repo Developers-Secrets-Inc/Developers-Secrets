@@ -16,6 +16,8 @@ import { Suspense } from 'react'
 import { ChallengeEditor } from './components/challenge-editor'
 import { ChallengeNavigation } from './components/challenge-navigation'
 import { ChallengeStatusProvider } from '@/core/challenges/components/challenge-status-provider'
+import { NotificationButton } from '@/components/sidebars/home-sidebar/notification-button'
+import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
 
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
@@ -24,12 +26,10 @@ function LoadingPlaceholder() {
 
 const ChallengeLayoutHeader = ({
   challengeSlug,
-  previousChallengeSlug,
-  nextChallengeSlug,
+  user,
 }: {
   challengeSlug: string
-  previousChallengeSlug: string
-  nextChallengeSlug: string
+  user: User
 }) => {
   return (
     <header className="flex-none py-3 px-4 bg-background">
@@ -43,20 +43,12 @@ const ChallengeLayoutHeader = ({
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Button
-            asChild
-            variant="outline"
-            className="h-9 px-3 py-1.5 text-sm"
-            aria-label="Back to dashboard"
-          >
-            <Link href="/dashboard" prefetch={true}>
-              Dashboard
-            </Link>
+          <NotificationButton />
+
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/home">Dashboard</Link>
           </Button>
-          <Avatar className="h-9 w-9">
-            <AvatarImage src="https://github.com/shadcn.png" alt="User" />
-            <AvatarFallback>US</AvatarFallback>
-          </Avatar>
+          <UserDropdownMenu user={user} />
         </div>
       </div>
     </header>
@@ -75,6 +67,8 @@ export default async function ChallengeLayout({
 
   // Get challenge info
   const challenge = await getChallengeBySlug(challenge_slug)
+  const user = await getUser()
+
 
   // Extraire les versions de code disponibles
   const availableLanguages =
@@ -118,7 +112,6 @@ export default async function ChallengeLayout({
   let userRating: number | null | undefined = undefined
 
   try {
-    const user = await getUser()
     userId = user.id
 
     // Fetch user progression if we have a user ID
@@ -147,56 +140,55 @@ export default async function ChallengeLayout({
         <div className="flex h-screen">
           <IconSidebar />
           <SidebarInset>
-          <div className="flex flex-col h-full w-[calc(100vw-3.5rem)]">
-            <ChallengeLayoutHeader
-              challengeSlug={challenge_slug}
-              previousChallengeSlug={previousChallenge.slug}
-              nextChallengeSlug={nextChallenge.slug}
-            />
+            <div className="flex flex-col h-full w-[calc(100vw-3.5rem)]">
+              <ChallengeLayoutHeader
+                challengeSlug={challenge_slug}
+                user={user}
+              />
 
-            <div className="flex-1 overflow-hidden">
-              <ResizablePanelGroup direction="horizontal">
-                <ResizablePanel defaultSize={50} minSize={40}>
-                  <div className="flex flex-col h-full">
-                    <ChallengeNavigation
-                      challengeSlug={challenge_slug}
-                      challengeId={challenge.id}
-                      userId={userId}
-                    />
-                    <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
-                      <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
-                    </div>
-                    <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50">
-                      <div className="flex items-center justify-between gap-3 mb-3">
-                        <ReactionButtons challengeId={challenge.id} userId={userId} />
-                        <RatingText
-                          challengeId={challenge.id}
-                          initialRating={userRating ?? undefined}
-                        />
+              <div className="flex-1 overflow-hidden">
+                <ResizablePanelGroup direction="horizontal">
+                  <ResizablePanel defaultSize={50} minSize={40}>
+                    <div className="flex flex-col h-full">
+                      <ChallengeNavigation
+                        challengeSlug={challenge_slug}
+                        challengeId={challenge.id}
+                        userId={userId}
+                      />
+                      <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
+                        <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
                       </div>
-                      <AIAssistantDialog challengeSlug={challenge.slug} />
+                      <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <ReactionButtons challengeId={challenge.id} userId={userId} />
+                          <RatingText
+                            challengeId={challenge.id}
+                            initialRating={userRating ?? undefined}
+                          />
+                        </div>
+                        <AIAssistantDialog challengeSlug={challenge.slug} />
+                      </div>
                     </div>
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={50} minSize={40}>
-                  <div className="flex flex-col h-full">
-                    <ChallengeEditor
-                      initialCode={initialCodeVersions[initialLanguage] || ''}
-                      language={initialLanguage}
-                      availableLanguages={availableLanguages}
-                      codeVersions={initialCodeVersions}
-                      tests={testCasesByLanguage}
-                      challengeId={challenge.id}
-                      userId={userId}
-                    />
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={50} minSize={40}>
+                    <div className="flex flex-col h-full">
+                      <ChallengeEditor
+                        initialCode={initialCodeVersions[initialLanguage] || ''}
+                        language={initialLanguage}
+                        availableLanguages={availableLanguages}
+                        codeVersions={initialCodeVersions}
+                        tests={testCasesByLanguage}
+                        challenge={challenge}
+                        userId={userId}
+                      />
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </div>
             </div>
-          </div>
-        </SidebarInset>
-      </div>  
+          </SidebarInset>
+        </div>
       </ChallengeStatusProvider>
     </SidebarProvider>
   )

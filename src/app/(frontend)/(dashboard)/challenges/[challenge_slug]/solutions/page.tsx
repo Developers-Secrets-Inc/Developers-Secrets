@@ -1,7 +1,7 @@
-import { CommunitySolutions } from '../components/community-solutions'
+import { CommunitySolutions } from '@/core/challenges/users-solutions/components/solutions/community-solutions'
 import { NoSolutionsAvailable } from '@/core/challenges/users-solutions/components/no-solutions-available'
 import { CreateSolutionBanner } from '@/core/challenges/users-solutions/components/create-solution-banner'
-import { getAllSolutions } from '@/lib/challenge-utils'
+import { getChallengeSolutions } from '@/core/challenges/users-solutions'
 import { getChallengeBySlug } from '@/core/challenges'
 import { Suspense } from 'react'
 import { getUser } from '@/core/user'
@@ -33,7 +33,8 @@ export async function generateMetadata({
   const { challenge_slug } = await params
 
   // Préchargement des solutions pendant la génération des métadonnées
-  await getAllSolutions(challenge_slug)
+  const challenge = await getChallengeBySlug(challenge_slug)
+  await getChallengeSolutions(challenge.id)
 
   return {
     title: `Community Solutions | Challenge`,
@@ -47,8 +48,8 @@ export default async function SolutionsPage({
   params: Promise<{ challenge_slug: string }>
 }) {
   const { challenge_slug } = await params
-  const solutions = await getAllSolutions(challenge_slug)
   const challenge = await getChallengeBySlug(challenge_slug)
+  const solutions = await getChallengeSolutions(challenge.id)
   const hasSolutions = solutions && solutions.length > 0
   const user = await getUser()
 
@@ -69,7 +70,7 @@ export default async function SolutionsPage({
     <div className="p-6">
       <CreateSolutionBanner challengeId={challenge.id} userId={user.id} />
       <Suspense fallback={<SolutionsLoading />}>
-        <CommunitySolutions challengeSlug={challenge_slug} />
+        <CommunitySolutions challengeSlug={challenge_slug} solutions={solutions} user={user} />
       </Suspense>
     </div>
   )

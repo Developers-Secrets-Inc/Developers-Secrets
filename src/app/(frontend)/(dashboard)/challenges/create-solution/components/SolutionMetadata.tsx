@@ -81,11 +81,10 @@ export interface SolutionMetadata {
 
 interface SolutionMetadataProps {
   onMetadataChange?: (metadata: SolutionMetadata) => void
-  userId: string
   initialData?: SolutionMetadata
 }
 
-export default function SolutionMetadata({ onMetadataChange, userId, initialData }: SolutionMetadataProps) {
+export default function SolutionMetadata({ onMetadataChange, initialData }: SolutionMetadataProps) {
   const { metadata, updateField } = useUserSolutionMetadata(initialData)
 
   const handleChange = (
@@ -111,9 +110,9 @@ export default function SolutionMetadata({ onMetadataChange, userId, initialData
       />
 
       <UserSolutionTags
-        initialTags={metadata.tags}
+        selectedTags={metadata.tags}
+        searchTags={[]}
         onTagsChange={(tags) => handleChange('tags', tags)}
-        userId={userId}
       />
     </div>
   )

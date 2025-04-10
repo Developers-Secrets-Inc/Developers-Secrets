@@ -4,18 +4,15 @@ import 'server-only'
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { getUserInformation } from '@/core/user'
 
 import { UserGamification } from '@/payload-types'
 
-
-export const DEFAULT_LEVEL_UP_FORMULA = (currentLevel: number) =>
-  currentLevel * 100
-
+export const DEFAULT_LEVEL_UP_FORMULA = async (currentLevel: number) => currentLevel * 100
 
 // ================================================
 // Create Operations
 // ================================================
-
 
 const BASE_LEVEL = 1
 const BASE_EXPERIENCE = 0
@@ -23,30 +20,29 @@ const BASE_EXPERIENCE = 0
 export async function initializeUser(userId: string): Promise<void> {
   const payload = await getPayload({ config })
 
-  // ! May not work because no null value is returned
-  if (await getGamificationInformations(userId)) {
-    throw new Error('User already initialized')
+  try {
+    if (await getGamificationInformations(userId)) {
+      throw new Error('User already initialized')
+    }
+  } catch (_error) {
+    await payload.create({
+      collection: 'user-gamification',
+      data: {
+        userId,
+        currentLevel: BASE_LEVEL,
+        currentExperience: BASE_EXPERIENCE,
+        totalExperience: BASE_EXPERIENCE,
+        lastLevelUpDate: new Date().toISOString(),
+      },
+    })
   }
-
-  await payload.create({
-    collection: 'user-gamification',
-    data: {
-      userId,
-      currentLevel: BASE_LEVEL,
-      currentExperience: BASE_EXPERIENCE,
-      totalExperience: BASE_EXPERIENCE,
-      lastLevelUpDate: new Date().toISOString(),
-    },
-  })
 }
 
 // ================================================
 // Read Operations
 // ================================================
 
-
-// TODO: Add UserGamificationNotFoundError
-export const getGamificationInformations = async (userId: string): Promise<UserGamification> => {
+const getPayloadUserGamification = async (userId: string): Promise<UserGamification[]> => {
   const payload = await getPayload({ config })
 
   const informations = await payload.find({
@@ -58,34 +54,29 @@ export const getGamificationInformations = async (userId: string): Promise<UserG
     },
   })
 
-  if (informations.docs.length === 0) {
-    throw new Error('User not found')
+  return informations.docs
+}
+
+export const getGamificationInformations = async (userId: string): Promise<UserGamification> => {
+  const userGamification = await getPayloadUserGamification(userId)
+
+  const HAS_INFORMATIONS = userGamification.length > 0
+  const HAS_MULTIPLE_INFORMATIONS = userGamification.length > 1
+
+  if (HAS_MULTIPLE_INFORMATIONS) {
+    throw new Error(
+      `User with id ${userId} has multiple gamification informations. This is an admin problem, you should check the UserGamification collection. This may error may have been caused by calling initializeUser multiple times.`,
+    )
   }
 
-  return informations.docs[0]
+  if (!HAS_INFORMATIONS) {
+    throw new Error(
+      `User with id ${userId} has no gamification informations. This is an admin problem, you should check the UserGamification collection. This may error may have been caused by not calling initializeUser. A user has no gamification informations if they have not completed any challenge.`,
+    )
+  }
+
+  return userGamification[0]
 }
-
-
-export const getUserExperience = async (userId: string): Promise<number> => {
-  const informations = await getGamificationInformations(userId)
-
-  return informations.currentExperience
-}
-
-
-export const getUserLevel = async (userId: string): Promise<number> => {
-  const informations = await getGamificationInformations(userId)
-
-  return informations.currentLevel
-}
-
-
-export const getUserTotalExperience = async (userId: string): Promise<number> => {
-  const informations = await getGamificationInformations(userId)
-
-  return informations.totalExperience
-}
-
 
 export const getUserNextLevelExperience = async (userId: string): Promise<number> => {
   const informations = await getGamificationInformations(userId)
@@ -104,10 +95,12 @@ export async function addExperience(
   const payload = await getPayload({ config })
 
   // Récupérer les informations actuelles de l'utilisateur
-  const userInfo = await getGamificationInformations(userId)
-  if (!userInfo) {
-    throw new Error('User not found')
+  try {
+    await getGamificationInformations(userId)
+  } catch (error) {
+    await initializeUser(userId)
   }
+  const userInfo = await getGamificationInformations(userId)
 
   // Calculer la nouvelle expérience
   let newCurrentExperience = userInfo.currentExperience + experienceAmount
@@ -118,7 +111,7 @@ export async function addExperience(
   // Vérifier si l'utilisateur doit monter de niveau
   let shouldContinueChecking = true
   while (shouldContinueChecking) {
-    const experienceForNextLevel = DEFAULT_LEVEL_UP_FORMULA(newLevel)
+    const experienceForNextLevel = await DEFAULT_LEVEL_UP_FORMULA(newLevel)
 
     if (newCurrentExperience >= experienceForNextLevel) {
       // Monter de niveau
@@ -200,9 +193,7 @@ export async function increaseLevel(
   return updatedUser.docs[0]
 }
 
-export async function recalculateLevel(
-  userId: string,
-): Promise<UserGamification> {
+export async function recalculateLevel(userId: string): Promise<UserGamification> {
   const payload = await getPayload({ config })
 
   // Récupérer les informations actuelles de l'utilisateur
@@ -218,7 +209,7 @@ export async function recalculateLevel(
   // Recalculer le niveau en fonction de l'expérience totale
   let shouldContinueChecking = true
   while (shouldContinueChecking) {
-    const experienceForNextLevel = DEFAULT_LEVEL_UP_FORMULA(newLevel)
+    const experienceForNextLevel = await DEFAULT_LEVEL_UP_FORMULA(newLevel)
 
     if (remainingExperience >= experienceForNextLevel) {
       // Monter de niveau
@@ -249,3 +240,80 @@ export async function recalculateLevel(
   return updatedUser.docs[0]
 }
 
+type LeaderboardPeriod = 'day' | 'week' | 'month'
+
+type LeaderboardEntry = {
+  informations: {
+    id: number
+    userId: string
+    name: string
+    avatar: string
+    initials: string
+  }
+  totalExperience: number
+  rank: number
+}
+
+export async function getLeaderboard(period: LeaderboardPeriod): Promise<LeaderboardEntry[]> {
+  const payload = await getPayload({ config })
+
+  // Get the date range based on the period
+  const now = new Date()
+  const startDate = new Date()
+
+  switch (period) {
+    case 'day':
+      startDate.setHours(0, 0, 0, 0)
+      break
+    case 'week':
+      startDate.setDate(now.getDate() - 7)
+      break
+    case 'month':
+      startDate.setMonth(now.getMonth() - 1)
+      break
+  }
+
+  // Get all user gamification data
+  const gamificationData = await payload.find({
+    collection: 'user-gamification',
+    where: {
+      lastLevelUpDate: {
+        greater_than: startDate.toISOString(),
+      },
+    },
+    sort: '-totalExperience',
+  })
+
+  // Get user information for each gamification entry
+  const leaderboardEntries: LeaderboardEntry[] = []
+
+  for (const entry of gamificationData.docs) {
+    try {
+      const userInfo = await getUserInformation(entry.userId)
+
+      leaderboardEntries.push({
+        informations: {
+          id: Number(entry.id),
+          userId: entry.userId,
+          name: userInfo.name,
+          avatar: userInfo.avatar,
+          initials: userInfo.initials,
+        },
+        totalExperience: entry.totalExperience,
+        rank: 0, // Will be set after sorting
+      })
+    } catch (error) {
+      console.error(`Failed to get user information for user ${entry.userId}:`, error)
+      // Skip this user if we can't get their information
+      continue
+    }
+  }
+
+  // Sort by total experience and assign ranks
+  leaderboardEntries.sort((a, b) => b.totalExperience - a.totalExperience)
+  leaderboardEntries.forEach((entry, index) => {
+    entry.rank = index + 1
+  })
+
+  return leaderboardEntries
+}

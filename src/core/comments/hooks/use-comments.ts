@@ -4,6 +4,7 @@ import { getComments } from '..'
 import { CommentContext, CommentResponse } from '../types'
 import { Comment } from '@/payload-types'
 import { getUserById } from '@/core/user'
+import { isError } from '@/core/user/result'
 
 // Compteur global pour les IDs temporaires
 let tempIdCounter = -1
@@ -35,7 +36,13 @@ export const useComments = (context: CommentContext, userId?: string) => {
   const { data: authors, isLoading: isLoadingAuthors } = useQuery({
     queryKey: ['authors', uniqueAuthorIds],
     queryFn: async () => {
-      const authorPromises = uniqueAuthorIds.map((id) => getUserById(id))
+      const authorPromises = uniqueAuthorIds.map(async (id) => {
+        const result = await getUserById(id)
+        if (isError(result)) {
+          throw new Error('User not found')
+        }
+        return result.value
+      })
       const authorResults = await Promise.all(authorPromises)
       return Object.fromEntries(uniqueAuthorIds.map((id, index) => [id, authorResults[index]]))
     },

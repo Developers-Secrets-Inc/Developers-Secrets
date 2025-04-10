@@ -29,7 +29,6 @@ type EditorHeaderProps = {
   pyodideStatus: 'loading' | 'loaded' | 'error' | 'uninitialized'
 }
 
-
 const LanguageSelector = ({
   currentLanguage,
   availableLanguages,
@@ -77,14 +76,9 @@ export const RunButton = ({
   isPythonSelected: boolean
   pyodideStatus: 'loading' | 'loaded' | 'error' | 'uninitialized'
 }) => {
+  const isDisabled = isRunning || readOnly || (isPythonSelected && pyodideStatus !== 'loaded')
   return (
-    <Button
-      variant="secondary"
-      size="sm"
-      className="h-8"
-      onClick={onRunCode}
-      disabled={isRunning || readOnly || (isPythonSelected && pyodideStatus !== 'loaded')}
-    >
+    <Button variant="secondary" size="sm" className="h-8" onClick={onRunCode} disabled={isDisabled}>
       {isRunning ? (
         <>
           <Loader2 size={14} className="mr-1 animate-spin" />

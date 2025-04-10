@@ -9,6 +9,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { OAuth2Buttons } from '@/components/buttons/OAuth2Buttons'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
+import { loginWithGoogle, loginWithGitHub } from '@/actions/auth'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import {
   Card,
   CardContent,
@@ -24,18 +27,14 @@ interface SignUpCardProps {
     email: string,
     password: string,
     rememberMe: boolean,
-  ) => Promise<void>
-  isLoading?: boolean
-  onGoogleClick?: () => void
-  onGitHubClick?: () => void
+  ) => Promise<{
+    success: boolean
+    error?: string
+    url?: string
+  }>
 }
 
-export function SignUpCard({
-  onSubmit,
-  isLoading = false,
-  onGoogleClick,
-  onGitHubClick,
-}: SignUpCardProps) {
+export function SignUpCard({ onSubmit }: SignUpCardProps) {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -47,6 +46,7 @@ export function SignUpCard({
     password?: string
     confirmPassword?: string
   }>({})
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,9 +90,46 @@ export function SignUpCard({
     setErrors({})
 
     try {
-      await onSubmit(username, email, password, rememberMe)
+      const result = await onSubmit(username, email, password, rememberMe)
+
+      if (!result.success) {
+        toast.error(result.error || 'An error occurred during registration.')
+      } else if (result.url) {
+        router.push(result.url)
+      }
     } catch (error) {
       console.error('Signup error:', error)
+      toast.error('An error occurred during registration.')
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await loginWithGoogle()
+
+      if (result && result.success && result.url) {
+        router.push(result.url)
+      } else {
+        toast.error(result?.error || 'An error occurred during Google login.')
+      }
+    } catch (error) {
+      console.error('Google login error:', error)
+      toast.error('An error occurred during Google login.')
+    }
+  }
+
+  const handleGitHubLogin = async () => {
+    try {
+      const result = await loginWithGitHub()
+
+      if (result && result.success && result.url) {
+        router.push(result.url)
+      } else {
+        toast.error(result?.error || 'An error occurred during GitHub login.')
+      }
+    } catch (error) {
+      console.error('GitHub login error:', error)
+      toast.error('An error occurred during GitHub login.')
     }
   }
 
@@ -110,7 +147,6 @@ export function SignUpCard({
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             error={errors.username}
-            disabled={isLoading}
             required
           />
 
@@ -120,7 +156,6 @@ export function SignUpCard({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={errors.email}
-            disabled={isLoading}
             required
           />
 
@@ -130,7 +165,6 @@ export function SignUpCard({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
-            disabled={isLoading}
             required
           />
 
@@ -140,7 +174,6 @@ export function SignUpCard({
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             error={errors.confirmPassword}
-            disabled={isLoading}
             required
           />
 
@@ -149,7 +182,6 @@ export function SignUpCard({
               id="remember-me"
               checked={rememberMe}
               onCheckedChange={(checked) => setRememberMe(checked === true)}
-              disabled={isLoading}
             />
             <label
               htmlFor="remember-me"
@@ -159,8 +191,8 @@ export function SignUpCard({
             </label>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing up...' : 'Sign up'}
+          <Button type="submit" className="w-full">
+            Sign up
           </Button>
 
           <div className="relative my-6">
@@ -172,11 +204,7 @@ export function SignUpCard({
             </div>
           </div>
 
-          <OAuth2Buttons
-            isLoading={isLoading}
-            onGoogleClick={onGoogleClick}
-            onGitHubClick={onGitHubClick}
-          />
+          <OAuth2Buttons onGoogleClick={handleGoogleLogin} onGitHubClick={handleGitHubLogin} />
         </form>
       </CardContent>
       <CardFooter className="flex justify-center">

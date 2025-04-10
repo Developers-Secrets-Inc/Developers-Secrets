@@ -434,7 +434,7 @@ type SolutionWithConvertedTags = Omit<UserSolution, 'tags'> & { tags: PayloadTag
 export const getUserSolution = async (
   challengeId: number,
   userId: string,
-): Promise<SolutionWithConvertedTags> => {
+): Promise<SolutionWithConvertedTags | null> => {
   const ALL_SOLUTIONS = await getUserSolutions()
 
   const SOLUTION = ALL_SOLUTIONS.find((solution) => {
@@ -443,7 +443,7 @@ export const getUserSolution = async (
   })
 
   if (!SOLUTION) {
-    throw new Error(`Solution not found for challenge ID: ${challengeId} and user ID: ${userId}`)
+    return null
   }
 
   if (SOLUTION.tags && Array.isArray(SOLUTION.tags) && typeof SOLUTION.tags[0] === 'object') {

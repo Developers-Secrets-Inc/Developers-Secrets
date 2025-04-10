@@ -133,3 +133,63 @@ export const increaseTagUsage = async (tag: Tag, quantity: number = 1): Promise<
     throw new TagUpdateError(error instanceof Error ? error.message : 'Unknown error')
   }
 }
+
+export const getUserNonPublicTags = async (userId: string): Promise<Tag[]> => {
+  const payload = await getPayload({ config })
+
+  try {
+    const tags = await payload.find({
+      collection: 'tags',
+      where: {
+        and: [
+          {
+            creatorId: { equals: userId },
+          },
+          {
+            status: { equals: 'test' },
+          },
+        ],
+      },
+    })
+
+    return tags.docs as Tag[]
+  } catch (error) {
+    console.error('Error getting user non-public tags:', error)
+    throw new TagUpdateError(error instanceof Error ? error.message : 'Unknown error')
+  }
+}
+
+export type TagOption = {
+  value: string
+  label: string
+}
+
+export const getAvailableTagsForUser = async (userId: string): Promise<{
+  userTags: TagOption[]
+  publicTags: TagOption[]
+}> => {
+  const userTags = await getUserNonPublicTags(userId)
+  const allTags = await getTags()
+
+  const publicTags = allTags.filter(
+    (tag) => tag.status === 'public' && 
+    !userTags.some((ut) => ut.id === tag.id),
+  )
+
+  return {
+    userTags: userTags.map((tag) => ({
+      value: tag.id.toString(),
+      label: tag.name,
+    })),
+    publicTags: publicTags.map((tag) => ({
+      value: tag.id.toString(),
+      label: tag.name,
+    })),
+  }
+}
+
+
+// - On doit avoir les tags déjà sélectionnés par l'utilisateur
+// - On doit avoir le reste des tags de recherche 
+//      - On doit bien prendre en compte qu'aucun tag déjà sélectionné ne doit être affiché dans les tags de recherche
+// - On doit pouvoir ajouter de nouveaux tags en local 

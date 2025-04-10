@@ -27,14 +27,12 @@ export type UserSolutionDate = z.infer<typeof UserSolutionDateSchema>
 const UserSolutionUrlSchema = z.string().url('URL must be a valid URL')
 export type UserSolutionUrl = z.infer<typeof UserSolutionUrlSchema>
 
-
 const UserSolutionUserSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   avatar: z.string().url('Avatar must be a valid URL'),
   initials: z.string().min(1, 'Initials is required'),
 })
 export type UserSolutionUser = z.infer<typeof UserSolutionUserSchema>
-
 
 const CommunitySolutionSchema = z.object({
   id: UserSolutionIdSchema,
@@ -50,7 +48,6 @@ const CommunitySolutionSchema = z.object({
 })
 export type CommunitySolution = z.infer<typeof CommunitySolutionSchema>
 
-
 export const validateCommunitySolution = (solution: CommunitySolution): CommunitySolution => {
   const result = CommunitySolutionSchema.safeParse(solution)
   if (!result.success) {
@@ -59,3 +56,33 @@ export const validateCommunitySolution = (solution: CommunitySolution): Communit
   return result.data
 }
 
+/*
+
+type UserSolution = {
+  id: number 
+  authorId: string 
+  challengeId: number // On doit pouvoir récupérer le challenge associé à la solution
+  details: {
+    title: string 
+    description: string 
+    content: string
+  }
+  metrics: {
+    votes: {
+        status: 'upvote' | 'downvote'
+        authorId: string
+    }[]
+    views: number
+    comments: Comment[]
+  }
+  tags: Tag[]
+  reports: {
+    userId: string
+    reason: string
+    details?: string
+    createdAt: Date
+  }[]
+  createdAt: Date
+}
+
+*/

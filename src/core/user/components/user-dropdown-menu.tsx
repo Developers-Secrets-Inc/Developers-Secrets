@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { UserAvatar } from '@/core/user/components/user-avatar'
 import { User } from '@/types/user'
-import { BoltIcon, BookOpenIcon, Layers2Icon, LogOutIcon, PinIcon, UserPenIcon } from 'lucide-react'
+import { LockIcon, LogOutIcon, PinIcon, UserPenIcon } from 'lucide-react'
 import { useState } from 'react'
 import { LogoutConfirmationDialog } from './dialogs/logout-confirmation-dialog'
 import { SettingsDialog } from './dialogs/settings-dialog'
@@ -35,6 +35,7 @@ export const UserDropdownMenu = ({ user }: UserDropdownMenuProps) => {
                 avatarUrl: user.informations.avatar,
                 initials: user.informations.initials,
               }}
+              className="cursor-pointer"
             />
           </Button>
         </DropdownMenuTrigger>
@@ -47,17 +48,9 @@ export const UserDropdownMenu = ({ user }: UserDropdownMenuProps) => {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <BoltIcon size={16} className="opacity-60 mr-2" aria-hidden="true" />
-              <span>Dashboard</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Layers2Icon size={16} className="opacity-60 mr-2" aria-hidden="true" />
-              <span>Projects</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <BookOpenIcon size={16} className="opacity-60 mr-2" aria-hidden="true" />
-              <span>Documentation</span>
+            <DropdownMenuItem disabled>
+              <LockIcon size={16} className="opacity-60 mr-2" aria-hidden="true" />
+              <span>Subscription</span>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
@@ -66,7 +59,7 @@ export const UserDropdownMenu = ({ user }: UserDropdownMenuProps) => {
               <PinIcon size={16} className="opacity-60 mr-2" aria-hidden="true" />
               <span>Settings</span>
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem disabled>
               <UserPenIcon size={16} className="opacity-60 mr-2" aria-hidden="true" />
               <span>Profile</span>
             </DropdownMenuItem>

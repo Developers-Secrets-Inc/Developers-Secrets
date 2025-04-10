@@ -19,23 +19,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getLeaderboard } from '@/core/gamification/level'
 
-type UserInformation = {
-  id: number
-  userId: string
-  name: string
-  avatar: string
-  initials: string
-}
+type Period = 'day' | 'week' | 'month'
 
 type LeaderboardUser = {
-  informations: UserInformation
+  informations: {
+    id: number
+    userId: string
+    name: string
+    avatar: string
+    initials: string
+  }
   totalExperience: number
   rank: number
 }
-
-type Period = 'day' | 'week' | 'month'
 
 const RankIcon = ({ rank }: { rank: number }) => {
   if (rank === 1) return <Crown className="h-5 w-5 text-yellow-500" />
@@ -64,7 +63,7 @@ const UserRow = ({
       <RankIcon rank={user.rank} />
     </div>
     <Avatar className="h-10 w-10">
-      <AvatarImage src="https://github.com/shadcn.png" alt={user.informations.name} />
+      <AvatarImage src={user.informations.avatar} alt={user.informations.name} />
       <AvatarFallback>{user.informations.initials}</AvatarFallback>
     </Avatar>
     <div className="flex-1 min-w-0">
@@ -81,94 +80,40 @@ const UserRow = ({
 
 export const ChallengesLeaderboard = () => {
   const [period, setPeriod] = useState<Period>('week')
+  const [users, setUsers] = useState<LeaderboardUser[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Simuler l'utilisateur actuel (normalement viendrait d'un contexte d'authentification)
   const currentUserId = '8'
 
-  // TODO: Fetch this data from the API based on selected period
-  const users: LeaderboardUser[] = [
-    {
-      informations: {
-        id: 1,
-        userId: '1',
-        name: 'Alice Johnson',
-        avatar: '/avatars/user-01.png',
-        initials: 'AJ',
-      },
-      totalExperience: 12500,
-      rank: 1,
-    },
-    {
-      informations: {
-        id: 2,
-        userId: '2',
-        name: 'Bob Smith',
-        avatar: '/avatars/user-02.png',
-        initials: 'BS',
-      },
-      totalExperience: 10800,
-      rank: 2,
-    },
-    {
-      informations: {
-        id: 3,
-        userId: '3',
-        name: 'Carol White',
-        avatar: '/avatars/user-03.png',
-        initials: 'CW',
-      },
-      totalExperience: 9500,
-      rank: 3,
-    },
-    {
-      informations: {
-        id: 4,
-        userId: '4',
-        name: 'David Brown',
-        avatar: '/avatars/user-04.png',
-        initials: 'DB',
-      },
-      totalExperience: 8200,
-      rank: 4,
-    },
-    {
-      informations: {
-        id: 5,
-        userId: '5',
-        name: 'Eva Green',
-        avatar: '/avatars/user-05.png',
-        initials: 'EG',
-      },
-      totalExperience: 7800,
-      rank: 5,
-    },
-  ]
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const leaderboardData = await getLeaderboard(period)
+        setUsers(leaderboardData)
+      } catch (err) {
+        setError('Failed to load leaderboard data')
+        console.error('Error fetching leaderboard:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  // Extended list for the dialog
-  const allUsers = [
-    ...users,
-    ...Array.from({ length: 15 }, (_, i) => ({
-      informations: {
-        id: i + 6,
-        userId: `${i + 6}`,
-        name: `User ${i + 6}`,
-        avatar: `/avatars/user-${(i + 6).toString().padStart(2, '0')}.png`,
-        initials: `U${i + 6}`,
-      },
-      totalExperience: 7500 - i * 200,
-      rank: i + 6,
-    })),
-  ]
+    fetchLeaderboard()
+  }, [period])
 
   // Trouver l'utilisateur actuel et ses voisins pour l'affichage principal
-  const currentUserIndex = allUsers.findIndex((user) => user.informations.userId === currentUserId)
-  const displayUsers = allUsers.slice(0, 3) // Top 3
+  const currentUserIndex = users.findIndex((user) => user.informations.userId === currentUserId)
+  const displayUsers = users.slice(0, 3) // Top 3
 
   if (currentUserIndex >= 3) {
     // Si l'utilisateur n'est pas dans le top 3, on l'affiche avec ses voisins
     const start = Math.max(0, currentUserIndex - 1)
-    const end = Math.min(allUsers.length, currentUserIndex + 2)
-    displayUsers.push(...allUsers.slice(start, end))
+    const end = Math.min(users.length, currentUserIndex + 2)
+    displayUsers.push(...users.slice(start, end))
   }
 
   return (
@@ -187,16 +132,24 @@ export const ChallengesLeaderboard = () => {
         </Select>
       </CardHeader>
       <CardContent className="px-6">
-        <div className="space-y-2">
-          {displayUsers.map((user, index) => (
-            <UserRow
-              key={user.informations.userId}
-              user={user}
-              index={index}
-              isCurrentUser={user.informations.userId === currentUserId}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8 text-destructive">{error}</div>
+        ) : (
+          <div className="space-y-2">
+            {displayUsers.map((user, index) => (
+              <UserRow
+                key={user.informations.userId}
+                user={user}
+                index={index}
+                isCurrentUser={user.informations.userId === currentUserId}
+              />
+            ))}
+          </div>
+        )}
       </CardContent>
       <CardFooter className="px-6 pb-6 pt-0">
         <Dialog>
@@ -210,7 +163,7 @@ export const ChallengesLeaderboard = () => {
               <DialogTitle>Complete Rankings</DialogTitle>
             </DialogHeader>
             <div className="overflow-y-auto pr-4 space-y-2 max-h-[60vh]">
-              {allUsers.map((user, index) => (
+              {users.map((user, index) => (
                 <UserRow
                   key={user.informations.userId}
                   user={user}

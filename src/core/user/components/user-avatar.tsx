@@ -7,11 +7,12 @@ type User = {
 
 type UserAvatarProps = {
     user: User
+    className?: string
 }
 
-export const UserAvatar = ({user}: UserAvatarProps) => {
+export const UserAvatar = ({user, className}: UserAvatarProps) => {
     return (
-        <Avatar>
+        <Avatar className={className}>
             <AvatarImage src={user.avatarUrl} />
             <AvatarFallback>
                 {user.initials}
