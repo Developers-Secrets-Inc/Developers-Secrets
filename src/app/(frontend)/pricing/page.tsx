@@ -14,6 +14,9 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle2Icon } from 'lucide-react'
 import { getSubscriptionsByCustomerId } from '@/core/payments/subscriptions'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'edge'
+
 const api = new Polar({
   accessToken: process.env.POLAR_ACCESS_TOKEN!,
   server: process.env.NEXT_PUBLIC_POLAR_SERVER as 'sandbox' | 'production',
@@ -89,8 +92,6 @@ const PricingCard = ({ product }: { product: any }) => {
   )
 }
 
-export const dynamic = 'force-dynamic'
-
 export default async function Page() {
   const { result } = await api.products.list({
     isArchived: false,
@@ -102,10 +103,15 @@ export default async function Page() {
     return indexA - indexB
   })
 
-  const user = await getUser()
-  const customerId = user?.informations?.customerId
-  const subscriptions = customerId ? await getSubscriptionsByCustomerId(customerId) : null
-  // console.log(subscriptions)
+  let subscriptions = null
+  try {
+    const user = await getUser()
+    if (user?.informations?.customerId) {
+      subscriptions = await getSubscriptionsByCustomerId(user.informations.customerId)
+    }
+  } catch (error) {
+    console.error('Error fetching user or subscriptions:', error)
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
