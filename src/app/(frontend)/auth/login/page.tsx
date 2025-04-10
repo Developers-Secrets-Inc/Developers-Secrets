@@ -2,7 +2,6 @@ import { LoginCard } from '../components/LoginCard'
 import { login } from '@/actions/auth'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 
-export const dynamic = 'force-dynamic'
 
 export default function LoginPage() {
   const handleLogin = async (email: string, password: string, rememberMe: boolean) => {
