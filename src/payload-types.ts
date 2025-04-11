@@ -79,6 +79,7 @@ export interface Config {
     'user-inventory': UserInventory;
     'user-currency': UserCurrency;
     quests: Quest;
+    'user-quests': UserQuest;
     achievements: Achievement;
     'user-achievements': UserAchievement;
     challenges: Challenge;
@@ -106,6 +107,7 @@ export interface Config {
     'user-inventory': UserInventorySelect<false> | UserInventorySelect<true>;
     'user-currency': UserCurrencySelect<false> | UserCurrencySelect<true>;
     quests: QuestsSelect<false> | QuestsSelect<true>;
+    'user-quests': UserQuestsSelect<false> | UserQuestsSelect<true>;
     achievements: AchievementsSelect<false> | AchievementsSelect<true>;
     'user-achievements': UserAchievementsSelect<false> | UserAchievementsSelect<true>;
     challenges: ChallengesSelect<false> | ChallengesSelect<true>;
@@ -620,62 +622,26 @@ export interface UserCurrency {
  */
 export interface Quest {
   id: number;
-  /**
-   * The title of the quest
-   */
   title: string;
-  /**
-   * The detailed description of the quest
-   */
-  description: string;
-  /**
-   * The difficulty level of the quest
-   */
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
-  /**
-   * The type of objective to achieve
-   */
-  objectiveType:
-    | 'complete_exercises'
-    | 'earn_xp'
-    | 'reach_level'
-    | 'maintain_streak'
-    | 'use_items'
-    | 'complete_tutorials';
-  /**
-   * The numerical value of the objective (ex: 5 exercises, 1000 XP, level 10)
-   */
-  objectiveValue: number;
-  /**
-   * The type of reward offered for completing the quest
-   */
-  rewardType: 'coins' | 'xp' | 'item';
-  /**
-   * The numerical value of the reward (ex: 100 coins, 500 XP)
-   */
-  rewardValue: number;
-  /**
-   * The type of item to give as a reward (only if reward type is 'item')
-   */
-  rewardItemType?: ('experience_boost' | 'streak_saver' | 'streak_recovery' | 'solution_viewer' | 'chest') | null;
-  /**
-   * The variant of the item to give as a reward (only if reward type is 'item')
-   */
-  rewardItemVariant?: ('basic' | 'premium' | 'legendary') | null;
-  /**
-   * Indicates if the quest is currently active and available to users
-   */
-  isActive?: boolean | null;
-  /**
-   * Indicates if the quest can be completed multiple times by a user
-   */
-  isRepeatable?: boolean | null;
-  /**
-   * The time in hours before a user can repeat this quest (if repeatable)
-   */
-  cooldownHours?: number | null;
-  createdAt: string;
+  type: 'experienceGained' | 'challengesCompleted' | 'increasedLevel';
+  difficulty: 'easy' | 'medium' | 'hard';
+  value: number;
+  experience: number;
   updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-quests".
+ */
+export interface UserQuest {
+  id: number;
+  userId: string;
+  quest: number | Quest;
+  currentProgression: number;
+  isCompleted: boolean;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1393,6 +1359,10 @@ export interface PayloadLockedDocument {
         value: number | Quest;
       } | null)
     | ({
+        relationTo: 'user-quests';
+        value: number | UserQuest;
+      } | null)
+    | ({
         relationTo: 'achievements';
         value: number | Achievement;
       } | null)
@@ -1750,19 +1720,24 @@ export interface UserCurrencySelect<T extends boolean = true> {
  */
 export interface QuestsSelect<T extends boolean = true> {
   title?: T;
-  description?: T;
+  type?: T;
   difficulty?: T;
-  objectiveType?: T;
-  objectiveValue?: T;
-  rewardType?: T;
-  rewardValue?: T;
-  rewardItemType?: T;
-  rewardItemVariant?: T;
-  isActive?: T;
-  isRepeatable?: T;
-  cooldownHours?: T;
-  createdAt?: T;
+  value?: T;
+  experience?: T;
   updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-quests_select".
+ */
+export interface UserQuestsSelect<T extends boolean = true> {
+  userId?: T;
+  quest?: T;
+  currentProgression?: T;
+  isCompleted?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

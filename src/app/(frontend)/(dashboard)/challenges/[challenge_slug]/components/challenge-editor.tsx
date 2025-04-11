@@ -100,11 +100,6 @@ export function ChallengeEditor({
         // Show completion dialog immediately (optimistic UI)
         setShowCompletionDialog(true)
 
-        // Update status to completed
-        await updateStatus('completed')
-
-
-
         // Handle challenge completion in the background
         handleChallengeCompletion(challenge, userId).catch(console.error)
       }

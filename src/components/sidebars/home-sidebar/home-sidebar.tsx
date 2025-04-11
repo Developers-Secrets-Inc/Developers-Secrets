@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils'
 import { ProCtaCard } from '@/components/cards/pro-cta-card'
 import { FeedbackDialog } from '@/components/feedback-dialog'
 import { SupportDialog } from '@/components/support-dialog'
-import { QuestsDialog } from '@/components/quests-dialog'
+import { QuestsDialog } from '@/core/gamification/quests/components/quests-dialog'
 import { AchievementsDialog } from '@/components/achievements-dialog'
 import {
   Sidebar,
@@ -167,16 +167,10 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
                 <SidebarMenuButton asChild>
                   <button
                     onClick={() => setQuestsOpen(true)}
-                    className="flex w-full items-center gap-2 cursor-pointer relative text-muted-foreground pr-8"
+                    className="flex w-full items-center gap-2 cursor-pointer"
                   >
                     <CheckCircle className="size-4" />
                     <span>Quests</span>
-                    <TooltipPrimitive.Root>
-                      <TooltipPrimitive.Trigger asChild>
-                        <Lock className="size-4 absolute right-2" />
-                      </TooltipPrimitive.Trigger>
-                      <TooltipContentCustom>Coming soon</TooltipContentCustom>
-                    </TooltipPrimitive.Root>
                   </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -313,7 +307,7 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
             onOpenChange={setSupportOpen}
             supportStatus={supportStatus}
           />
-          <QuestsDialog open={questsOpen} onOpenChange={setQuestsOpen} />
+          <QuestsDialog isOpen={questsOpen} onOpenChange={setQuestsOpen} />
           <AchievementsDialog open={achievementsOpen} onOpenChange={setAchievementsOpen} />
           <ProCtaCard />
         </SidebarFooter>

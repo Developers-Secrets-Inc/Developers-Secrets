@@ -5,6 +5,7 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getUserInformation } from '@/core/user'
+import { handleExperienceGainForQuests } from './quests/actions'
 
 import { UserGamification } from '@/payload-types'
 
@@ -151,6 +152,9 @@ export async function addExperience(
     },
     data: updateData,
   })
+
+  // Update quest progression for experience gain quests
+  await handleExperienceGainForQuests(userId, experienceAmount)
 
   // Convertir le résultat en UserGamificationInformation
   return updatedUser.docs[0]

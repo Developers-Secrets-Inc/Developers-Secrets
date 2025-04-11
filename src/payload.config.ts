@@ -20,6 +20,7 @@ import { UserGamification } from './collections/UserGamification'
 import { UserInventory } from './collections/UserInventory'
 import { UserCurrency } from './collections/UserCurrency'
 import { Quests } from './collections/Quests'
+import { UserQuests } from './collections/UserQuests'
 import { Achievements } from './collections/Achievements'
 import { UserAchievements } from './collections/UserAchievements'
 import { Challenges } from './collections/Challenges'
@@ -53,6 +54,7 @@ export default buildConfig({
     UserInventory,
     UserCurrency,
     Quests,
+    UserQuests,
     Achievements,
     UserAchievements,
     Challenges,
