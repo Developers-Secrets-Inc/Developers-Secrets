@@ -9,10 +9,10 @@ import {
 } from '@/components/ui/dialog'
 import { Quest, UserQuest as PayloadUserQuest } from '@/payload-types'
 import { Award } from 'lucide-react'
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { QuestCard } from './quest-card'
-import { completeUserQuest, fetchUserQuests } from '../actions'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useQuests, useQuestActions } from '../hooks/use-quests'
 
 // Extend PayloadUserQuest to ensure we have all required fields
 interface UserQuest extends PayloadUserQuest {
@@ -44,62 +44,13 @@ export const QuestsDialog = ({
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }) => {
-  const [activeQuests, setActiveQuests] = useState<UserQuest[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  // Mémoiser la fonction de chargement des quêtes
-  const loadQuests = useCallback(async () => {
-    if (isOpen) {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const quests = await fetchUserQuests()
-        setActiveQuests(quests as UserQuest[])
-      } catch (error) {
-        console.error('Failed to fetch quests:', error)
-        setError('Failed to load quests')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-  }, [isOpen])
-
-  useEffect(() => {
-    loadQuests()
-  }, [loadQuests])
-
-  // Mémoiser les fonctions de gestion des quêtes
-  const handleDeclineQuest = useCallback(async (questId: string) => {
-    try {
-      // Optimistically remove the quest from the UI
-      setActiveQuests((prevQuests) => prevQuests.filter((q) => q.quest.id.toString() !== questId))
-
-      // Refresh quests to get the new one
-      const updatedQuests = await fetchUserQuests()
-      setActiveQuests(updatedQuests as UserQuest[])
-    } catch (error) {
-      console.error('Failed to decline quest:', error)
-      setError('Failed to decline quest')
-    }
-  }, [])
-
-  const handleCompleteQuest = useCallback(async (questId: string) => {
-    try {
-      await completeUserQuest(questId)
-      setActiveQuests((prevQuests) =>
-        prevQuests.map((quest) =>
-          quest.quest.id.toString() === questId ? { ...quest, isCompleted: true } : quest,
-        ),
-      )
-    } catch (error) {
-      console.error('Failed to complete quest:', error)
-      setError('Failed to complete quest')
-    }
-  }, [])
+  const { data: activeQuests, isLoading, error } = useQuests()
+  const { completeQuest, invalidateQuests } = useQuestActions()
 
   // Mémoiser les quêtes triées
   const sortedQuests = useMemo(() => {
+    if (!activeQuests) return []
+
     return [...activeQuests].sort((a, b) => {
       // Trier d'abord par statut de complétion (non complétées en premier)
       if (a.isCompleted !== b.isCompleted) {
@@ -125,7 +76,7 @@ export const QuestsDialog = ({
     }
 
     if (error) {
-      return <div className="text-center text-red-500">{error}</div>
+      return <div className="text-center text-red-500">Failed to load quests</div>
     }
 
     if (sortedQuests.length === 0) {
@@ -136,11 +87,14 @@ export const QuestsDialog = ({
       <QuestCard
         key={userQuest.id}
         userQuest={userQuest}
-        onDeclineQuest={() => handleDeclineQuest(userQuest.quest.id.toString())}
-        onCompleteQuest={() => handleCompleteQuest(userQuest.quest.id.toString())}
+        onDeclineQuest={() => {
+          // TODO: Implement decline quest functionality
+          invalidateQuests()
+        }}
+        onCompleteQuest={() => completeQuest(userQuest.quest.id.toString())}
       />
     ))
-  }, [isLoading, error, sortedQuests, handleDeclineQuest, handleCompleteQuest])
+  }, [isLoading, error, sortedQuests, completeQuest, invalidateQuests])
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
