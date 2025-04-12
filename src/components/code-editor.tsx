@@ -143,7 +143,7 @@ const EditorHeader = ({
   const showPythonStatus = isPythonSelected && pyodideStatus !== 'loaded'
 
   return (
-    <div className="border-b flex items-center justify-between px-3 h-10 bg-muted/20">
+    <header className="h-10 flex-none border-b flex items-center justify-between px-3 bg-muted/20">
       <div className="flex items-center">
         {showLanguageSelector ? (
           <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ const EditorHeader = ({
           )}
         </Button>
       </div>
-    </div>
+    </header>
   )
 }
 

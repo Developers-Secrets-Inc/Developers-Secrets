@@ -2,6 +2,8 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { DEFAULT_LEVEL_UP_FORMULA, getGamificationInformations } from '@/core/gamification/level'
+import { getUserIsSolutionUnlocked } from '@/core/challenges/user-progression'
 
 import { Challenge } from '@/types/challenge'
 import { Challenge as PayloadChallenge } from '@/payload-types'
@@ -274,4 +276,44 @@ export const getChallengeExperience = async (challengeId: number): Promise<numbe
   const payload = await getPayload({ config })
   const challenge = await getPayloadChallenge(challengeId)
   return challenge.baseExperience || 50 // Default to 50 if not set
+}
+
+export interface ChallengeCompletionData {
+  wasUnlocked: boolean
+  challengeExperience: number
+  nextChallengeUrl: string
+  gamificationInfo: {
+    currentLevel: number
+    currentExperience: number
+    totalExperience: number
+    nextLevelExperience: number
+  }
+}
+
+export const getChallengeCompletionData = async (
+  userId: string,
+  challengeId: number,
+  challengeSlug: string,
+): Promise<ChallengeCompletionData> => {
+  const payload = await getPayload({ config })
+
+  // Fetch all required data in parallel
+  const [challenge, nextChallenge, wasUnlocked, gamificationInfo] = await Promise.all([
+    getPayloadChallenge(challengeId),
+    getNextChallenge(challengeSlug),
+    getUserIsSolutionUnlocked(userId, challengeId),
+    getGamificationInformations(userId),
+  ])
+
+  return {
+    wasUnlocked,
+    challengeExperience: challenge.baseExperience || 50,
+    nextChallengeUrl: `/challenges/${nextChallenge.slug}`,
+    gamificationInfo: {
+      currentLevel: gamificationInfo.currentLevel,
+      currentExperience: gamificationInfo.currentExperience,
+      totalExperience: gamificationInfo.totalExperience,
+      nextLevelExperience: await DEFAULT_LEVEL_UP_FORMULA(gamificationInfo.currentLevel),
+    },
+  }
 }

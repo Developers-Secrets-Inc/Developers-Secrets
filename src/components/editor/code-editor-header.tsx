@@ -204,7 +204,7 @@ export const CodeEditorHeader = (props: CodeEditorHeaderProps) => {
   const isDisabled = isRunning || readOnly || (isPythonSelected && pyodideStatus !== 'loaded')
 
   return (
-    <div className="border-b flex items-center justify-between px-3 h-10 bg-muted/20">
+    <div className="border-b flex items-center justify-between px-3 h-12 bg-muted/20">
       <div className="flex items-center">
         <LanguageSection
           currentLanguage={currentLanguage}

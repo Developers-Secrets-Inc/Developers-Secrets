@@ -1,5 +1,6 @@
 'use client'
 
+import { Experience } from '@/components/challenges/challenge-experience'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -9,18 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Experience } from '@/components/challenges/challenge-experience'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { getUserIsSolutionUnlocked } from '@/core/challenges/user-progression'
-import { getNextChallengeUrl, getChallengeExperience } from '@/core/challenges'
+import { getChallengeCompletionData } from '@/core/challenges'
+import { addExperience } from '@/core/gamification/level'
+import { AnimatePresence, motion, useAnimation } from 'framer-motion'
 import { Loader2, Trophy } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  addExperience,
-  getGamificationInformations,
-  getUserNextLevelExperience,
-} from '@/core/gamification/level'
+import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
@@ -74,7 +69,7 @@ interface ExperienceBarProps {
   currentExp: number
   previousExp: number
   maxExp: number
-  animate?: boolean
+  animate: boolean
   onLevelUp?: () => void
 }
 
@@ -82,86 +77,59 @@ function ExperienceBar({
   currentExp,
   previousExp,
   maxExp,
-  animate = false,
+  animate: shouldAnimate,
   onLevelUp,
 }: ExperienceBarProps) {
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [displayedExp, setDisplayedExp] = useState(animate ? previousExp : currentExp)
+  const controls = useAnimation()
+
+  // Determine initial and target percentages based directly on props
+  const initialPercentage = (previousExp / maxExp) * 100
+  const targetPercentage = (currentExp / maxExp) * 100
 
   useEffect(() => {
-    if (!animate) {
-      setDisplayedExp(currentExp)
-      return
+    if (shouldAnimate) {
+      // Animate from the previous value percentage to the current target percentage
+      controls.start({
+        width: [`${initialPercentage}%`, `${targetPercentage}%`],
+        transition: {
+          duration: 1.5,
+          ease: [0.25, 1, 0.5, 1], // EaseOutExpo
+          onComplete: () => {
+            if (currentExp >= maxExp && onLevelUp) {
+              onLevelUp()
+            }
+          },
+        },
+      })
+    } else {
+      // Instantly set width if not animating
+      controls.set({ width: `${targetPercentage}%` })
     }
-
-    setIsAnimating(true)
-    let animationFrame: number
-
-    const startTime = Date.now()
-    const duration = 1000 // 1 second for each animation phase
-    const initialExp = previousExp
-    const targetExp = currentExp
-
-    function animateFrame() {
-      const now = Date.now()
-      const elapsed = now - startTime
-
-      if (elapsed < duration) {
-        // Calculer l'expérience actuelle avec une animation easeOut
-        const progress = elapsed / duration
-        const easeOutProgress = 1 - Math.pow(1 - progress, 3) // Cubic easeOut
-        const currentValue = Math.min(
-          initialExp + (targetExp - initialExp) * easeOutProgress,
-          maxExp,
-        )
-
-        setDisplayedExp(Math.floor(currentValue))
-        animationFrame = requestAnimationFrame(animateFrame)
-      } else if (currentExp > maxExp) {
-        // Si on doit passer au niveau suivant
-        setDisplayedExp(maxExp)
-        setTimeout(() => {
-          if (onLevelUp) {
-            onLevelUp()
-          }
-        }, 500) // Attendre un peu avant de déclencher le passage de niveau
-      } else {
-        setDisplayedExp(currentExp)
-        setIsAnimating(false)
-      }
-    }
-
-    animationFrame = requestAnimationFrame(animateFrame)
-
-    return () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame)
-      }
-    }
-  }, [animate, currentExp, previousExp, maxExp, onLevelUp])
-
-  const percentage = Math.min((displayedExp / maxExp) * 100, 100)
+  }, [
+    shouldAnimate,
+    currentExp,
+    previousExp,
+    maxExp,
+    controls,
+    onLevelUp,
+    initialPercentage,
+    targetPercentage,
+  ])
+  // Added previousExp, initialPercentage, targetPercentage to dependencies
 
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">Progress</span>
         <span className="tabular-nums">
-          {displayedExp} / {maxExp} XP
+          {currentExp} / {maxExp} XP
         </span>
       </div>
       <div className="h-4 bg-muted rounded-full overflow-hidden">
         <motion.div
           className="h-full bg-primary origin-left"
-          style={{ width: `${percentage}%` }}
-          animate={
-            isAnimating
-              ? {
-                  scale: [1, 1.02, 1],
-                  transition: { duration: 0.3, repeat: Infinity },
-                }
-              : {}
-          }
+          initial={{ width: `${initialPercentage}%` }} // Set initial width explicitly
+          animate={controls}
         />
       </div>
     </div>
@@ -248,39 +216,35 @@ export function ChallengeCompletionDialog({
     const loadData = async () => {
       setIsLoading(true)
       try {
-        const [wasUnlocked, challengeExperience, nextUrl, gamificationInfo, nextLevelExpNeeded] =
-          await Promise.all([
-            getUserIsSolutionUnlocked(userId, challengeId),
-            getChallengeExperience(challengeId),
-            getNextChallengeUrl(challengeSlug),
-            getGamificationInformations(userId),
-            getUserNextLevelExperience(userId),
-          ])
+        const data = await getChallengeCompletionData(userId, challengeId, challengeSlug)
 
-        const expToAdd = wasUnlocked ? 0 : challengeExperience
+        const expToAdd = data.wasUnlocked ? 0 : data.challengeExperience
         setExperienceGained(expToAdd)
-        setNextChallengeUrl(nextUrl)
-        setPreviousLevel(gamificationInfo.currentLevel)
-        setCurrentLevel(gamificationInfo.currentLevel)
-        setPreviousExp(gamificationInfo.currentExperience)
-        setCurrentExp(gamificationInfo.currentExperience)
-        setNextLevelExp(nextLevelExpNeeded)
-        setSimulatedLevel(gamificationInfo.currentLevel)
-        setPreviousSimulatedLevel(gamificationInfo.currentLevel)
-        setSimulatedCurrentExp(gamificationInfo.currentExperience)
-        setPreviousSimulatedExp(gamificationInfo.currentExperience)
+        setNextChallengeUrl(data.nextChallengeUrl)
+        setPreviousLevel(data.gamificationInfo.currentLevel)
+        setCurrentLevel(data.gamificationInfo.currentLevel)
+        setPreviousExp(data.gamificationInfo.currentExperience)
+        setCurrentExp(data.gamificationInfo.currentExperience)
+        setNextLevelExp(data.gamificationInfo.nextLevelExperience)
+        setSimulatedLevel(data.gamificationInfo.currentLevel)
+        setPreviousSimulatedLevel(data.gamificationInfo.currentLevel)
+        setSimulatedCurrentExp(data.gamificationInfo.currentExperience)
+        setPreviousSimulatedExp(data.gamificationInfo.currentExperience)
 
         if (expToAdd > 0) {
           setIsAnimatingExp(true)
           const updatedInfo = await addExperience(userId, expToAdd)
-          const levelsGained = updatedInfo.currentLevel - gamificationInfo.currentLevel
+          const levelsGained = updatedInfo.currentLevel - data.gamificationInfo.currentLevel
           setCurrentLevel(updatedInfo.currentLevel)
           setCurrentExp(updatedInfo.currentExperience)
 
           if (levelsGained > 0) {
             setHasLeveledUp(true)
             setLevelUpsRemaining(
-              Array.from({ length: levelsGained }, (_, i) => gamificationInfo.currentLevel + i + 1),
+              Array.from(
+                { length: levelsGained },
+                (_, i) => data.gamificationInfo.currentLevel + i + 1,
+              ),
             )
           }
         }
@@ -371,14 +335,23 @@ export function ChallengeCompletionDialog({
                 </p>
               ) : (
                 <div className="w-full space-y-4">
-                  <p className="text-center">
+                  <div className="text-center">
                     Congratulations! You have successfully completed this challenge.
-                  </p>
+                  </div>
                   <div className="space-y-2">
-                    <LevelDisplay
-                      level={isSimulating ? simulatedLevel : currentLevel}
-                      hasLeveledUp={hasLeveledUp}
-                    />
+                    <div className="flex items-center gap-2">
+                      <LevelDisplay
+                        level={isSimulating ? simulatedLevel : currentLevel}
+                        hasLeveledUp={hasLeveledUp}
+                      />
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <Experience quantity={isSimulating ? simulatedExp : experienceGained} />
+                      </motion.div>
+                    </div>
                     <ExperienceBar
                       currentExp={isSimulating ? simulatedCurrentExp : currentExp}
                       previousExp={isSimulating ? previousSimulatedExp : previousExp}
@@ -389,14 +362,6 @@ export function ChallengeCompletionDialog({
                       }
                     />
                   </div>
-                  <motion.div
-                    className="flex justify-center"
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    <Experience quantity={isSimulating ? simulatedExp : experienceGained} />
-                  </motion.div>
                   {isDevelopment && (
                     <div className="flex flex-col gap-2 pt-4 border-t">
                       <p className="text-xs text-muted-foreground">Development Tools</p>

@@ -181,15 +181,17 @@ function NavigationTab({
     <button
       onClick={onClick}
       className={cn(
-        'relative overflow-hidden rounded-none border h-10 flex-1 flex items-center justify-center gap-1.5 cursor-pointer',
+        'relative overflow-hidden rounded-none border border-r h-12 min-h-[48px] flex-1 flex items-center justify-center gap-1.5 cursor-pointer',
         tab.current
           ? 'bg-muted after:bg-primary after:absolute after:pointer-events-none after:inset-x-0 after:bottom-0 after:h-0.5'
           : '',
         isLocked ? 'cursor-pointer text-muted-foreground' : '',
       )}
     >
-      <tab.icon className="-ms-0.5 me-1.5 opacity-60" size={16} aria-hidden="true" />
-      {tab.name}
+      <div className="flex items-center justify-center gap-1.5">
+        <tab.icon className="-ms-0.5 me-1.5 opacity-60" size={16} aria-hidden="true" />
+        <span className="leading-none">{tab.name}</span>
+      </div>
     </button>
   )
 }
@@ -244,8 +246,8 @@ export function ChallengeNavigation({
 
   return (
     <>
-      <div className="h-10 border-b bg-background">
-        <div className="flex justify-start w-full h-full rounded-none">
+      <nav className="h-12 flex-none border-b bg-background">
+        <div className="flex h-full">
           {tabs.map((tab) => (
             <NavigationTab
               key={tab.name}
@@ -255,7 +257,7 @@ export function ChallengeNavigation({
             />
           ))}
         </div>
-      </div>
+      </nav>
 
       <ConfirmationDialog
         open={showConfirmDialog}
