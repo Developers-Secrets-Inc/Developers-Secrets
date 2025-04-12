@@ -176,7 +176,7 @@ export const QuestCard = ({
           </div>
         )}
 
-        {!isCompleted && onCompleteQuest && (
+        {!isCompleted && onCompleteQuest && process.env.NODE_ENV === 'development' && (
           <button
             onClick={onCompleteQuest}
             className="mt-3 text-xs font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1.5"

@@ -71,7 +71,19 @@ export const setAllNotificationsAsRead = async (): Promise<void> => {
   })
 }
 
-export const getReadNotifications = async (): Promise<Notification[]> => {
+type PaginationParams = {
+  page?: number
+  limit?: number
+}
+
+export const getReadNotifications = async ({
+  page = 1,
+  limit = 5,
+}: PaginationParams = {}): Promise<{
+  docs: Notification[]
+  totalPages: number
+  currentPage: number
+}> => {
   const payload = await getPayload({ config })
 
   const notifications = await payload.find({
@@ -82,7 +94,13 @@ export const getReadNotifications = async (): Promise<Notification[]> => {
       },
     },
     sort: '-createdAt',
+    limit,
+    page,
   })
 
-  return notifications.docs
+  return {
+    docs: notifications.docs,
+    totalPages: Math.ceil(notifications.totalDocs / limit),
+    currentPage: page,
+  }
 }

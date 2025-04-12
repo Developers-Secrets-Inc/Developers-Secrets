@@ -88,6 +88,10 @@ export interface Config {
     'user-solutions': UserSolution;
     'challenge-submissions': ChallengeSubmission;
     notifications: Notification;
+    skills: Skill;
+    'base-concepts': BaseConcept;
+    'skill-concepts': SkillConcept;
+    'challenge-categories': ChallengeCategory;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -116,6 +120,10 @@ export interface Config {
     'user-solutions': UserSolutionsSelect<false> | UserSolutionsSelect<true>;
     'challenge-submissions': ChallengeSubmissionsSelect<false> | ChallengeSubmissionsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
+    skills: SkillsSelect<false> | SkillsSelect<true>;
+    'base-concepts': BaseConceptsSelect<false> | BaseConceptsSelect<true>;
+    'skill-concepts': SkillConceptsSelect<false> | SkillConceptsSelect<true>;
+    'challenge-categories': ChallengeCategoriesSelect<false> | ChallengeCategoriesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -1301,6 +1309,92 @@ export interface Notification {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills".
+ */
+export interface Skill {
+  id: number;
+  name: string;
+  skillConcepts?: (number | SkillConcept)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skill-concepts".
+ */
+export interface SkillConcept {
+  id: number;
+  baseConcept: number | BaseConcept;
+  skill: number | Skill;
+  difficulty?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "base-concepts".
+ */
+export interface BaseConcept {
+  id: number;
+  name: string;
+  description: string;
+  requiredBaseConcepts?: (number | BaseConcept)[] | null;
+  nextBaseConcepts?: (number | BaseConcept)[] | null;
+  similarBaseConcepts?: (number | BaseConcept)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-categories".
+ */
+export interface ChallengeCategory {
+  id: number;
+  /**
+   * The name of the challenge category
+   */
+  name: string;
+  /**
+   * A brief summary of the category that appears at the top of the page
+   */
+  summary?: string | null;
+  /**
+   * A detailed description of what this category covers
+   */
+  description: string;
+  /**
+   * URL-friendly identifier for this category
+   */
+  slug: string;
+  /**
+   * Whether this category is locked and unavailable to users
+   */
+  isLocked?: boolean | null;
+  /**
+   * Different parts/sections within this category
+   */
+  parts?:
+    | {
+        /**
+         * Name of this part/section
+         */
+        name: string;
+        /**
+         * Description of what this part covers
+         */
+        description?: string | null;
+        /**
+         * Sequence of challenges in this part
+         */
+        challenges: (number | Challenge)[];
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -1393,6 +1487,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'notifications';
         value: number | Notification;
+      } | null)
+    | ({
+        relationTo: 'skills';
+        value: number | Skill;
+      } | null)
+    | ({
+        relationTo: 'base-concepts';
+        value: number | BaseConcept;
+      } | null)
+    | ({
+        relationTo: 'skill-concepts';
+        value: number | SkillConcept;
+      } | null)
+    | ({
+        relationTo: 'challenge-categories';
+        value: number | ChallengeCategory;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2032,6 +2142,61 @@ export interface NotificationsSelect<T extends boolean = true> {
   isRead?: T;
   actionUrl?: T;
   expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills_select".
+ */
+export interface SkillsSelect<T extends boolean = true> {
+  name?: T;
+  skillConcepts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "base-concepts_select".
+ */
+export interface BaseConceptsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  requiredBaseConcepts?: T;
+  nextBaseConcepts?: T;
+  similarBaseConcepts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skill-concepts_select".
+ */
+export interface SkillConceptsSelect<T extends boolean = true> {
+  baseConcept?: T;
+  skill?: T;
+  difficulty?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-categories_select".
+ */
+export interface ChallengeCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  summary?: T;
+  description?: T;
+  slug?: T;
+  isLocked?: T;
+  parts?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        challenges?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

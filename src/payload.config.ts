@@ -29,6 +29,10 @@ import { Comments } from './collections/Comments'
 import { UserSolutions } from './collections/UserSolutions'
 import { ChallengeSubmissions } from './collections/ChallengeSubmissions'
 import { Notifications } from './collections/Notifications'
+import { Skills } from './collections/Skills'
+import { BaseConcepts } from './collections/BaseConcepts'
+import { SkillConcepts } from './collections/SkillConcepts'
+import { ChallengeCategory } from './collections/ChallengeCategory'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -63,6 +67,10 @@ export default buildConfig({
     UserSolutions,
     ChallengeSubmissions,
     Notifications,
+    Skills,
+    BaseConcepts,
+    SkillConcepts,
+    ChallengeCategory,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
