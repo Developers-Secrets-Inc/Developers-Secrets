@@ -1,4 +1,5 @@
 import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
+import { OpenChallengeCompletionDialogInDevelopment } from '@/components/challenges/open-challenge-completion-dialog-in-development'
 import { RatingText } from '@/components/rating-dialog'
 import { IconSidebar } from '@/components/sidebars/home-sidebar/icon-sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -27,9 +28,11 @@ function LoadingPlaceholder() {
 const ChallengeLayoutHeader = ({
   challengeSlug,
   user,
+  challengeId,
 }: {
   challengeSlug: string
   user: User
+  challengeId: number
 }) => {
   return (
     <header className="flex-none py-3 px-4 bg-background">
@@ -43,6 +46,11 @@ const ChallengeLayoutHeader = ({
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <OpenChallengeCompletionDialogInDevelopment
+            challengeId={challengeId}
+            userId={user.id}
+            challengeSlug={challengeSlug}
+          />
           <NotificationButton />
 
           <Button variant="outline" size="sm" asChild>
@@ -68,7 +76,6 @@ export default async function ChallengeLayout({
   // Get challenge info
   const challenge = await getChallengeBySlug(challenge_slug)
   const user = await getUser()
-
 
   // Extraire les versions de code disponibles
   const availableLanguages =
@@ -144,6 +151,7 @@ export default async function ChallengeLayout({
               <ChallengeLayoutHeader
                 challengeSlug={challenge_slug}
                 user={user}
+                challengeId={challenge.id}
               />
 
               <div className="flex-1 overflow-hidden">

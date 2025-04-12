@@ -181,7 +181,7 @@ function NavigationTab({
     <button
       onClick={onClick}
       className={cn(
-        'relative overflow-hidden rounded-none border py-2 flex-1 flex items-center justify-center gap-1.5 cursor-pointer',
+        'relative overflow-hidden rounded-none border h-10 flex-1 flex items-center justify-center gap-1.5 cursor-pointer',
         tab.current
           ? 'bg-muted after:bg-primary after:absolute after:pointer-events-none after:inset-x-0 after:bottom-0 after:h-0.5'
           : '',
@@ -244,8 +244,8 @@ export function ChallengeNavigation({
 
   return (
     <>
-      <div>
-        <div className="flex justify-start w-full rounded-none bg-background">
+      <div className="h-10 border-b bg-background">
+        <div className="flex justify-start w-full h-full rounded-none">
           {tabs.map((tab) => (
             <NavigationTab
               key={tab.name}

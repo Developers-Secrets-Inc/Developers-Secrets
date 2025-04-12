@@ -28,10 +28,8 @@ export const handleChallengeCompletion = async (challenge: Challenge, userId: st
 
     await setUserCompletionStatus(userId, challenge.id, 'completed')
 
-    
     // Update quest progression for challenge completion quests
     await handleChallengeCompletionForQuests(userId)
-
 
     revalidatePath(`/challenges/${challenge.id}`)
 

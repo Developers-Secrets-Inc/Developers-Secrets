@@ -264,3 +264,14 @@ export const getAllChallengesSlugs = async (): Promise<string[]> => {
   const challenges = await getAllChallenges()
   return challenges.map((challenge) => challenge.slug)
 }
+
+export const getNextChallengeUrl = async (currentSlug: string): Promise<string> => {
+  const nextChallenge = await getNextChallenge(currentSlug)
+  return `/challenges/${nextChallenge.slug}`
+}
+
+export const getChallengeExperience = async (challengeId: number): Promise<number> => {
+  const payload = await getPayload({ config })
+  const challenge = await getPayloadChallenge(challengeId)
+  return challenge.baseExperience || 50 // Default to 50 if not set
+}

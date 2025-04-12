@@ -7,13 +7,8 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  getNotifications,
-  setIsRead,
-  setAllNotificationsAsRead,
-  getReadNotifications,
-} from '@/core/notifications'
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { setIsRead, setAllNotificationsAsRead, getReadNotifications } from '@/core/notifications'
+import { useState, useCallback, useMemo } from 'react'
 import { Notification } from '@/payload-types'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -26,59 +21,66 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useNotifications } from '@/core/notifications/hooks/use-notification'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 export const NotificationButton = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [readNotifications, setReadNotifications] = useState<Notification[]>([])
+  const queryClient = useQueryClient()
+  const { data: notifications = [] } = useNotifications()
   const [removingIds, setRemovingIds] = useState<number[]>([])
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
 
   const activeNotifications = useMemo(() => {
-    return notifications.filter((n) => !removingIds.includes(n.id))
+    return notifications.filter((n) => !n.isRead && !removingIds.includes(n.id))
   }, [notifications, removingIds])
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      const notifs = await getNotifications()
-      setNotifications(notifs.filter((n) => !n.isRead))
-    }
-    fetchNotifications()
-  }, [])
+  const { data: readNotificationsData = [] } = useQuery({
+    queryKey: ['readNotifications'],
+    queryFn: getReadNotifications,
+    enabled: isHistoryOpen,
+  })
 
-  useEffect(() => {
-    const fetchReadNotifications = async () => {
-      if (isHistoryOpen) {
-        const readNotifs = await getReadNotifications()
-        setReadNotifications(readNotifs)
-      }
-    }
-    fetchReadNotifications()
-  }, [isHistoryOpen])
-
-  const handleMarkAsRead = useCallback(async (id: number) => {
-    setRemovingIds((prev) => [...prev, id])
-
-    try {
-      await setIsRead(id)
-      setNotifications((prev) => prev.filter((n) => n.id !== id))
-    } catch (error) {
+  const markAsReadMutation = useMutation({
+    mutationFn: setIsRead,
+    onMutate: async (id) => {
+      setRemovingIds((prev) => [...prev, id])
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['readNotifications'] })
+    },
+    onError: (error, id) => {
       setRemovingIds((prev) => prev.filter((rid) => rid !== id))
       console.error('Failed to mark notification as read:', error)
-    }
-  }, [])
+    },
+  })
 
-  const handleMarkAllAsRead = useCallback(async () => {
-    const currentIds = notifications.map((n) => n.id)
-    setRemovingIds(currentIds)
-
-    try {
-      await setAllNotificationsAsRead()
-      setNotifications([])
-    } catch (error) {
+  const markAllAsReadMutation = useMutation({
+    mutationFn: setAllNotificationsAsRead,
+    onMutate: () => {
+      const currentIds = notifications.map((n) => n.id)
+      setRemovingIds(currentIds)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['readNotifications'] })
+    },
+    onError: (error) => {
       setRemovingIds([])
       console.error('Failed to mark all notifications as read:', error)
-    }
-  }, [notifications])
+    },
+  })
+
+  const handleMarkAsRead = useCallback(
+    (id: number) => {
+      markAsReadMutation.mutate(id)
+    },
+    [markAsReadMutation],
+  )
+
+  const handleMarkAllAsRead = useCallback(() => {
+    markAllAsReadMutation.mutate()
+  }, [markAllAsReadMutation])
 
   const getHighestImportance = () => {
     if (activeNotifications.length === 0) return null
@@ -188,12 +190,12 @@ export const NotificationButton = () => {
                       </DialogHeader>
                       <ScrollArea className="h-[50vh]">
                         <div className="flex flex-col gap-2 pr-4">
-                          {readNotifications.length === 0 ? (
+                          {readNotificationsData.length === 0 ? (
                             <div className="text-center text-sm text-muted-foreground py-4">
                               No read notifications
                             </div>
                           ) : (
-                            readNotifications.map((notification) => (
+                            readNotificationsData.map((notification) => (
                               <div
                                 key={notification.id}
                                 className={cn('group rounded-lg text-sm p-2', 'bg-muted/50')}
