@@ -5,6 +5,8 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getUserInformation } from '@/core/user'
+import { handleExperienceGainForQuests } from './quests/actions'
+import { createNotification } from '@/core/notifications'
 
 import { UserGamification } from '@/payload-types'
 
@@ -107,6 +109,7 @@ export async function addExperience(
   const newTotalExperience = userInfo.totalExperience + experienceAmount
   let newLevel = userInfo.currentLevel
   let shouldUpdateLevelUpDate = false
+  let levelsGained = 0
 
   // Vérifier si l'utilisateur doit monter de niveau
   let shouldContinueChecking = true
@@ -116,12 +119,26 @@ export async function addExperience(
     if (newCurrentExperience >= experienceForNextLevel) {
       // Monter de niveau
       newLevel += 1
+      levelsGained += 1
       newCurrentExperience -= experienceForNextLevel
       shouldUpdateLevelUpDate = true
     } else {
       // Pas besoin de monter de niveau
       shouldContinueChecking = false
     }
+  }
+
+  // Envoyer une notification si l'utilisateur a gagné des niveaux
+  if (levelsGained > 0) {
+    await createNotification({
+      userId,
+      content:
+        levelsGained === 1
+          ? `Congratulations! You've reached level ${newLevel}! 🎉`
+          : `Incredible! You've gained ${levelsGained} levels and reached level ${newLevel}! 🎉`,
+      importance: 'medium',
+      type: 'achievement',
+    })
   }
 
   // Mettre à jour les informations de l'utilisateur
@@ -151,6 +168,9 @@ export async function addExperience(
     },
     data: updateData,
   })
+
+  // Update quest progression for experience gain quests
+  await handleExperienceGainForQuests(userId, experienceAmount)
 
   // Convertir le résultat en UserGamificationInformation
   return updatedUser.docs[0]

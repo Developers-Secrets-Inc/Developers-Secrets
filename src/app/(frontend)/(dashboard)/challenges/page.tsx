@@ -16,7 +16,7 @@ export default async function ChallengesPage() {
       <HomeSidebar />
       <SidebarInset>
         <HomeHeader />
-        <div className="flex-1 w-full h-[calc(100vh-4rem)] overflow-auto max-w-7xl mx-auto">
+        <div className="flex-1 w-full h-[calc(100vh-4rem)] overflow-auto max-w-7xl px-4 mx-auto">
           <div className="flex gap-6 p-6 h-full">
             <div className="flex-1 flex flex-col gap-6">
               <RecommendedChallenge />

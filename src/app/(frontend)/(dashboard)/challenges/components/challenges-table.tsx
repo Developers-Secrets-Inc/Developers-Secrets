@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/react-table'
 import {
   flexRender,
@@ -24,10 +24,8 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
-import { getUserCompletionStatus } from '@/core/challenges/user-progression'
-import { getUser } from '@/core/user'
-import { getAllChallenges } from '@/core/challenges'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useChallenges } from '@/core/challenges/hooks/use-challenges'
 
 type ChallengeWithProgress = {
   id: number
@@ -150,8 +148,6 @@ const TableSkeleton = () => {
 }
 
 export const ChallengesTable = () => {
-  const [challenges, setChallenges] = useState<ChallengeWithProgress[]>([])
-  const [loading, setLoading] = useState(true)
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -160,46 +156,10 @@ export const ChallengesTable = () => {
     },
   ])
 
-  useEffect(() => {
-    const fetchChallenges = async () => {
-      try {
-        // Get current user
-        const user = await getUser()
-        if (!user?.id) {
-          throw new Error('User not authenticated')
-        }
-
-        // Get all challenges
-        const challengesData = await getAllChallenges()
-
-        // Get status for each challenge
-        const challengesWithProgress = await Promise.all(
-          challengesData.map(async (challenge) => {
-            const status = await getUserCompletionStatus(user.id, challenge.id as number)
-            return {
-              id: challenge.id as number,
-              title: challenge.title,
-              difficulty: challenge.difficulty as 'easy' | 'medium' | 'hard' | 'horrible',
-              baseExperience: challenge.baseExperience || 0, // Default to 0 if undefined
-              slug: challenge.slug,
-              status,
-            }
-          }),
-        )
-
-        setChallenges(challengesWithProgress)
-      } catch (error) {
-        console.error('Error fetching challenges:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchChallenges()
-  }, [])
+  const { challenges, isLoading } = useChallenges()
 
   const table = useReactTable({
-    data: challenges,
+    data: challenges || [],
     columns,
     state: {
       sorting,
@@ -213,7 +173,7 @@ export const ChallengesTable = () => {
     enableSortingRemoval: false,
   })
 
-  if (loading) {
+  if (isLoading) {
     return <TableSkeleton />
   }
 

@@ -1,9 +1,14 @@
 'use server'
 
 import { Challenge } from '@/payload-types'
-import { getUserIsSolutionUnlocked, setUserCompletionStatus } from './user-progression'
+import {
+  getUserIsSolutionUnlocked,
+  setUserCompletionStatus,
+  getUserCompletionStatus,
+} from './user-progression'
 import { revalidatePath } from 'next/cache'
 import { addExperience } from '../gamification/level'
+import { handleChallengeCompletionForQuests } from '../gamification/quests/actions'
 
 /**
  * Handles all the logic when a challenge is completed by a user.
@@ -12,16 +17,25 @@ import { addExperience } from '../gamification/level'
  */
 export const handleChallengeCompletion = async (challenge: Challenge, userId: string) => {
   try {
-    // Mark the challenge as completed
-    if (!await getUserIsSolutionUnlocked(userId, challenge.id)) {
+    // Check if the challenge is already completed
+    const completionStatus = await getUserCompletionStatus(userId, challenge.id)
+    const isSolutionUnlocked = await getUserIsSolutionUnlocked(userId, challenge.id)
+
+    // Only give experience if the challenge hasn't been completed before
+    if (completionStatus !== 'completed' && !isSolutionUnlocked) {
       await addExperience(userId, challenge.baseExperience ?? 50)
     }
 
     await setUserCompletionStatus(userId, challenge.id, 'completed')
+
+    // Update quest progression for challenge completion quests
+    await handleChallengeCompletionForQuests(userId)
+
     revalidatePath(`/challenges/${challenge.id}`)
+
     // TODO: Future implementations
     // - Add experience points
-    // - Update user skills 
+    // - Update user skills
     // - Track statistics
     // - Unlock achievements
     // etc.

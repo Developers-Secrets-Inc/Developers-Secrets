@@ -20,6 +20,7 @@ import { UserGamification } from './collections/UserGamification'
 import { UserInventory } from './collections/UserInventory'
 import { UserCurrency } from './collections/UserCurrency'
 import { Quests } from './collections/Quests'
+import { UserQuests } from './collections/UserQuests'
 import { Achievements } from './collections/Achievements'
 import { UserAchievements } from './collections/UserAchievements'
 import { Challenges } from './collections/Challenges'
@@ -28,6 +29,10 @@ import { Comments } from './collections/Comments'
 import { UserSolutions } from './collections/UserSolutions'
 import { ChallengeSubmissions } from './collections/ChallengeSubmissions'
 import { Notifications } from './collections/Notifications'
+import { Skills } from './collections/Skills'
+import { BaseConcepts } from './collections/BaseConcepts'
+import { SkillConcepts } from './collections/SkillConcepts'
+import { ChallengeCategory } from './collections/ChallengeCategory'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -53,6 +58,7 @@ export default buildConfig({
     UserInventory,
     UserCurrency,
     Quests,
+    UserQuests,
     Achievements,
     UserAchievements,
     Challenges,
@@ -61,6 +67,10 @@ export default buildConfig({
     UserSolutions,
     ChallengeSubmissions,
     Notifications,
+    Skills,
+    BaseConcepts,
+    SkillConcepts,
+    ChallengeCategory,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

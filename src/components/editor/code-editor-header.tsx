@@ -98,9 +98,6 @@ const PythonStatus = ({ pyodideStatus }: PythonStatusProps) => {
   return <div className="text-xs flex items-center">{status[pyodideStatus]}</div>
 }
 
-
-
-
 const RunningButton = () => (
   <>
     <Loader2 size={14} className="mr-1 animate-spin" />
@@ -207,7 +204,7 @@ export const CodeEditorHeader = (props: CodeEditorHeaderProps) => {
   const isDisabled = isRunning || readOnly || (isPythonSelected && pyodideStatus !== 'loaded')
 
   return (
-    <div className="border-b flex items-center justify-between px-3 py-2 bg-muted/20">
+    <div className="border-b flex items-center justify-between px-3 h-12 bg-muted/20">
       <div className="flex items-center">
         <LanguageSection
           currentLanguage={currentLanguage}

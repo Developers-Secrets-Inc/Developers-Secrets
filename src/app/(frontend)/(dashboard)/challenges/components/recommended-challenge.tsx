@@ -53,3 +53,28 @@ export const RecommendedChallenge = async () => {
     </Card>
   )
 }
+
+
+/*  
+
+On recommande un challenge en fonction du niveau de l'utilisateur et de ses compétences actuelles. Ce composant doit donc uniquement faire un appel à une fonction `getRecommendedChallenge`. 
+- L'utilisateur doit comprendre quelles sont les compétences qui sont travaillées par ce challenge.
+- On doit lui donner la possibilité de générer un nouveau challenge si celui-ci ne lui convient pas.
+  - Pas intéressé, trop facile, trop difficile, etc.
+- On doit prendre en compte le potentiel boost d'expérience que l'utilisateur peut avoir dans l'affichage. Après, ce n'est pas à ce composant de s'en occuper.
+- On pourrait ajouter un boost d'expérience sur les challenges recommandés quand ils viennent d'être recommandés.
+- Il doit voir sa progression sur ce challenge. 
+  - Une fois qu'un challenge recommandé est commencé, il n'est plus automatiquement mis à jour.
+- Chaque jour, on recommande un nouveau challenge.
+
+Un challenge recommandé est présent pour développer les compétences d'un utilisateur. On peut développer un système qui affiché à quel point il est proche de compléter un concept. "This challenge increase your knowledge of <concept>. You are at <progress>%". 
+
+On pourrait même transformer ce système en une roadmap d'une compétence où les challenges sont automatiquement définis (même si on garde de l'aléatoire) et on affiche tout le parcours de compétence de l'utilisateur. Une fois qu'il a complété un gros concept, on lui affiche un retour visuel et on lui donne un boost d'expérience.
+
+On pourrait même avoir un slider avec plusieurs cartes qui affichent les différentes compétences qui sont en cours de développement. On pourrait avoir mon apprentissage sur la programmation orientée objets d'un côté puis sur FastAPI de l'autre.
+
+- L'utilisateur peut cliquer sur un bouton pour voir sa progression dans la compétence en question.
+
+Ce composant n'est donc pas réellement un composant de recommandation de challenges. C'est plutôt une continuité d'apprentissage en fonction de ses compétences. Les challenges sont en fait aléatoires puisqu'il en existe plusieurs pour un même concept.
+
+*/

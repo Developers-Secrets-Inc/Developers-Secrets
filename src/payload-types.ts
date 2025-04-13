@@ -79,6 +79,7 @@ export interface Config {
     'user-inventory': UserInventory;
     'user-currency': UserCurrency;
     quests: Quest;
+    'user-quests': UserQuest;
     achievements: Achievement;
     'user-achievements': UserAchievement;
     challenges: Challenge;
@@ -87,6 +88,10 @@ export interface Config {
     'user-solutions': UserSolution;
     'challenge-submissions': ChallengeSubmission;
     notifications: Notification;
+    skills: Skill;
+    'base-concepts': BaseConcept;
+    'skill-concepts': SkillConcept;
+    'challenge-categories': ChallengeCategory;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -106,6 +111,7 @@ export interface Config {
     'user-inventory': UserInventorySelect<false> | UserInventorySelect<true>;
     'user-currency': UserCurrencySelect<false> | UserCurrencySelect<true>;
     quests: QuestsSelect<false> | QuestsSelect<true>;
+    'user-quests': UserQuestsSelect<false> | UserQuestsSelect<true>;
     achievements: AchievementsSelect<false> | AchievementsSelect<true>;
     'user-achievements': UserAchievementsSelect<false> | UserAchievementsSelect<true>;
     challenges: ChallengesSelect<false> | ChallengesSelect<true>;
@@ -114,6 +120,10 @@ export interface Config {
     'user-solutions': UserSolutionsSelect<false> | UserSolutionsSelect<true>;
     'challenge-submissions': ChallengeSubmissionsSelect<false> | ChallengeSubmissionsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
+    skills: SkillsSelect<false> | SkillsSelect<true>;
+    'base-concepts': BaseConceptsSelect<false> | BaseConceptsSelect<true>;
+    'skill-concepts': SkillConceptsSelect<false> | SkillConceptsSelect<true>;
+    'challenge-categories': ChallengeCategoriesSelect<false> | ChallengeCategoriesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -620,62 +630,26 @@ export interface UserCurrency {
  */
 export interface Quest {
   id: number;
-  /**
-   * The title of the quest
-   */
   title: string;
-  /**
-   * The detailed description of the quest
-   */
-  description: string;
-  /**
-   * The difficulty level of the quest
-   */
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
-  /**
-   * The type of objective to achieve
-   */
-  objectiveType:
-    | 'complete_exercises'
-    | 'earn_xp'
-    | 'reach_level'
-    | 'maintain_streak'
-    | 'use_items'
-    | 'complete_tutorials';
-  /**
-   * The numerical value of the objective (ex: 5 exercises, 1000 XP, level 10)
-   */
-  objectiveValue: number;
-  /**
-   * The type of reward offered for completing the quest
-   */
-  rewardType: 'coins' | 'xp' | 'item';
-  /**
-   * The numerical value of the reward (ex: 100 coins, 500 XP)
-   */
-  rewardValue: number;
-  /**
-   * The type of item to give as a reward (only if reward type is 'item')
-   */
-  rewardItemType?: ('experience_boost' | 'streak_saver' | 'streak_recovery' | 'solution_viewer' | 'chest') | null;
-  /**
-   * The variant of the item to give as a reward (only if reward type is 'item')
-   */
-  rewardItemVariant?: ('basic' | 'premium' | 'legendary') | null;
-  /**
-   * Indicates if the quest is currently active and available to users
-   */
-  isActive?: boolean | null;
-  /**
-   * Indicates if the quest can be completed multiple times by a user
-   */
-  isRepeatable?: boolean | null;
-  /**
-   * The time in hours before a user can repeat this quest (if repeatable)
-   */
-  cooldownHours?: number | null;
-  createdAt: string;
+  type: 'experienceGained' | 'challengesCompleted' | 'increasedLevel';
+  difficulty: 'easy' | 'medium' | 'hard';
+  value: number;
+  experience: number;
   updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-quests".
+ */
+export interface UserQuest {
+  id: number;
+  userId: string;
+  quest: number | Quest;
+  currentProgression: number;
+  isCompleted: boolean;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1335,6 +1309,92 @@ export interface Notification {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills".
+ */
+export interface Skill {
+  id: number;
+  name: string;
+  skillConcepts?: (number | SkillConcept)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skill-concepts".
+ */
+export interface SkillConcept {
+  id: number;
+  baseConcept: number | BaseConcept;
+  skill: number | Skill;
+  difficulty?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "base-concepts".
+ */
+export interface BaseConcept {
+  id: number;
+  name: string;
+  description: string;
+  requiredBaseConcepts?: (number | BaseConcept)[] | null;
+  nextBaseConcepts?: (number | BaseConcept)[] | null;
+  similarBaseConcepts?: (number | BaseConcept)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-categories".
+ */
+export interface ChallengeCategory {
+  id: number;
+  /**
+   * The name of the challenge category
+   */
+  name: string;
+  /**
+   * A brief summary of the category that appears at the top of the page
+   */
+  summary?: string | null;
+  /**
+   * A detailed description of what this category covers
+   */
+  description: string;
+  /**
+   * URL-friendly identifier for this category
+   */
+  slug: string;
+  /**
+   * Whether this category is locked and unavailable to users
+   */
+  isLocked?: boolean | null;
+  /**
+   * Different parts/sections within this category
+   */
+  parts?:
+    | {
+        /**
+         * Name of this part/section
+         */
+        name: string;
+        /**
+         * Description of what this part covers
+         */
+        description?: string | null;
+        /**
+         * Sequence of challenges in this part
+         */
+        challenges: (number | Challenge)[];
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -1393,6 +1453,10 @@ export interface PayloadLockedDocument {
         value: number | Quest;
       } | null)
     | ({
+        relationTo: 'user-quests';
+        value: number | UserQuest;
+      } | null)
+    | ({
         relationTo: 'achievements';
         value: number | Achievement;
       } | null)
@@ -1423,6 +1487,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'notifications';
         value: number | Notification;
+      } | null)
+    | ({
+        relationTo: 'skills';
+        value: number | Skill;
+      } | null)
+    | ({
+        relationTo: 'base-concepts';
+        value: number | BaseConcept;
+      } | null)
+    | ({
+        relationTo: 'skill-concepts';
+        value: number | SkillConcept;
+      } | null)
+    | ({
+        relationTo: 'challenge-categories';
+        value: number | ChallengeCategory;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1750,19 +1830,24 @@ export interface UserCurrencySelect<T extends boolean = true> {
  */
 export interface QuestsSelect<T extends boolean = true> {
   title?: T;
-  description?: T;
+  type?: T;
   difficulty?: T;
-  objectiveType?: T;
-  objectiveValue?: T;
-  rewardType?: T;
-  rewardValue?: T;
-  rewardItemType?: T;
-  rewardItemVariant?: T;
-  isActive?: T;
-  isRepeatable?: T;
-  cooldownHours?: T;
-  createdAt?: T;
+  value?: T;
+  experience?: T;
   updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-quests_select".
+ */
+export interface UserQuestsSelect<T extends boolean = true> {
+  userId?: T;
+  quest?: T;
+  currentProgression?: T;
+  isCompleted?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2057,6 +2142,61 @@ export interface NotificationsSelect<T extends boolean = true> {
   isRead?: T;
   actionUrl?: T;
   expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills_select".
+ */
+export interface SkillsSelect<T extends boolean = true> {
+  name?: T;
+  skillConcepts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "base-concepts_select".
+ */
+export interface BaseConceptsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  requiredBaseConcepts?: T;
+  nextBaseConcepts?: T;
+  similarBaseConcepts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skill-concepts_select".
+ */
+export interface SkillConceptsSelect<T extends boolean = true> {
+  baseConcept?: T;
+  skill?: T;
+  difficulty?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-categories_select".
+ */
+export interface ChallengeCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  summary?: T;
+  description?: T;
+  slug?: T;
+  isLocked?: T;
+  parts?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        challenges?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

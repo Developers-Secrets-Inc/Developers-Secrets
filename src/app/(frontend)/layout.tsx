@@ -7,8 +7,8 @@ import { Metadata } from 'next'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  description: 'A blank template using Payload in a Next.js app.',
-  title: 'Payload Blank Template',
+  description: 'The best platform for learning to code',
+  title: 'Developers Secrets',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
