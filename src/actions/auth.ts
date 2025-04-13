@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { createInitialUserInformation } from '@/core/users'
+import { initializeUser } from '@/core/gamification/level'
 
 export async function login(email: string, password: string, rememberMe: boolean) {
   const supabase = await createClient()
@@ -48,7 +49,8 @@ export async function signup(username: string, email: string, password: string) 
   }
 
   if (authData.user?.id) {
-    await createInitialUserInformation(authData.user.id)
+    await createInitialUserInformation(authData.user.id, username)
+    await initializeUser(authData.user.id)
   } else {
     return { success: false, error: 'User not found' }
   }

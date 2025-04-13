@@ -81,7 +81,7 @@ export const getReadNotifications = async ({
   limit = 5,
 }: PaginationParams = {}): Promise<{
   docs: Notification[]
-  totalPages: number
+  totalDocs: number
   currentPage: number
 }> => {
   const payload = await getPayload({ config })
@@ -100,7 +100,7 @@ export const getReadNotifications = async ({
 
   return {
     docs: notifications.docs,
-    totalPages: Math.ceil(notifications.totalDocs / limit),
+    totalDocs: notifications.totalDocs,
     currentPage: page,
   }
 }
