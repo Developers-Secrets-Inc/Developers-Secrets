@@ -38,7 +38,10 @@ const convertPayloadUserInformationToUserInformations = (
   }
 }
 
-export const createInitialUserInformation = async (userId: string): Promise<void> => {
+export const createInitialUserInformation = async (
+  userId: string,
+  userName: string,
+): Promise<void> => {
   const payload = await getPayload({ config })
 
   try {
@@ -50,6 +53,9 @@ export const createInitialUserInformation = async (userId: string): Promise<void
         data: {
           userId,
           role: 'basic', // Rôle par défaut
+          name: userName,
+          avatar: `https://avatar.vercel.sh/${userName}`,
+          initials: userName.slice(0, 2),
           preferences: {
             notifications: {
               friends: true,

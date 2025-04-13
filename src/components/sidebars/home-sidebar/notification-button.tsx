@@ -52,8 +52,16 @@ export const NotificationButton = () => {
     enabled: isHistoryOpen,
   })
 
+  // Get total pages from the first page response
+  const { data: firstPageData } = useQuery({
+    queryKey: ['readNotifications', 1],
+    queryFn: () => getReadNotifications({ page: 1, limit: ITEMS_PER_PAGE }),
+    enabled: isHistoryOpen,
+  })
+
   const readNotifications = readNotificationsData?.docs ?? []
-  const totalPages = readNotificationsData?.totalPages ?? 1
+  const totalDocs = firstPageData?.totalDocs ?? 0
+  const totalPages = Math.ceil(totalDocs / ITEMS_PER_PAGE)
 
   const markAsReadMutation = useMutation({
     mutationFn: setIsRead,
