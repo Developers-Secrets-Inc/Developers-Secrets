@@ -188,7 +188,9 @@ const ListItem = React.forwardRef<
       ref={ref}
       className={cn(
         'group relative flex flex-row items-center gap-3 p-3 rounded-lg transition-colors',
-        href && !isLocked ? 'hover:bg-accent hover:text-accent-foreground' : 'bg-muted/50',
+        href && !isLocked
+          ? 'hover:bg-accent hover:text-accent-foreground cursor-pointer'
+          : 'bg-muted/50',
         isLocked && 'cursor-not-allowed opacity-75',
         className,
       )}
@@ -229,7 +231,7 @@ const ListItem = React.forwardRef<
     return (
       <li>
         <NavigationMenuLink className="block" asChild>
-          <a>{content}</a>
+          <Link href={href}>{content}</Link>
         </NavigationMenuLink>
       </li>
     )
