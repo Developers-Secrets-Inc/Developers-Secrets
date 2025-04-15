@@ -155,11 +155,11 @@ export const ArticleSidebar = ({
                     {section.title}
                   </AccordionTrigger>
                 </SidebarGroupLabel>
-                <AccordionContent>
+                <AccordionContent className="pb-0">
                   <SidebarGroupContent>
                     <SidebarMenu className="pt-2">
                       {section.items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
+                        <SidebarMenuItem key={item.title} className="ml-2">
                           <SidebarMenuButton asChild isActive={item.url === currentArticleSlug}>
                             <Link
                               href={`/articles/${tutorial.slug}/${articleType !== 'tutorial' ? `${articleType}/` : ''}${item.url}`}
@@ -182,7 +182,7 @@ export const ArticleSidebar = ({
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className='cursor-pointer'>
+            <SidebarMenuButton asChild className="cursor-pointer">
               <button onClick={() => setFeedbackOpen(true)} className="flex justify-between w-full">
                 <span className="flex items-center gap-2">
                   <MessageSquare className="size-4" />
@@ -208,7 +208,7 @@ export const ArticleSidebar = ({
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className='cursor-pointer'>
+            <SidebarMenuButton asChild className="cursor-pointer">
               <button onClick={() => setSupportOpen(true)} className="flex justify-between w-full">
                 <span className="flex items-center gap-2">
                   <HelpCircle className="size-4" />

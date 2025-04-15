@@ -26,6 +26,9 @@ import Link from 'next/link'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useChallenges } from '@/core/challenges/hooks/use-challenges'
+import { ChallengeStatusProvider } from '@/core/challenges/components/challenge-status-provider'
+import { useChallengeStatus } from '@/core/challenges/hooks/use-challenge-status'
+import { CompletionStatus } from '@/core/challenges/user-progression/types'
 
 type ChallengeWithProgress = {
   id: number
@@ -36,118 +39,37 @@ type ChallengeWithProgress = {
   status: 'not_started' | 'in_progress' | 'completed'
 }
 
-const columns: ColumnDef<ChallengeWithProgress>[] = [
-  {
-    header: '',
-    accessorKey: 'status',
-    cell: ({ row }) => {
-      const status = row.getValue('status') as string
-      if (status === 'not_started') return null
+const ChallengeStatusCell = () => {
+  const { visualStatus } = useChallengeStatus()
+  if (visualStatus === 'not_started') return null
 
-      return (
-        <div className="w-8">
-          <Tooltip.Provider>
-            <Tooltip.Root>
-              <Tooltip.Trigger asChild>
-                <div className="flex items-center justify-center">
-                  {status === 'in_progress' ? (
-                    <CircleDotIcon className="h-4 w-4 text-amber-500" />
-                  ) : (
-                    <CheckCircle2Icon className="h-4 w-4 text-emerald-500" />
-                  )}
-                </div>
-              </Tooltip.Trigger>
-              <TooltipContentCustom sideOffset={2} align="center">
-                {status === 'in_progress' ? 'In Progress' : 'Completed'}
-              </TooltipContentCustom>
-            </Tooltip.Root>
-          </Tooltip.Provider>
-        </div>
-      )
-    },
-  },
-  {
-    header: 'Title',
-    accessorKey: 'title',
-    cell: ({ row }) => (
-      <Link href={`/challenges/${row.original.slug}/description`} className="font-medium hover:underline">
-        {row.getValue('title')}
-      </Link>
-    ),
-  },
-  {
-    header: 'Difficulty',
-    accessorKey: 'difficulty',
-    cell: ({ row }) => {
-      const difficulty = row.getValue('difficulty') as string
-      const styles = {
-        easy: 'bg-emerald-500/10 text-emerald-500',
-        medium: 'bg-amber-500/10 text-amber-500',
-        hard: 'bg-red-500/10 text-red-500',
-        horrible: 'bg-purple-500/10 text-purple-500',
-      }[difficulty]
-
-      return (
-        <Badge className={cn(styles)} variant="secondary">
-          {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
-        </Badge>
-      )
-    },
-  },
-  {
-    header: 'Experience',
-    accessorKey: 'baseExperience',
-    cell: ({ row }) => {
-      const xp = row.getValue('baseExperience') as number
-      return <span className="font-medium">{xp} XP</span>
-    },
-  },
-]
-
-const TableSkeleton = () => {
   return (
-    <div className="space-y-6 border rounded-lg">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-muted/50">
-            <TableHead className="w-8">
-              <Skeleton className="h-4 w-4" />
-            </TableHead>
-            <TableHead>
-              <Skeleton className="h-4 w-32" />
-            </TableHead>
-            <TableHead>
-              <Skeleton className="h-4 w-24" />
-            </TableHead>
-            <TableHead>
-              <Skeleton className="h-4 w-20" />
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Array.from({ length: 5 }).map((_, index) => (
-            <TableRow key={index}>
-              <TableCell>
-                <Skeleton className="h-4 w-4" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-48" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-6 w-16" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-4 w-12" />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+    <div className="w-8">
+      <Tooltip.Provider>
+        <Tooltip.Root>
+          <Tooltip.Trigger asChild>
+            <div className="flex items-center justify-center">
+              {visualStatus === 'in_progress' ? (
+                <CircleDotIcon className="h-4 w-4 text-amber-500" />
+              ) : (
+                <CheckCircle2Icon className="h-4 w-4 text-emerald-500" />
+              )}
+            </div>
+          </Tooltip.Trigger>
+          <TooltipContentCustom sideOffset={2} align="center">
+            {visualStatus === 'in_progress' ? 'In Progress' : 'Completed'}
+          </TooltipContentCustom>
+        </Tooltip.Root>
+      </Tooltip.Provider>
     </div>
   )
 }
 
-export const ChallengesTable = () => {
+type ChallengesTableProps = {
+  userId: string
+}
+
+export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -157,6 +79,61 @@ export const ChallengesTable = () => {
   ])
 
   const { challenges, isLoading } = useChallenges()
+
+  const columns = [
+    {
+      header: '',
+      accessorKey: 'status',
+      cell: ({ row }: { row: any }) => (
+        <ChallengeStatusProvider
+          challengeId={row.original.id}
+          userId={userId}
+          initialStatus={row.original.status as CompletionStatus}
+        >
+          <ChallengeStatusCell />
+        </ChallengeStatusProvider>
+      ),
+    },
+    {
+      header: 'Title',
+      accessorKey: 'title',
+      cell: ({ row }) => (
+        <Link
+          href={`/challenges/${row.original.slug}/description`}
+          className="font-medium hover:underline"
+        >
+          {row.getValue('title')}
+        </Link>
+      ),
+    },
+    {
+      header: 'Difficulty',
+      accessorKey: 'difficulty',
+      cell: ({ row }) => {
+        const difficulty = row.getValue('difficulty') as string
+        const styles = {
+          easy: 'bg-emerald-500/10 text-emerald-500',
+          medium: 'bg-amber-500/10 text-amber-500',
+          hard: 'bg-red-500/10 text-red-500',
+          horrible: 'bg-purple-500/10 text-purple-500',
+        }[difficulty]
+
+        return (
+          <Badge className={cn(styles)} variant="secondary">
+            {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+          </Badge>
+        )
+      },
+    },
+    {
+      header: 'Experience',
+      accessorKey: 'baseExperience',
+      cell: ({ row }) => {
+        const xp = row.getValue('baseExperience') as number
+        return <span className="font-medium">{xp} XP</span>
+      },
+    },
+  ] as ColumnDef<ChallengeWithProgress>[]
 
   const table = useReactTable({
     data: challenges || [],
@@ -265,6 +242,49 @@ export const ChallengesTable = () => {
           </TableBody>
         </Table>
       </Tooltip.Provider>
+    </div>
+  )
+}
+
+const TableSkeleton = () => {
+  return (
+    <div className="space-y-6 border rounded-lg">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="w-8">
+              <Skeleton className="h-4 w-4" />
+            </TableHead>
+            <TableHead>
+              <Skeleton className="h-4 w-32" />
+            </TableHead>
+            <TableHead>
+              <Skeleton className="h-4 w-24" />
+            </TableHead>
+            <TableHead>
+              <Skeleton className="h-4 w-20" />
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <TableRow key={index}>
+              <TableCell>
+                <Skeleton className="h-4 w-4" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-48" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-6 w-16" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-12" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   )
 }

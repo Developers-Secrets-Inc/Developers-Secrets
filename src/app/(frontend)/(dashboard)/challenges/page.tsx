@@ -6,8 +6,16 @@ import { ChallengesLeaderboard } from './components/challenges-leaderboard'
 import { ChallengesTable } from './components/challenges-table'
 import { RecommendedChallenge } from './components/recommended-challenge'
 import { UserProfile } from './components/user-profile'
+import { getUser } from '@/core/user'
+import { redirect } from 'next/navigation'
 
 export default async function ChallengesPage() {
+  const user = await getUser()
+
+  if (!user) {
+    redirect('/auth/login')
+  }
+
   return (
     <SidebarProvider>
       <HomeSidebar />
@@ -18,7 +26,7 @@ export default async function ChallengesPage() {
             <div className="flex-1 flex flex-col gap-6">
               <RecommendedChallenge />
               <ChallengeCategories />
-              <ChallengesTable />
+              <ChallengesTable userId={user.id} />
             </div>
             <div className="w-[360px] flex flex-col gap-6">
               <UserProfile />

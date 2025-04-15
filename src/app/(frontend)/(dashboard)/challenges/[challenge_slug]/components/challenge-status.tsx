@@ -23,11 +23,11 @@ const statusConfig: Record<
     color: 'gray',
     label: 'Not Started',
   },
-} 
+}
 
 export const ChallengeStatus = () => {
-  const { status } = useChallengeStatus()
-  const { icon, color, label } = statusConfig[status]
+  const { visualStatus } = useChallengeStatus()
+  const { icon, color, label } = statusConfig[visualStatus]
   return (
     <div className={`flex items-center gap-1.5 text-${color}-500`}>
       {icon}

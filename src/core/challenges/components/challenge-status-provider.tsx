@@ -5,8 +5,10 @@ import { CompletionStatus } from '@/core/challenges/user-progression/types'
 import { setUserCompletionStatus } from '@/core/challenges/user-progression'
 
 type ChallengeStatusContextType = {
-  status: CompletionStatus
-  updateStatus: (newStatus: CompletionStatus) => Promise<void>
+  visualStatus: CompletionStatus
+  persistedStatus: CompletionStatus
+  updateVisualStatus: (newStatus: CompletionStatus) => void
+  updatePersistedStatus: (newStatus: CompletionStatus) => Promise<void>
 }
 
 export const ChallengeStatusContext = createContext<ChallengeStatusContextType | null>(null)
@@ -24,20 +26,32 @@ export const ChallengeStatusProvider = ({
   userId,
   initialStatus = 'not_started',
 }: ChallengeStatusProviderProps) => {
-  const [status, setStatus] = useState<CompletionStatus>(initialStatus)
+  const [visualStatus, setVisualStatus] = useState<CompletionStatus>(initialStatus)
+  const [persistedStatus, setPersistedStatus] = useState<CompletionStatus>(initialStatus)
 
-  const updateStatus = useCallback(
+  const updateVisualStatus = useCallback((newStatus: CompletionStatus) => {
+    setVisualStatus(newStatus)
+  }, [])
+
+  const updatePersistedStatus = useCallback(
     async (newStatus: CompletionStatus) => {
-      setStatus(newStatus)
       await setUserCompletionStatus(userId, challengeId, newStatus)
+      setPersistedStatus(newStatus)
+      setVisualStatus(newStatus)
     },
     [userId, challengeId],
   )
 
   return (
-    <ChallengeStatusContext.Provider value={{ status, updateStatus }}>
+    <ChallengeStatusContext.Provider
+      value={{
+        visualStatus,
+        persistedStatus,
+        updateVisualStatus,
+        updatePersistedStatus,
+      }}
+    >
       {children}
     </ChallengeStatusContext.Provider>
   )
 }
-
