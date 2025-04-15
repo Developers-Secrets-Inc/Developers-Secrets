@@ -1,7 +1,8 @@
 'use client'
 
-import { ChallengeCompletionDialog } from '@/components/challenges/challenge-completion-dialog'
+import { CompletionDialog } from '@/core/challenges/components/completion-dialog'
 import { handleChallengeCompletion } from '@/core/challenges/actions'
+import { getChallengeCompletionData } from '@/core/challenges'
 import { ChallengeStatusContext } from '@/core/challenges/components/challenge-status-provider'
 import { handleSubmission } from '@/core/challenges/submissions/client-actions'
 import {
@@ -39,6 +40,9 @@ export function ChallengeEditor({
   userId,
 }: ChallengeEditorProps) {
   const [showCompletionDialog, setShowCompletionDialog] = useState(false)
+  const [completionData, setCompletionData] = useState<Awaited<
+    ReturnType<typeof getChallengeCompletionData>
+  > | null>(null)
   const { status, updateStatus } = useContext(ChallengeStatusContext)!
 
   const handleSubmit = async (
@@ -97,7 +101,15 @@ export function ChallengeEditor({
 
       // If the submission is successful and all tests passed
       if (submission.type === 'accepted' && status !== 'completed') {
-        // Show completion dialog immediately (optimistic UI)
+        // Charger les données de complétion
+        const completionData = await getChallengeCompletionData(
+          userId,
+          challenge.id,
+          challenge.slug,
+        )
+        setCompletionData(completionData)
+
+        // Show completion dialog
         setShowCompletionDialog(true)
 
         // Handle challenge completion in the background
@@ -121,12 +133,18 @@ export function ChallengeEditor({
         onSubmit={handleSubmit}
       />
 
-      <ChallengeCompletionDialog
-        isOpen={showCompletionDialog}
-        onClose={() => setShowCompletionDialog(false)}
-        challengeId={challenge.id}
-        userId={userId}
-      />
+      {completionData && (
+        <CompletionDialog
+          open={showCompletionDialog}
+          onOpen={() => setShowCompletionDialog(false)}
+          experienceGained={completionData.challengeExperience}
+          currentLevel={completionData.gamificationInfo.currentLevel}
+          currentExperience={completionData.gamificationInfo.currentExperience}
+          nextLevelExperience={completionData.gamificationInfo.nextLevelExperience}
+          nextChallengeUrl={completionData.nextChallengeUrl}
+          hasUnlockedSolution={completionData.wasUnlocked}
+        />
+      )}
     </>
   )
 }

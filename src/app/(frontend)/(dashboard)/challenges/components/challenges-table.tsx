@@ -70,7 +70,7 @@ const columns: ColumnDef<ChallengeWithProgress>[] = [
     header: 'Title',
     accessorKey: 'title',
     cell: ({ row }) => (
-      <Link href={`/challenges/${row.original.slug}`} className="font-medium hover:underline">
+      <Link href={`/challenges/${row.original.slug}/description`} className="font-medium hover:underline">
         {row.getValue('title')}
       </Link>
     ),

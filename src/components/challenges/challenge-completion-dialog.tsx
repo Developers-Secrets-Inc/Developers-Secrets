@@ -258,6 +258,7 @@ export function ChallengeCompletionDialog({
     loadData()
   }, [isOpen, userId, challengeId, challengeSlug])
 
+
   const handleLevelUpComplete = () => {
     setShowLevelUp(false)
     if (levelUpsRemaining.length > 0) {
