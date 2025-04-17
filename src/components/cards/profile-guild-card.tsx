@@ -5,82 +5,36 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Shield, Users, Trophy, Star } from 'lucide-react'
+import { Shield, Users, Trophy, Star, PlusIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export const ProfileGuildCard = () => {
-  const guildData = {
-    name: 'Code Warriors',
-    level: 15,
-    members: 24,
-    maxMembers: 30,
-    experience: 7500,
-    maxExperience: 10000,
-    rank: 3,
-    achievements: 8,
-  }
-
-  const xpPercentage = (guildData.experience / guildData.maxExperience) * 100
-  const membersPercentage = (guildData.members / guildData.maxMembers) * 100
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="overflow-hidden shadow-xl bg-background">
+      <Card className={cn('overflow-hidden bg-background', 'border border-dashed')}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-purple-500" />
             Guild
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold">{guildData.name}</h3>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="secondary">Level {guildData.level}</Badge>
-                <Badge
-                  variant="outline"
-                  className="bg-purple-500/20 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                >
-                  Rank #{guildData.rank}
-                </Badge>
-              </div>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="rounded-full bg-primary/10 p-3 mb-4">
+              <PlusIcon className="h-6 w-6 text-primary" />
             </div>
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-yellow-500" />
-              <span className="font-semibold">{guildData.achievements}</span>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>Members</span>
-                </div>
-                <span className="text-muted-foreground">
-                  {guildData.members}/{guildData.maxMembers}
-                </span>
-              </div>
-              <Progress value={membersPercentage} className="h-2" />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-muted-foreground" />
-                  <span>Experience</span>
-                </div>
-                <span className="text-muted-foreground">
-                  {guildData.experience}/{guildData.maxExperience} XP
-                </span>
-              </div>
-              <Progress value={xpPercentage} className="h-2" />
-            </div>
+            <h3 className="font-semibold">No Guild Yet</h3>
+            <p className="mt-2 text-sm text-muted-foreground max-w-sm">
+              Join a guild to collaborate with other developers and earn rewards together.
+            </p>
+            <Button className="mt-4" variant="outline" disabled>
+              Coming Soon
+            </Button>
           </div>
         </CardContent>
       </Card>

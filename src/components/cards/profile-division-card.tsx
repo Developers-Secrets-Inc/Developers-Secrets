@@ -3,67 +3,36 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Trophy, Medal } from 'lucide-react'
+import { Trophy, PlusIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export const ProfileDivisionCard = () => {
-  const divisionData = {
-    name: 'Gold Division',
-    rank: 7,
-    totalPlayers: 100,
-    points: 2450,
-    nextRank: {
-      name: 'Platinum Division',
-      pointsNeeded: 550,
-    },
-  }
-
-  const rankPercentage = (divisionData.rank / divisionData.totalPlayers) * 100
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="overflow-hidden shadow-xl bg-background">
+      <Card className={cn('overflow-hidden bg-background', 'border border-dashed')}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-yellow-500" />
-            {divisionData.name}
+            Division
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Medal className="h-4 w-4 text-yellow-500" />
-                <span className="font-semibold">Rank #{divisionData.rank}</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Top {rankPercentage.toFixed(1)}% of {divisionData.totalPlayers} players
-              </p>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="rounded-full bg-primary/10 p-3 mb-4">
+              <PlusIcon className="h-6 w-6 text-primary" />
             </div>
-            <Badge variant="secondary" className="text-lg">
-              {divisionData.points} pts
-            </Badge>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="font-medium">Next Division</span>
-              <span className="text-muted-foreground">
-                {divisionData.nextRank.pointsNeeded} points needed
-              </span>
-            </div>
-            <Progress
-              value={
-                (divisionData.points / (divisionData.points + divisionData.nextRank.pointsNeeded)) *
-                100
-              }
-              className="h-2"
-            />
+            <h3 className="font-semibold">No Division Yet</h3>
+            <p className="mt-2 text-sm text-muted-foreground max-w-sm">
+              Complete challenges to earn points and climb the divisions.
+            </p>
+            <Button className="mt-4" variant="outline" disabled>
+              Coming Soon
+            </Button>
           </div>
         </CardContent>
       </Card>

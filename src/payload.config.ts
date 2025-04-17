@@ -33,6 +33,7 @@ import { Skills } from './collections/Skills'
 import { BaseConcepts } from './collections/BaseConcepts'
 import { SkillConcepts } from './collections/SkillConcepts'
 import { ChallengeCategory } from './collections/ChallengeCategory'
+import { UserFollowingInformations } from './collections/UserFollowingInformations'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -71,6 +72,7 @@ export default buildConfig({
     BaseConcepts,
     SkillConcepts,
     ChallengeCategory,
+    UserFollowingInformations,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

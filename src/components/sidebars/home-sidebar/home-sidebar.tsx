@@ -229,16 +229,10 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
                 <SidebarMenuButton asChild>
                   <Link
                     href="/profile/me"
-                    className="cursor-not-allowed opacity-75 relative text-muted-foreground pr-8"
+                    className="flex w-full items-center gap-2 cursor-pointer"
                   >
                     <User className="size-4" />
                     <span>Profile</span>
-                    <TooltipPrimitive.Root>
-                      <TooltipPrimitive.Trigger asChild>
-                        <Lock className="size-4 absolute right-2" />
-                      </TooltipPrimitive.Trigger>
-                      <TooltipContentCustom>Coming soon</TooltipContentCustom>
-                    </TooltipPrimitive.Root>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

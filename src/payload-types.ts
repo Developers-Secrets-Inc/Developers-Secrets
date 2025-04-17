@@ -92,6 +92,7 @@ export interface Config {
     'base-concepts': BaseConcept;
     'skill-concepts': SkillConcept;
     'challenge-categories': ChallengeCategory;
+    'user-following-informations': UserFollowingInformation;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -124,6 +125,7 @@ export interface Config {
     'base-concepts': BaseConceptsSelect<false> | BaseConceptsSelect<true>;
     'skill-concepts': SkillConceptsSelect<false> | SkillConceptsSelect<true>;
     'challenge-categories': ChallengeCategoriesSelect<false> | ChallengeCategoriesSelect<true>;
+    'user-following-informations': UserFollowingInformationsSelect<false> | UserFollowingInformationsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -1394,6 +1396,33 @@ export interface ChallengeCategory {
   createdAt: string;
 }
 /**
+ * User following relationships and blocked users
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-following-informations".
+ */
+export interface UserFollowingInformation {
+  id: number;
+  userId: string;
+  followers?:
+    | {
+        id: string | null;
+      }[]
+    | null;
+  following?:
+    | {
+        id: string | null;
+      }[]
+    | null;
+  blockedUsers?:
+    | {
+        id: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -1503,6 +1532,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'challenge-categories';
         value: number | ChallengeCategory;
+      } | null)
+    | ({
+        relationTo: 'user-following-informations';
+        value: number | UserFollowingInformation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2195,6 +2228,30 @@ export interface ChallengeCategoriesSelect<T extends boolean = true> {
         name?: T;
         description?: T;
         challenges?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-following-informations_select".
+ */
+export interface UserFollowingInformationsSelect<T extends boolean = true> {
+  userId?: T;
+  followers?:
+    | T
+    | {
+        id?: T;
+      };
+  following?:
+    | T
+    | {
+        id?: T;
+      };
+  blockedUsers?:
+    | T
+    | {
         id?: T;
       };
   updatedAt?: T;
