@@ -32,7 +32,7 @@ export function BlockUserDialog({ isOpen, onClose, user, currentUserId }: BlockU
 
       toast({
         title: 'Utilisateur bloqué',
-        description: `${user.name} a été bloqué avec succès.`,
+        description: `${user.informations.name} a été bloqué avec succès.`,
       })
 
       onClose()
@@ -51,9 +51,9 @@ export function BlockUserDialog({ isOpen, onClose, user, currentUserId }: BlockU
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Bloquer {user.name} ?</DialogTitle>
+          <DialogTitle>Bloquer {user.informations.name} ?</DialogTitle>
           <DialogDescription>
-            Cette action empêchera {user.name} de :
+            Cette action empêchera {user.informations.name} de :
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>Voir votre profil</li>
               <li>Vous suivre</li>

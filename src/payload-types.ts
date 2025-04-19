@@ -93,6 +93,9 @@ export interface Config {
     'skill-concepts': SkillConcept;
     'challenge-categories': ChallengeCategory;
     'user-following-informations': UserFollowingInformation;
+    items: Item;
+    'user-items': UserItem;
+    'active-effects': ActiveEffect;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -126,6 +129,9 @@ export interface Config {
     'skill-concepts': SkillConceptsSelect<false> | SkillConceptsSelect<true>;
     'challenge-categories': ChallengeCategoriesSelect<false> | ChallengeCategoriesSelect<true>;
     'user-following-informations': UserFollowingInformationsSelect<false> | UserFollowingInformationsSelect<true>;
+    items: ItemsSelect<false> | ItemsSelect<true>;
+    'user-items': UserItemsSelect<false> | UserItemsSelect<true>;
+    'active-effects': ActiveEffectsSelect<false> | ActiveEffectsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -584,45 +590,25 @@ export interface UserInventory {
 export interface UserCurrency {
   id: number;
   /**
-   * The ID of the user this currency belongs to
+   * The ID of the user who owns this currency
    */
   userId: string;
   /**
-   * Standard currency earned through regular activities
+   * The amount of currency owned by the user
    */
-  coins: number;
+  quantity: number;
   /**
    * History of currency transactions
    */
   transactionHistory?:
     | {
-        /**
-         * When the transaction occurred
-         */
         timestamp: string;
-        /**
-         * The type of transaction
-         */
-        type: 'earn' | 'spend' | 'admin_adjustment';
-        /**
-         * The amount of coins (positive for earning, negative for spending)
-         */
+        type: 'earn' | 'spend' | 'system';
         amount: number;
-        /**
-         * The source or reason for the transaction (e.g., "daily_challenge", "level_up", "achievement")
-         */
-        source?: string | null;
-        /**
-         * Additional details about the transaction
-         */
-        details?: string | null;
+        description: string;
         id?: string | null;
       }[]
     | null;
-  /**
-   * When this currency record was last updated
-   */
-  lastUpdated?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1424,6 +1410,109 @@ export interface UserFollowingInformation {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "items".
+ */
+export interface Item {
+  id: number;
+  /**
+   * The name of the item
+   */
+  name: string;
+  /**
+   * A detailed description of what this item does
+   */
+  description: string;
+  /**
+   * The type of effect this item provides
+   */
+  type: 'xpBoost' | 'currencyBoost' | 'streakRestore' | 'unlockFeature';
+  /**
+   * How this item is activated and used
+   */
+  activationMode: 'consumableDuration' | 'instant' | 'passive';
+  /**
+   * Multiplier value for boost effects (e.g. 1.5 for 50% boost)
+   */
+  multiplier?: number | null;
+  /**
+   * Duration of the effect in seconds (only for consumable duration items)
+   */
+  duration?: number | null;
+  /**
+   * Whether this item provides its effect just by being owned
+   */
+  appliesPassively?: boolean | null;
+  /**
+   * Icon identifier for this item
+   */
+  icon?: string | null;
+  /**
+   * The rarity level of this item
+   */
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  /**
+   * Whether this item is currently available in the game
+   */
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-items".
+ */
+export interface UserItem {
+  id: number;
+  /**
+   * The ID of the user who owns this item
+   */
+  userId: string;
+  /**
+   * The item owned by the user
+   */
+  item: number | Item;
+  /**
+   * The number of this item owned by the user
+   */
+  quantity: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "active-effects".
+ */
+export interface ActiveEffect {
+  id: number;
+  /**
+   * The ID of the user who has this active effect
+   */
+  userId: string;
+  /**
+   * The type of effect that is active
+   */
+  effectType: 'xpBoost' | 'currencyBoost' | 'streakRestore' | 'unlockFeature';
+  /**
+   * The multiplier value for this effect (e.g. 1.5 for 50% boost)
+   */
+  multiplier: number;
+  /**
+   * When this effect was activated
+   */
+  activatedAt: string;
+  /**
+   * When this effect will expire
+   */
+  expiresAt: string;
+  /**
+   * Whether this effect is currently active
+   */
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -1536,6 +1625,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'user-following-informations';
         value: number | UserFollowingInformation;
+      } | null)
+    | ({
+        relationTo: 'items';
+        value: number | Item;
+      } | null)
+    | ({
+        relationTo: 'user-items';
+        value: number | UserItem;
+      } | null)
+    | ({
+        relationTo: 'active-effects';
+        value: number | ActiveEffect;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1842,18 +1943,16 @@ export interface UserInventorySelect<T extends boolean = true> {
  */
 export interface UserCurrencySelect<T extends boolean = true> {
   userId?: T;
-  coins?: T;
+  quantity?: T;
   transactionHistory?:
     | T
     | {
         timestamp?: T;
         type?: T;
         amount?: T;
-        source?: T;
-        details?: T;
+        description?: T;
         id?: T;
       };
-  lastUpdated?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2254,6 +2353,49 @@ export interface UserFollowingInformationsSelect<T extends boolean = true> {
     | {
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "items_select".
+ */
+export interface ItemsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  type?: T;
+  activationMode?: T;
+  multiplier?: T;
+  duration?: T;
+  appliesPassively?: T;
+  icon?: T;
+  rarity?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-items_select".
+ */
+export interface UserItemsSelect<T extends boolean = true> {
+  userId?: T;
+  item?: T;
+  quantity?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "active-effects_select".
+ */
+export interface ActiveEffectsSelect<T extends boolean = true> {
+  userId?: T;
+  effectType?: T;
+  multiplier?: T;
+  activatedAt?: T;
+  expiresAt?: T;
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
 }

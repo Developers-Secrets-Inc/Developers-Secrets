@@ -1,20 +1,16 @@
-import { SidebarInset } from '@/components/ui/sidebar'
-import { SidebarProvider } from '@/components/ui/sidebar'
-import { createClient } from '@/utils/supabase/server'
-import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
-import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
-import { redirect, notFound } from 'next/navigation'
-import { ProfileDivisionCard } from '@/components/cards/profile-division-card'
-import { ProfileGuildCard } from '@/components/cards/profile-guild-card'
-import { ProfileSkillsCard } from '@/components/cards/profile-skills-card'
-import { Separator } from '@/components/ui/separator'
+import { ProfileDivisionCard } from '@/core/profile/components/profile-division-card'
+import { ProfileGuildCard } from '@/core/profile/components/profile-guild-card'
+import { ProfileSkillsCard } from '@/core/profile/components/profile-skills-card'
 import {
-  ProfileInfoSection,
   AchievementsSection,
   CoursesSection,
-} from '@/components/sections/profile-sections'
-import { getUserProfile, getUserProfileBySlug } from '../actions'
-import { getFollowers, getFollowing } from '@/core/profile/follow'
+  ProfileInfoSection,
+} from '@/core/profile/components/profile-sections'
+import { Separator } from '@/components/ui/separator'
+import { isFollowing } from '@/core/profile/follow'
+import { createClient } from '@/utils/supabase/server'
+import { notFound, redirect } from 'next/navigation'
+import { getUserProfile, getUserProfileBySlug } from '@/core/profile/actions'
 
 interface PageProps {
   params: Promise<{ user_slug: string }>
@@ -40,45 +36,36 @@ export default async function Page({ params }: PageProps) {
   const currentUserProfile = await getUserProfile()
   const isOwnProfile = currentUserProfile?.id === userProfile.id
 
-  // Récupérer les followers et following
-  const followers = await getFollowers(userProfile.id)
-  const following = await getFollowing(userProfile.id)
-
   return (
-    <SidebarProvider>
-      <HomeSidebar />
-      <SidebarInset>
-        <HomeHeader />
-        <div className="flex flex-1 gap-8 max-w-[1400px] mx-auto py-8 px-4">
-          {/* Colonne de gauche */}
-          <div className="w-[300px] space-y-6">
-            <div className="space-y-6">
-              <ProfileInfoSection
-                user={userProfile}
-                isOwnProfile={isOwnProfile}
-                followersCount={followers.length}
-                followingCount={following.length}
-                currentUserId={currentUserProfile?.id || ''}
-                followers={followers}
-                following={following}
-              />
-              <Separator />
-              <AchievementsSection userId={userProfile.id} />
-              <Separator />
-              <CoursesSection userId={userProfile.id} />
-            </div>
-          </div>
-
-          {/* Colonne de droite */}
-          <div className="flex-1 space-y-6">
-            <ProfileSkillsCard />
-            <div className="grid grid-cols-2 gap-6">
-              <ProfileDivisionCard />
-              <ProfileGuildCard />
-            </div>
-          </div>
+    <>
+      {/* Colonne de gauche */}
+      <div className="w-[330px] space-y-6 pl-8">
+        <div className="space-y-6">
+          <ProfileInfoSection
+            user={userProfile}
+            isOwnProfile={isOwnProfile}
+            currentUserId={currentUserProfile?.id || ''}
+            isFollowing={
+              !isOwnProfile
+                ? await isFollowing(currentUserProfile?.id || '', userProfile.id)
+                : false
+            }
+          />
+          <Separator />
+          <AchievementsSection userId={userProfile.id} />
+          <Separator />
+          <CoursesSection userId={userProfile.id} />
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </div>
+
+      {/* Colonne de droite */}
+      <div className="flex-1 space-y-6">
+        <ProfileSkillsCard />
+        <div className="grid grid-cols-2 gap-6">
+          <ProfileDivisionCard />
+          <ProfileGuildCard />
+        </div>
+      </div>
+    </>
   )
 }

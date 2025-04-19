@@ -268,3 +268,32 @@ export const removeBlocked = async (userId: string, blockedId: string): Promise<
     data: { blockedUsers: newBlockedUsers },
   })
 }
+
+export const toggleFollowUser = async (
+  userId: string,
+  targetUserId: string,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    if (userId === targetUserId) {
+      return { success: false, error: 'You cannot follow yourself' }
+    }
+
+    const isCurrentlyFollowing = await isFollowing(userId, targetUserId)
+
+    if (isCurrentlyFollowing) {
+      await removeFollowing(userId, targetUserId)
+      await removeFollower(targetUserId, userId)
+    } else {
+      await addFollowing(userId, targetUserId)
+      await addFollower(targetUserId, userId)
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error in toggleFollowUser:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
+    }
+  }
+}

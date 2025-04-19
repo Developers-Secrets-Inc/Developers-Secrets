@@ -10,6 +10,7 @@ import {
   Lock,
   MessageSquare,
   Star,
+  Store,
   Trophy,
   User,
   Users,
@@ -25,6 +26,7 @@ import { FeedbackDialog } from '@/components/feedback-dialog'
 import { SupportDialog } from '@/components/support-dialog'
 import { QuestsDialog } from '@/core/gamification/quests/components/quests-dialog'
 import { AchievementsDialog } from '@/components/achievements-dialog'
+import { MarketplaceDialog } from '@/components/dialogs/marketplace-dialog'
 import {
   Sidebar,
   SidebarContent,
@@ -92,6 +94,7 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
   const [supportOpen, setSupportOpen] = useState(false)
   const [questsOpen, setQuestsOpen] = useState(false)
   const [achievementsOpen, setAchievementsOpen] = useState(false)
+  const [marketplaceOpen, setMarketplaceOpen] = useState(false)
   const [supportStatus, setSupportStatus] = useState<{
     status: 'online' | 'maintenance' | 'offline'
     message: string
@@ -177,7 +180,6 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
               <SidebarMenuItem key="achievements">
                 <SidebarMenuButton asChild>
                   <button
-                    onClick={() => setAchievementsOpen(true)}
                     className="flex w-full items-center gap-2 cursor-pointer relative text-muted-foreground pr-8"
                   >
                     <Star className="size-4" />
@@ -211,6 +213,17 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
           <SidebarGroup>
             <SidebarGroupLabel>Social</SidebarGroupLabel>
             <SidebarMenu>
+              <SidebarMenuItem key="marketplace">
+                <SidebarMenuButton asChild>
+                  <button
+                    onClick={() => setMarketplaceOpen(true)}
+                    className="flex w-full items-center gap-2 cursor-pointer"
+                  >
+                    <Store className="size-4" />
+                    <span>Marketplace</span>
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem key="guild">
                 <SidebarMenuButton asChild>
                   <Link href="#" className="relative text-muted-foreground pr-8">
@@ -303,6 +316,7 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
           />
           <QuestsDialog isOpen={questsOpen} onOpenChange={setQuestsOpen} />
           <AchievementsDialog open={achievementsOpen} onOpenChange={setAchievementsOpen} />
+          <MarketplaceDialog open={marketplaceOpen} onOpenChange={setMarketplaceOpen} />
           <ProCtaCard />
         </SidebarFooter>
       </Sidebar>

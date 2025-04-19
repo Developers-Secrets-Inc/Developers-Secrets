@@ -1,13 +1,13 @@
-import { ProfileCard } from "@/components/cards/profile-card";
+import { ProfileCard } from '@/core/profile/components/profile-card'
 import { SidebarInset } from '@/components/ui/sidebar'
 import { HomeHeader } from '../home/components/home-header'
 import { CurrentCourseCard } from '@/components/cards/current-course-card'
 import { CoursesGrid } from '@/components/cards/courses-grid'
 import { HomeSidebar } from '../home/components/home-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import { ChallengeCard } from "@/components/cards/challenge-card";
-import { LeaderboardCard } from "@/components/cards/leaderboard-card";
-import { GuildCard } from "@/components/cards/guild-card";
+import { ChallengeCard } from '@/components/cards/challenge-card'
+import { LeaderboardCard } from '@/components/cards/leaderboard-card'
+import { GuildCard } from '@/components/cards/guild-card'
 
 export default function Page() {
   return (
@@ -21,7 +21,6 @@ export default function Page() {
             <div className="flex-1 min-w-[300px] max-w-[700px] space-y-6">
               <CurrentCourseCard />
             </div>
-
           </div>
 
           {/* Troisième rangée: Guilde (pleine largeur) */}

@@ -34,6 +34,9 @@ import { BaseConcepts } from './collections/BaseConcepts'
 import { SkillConcepts } from './collections/SkillConcepts'
 import { ChallengeCategory } from './collections/ChallengeCategory'
 import { UserFollowingInformations } from './collections/UserFollowingInformations'
+import { Items } from './collections/Items'
+import { UserItems } from './collections/UserItems'
+import { ActiveEffects } from './collections/ActiveEffects'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -73,6 +76,9 @@ export default buildConfig({
     SkillConcepts,
     ChallengeCategory,
     UserFollowingInformations,
+    Items,
+    UserItems,
+    ActiveEffects,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
