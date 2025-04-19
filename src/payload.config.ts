@@ -37,6 +37,7 @@ import { UserFollowingInformations } from './collections/UserFollowingInformatio
 import { Items } from './collections/Items'
 import { UserItems } from './collections/UserItems'
 import { ActiveEffects } from './collections/ActiveEffects'
+import { MarketplaceItem } from './collections/MarketplaceItem'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -79,6 +80,7 @@ export default buildConfig({
     Items,
     UserItems,
     ActiveEffects,
+    MarketplaceItem,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

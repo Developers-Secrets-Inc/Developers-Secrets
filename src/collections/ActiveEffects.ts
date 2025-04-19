@@ -22,6 +22,7 @@ export const ActiveEffects: CollectionConfig = {
       label: 'Effect Type',
       type: 'select',
       required: true,
+      index: true,
       options: [
         { label: 'XP Boost', value: 'xpBoost' },
         { label: 'Currency Boost', value: 'currencyBoost' },
@@ -59,6 +60,7 @@ export const ActiveEffects: CollectionConfig = {
       label: 'Expires At',
       type: 'date',
       required: true,
+      index: true,
       admin: {
         description: 'When this effect will expire',
         date: {
@@ -71,18 +73,11 @@ export const ActiveEffects: CollectionConfig = {
       label: 'Is Active',
       type: 'checkbox',
       defaultValue: true,
+      index: true,
       admin: {
         description: 'Whether this effect is currently active',
       },
     },
   ],
   timestamps: true,
-  indexes: [
-    {
-      fields: ['userId', 'effectType', 'isActive'],
-    },
-    {
-      fields: ['expiresAt'],
-    },
-  ],
 }

@@ -7,6 +7,7 @@ import config from '@payload-config'
 import { getUserInformation } from '@/core/user'
 import { handleExperienceGainForQuests } from './quests/actions'
 import { createNotification } from '@/core/notifications'
+import { getActiveXPBoost } from './effects'
 
 import { UserGamification } from '@/payload-types'
 
@@ -104,9 +105,13 @@ export async function addExperience(
   }
   const userInfo = await getGamificationInformations(userId)
 
+  // Vérifier s'il y a un boost d'XP actif
+  const xpMultiplier = await getActiveXPBoost(userId)
+  const boostedExperience = Math.floor(experienceAmount * xpMultiplier)
+
   // Calculer la nouvelle expérience
-  let newCurrentExperience = userInfo.currentExperience + experienceAmount
-  const newTotalExperience = userInfo.totalExperience + experienceAmount
+  let newCurrentExperience = userInfo.currentExperience + boostedExperience
+  const newTotalExperience = userInfo.totalExperience + boostedExperience
   let newLevel = userInfo.currentLevel
   let shouldUpdateLevelUpDate = false
   let levelsGained = 0

@@ -9,6 +9,7 @@ import {
   Home,
   Lock,
   MessageSquare,
+  Package,
   Star,
   Store,
   Trophy,
@@ -26,7 +27,8 @@ import { FeedbackDialog } from '@/components/feedback-dialog'
 import { SupportDialog } from '@/components/support-dialog'
 import { QuestsDialog } from '@/core/gamification/quests/components/quests-dialog'
 import { AchievementsDialog } from '@/components/achievements-dialog'
-import { MarketplaceDialog } from '@/components/dialogs/marketplace-dialog'
+import { MarketplaceDialog } from '@/core/gamification/marketplace/components/dialogs/marketplace-dialog'
+import { InventorySheet } from '@/core/gamification/inventory/components/sheets/inventory-sheet'
 import {
   Sidebar,
   SidebarContent,
@@ -41,6 +43,7 @@ import {
 import Link from 'next/link'
 import { LearningPathSwitcher } from './learning-path-switcher'
 import { SearchForm } from './search-form'
+import { ActiveEffectDisplay } from '@/core/gamification/effects/components/active-effect-display'
 
 // This is sample data.
 const data = {
@@ -95,6 +98,7 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
   const [questsOpen, setQuestsOpen] = useState(false)
   const [achievementsOpen, setAchievementsOpen] = useState(false)
   const [marketplaceOpen, setMarketplaceOpen] = useState(false)
+  const [inventoryOpen, setInventoryOpen] = useState(false)
   const [supportStatus, setSupportStatus] = useState<{
     status: 'online' | 'maintenance' | 'offline'
     message: string
@@ -180,16 +184,11 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
               <SidebarMenuItem key="achievements">
                 <SidebarMenuButton asChild>
                   <button
-                    className="flex w-full items-center gap-2 cursor-pointer relative text-muted-foreground pr-8"
+                    onClick={() => setAchievementsOpen(true)}
+                    className="flex w-full items-center gap-2 cursor-pointer"
                   >
                     <Star className="size-4" />
                     <span>Achievements</span>
-                    <TooltipPrimitive.Root>
-                      <TooltipPrimitive.Trigger asChild>
-                        <Lock className="size-4 absolute right-2" />
-                      </TooltipPrimitive.Trigger>
-                      <TooltipContentCustom>Coming soon</TooltipContentCustom>
-                    </TooltipPrimitive.Root>
                   </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -224,6 +223,17 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
                   </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem key="inventory">
+                <SidebarMenuButton asChild>
+                  <button
+                    onClick={() => setInventoryOpen(true)}
+                    className="flex w-full items-center gap-2 cursor-pointer"
+                  >
+                    <Package className="size-4" />
+                    <span>Inventory</span>
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem key="guild">
                 <SidebarMenuButton asChild>
                   <Link href="#" className="relative text-muted-foreground pr-8">
@@ -254,6 +264,7 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
+            <ActiveEffectDisplay />
             <SidebarMenuItem>
               <SidebarMenuButton asChild className="cursor-pointer">
                 <button
@@ -317,6 +328,7 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
           <QuestsDialog isOpen={questsOpen} onOpenChange={setQuestsOpen} />
           <AchievementsDialog open={achievementsOpen} onOpenChange={setAchievementsOpen} />
           <MarketplaceDialog open={marketplaceOpen} onOpenChange={setMarketplaceOpen} />
+          <InventorySheet open={inventoryOpen} onOpenChange={setInventoryOpen} />
           <ProCtaCard />
         </SidebarFooter>
       </Sidebar>

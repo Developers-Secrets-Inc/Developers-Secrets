@@ -96,6 +96,7 @@ export interface Config {
     items: Item;
     'user-items': UserItem;
     'active-effects': ActiveEffect;
+    'marketplace-items': MarketplaceItem;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -132,6 +133,7 @@ export interface Config {
     items: ItemsSelect<false> | ItemsSelect<true>;
     'user-items': UserItemsSelect<false> | UserItemsSelect<true>;
     'active-effects': ActiveEffectsSelect<false> | ActiveEffectsSelect<true>;
+    'marketplace-items': MarketplaceItemsSelect<false> | MarketplaceItemsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -1513,6 +1515,60 @@ export interface ActiveEffect {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "marketplace-items".
+ */
+export interface MarketplaceItem {
+  id: number;
+  /**
+   * The item being sold in the marketplace
+   */
+  item: number | Item;
+  /**
+   * The price of the item in currency
+   */
+  price: number;
+  /**
+   * Whether this item is currently available for purchase
+   */
+  isAvailable?: boolean | null;
+  /**
+   * Maximum number of times this item can be purchased (0 for unlimited)
+   */
+  purchaseLimit?: number | null;
+  /**
+   * Number of times this item has been purchased
+   */
+  purchaseCount?: number | null;
+  /**
+   * When this item becomes available for purchase
+   */
+  startDate?: string | null;
+  /**
+   * When this item will no longer be available for purchase
+   */
+  endDate?: string | null;
+  /**
+   * Optional discount information
+   */
+  discount?: {
+    /**
+     * Percentage discount (0-100)
+     */
+    percentage?: number | null;
+    /**
+     * When the discount becomes active
+     */
+    startDate?: string | null;
+    /**
+     * When the discount expires
+     */
+    endDate?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -1637,6 +1693,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'active-effects';
         value: number | ActiveEffect;
+      } | null)
+    | ({
+        relationTo: 'marketplace-items';
+        value: number | MarketplaceItem;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2396,6 +2456,28 @@ export interface ActiveEffectsSelect<T extends boolean = true> {
   activatedAt?: T;
   expiresAt?: T;
   isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "marketplace-items_select".
+ */
+export interface MarketplaceItemsSelect<T extends boolean = true> {
+  item?: T;
+  price?: T;
+  isAvailable?: T;
+  purchaseLimit?: T;
+  purchaseCount?: T;
+  startDate?: T;
+  endDate?: T;
+  discount?:
+    | T
+    | {
+        percentage?: T;
+        startDate?: T;
+        endDate?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
