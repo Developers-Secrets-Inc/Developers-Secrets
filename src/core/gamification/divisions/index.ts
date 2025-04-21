@@ -6,7 +6,7 @@ import config from '@payload-config'
 import { Division, UserInformation, WeeklyLeaderboardMember } from '@/payload-types'
 import { getWeeklyUserExperience } from '../leaderboard' // Use the function from leaderboard index
 import { getUserInformation } from '../../user' // Assuming a way to get user info by ID
-import { Where } from 'payload/types'
+import { Where } from 'payload'
 
 /**
  * Finds the ID of the next higher or lower division based on rankOrder.
@@ -92,9 +92,8 @@ export const getUserDivisionLeaderboard = async (
   const now = new Date()
 
   try {
-    // 1. Find the user's current leaderboard membership for this week
-    // Determine current week start/end (similar logic to create job)
-    const dayOfWeek = now.getUTCDay()
+    // 1. Determine current week start date
+    const dayOfWeek = now.getUTCDay() // 0 = Sunday, 1 = Monday, ...
     const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
     const currentWeekStartDate = new Date(
       now.getUTCFullYear(),
@@ -105,37 +104,47 @@ export const getUserDivisionLeaderboard = async (
       0,
       0,
     )
+    const currentWeekStartString = currentWeekStartDate.toISOString()
 
-    const currentMembership = await payload.find({
+    // 2. Fetch all memberships for the user (potential improvement needed if many memberships)
+    const allUserMemberships = await payload.find({
       collection: 'weekly-leaderboard-members',
       where: {
         userId: { equals: userId },
-        // Ensure we get the leaderboard for the *current* week
-        'leaderboard.startDate': { equals: currentWeekStartDate.toISOString() },
       },
-      limit: 1,
-      depth: 1, // Need leaderboard info
+      limit: 5, // Limit fetching old records, maybe only need recent ones?
+      sort: '-createdAt', // Get the most recent first
+      depth: 1, // IMPORTANT: Need leaderboard populated
     })
 
-    if (!currentMembership.docs || currentMembership.docs.length === 0) {
+    // 3. Find the membership for the current week *in code*
+    const currentMembership = allUserMemberships.docs.find((member) => {
+      if (typeof member.leaderboard === 'object' && member.leaderboard !== null) {
+        // Compare start dates. Convert DB date string to Date object for reliable comparison
+        const leaderboardStartDate = new Date(member.leaderboard.startDate)
+        return leaderboardStartDate.toISOString() === currentWeekStartString
+      }
+      return false
+    })
+
+    if (!currentMembership) {
       console.log(
-        `User ${userId} not found in any leaderboard for the current week starting ${currentWeekStartDate.toISOString()}`,
+        `User ${userId} membership not found for the current week starting ${currentWeekStartString}`,
       )
-      return null // User might not be in a division or the job hasn't run yet
-    }
-
-    const memberRecord = currentMembership.docs[0]
-    const leaderboardId =
-      typeof memberRecord.leaderboard === 'object'
-        ? memberRecord.leaderboard.id
-        : memberRecord.leaderboard
-
-    if (!leaderboardId) {
-      console.error(`Leaderboard ID missing for member record ${memberRecord.id}`)
       return null
     }
 
-    // 2. Fetch all members of that specific leaderboard
+    // Ensure leaderboard is populated
+    if (
+      typeof currentMembership.leaderboard !== 'object' ||
+      currentMembership.leaderboard === null
+    ) {
+      console.error(`Leaderboard object not populated for member record ${currentMembership.id}`)
+      return null
+    }
+    const leaderboardId = currentMembership.leaderboard.id
+
+    // 4. Fetch all members of that specific leaderboard
     const allMembers = await payload.find({
       collection: 'weekly-leaderboard-members',
       where: {
@@ -146,7 +155,7 @@ export const getUserDivisionLeaderboard = async (
       depth: 0, // Don't need nested leaderboard info again
     })
 
-    // 3. Fetch live weekly XP and basic user info for each member
+    // 5. Fetch live weekly XP and basic user info for each member
     const memberDataPromises = allMembers.docs.map(async (member: WeeklyLeaderboardMember) => {
       const [weeklyXp, userInfo] = await Promise.all([
         getWeeklyUserExperience(member.userId, currentWeekStartDate, now), // Use current date as end for live data
@@ -163,10 +172,10 @@ export const getUserDivisionLeaderboard = async (
 
     const memberData = await Promise.all(memberDataPromises)
 
-    // 4. Sort members by live weekly XP
+    // 6. Sort members by live weekly XP
     memberData.sort((a, b) => b.weeklyExperience - a.weeklyExperience)
 
-    // 5. Assign ranks
+    // 7. Assign ranks
     const rankedUsers: RankedLeaderboardUser[] = memberData.map((member, index) => ({
       rank: index + 1,
       ...member,

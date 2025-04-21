@@ -51,7 +51,7 @@ import { Divisions } from './collections/Divisions'
 import { ExperienceLogs } from './collections/ExperienceLogs'
 import { WeeklyDivisionLeaderboards } from './collections/WeeklyDivisionLeaderboards'
 import { WeeklyLeaderboardMembers } from './collections/WeeklyLeaderboardMembers'
-import type { PayloadRequest } from 'payload/types' // Import PayloadRequest type
+import type { PayloadRequest } from 'payload'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
