@@ -16,16 +16,14 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import {
-  useCompletedChallenges,
-  CompletedChallengeInfo,
-} from '@/core/challenges/user-progression/hooks/use-completed-challenges'
+import { CompletedChallengeInfo } from '@/core/challenges/user-progression/types'
 
 // --- Props pour le composant ---
 interface CalendarDayButtonProps {
   day: number | null // Le numéro du jour (1-31) ou null si placeholder
   date: string | null // La date complète "YYYY-MM-DD" ou null
   completedChallengesCount: number // Le nombre pour le style et le tooltip
+  prefetchedChallenges: CompletedChallengeInfo[] | null // <-- Ajout de la prop
   isPlaceholder: boolean // Est-ce une case vide ?
   userId: string // Nécessaire pour récupérer les détails
 }
@@ -46,25 +44,17 @@ const getDifficultyBadgeClass = (difficulty: CompletedChallengeInfo['difficulty'
   }
 }
 
-// --- Composant interne pour le contenu du dialogue (utilise le hook importé) ---
-function DialogChallengeList({ userId, date }: { userId: string; date: string }) {
-  // Utilisation du hook personnalisé importé
-  const { challenges, isLoading, error } = useCompletedChallenges(userId, date)
+// --- Composant interne pour le contenu du dialogue (modifié) ---
+// Accepte prefetchedChallenges, n'utilise plus le hook
+function DialogChallengeList({
+  prefetchedChallenges,
+}: {
+  prefetchedChallenges: CompletedChallengeInfo[] | null
+}) {
+  // Utilise directement les données préchargées
+  const challenges = prefetchedChallenges ?? []
 
-  if (isLoading) {
-    // Squelette simple pour la liste
-    return (
-      <div className="space-y-2 py-4">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-4 w-1/2" />
-        <Skeleton className="h-4 w-5/6" />
-      </div>
-    )
-  }
-
-  if (error) {
-    return <p className="py-4 text-sm text-destructive">{error}</p>
-  }
+  // Plus besoin d'état isLoading ou error ici
 
   return (
     <div className="py-4 space-y-3">
@@ -100,11 +90,12 @@ function DialogChallengeList({ userId, date }: { userId: string; date: string })
   )
 }
 
-// --- Composant principal du bouton/cellule du calendrier ---
+// --- Composant principal du bouton/cellule du calendrier (modifié) ---
 export function CalendarDayButton({
   day,
   date,
   completedChallengesCount,
+  prefetchedChallenges, // <-- Utilisation de la prop
   isPlaceholder,
   userId,
 }: CalendarDayButtonProps) {
@@ -155,9 +146,8 @@ export function CalendarDayButton({
           <DialogTitle>Completed on {date}</DialogTitle>
           <DialogDescription>Challenges you successfully completed on this day.</DialogDescription>
         </DialogHeader>
-        {/* Le dialogue ne rend son contenu que lorsqu'il est ouvert */}
-        {/* DialogChallengeList gère son propre chargement/erreur via le hook */}
-        {isOpen && <DialogChallengeList userId={userId} date={date} />}
+        {/* Passe les données préchargées au dialogue lorsqu'il est ouvert */}
+        {isOpen && <DialogChallengeList prefetchedChallenges={prefetchedChallenges} />}
       </DialogContent>
     </Dialog>
   )

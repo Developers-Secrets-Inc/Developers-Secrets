@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { CheckCircle2 } from 'lucide-react'
 import { CalendarDayButton } from './calendar-day-button'
+import { CompletedChallengeInfo } from '@/core/challenges/user-progression/types'
 
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -73,13 +74,13 @@ export const UserProfile = async ({ user }: UserProfileProps) => {
         aria-hidden="true"
         className="absolute top-0 right-0 h-32 w-32 -translate-y-1/2 translate-x-1/2 pointer-events-none"
       >
-        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-30" />
+        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-25" />
       </div>
       <div
         aria-hidden="true"
         className="absolute top-0 right-0 h-24 w-24 -translate-y-1/2 translate-x-1/2 pointer-events-none"
       >
-        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-30" />
+        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-20" />
       </div>
 
       <div className="relative z-10">
@@ -142,7 +143,8 @@ export const UserProfile = async ({ user }: UserProfileProps) => {
                   <CalendarDayButton
                     day={day?.day ?? null}
                     date={day?.date ?? null}
-                    completedChallengesCount={day?.completedChallenges ?? 0}
+                    completedChallengesCount={day?.completedChallengesCount ?? 0}
+                    prefetchedChallenges={day?.completedChallenges ?? null}
                     isPlaceholder={!day}
                     userId={user.id}
                   />

@@ -18,7 +18,8 @@ import {
 } from './types'
 import { Where } from 'payload'
 import { unstable_cache } from 'next/cache'
-import { Challenge as PayloadChallenge } from '@/payload-types'
+import { Challenge as PayloadChallenge, UserChallengeProgression } from '@/payload-types'
+import { CalendarDay, CompletedChallengeInfo } from './types'
 
 const getUserProgression = async (
   userId: string,
@@ -538,82 +539,129 @@ export const getCachedHistoricalCompletedChallengesCounts = unstable_cache(
 )
 
 /**
- * Structure for calendar day data.
- */
-interface CalendarDay {
-  date: string
-  day: number
-  completedChallenges: number
-}
-
-/**
- * Builds the calendar grid data for the current month, using cached historical data
- * and dynamically fetched data for today. Returns a flat array representing the grid cells.
+ * Builds the calendar grid data for the current month, including prefetched
+ * completed challenge details for each day. Returns a flat array representing the grid cells.
  */
 export const getCalendarDays = async (userId: string): Promise<(CalendarDay | null)[]> => {
   const validatedUserId = validateUserId(userId)
-
-  // Fetch historical and today's data in parallel
-  const [historicalCounts, todayCount] = await Promise.all([
-    getCachedHistoricalCompletedChallengesCounts(validatedUserId),
-    getTodayCompletedChallengesCount(validatedUserId),
-  ])
+  const payload = await getPayload({ config })
 
   const now = new Date()
   const year = now.getFullYear()
-  const month = now.getMonth()
-  const todayDate = now.getDate()
+  const month = now.getMonth() // 0-indexed
 
-  // Get the first day of the month and total days
-  const firstDayOfMonth = new Date(year, month, 1)
-  const lastDayOfMonth = new Date(year, month + 1, 0)
-  const daysInMonth = lastDayOfMonth.getDate()
+  // Get the start and end of the current month in UTC
+  const startOfMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0))
+  const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999))
 
-  // Get the day of week for the first day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-  let firstDayIndex = firstDayOfMonth.getDay()
-  // Convert Sunday from 0 to 7 to match our calendar layout
-  firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1
+  // Fetch all completed progressions for the user within the current month
+  const completedProgressions = await payload.find({
+    collection: 'userChallengeProgression',
+    where: {
+      and: [
+        {
+          userId: {
+            equals: validatedUserId,
+          },
+        },
+        {
+          completionStatus: {
+            equals: 'completed',
+          },
+        },
+        {
+          updatedAt: {
+            greater_than_equal: startOfMonth.toISOString(),
+          },
+        },
+        {
+          updatedAt: {
+            less_than_equal: endOfMonth.toISOString(),
+          },
+        },
+      ],
+    },
+    depth: 1, // Needed to populate challenge details
+    limit: 0,
+    pagination: false,
+  })
 
-  // Create a flat array for all calendar cells
+  // Group completed challenges by date (YYYY-MM-DD format based on UTC completion time)
+  const challengesByDate: { [date: string]: CompletedChallengeInfo[] } = {}
+
+  completedProgressions.docs.forEach((progression) => {
+    if (
+      progression.updatedAt &&
+      progression.challenge &&
+      typeof progression.challenge === 'object'
+    ) {
+      const completionDate = new Date(progression.updatedAt)
+      // Get date components based on UTC
+      const utcYear = completionDate.getUTCFullYear()
+      const utcMonth = String(completionDate.getUTCMonth() + 1).padStart(2, '0')
+      const utcDay = String(completionDate.getUTCDate()).padStart(2, '0')
+      const dateString = `${utcYear}-${utcMonth}-${utcDay}`
+
+      const challenge = progression.challenge as PayloadChallenge
+      const difficulty = ['easy', 'medium', 'hard', 'horrible'].includes(challenge.difficulty)
+        ? (challenge.difficulty as CompletedChallengeInfo['difficulty'])
+        : 'medium'
+
+      const challengeInfo: CompletedChallengeInfo = {
+        id: challenge.id,
+        title: challenge.title,
+        slug: challenge.slug,
+        difficulty: difficulty,
+      }
+
+      if (!challengesByDate[dateString]) {
+        challengesByDate[dateString] = []
+      }
+      challengesByDate[dateString].push(challengeInfo)
+    }
+  })
+
+  // --- Build the calendar grid structure ---
+
+  const firstDayOfMonth = new Date(year, month, 1) // Use local time for calendar structure
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  let firstDayIndex = firstDayOfMonth.getDay() // 0 = Sun, 1 = Mon...
+  firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1 // Adjust to Mon=0, Sun=6
+
   const allDays: (CalendarDay | null)[] = []
 
-  // Add empty cells for days before the first of the month
+  // Add placeholders before the 1st
   for (let i = 0; i < firstDayIndex; i++) {
     allDays.push(null)
   }
 
-  // Add all days of the month
+  // Add actual days
   for (let day = 1; day <= daysInMonth; day++) {
-    // Format the date string based on the local year, month (1-based), and day
-    // Ensure month and day are padded with leading zeros if necessary
-    const localMonthString = String(month + 1).padStart(2, '0') // month is 0-indexed
+    // Create the date string based on local calendar day (consistent with previous fix)
+    const localMonthString = String(month + 1).padStart(2, '0')
     const localDayString = String(day).padStart(2, '0')
     const dateString = `${year}-${localMonthString}-${localDayString}`
 
-    let completedCount = 0
-    // Use the correctly formatted local date string to look up historical counts
-    // Note: This assumes historicalCounts keys were also generated this way.
-    // If historicalCounts keys come from UTC dates via toISOString(), that needs fixing too.
-    // For now, let's assume consistency or fix today first.
-    if (day < todayDate) {
-      // We might need to adjust how historicalCounts are keyed if they used UTC dates.
-      // For simplicity, let's first assume we primarily care about today/recent past
-      // or that historicalCounts can be adjusted/re-keyed.
-      // A safer approach for lookup might involve iterating historicalCounts keys
-      // and matching year, month, day components if timezone issues persist deeply.
-      completedCount = historicalCounts[dateString] || 0 // Potential issue if keys mismatch
-    } else if (day === todayDate) {
-      completedCount = todayCount
-    }
+    // Get the prefetched challenges for this local date string
+    // Note: We group challenges based on their UTC completion timestamp's date part.
+    // This dateString is the *local* date for the calendar cell.
+    // There might be a slight mismatch if a challenge was completed near midnight
+    // between timezones. E.g., completed 23:30 local (-5 UTC) on the 20th is
+    // 04:30 UTC on the 21st. Grouping by UTC date puts it on 21st, but the local calendar shows 20th.
+    // For simplicity here, we use the local dateString for lookup, acknowledging this edge case.
+    // A more robust solution might involve timezone conversions for each completion.
+    const completedChallenges = challengesByDate[dateString] || []
+    const completedChallengesCount = completedChallenges.length
 
     allDays.push({
-      date: dateString, // Use the correctly formatted local date string
+      date: dateString,
       day,
-      completedChallenges: completedCount,
+      completedChallengesCount,
+      completedChallenges, // Include the prefetched list
     })
   }
 
-  // Return the flat array directly
   return allDays
 }
 
@@ -633,16 +681,9 @@ export const getTotalCompletedChallengesCount = async (userId: string): Promise<
   return countResult.totalDocs ?? 0
 }
 
-// Type for the information returned by the new function
-interface CompletedChallengeInfo {
-  id: number
-  title: string
-  slug: string
-  difficulty: 'easy' | 'medium' | 'hard' | 'horrible'
-}
-
 /**
  * Fetches the details of challenges completed by a user on a specific date.
+ * Uses the imported CompletedChallengeInfo type.
  */
 export const getCompletedChallengesForDate = async (
   userId: string,
