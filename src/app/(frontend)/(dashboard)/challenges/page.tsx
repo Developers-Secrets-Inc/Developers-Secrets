@@ -8,6 +8,9 @@ import { RecommendedChallenge } from './components/recommended-challenge'
 import { UserProfile } from './components/user-profile'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
+// Remove Payload imports if no longer needed here
+// import { getPayload } from 'payload'
+// import config from '@payload-config'
 
 export default async function ChallengesPage() {
   const user = await getUser()
@@ -15,6 +18,22 @@ export default async function ChallengesPage() {
   if (!user) {
     redirect('/auth/login')
   }
+
+  // --- REMOVED TEMPORARY JOB TRIGGER ---
+  /*
+  try {
+    const payload = await getPayload({ config })
+    console.log('[ChallengesPage] Attempting to RUN createWeeklyDivisionLeaderboards job via Local API...')
+    const jobResult = await payload.jobs.run({
+      task: 'createWeeklyDivisionLeaderboards',
+      input: {},
+    })
+    console.log('[ChallengesPage] Finished running createWeeklyDivisionLeaderboards job. Result:', jobResult)
+  } catch (error) {
+    console.error('[ChallengesPage] Failed to run createWeeklyDivisionLeaderboards job:', error)
+  }
+  */
+  // --- END REMOVED TEMPORARY JOB TRIGGER ---
 
   return (
     <SidebarProvider>

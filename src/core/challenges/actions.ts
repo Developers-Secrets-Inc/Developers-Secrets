@@ -9,6 +9,7 @@ import {
 import { revalidatePath } from 'next/cache'
 import { addExperience } from '../gamification/level'
 import { handleChallengeCompletionForQuests } from '../gamification/quests/actions'
+import { trackAchievementProgress } from '@/core/gamification/achievements/action'
 
 /**
  * Handles all the logic when a challenge is completed by a user.
@@ -30,6 +31,8 @@ export const handleChallengeCompletion = async (challenge: Challenge, userId: st
 
     // Update quest progression for challenge completion quests
     await handleChallengeCompletionForQuests(userId)
+
+    await trackAchievementProgress(userId, 'challenges_completed', 1)
 
     revalidatePath(`/challenges/${challenge.id}`)
 

@@ -45,7 +45,7 @@ export const QuestsDialog = ({
   onOpenChange: (open: boolean) => void
 }) => {
   const { data: activeQuests, isLoading, error } = useQuests()
-  const { completeQuest, invalidateQuests } = useQuestActions()
+  const { completeQuest, replaceQuest, invalidateQuests } = useQuestActions()
 
   // Mémoiser les quêtes triées
   const sortedQuests = useMemo(() => {
@@ -88,13 +88,22 @@ export const QuestsDialog = ({
         key={userQuest.id}
         userQuest={userQuest}
         onDeclineQuest={() => {
-          // TODO: Implement decline quest functionality
-          invalidateQuests()
+          if (userQuest.quest && typeof userQuest.quest.id !== 'undefined') {
+            replaceQuest(userQuest.quest.id.toString())
+          } else {
+            console.error('Cannot replace quest: Quest ID is missing.')
+          }
         }}
-        onCompleteQuest={() => completeQuest(userQuest.quest.id.toString())}
+        onCompleteQuest={() => {
+          if (userQuest.quest && typeof userQuest.quest.id !== 'undefined') {
+            completeQuest(userQuest.quest.id.toString())
+          } else {
+            console.error('Cannot complete quest: Quest ID is missing.')
+          }
+        }}
       />
     ))
-  }, [isLoading, error, sortedQuests, completeQuest, invalidateQuests])
+  }, [isLoading, error, sortedQuests, completeQuest, replaceQuest, invalidateQuests])
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

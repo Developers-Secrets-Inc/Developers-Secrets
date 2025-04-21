@@ -1,5 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchUserQuests, completeUserQuest } from '@/core/gamification/quests/actions'
+import {
+  fetchUserQuests,
+  completeUserQuest,
+  replaceUserQuest,
+} from '@/core/gamification/quests/actions'
 
 // Clé pour identifier la query des quêtes
 export const QUESTS_QUERY_KEY = ['user-quests']
@@ -29,8 +33,22 @@ export function useQuestActions() {
     invalidateQuests()
   }
 
+  // Action pour remplacer une quête
+  const replaceQuest = async (questId: string) => {
+    // TODO: Add optimistic update?
+    try {
+      await replaceUserQuest(questId)
+      // Invalider le cache après avoir remplacé une quête
+      invalidateQuests()
+    } catch (error) {
+      console.error('Failed to replace quest:', error)
+      // TODO: Add error handling (e.g., toast notification)
+    }
+  }
+
   return {
     completeQuest,
+    replaceQuest, // Expose the new action
     invalidateQuests,
   }
 }

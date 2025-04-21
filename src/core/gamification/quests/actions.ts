@@ -15,6 +15,10 @@ import {
 import { getSessionUser } from '@/core/user'
 import { addExperience } from '../level'
 import { createNotification } from '@/core/notifications'
+import { addItemToInventory } from '../inventory'
+import { Item } from '@/payload-types'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 
 /*   
 
@@ -112,10 +116,17 @@ export const completeUserQuest = async (questId: string, skipExperienceReward: b
   if (!userResult.success) {
     throw new Error('User not authenticated')
   }
+  const userId = userResult.value.id
 
-  const userQuest = await getUserQuest(userResult.value.id, questId)
+  const userQuest = await getUserQuest(userId, questId)
   if (!userQuest) {
     throw new Error('Quest not found')
+  }
+
+  if (userQuest.isCompleted) {
+    // Avoid re-completing and re-awarding
+    console.warn(`Attempted to complete already completed quest: ${questId} for user ${userId}`)
+    return false
   }
 
   const quest =
@@ -123,18 +134,66 @@ export const completeUserQuest = async (questId: string, skipExperienceReward: b
       ? await getRandomQuest(1, 'easy') // Temporary fix, should use getQuestById
       : userQuest.quest
 
-  // Mark quest as completed in the database first
-  await markQuestAsCompleted(userResult.value.id, questId)
-
-  // Add experience to the user only if not skipped (to avoid infinite loop)
-  if (!skipExperienceReward) {
-    await addExperience(userResult.value.id, quest.experience)
+  // Ensure quest is fully loaded (especially difficulty)
+  if (!quest || !quest.difficulty) {
+    throw new Error(`Quest details or difficulty missing for quest ID: ${questId}`)
   }
 
-  // Send a notification
+  // Mark quest as completed in the database first
+  await markQuestAsCompleted(userId, questId)
+
+  // Add experience to the user only if not skipped (to avoid infinite loop)
+  let xpGained = 0
+  if (!skipExperienceReward) {
+    await addExperience(userId, quest.experience)
+    xpGained = quest.experience
+  }
+
+  // --- Add Chest Reward ---
+  let chestRewardString = ''
+  let awardedChest: Item | null = null
+  const difficultyToRarityMap: Record<Quest['difficulty'], Item['rarity']> = {
+    easy: 'common',
+    medium: 'rare',
+    hard: 'epic',
+  }
+  const requiredRarity = difficultyToRarityMap[quest.difficulty]
+
+  if (requiredRarity) {
+    try {
+      const payload = await getPayload({ config })
+      const chestItemResult = await payload.find({
+        collection: 'items',
+        where: {
+          type: { equals: 'chest' },
+          rarity: { equals: requiredRarity },
+        },
+        limit: 1,
+        depth: 0, // No need for full item details here
+      })
+
+      if (chestItemResult.docs.length > 0) {
+        awardedChest = chestItemResult.docs[0]
+        await addItemToInventory(userId, awardedChest.id, 1)
+        chestRewardString = ` & ${
+          requiredRarity.charAt(0).toUpperCase() + requiredRarity.slice(1)
+        } Chest`
+      } else {
+        console.error(
+          `Error completing quest ${questId}: Chest item with rarity '${requiredRarity}' not found.`,
+        )
+      }
+    } catch (error) {
+      console.error(`Error awarding chest for quest ${questId}:`, error)
+      // Proceed without chest if there's an error finding/adding it
+    }
+  }
+  // --- End Chest Reward ---
+
+  // Send a notification (adjusted content)
   await createNotification({
-    userId: userResult.value.id,
-    content: `Quest completed: ${quest.title} (+${quest.experience} XP)`,
+    userId: userId,
+    content: `Quest completed: ${quest.title} (+${xpGained} XP${chestRewardString})`,
     importance: 'medium',
     type: 'achievement',
   })
@@ -172,10 +231,39 @@ export const areUserDailyQuestsExpired = async (userId: string): Promise<boolean
   return today.getTime() - lastQuestDate.getTime() >= oneDayInMillis
 }
 
-export const replaceUserQuest = async (userId: string, questId: string): Promise<void> => {
-  const userQuest = await getUserQuest(userId, questId)
-  const newQuest = await getRandomQuest(1, userQuest.quest.difficulty)
+export const replaceUserQuest = async (questId: string): Promise<void> => {
+  // Get current user
+  const userResult = await getSessionUser()
+  if (!userResult.success) {
+    throw new Error('User not authenticated')
+  }
+  const userId = userResult.value.id
 
+  // Get the quest to be replaced to find its difficulty
+  const userQuest = await getUserQuest(userId, questId)
+  if (!userQuest) {
+    throw new Error('Quest to replace not found')
+  }
+
+  // Ensure quest object and difficulty are loaded
+  const questDetails =
+    typeof userQuest.quest === 'number'
+      ? await getRandomQuest(1, 'easy') // Fallback, ideally use getQuestById
+      : userQuest.quest
+
+  if (!questDetails || !questDetails.difficulty) {
+    throw new Error('Could not determine difficulty of the quest to replace.')
+  }
+
+  // Get a new random quest of the same difficulty
+  const newQuest = await getRandomQuest(1, questDetails.difficulty)
+  if (!newQuest) {
+    throw new Error(`Failed to get a new random quest of difficulty '${questDetails.difficulty}'`)
+  }
+
+  // Delete the old quest
   await deleteUserQuest(userId, questId)
+
+  // Add the new quest
   await addUserQuest(userId, newQuest)
 }

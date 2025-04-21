@@ -4,7 +4,7 @@ export const Items: CollectionConfig = {
   slug: 'items',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'type', 'activationMode', 'updatedAt'],
+    defaultColumns: ['name', 'type', 'rarity', 'activationMode', 'updatedAt'],
   },
   fields: [
     {
@@ -35,9 +35,10 @@ export const Items: CollectionConfig = {
         { label: 'Currency Boost', value: 'currencyBoost' },
         { label: 'Streak Restore', value: 'streakRestore' },
         { label: 'Unlock Feature', value: 'unlockFeature' },
+        { label: 'Chest', value: 'chest' },
       ],
       admin: {
-        description: 'The type of effect this item provides',
+        description: 'The type of effect this item provides, or if it is a chest',
       },
     },
     {
@@ -51,8 +52,8 @@ export const Items: CollectionConfig = {
           value: 'consumableDuration',
         },
         {
-          label: 'Instant',
-          value: 'instant',
+          label: 'Consumable Instant',
+          value: 'consumableInstant',
         },
         {
           label: 'Passive',
@@ -115,6 +116,82 @@ export const Items: CollectionConfig = {
       admin: {
         description: 'The rarity level of this item',
       },
+    },
+    {
+      name: 'chestRewards',
+      label: 'Chest Rewards',
+      type: 'group',
+      admin: {
+        description:
+          'Define the rewards contained in this chest (coins, XP, and number of items per rarity).',
+        condition: (data) => data.type === 'chest',
+      },
+      fields: [
+        {
+          name: 'minCoins',
+          label: 'Minimum Coins',
+          type: 'number',
+          required: true,
+          min: 0,
+          defaultValue: 0,
+        },
+        {
+          name: 'maxCoins',
+          label: 'Maximum Coins',
+          type: 'number',
+          required: true,
+          min: 0,
+          defaultValue: 0,
+        },
+        {
+          name: 'minXp',
+          label: 'Minimum XP',
+          type: 'number',
+          required: true,
+          min: 0,
+          defaultValue: 0,
+        },
+        {
+          name: 'maxXp',
+          label: 'Maximum XP',
+          type: 'number',
+          required: true,
+          min: 0,
+          defaultValue: 0,
+        },
+        {
+          name: 'commonItemsCount',
+          label: 'Number of Common Items',
+          type: 'number',
+          required: true,
+          min: 0,
+          defaultValue: 0,
+        },
+        {
+          name: 'rareItemsCount',
+          label: 'Number of Rare Items',
+          type: 'number',
+          required: true,
+          min: 0,
+          defaultValue: 0,
+        },
+        {
+          name: 'epicItemsCount',
+          label: 'Number of Epic Items',
+          type: 'number',
+          required: true,
+          min: 0,
+          defaultValue: 0,
+        },
+        {
+          name: 'legendaryItemsCount',
+          label: 'Number of Legendary Items',
+          type: 'number',
+          required: true,
+          min: 0,
+          defaultValue: 0,
+        },
+      ],
     },
     {
       name: 'isActive',

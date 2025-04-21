@@ -1,10 +1,14 @@
 import type { CollectionConfig } from 'payload'
 
+// Assume the default division (e.g., Bronze) has ID 1
+const DEFAULT_DIVISION_ID = 1
+
 export const UserGamification: CollectionConfig = {
   slug: 'user-gamification',
   admin: {
     useAsTitle: 'userId',
-    defaultColumns: ['userId', 'currentLevel', 'currentExperience', 'totalExperience'],
+    defaultColumns: ['userId', 'currentLevel', 'currentExperience', 'division', 'updatedAt'],
+    description: 'Tracks user level, experience, and division.',
   },
   labels: {
     singular: 'User Gamification',
@@ -16,9 +20,10 @@ export const UserGamification: CollectionConfig = {
       label: 'User ID',
       type: 'text',
       required: true,
+      unique: true,
       index: true,
       admin: {
-        description: 'The ID of the user this gamification data belongs to',
+        readOnly: true,
       },
     },
     {
@@ -29,7 +34,7 @@ export const UserGamification: CollectionConfig = {
       defaultValue: 1,
       min: 1,
       admin: {
-        description: 'The current level of the user',
+        readOnly: true,
       },
     },
     {
@@ -40,7 +45,7 @@ export const UserGamification: CollectionConfig = {
       defaultValue: 0,
       min: 0,
       admin: {
-        description: 'The current experience points towards the next level',
+        readOnly: true,
       },
     },
     {
@@ -51,7 +56,7 @@ export const UserGamification: CollectionConfig = {
       defaultValue: 0,
       min: 0,
       admin: {
-        description: 'The total experience points earned by the user',
+        readOnly: true,
       },
     },
     {
@@ -59,20 +64,34 @@ export const UserGamification: CollectionConfig = {
       label: 'Last Level Up Date',
       type: 'date',
       admin: {
-        description: 'The date when the user last leveled up',
+        readOnly: true,
         date: {
           pickerAppearance: 'dayAndTime',
         },
       },
     },
+    {
+      name: 'division',
+      label: 'Current Division',
+      type: 'relationship',
+      relationTo: 'divisions',
+      hasMany: false,
+      index: true,
+      admin: {},
+    },
   ],
   hooks: {
     beforeChange: [
-      ({ data }) => {
-        // Si c'est une nouvelle entrée, initialiser la date de dernier level up
-        if (!data.lastLevelUpDate) {
-          data.lastLevelUpDate = new Date()
+      ({ data, operation }) => {
+        if (operation === 'create') {
+          if (!data.lastLevelUpDate) {
+            data.lastLevelUpDate = new Date()
+          }
+          if (!data.division) {
+            data.division = DEFAULT_DIVISION_ID
+          }
         }
+
         return data
       },
     ],
