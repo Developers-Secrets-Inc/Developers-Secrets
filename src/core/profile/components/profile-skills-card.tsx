@@ -5,7 +5,9 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Code, Brain, Database, Server, Layout } from 'lucide-react'
+import { Code, Brain, Database, Server, Layout, PlusIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export const ProfileSkillsCard = () => {
   const skills = [
@@ -52,7 +54,7 @@ export const ProfileSkillsCard = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="overflow-hidden shadow-xl bg-background">
+      <Card className={cn('overflow-hidden bg-background', 'border border-dashed')}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-blue-500" />
@@ -60,36 +62,17 @@ export const ProfileSkillsCard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {skills.map((skill) => (
-              <motion.div
-                key={skill.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <skill.icon className="h-4 w-4 text-blue-500" />
-                    <span className="font-medium">{skill.name}</span>
-                  </div>
-                  <Badge variant="secondary">{skill.level}%</Badge>
-                </div>
-                <Progress value={skill.level} className="h-2" />
-                <div className="flex flex-wrap gap-2">
-                  {skill.technologies.map((tech) => (
-                    <Badge
-                      key={tech}
-                      variant="outline"
-                      className="text-xs bg-blue-500/10 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                    >
-                      {tech}
-                    </Badge>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="rounded-full bg-primary/10 p-3 mb-4">
+              <PlusIcon className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-semibold">No Skills Added Yet</h3>
+            <p className="mt-2 text-sm text-muted-foreground max-w-sm">
+              Start adding your skills and expertise to showcase your technical abilities.
+            </p>
+            <Button className="mt-4" variant="outline" disabled>
+              Coming Soon
+            </Button>
           </div>
         </CardContent>
       </Card>

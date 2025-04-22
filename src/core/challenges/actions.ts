@@ -9,13 +9,19 @@ import {
 import { revalidatePath } from 'next/cache'
 import { addExperience } from '../gamification/level'
 import { handleChallengeCompletionForQuests } from '../gamification/quests/actions'
+import { trackAchievementProgress } from '@/core/gamification/achievements/action'
+import { recordChallengeCompletion } from '../skills/progression'
 
 /**
  * Handles all the logic when a challenge is completed by a user.
  * This function is called when a user successfully submits a solution that passes all tests.
  * It's designed to be modular and will handle all completion-related actions.
  */
-export const handleChallengeCompletion = async (challenge: Challenge, userId: string) => {
+export const handleChallengeCompletion = async (
+  challenge: Challenge,
+  userId: string,
+  skillSlug: string,
+) => {
   try {
     // Check if the challenge is already completed
     const completionStatus = await getUserCompletionStatus(userId, challenge.id)
@@ -31,11 +37,13 @@ export const handleChallengeCompletion = async (challenge: Challenge, userId: st
     // Update quest progression for challenge completion quests
     await handleChallengeCompletionForQuests(userId)
 
-    revalidatePath(`/challenges/${challenge.id}`)
+    await trackAchievementProgress(userId, 'challenges_completed', 1)
+
+    await recordChallengeCompletion(userId, challenge.id, skillSlug)
+
+    revalidatePath(`/challenges/${challenge.slug}`)
 
     // TODO: Future implementations
-    // - Add experience points
-    // - Update user skills
     // - Track statistics
     // - Unlock achievements
     // etc.

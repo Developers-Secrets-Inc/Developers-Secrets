@@ -1,7 +1,7 @@
 'use server'
 
 import { Quest } from '@/payload-types'
-import { getRandomQuest } from '.'
+import { getRandomQuest, getQuestById } from '.'
 import {
   addMultipleUserQuests,
   addUserQuest,
@@ -12,9 +12,13 @@ import {
   markQuestAsCompleted,
   increaseUserQuestProgression,
 } from './user-quests'
-import { getSessionUser } from '@/core/user'
-import { addExperience } from '../level'
+import { getSessionUser, getUserInformation } from '@/core/user'
+import { addExperience, getGamificationInformations } from '../level'
 import { createNotification } from '@/core/notifications'
+import { addItemToInventory } from '../inventory'
+import { Item } from '@/payload-types'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 
 /*   
 
@@ -112,10 +116,17 @@ export const completeUserQuest = async (questId: string, skipExperienceReward: b
   if (!userResult.success) {
     throw new Error('User not authenticated')
   }
+  const userId = userResult.value.id
 
-  const userQuest = await getUserQuest(userResult.value.id, questId)
+  const userQuest = await getUserQuest(userId, questId)
   if (!userQuest) {
     throw new Error('Quest not found')
+  }
+
+  if (userQuest.isCompleted) {
+    // Avoid re-completing and re-awarding
+    console.warn(`Attempted to complete already completed quest: ${questId} for user ${userId}`)
+    return false
   }
 
   const quest =
@@ -123,18 +134,66 @@ export const completeUserQuest = async (questId: string, skipExperienceReward: b
       ? await getRandomQuest(1, 'easy') // Temporary fix, should use getQuestById
       : userQuest.quest
 
-  // Mark quest as completed in the database first
-  await markQuestAsCompleted(userResult.value.id, questId)
-
-  // Add experience to the user only if not skipped (to avoid infinite loop)
-  if (!skipExperienceReward) {
-    await addExperience(userResult.value.id, quest.experience)
+  // Ensure quest is fully loaded (especially difficulty)
+  if (!quest || !quest.difficulty) {
+    throw new Error(`Quest details or difficulty missing for quest ID: ${questId}`)
   }
 
-  // Send a notification
+  // Mark quest as completed in the database first
+  await markQuestAsCompleted(userId, questId)
+
+  // Add experience to the user only if not skipped (to avoid infinite loop)
+  let xpGained = 0
+  if (!skipExperienceReward) {
+    await addExperience(userId, quest.experience)
+    xpGained = quest.experience
+  }
+
+  // --- Add Chest Reward ---
+  let chestRewardString = ''
+  let awardedChest: Item | null = null
+  const difficultyToRarityMap: Record<Quest['difficulty'], Item['rarity']> = {
+    easy: 'common',
+    medium: 'rare',
+    hard: 'epic',
+  }
+  const requiredRarity = difficultyToRarityMap[quest.difficulty]
+
+  if (requiredRarity) {
+    try {
+      const payload = await getPayload({ config })
+      const chestItemResult = await payload.find({
+        collection: 'items',
+        where: {
+          type: { equals: 'chest' },
+          rarity: { equals: requiredRarity },
+        },
+        limit: 1,
+        depth: 0, // No need for full item details here
+      })
+
+      if (chestItemResult.docs.length > 0) {
+        awardedChest = chestItemResult.docs[0]
+        await addItemToInventory(userId, awardedChest.id, 1)
+        chestRewardString = ` & ${
+          requiredRarity.charAt(0).toUpperCase() + requiredRarity.slice(1)
+        } Chest`
+      } else {
+        console.error(
+          `Error completing quest ${questId}: Chest item with rarity '${requiredRarity}' not found.`,
+        )
+      }
+    } catch (error) {
+      console.error(`Error awarding chest for quest ${questId}:`, error)
+      // Proceed without chest if there's an error finding/adding it
+    }
+  }
+  // --- End Chest Reward ---
+
+  // Send a notification (adjusted content)
   await createNotification({
-    userId: userResult.value.id,
-    content: `Quest completed: ${quest.title} (+${quest.experience} XP)`,
+    userId: userId,
+    content: `Quest completed: ${quest.title} (+${xpGained} XP${chestRewardString})`,
     importance: 'medium',
     type: 'achievement',
   })
@@ -172,10 +231,198 @@ export const areUserDailyQuestsExpired = async (userId: string): Promise<boolean
   return today.getTime() - lastQuestDate.getTime() >= oneDayInMillis
 }
 
-export const replaceUserQuest = async (userId: string, questId: string): Promise<void> => {
-  const userQuest = await getUserQuest(userId, questId)
-  const newQuest = await getRandomQuest(1, userQuest.quest.difficulty)
+export const replaceUserQuest = async (
+  questId: string,
+): Promise<{ success: boolean; error?: string }> => {
+  const payload = await getPayload({ config })
 
-  await deleteUserQuest(userId, questId)
-  await addUserQuest(userId, newQuest)
+  // Get current user session
+  const userResult = await getSessionUser()
+  if (!userResult.success) {
+    return { success: false, error: 'User not authenticated' }
+  }
+  const userId = userResult.value.id
+
+  try {
+    // Fetch user gamification data and general info concurrently
+    const [userGamification, userInfo] = await Promise.all([
+      getGamificationInformations(userId),
+      getUserInformation(userId),
+    ])
+
+    // --- Daily Reset Logic ---
+    const today = new Date()
+    today.setUTCHours(0, 0, 0, 0) // Normalize to start of UTC day
+    const lastReplacementDate = userGamification.lastQuestReplacementDate
+      ? new Date(userGamification.lastQuestReplacementDate)
+      : null
+    lastReplacementDate?.setUTCHours(0, 0, 0, 0)
+
+    let currentReplacementsUsed = userGamification.dailyQuestReplacementsUsed || 0
+
+    if (!lastReplacementDate || lastReplacementDate.getTime() < today.getTime()) {
+      currentReplacementsUsed = 0
+    }
+
+    // --- Determine Limit based on Role ---
+    const role = userInfo.role
+    let maxReplacements: number
+    switch (role) {
+      // case 'lite':
+      //   maxReplacements = 2
+      //   break
+      case 'pro':
+        maxReplacements = 3
+        break
+      case 'max':
+        maxReplacements = Infinity // Effectively unlimited
+        break
+      case 'basic':
+      default:
+        maxReplacements = 1
+        break
+    }
+
+    // --- Check Limit ---
+    if (currentReplacementsUsed >= maxReplacements) {
+      return { success: false, error: 'Daily quest replacement limit reached.' }
+    }
+
+    // Get the quest to be replaced
+    const userQuestToReplace = await getUserQuest(userId, questId)
+    if (!userQuestToReplace) {
+      return { success: false, error: 'Quest to replace not found for this user.' }
+    }
+    if (userQuestToReplace.isCompleted) {
+      return { success: false, error: 'Cannot replace a completed quest.' }
+    }
+
+    // Ensure quest details and difficulty are loaded
+    const questDetails: Quest | undefined =
+      typeof userQuestToReplace.quest === 'number'
+        ? await getQuestById(userQuestToReplace.quest)
+        : (userQuestToReplace.quest as Quest)
+
+    if (!questDetails || !questDetails.difficulty) {
+      throw new Error('Could not determine details or difficulty of the quest to replace.')
+    }
+    const difficulty = questDetails.difficulty
+
+    // --- Get Replacement Quest ---
+    // 1. Get IDs of current active (non-completed) quests
+    const activeUserQuests = await getUserQuests(userId)
+    const activeQuestIds = activeUserQuests
+      .filter((uq) => !uq.isCompleted)
+      .map((uq) => (typeof uq.quest === 'number' ? uq.quest : uq.quest.id))
+
+    // 2. Fetch potential replacements
+    const potentialReplacements = await getRandomQuest(5, difficulty) // Fetch a few candidates
+    if (!Array.isArray(potentialReplacements)) {
+      // Handle case where getRandomQuest returns a single object or nothing
+      throw new Error(`Failed to get potential replacement quests of difficulty '${difficulty}'`)
+    }
+
+    // 3. Find a unique replacement
+    let newQuest: Quest | undefined = potentialReplacements.find(
+      (quest) => !activeQuestIds.includes(quest.id),
+    )
+
+    // If no unique quest found in the first batch, take the first one that is not the one being replaced
+    if (!newQuest) {
+      newQuest = potentialReplacements.find((quest) => quest.id !== questDetails.id)
+    }
+
+    // If still no suitable quest (very unlikely with enough quest variety), error out
+    if (!newQuest) {
+      console.warn(
+        `Could not find a suitable unique replacement quest for quest ${questId} (difficulty: ${difficulty}) for user ${userId}.`,
+      )
+      return { success: false, error: 'No suitable replacement quest available. Try again later.' }
+    }
+
+    // --- Perform Replacement ---
+    await deleteUserQuest(userId, questId)
+    await addUserQuest(userId, newQuest)
+
+    // --- Update Gamification Stats ---
+    await payload.update({
+      collection: 'user-gamification',
+      id: userGamification.id, // Use the gamification record ID
+      data: {
+        dailyQuestReplacementsUsed: currentReplacementsUsed + 1,
+        lastQuestReplacementDate: today.toISOString(),
+      },
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error(`Error replacing quest ${questId} for user ${userId}:`, error)
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
+    return { success: false, error: `Failed to replace quest: ${errorMessage}` }
+  }
 }
+
+// --- New Action to get Replacement Stats ---
+export const getQuestReplacementInfo = async (): Promise<{
+  role: string
+  replacementsUsed: number
+  maxReplacements: number
+}> => {
+  const userResult = await getSessionUser()
+  if (!userResult.success) {
+    throw new Error('User not authenticated')
+  }
+  const userId = userResult.value.id
+
+  try {
+    const [userGamification, userInfo] = await Promise.all([
+      getGamificationInformations(userId),
+      getUserInformation(userId),
+    ])
+
+    // Reset logic (mirrors the one in replaceUserQuest)
+    const today = new Date()
+    today.setUTCHours(0, 0, 0, 0)
+    const lastReplacementDate = userGamification.lastQuestReplacementDate
+      ? new Date(userGamification.lastQuestReplacementDate)
+      : null
+    lastReplacementDate?.setUTCHours(0, 0, 0, 0)
+
+    let currentReplacementsUsed = userGamification.dailyQuestReplacementsUsed || 0
+    if (!lastReplacementDate || lastReplacementDate.getTime() < today.getTime()) {
+      currentReplacementsUsed = 0
+    }
+
+    // Determine limit
+    const role = userInfo.role
+    let maxReplacements: number
+    switch (role) {
+      // case 'lite': maxReplacements = 2; break; // Keep commented out as per user edit
+      case 'pro':
+        maxReplacements = 3
+        break
+      case 'max':
+        maxReplacements = Infinity
+        break
+      case 'basic':
+      default:
+        maxReplacements = 1
+        break
+    }
+
+    return {
+      role: role,
+      replacementsUsed: currentReplacementsUsed,
+      maxReplacements: maxReplacements,
+    }
+  } catch (error) {
+    console.error(`Error fetching quest replacement info for user ${userId}:`, error)
+    // Return default/basic values on error
+    return {
+      role: 'basic',
+      replacementsUsed: 0,
+      maxReplacements: 1,
+    }
+  }
+}
+// --- End New Action ---

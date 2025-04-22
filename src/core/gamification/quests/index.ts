@@ -17,12 +17,12 @@ export const getQuests = async (): Promise<Quest[]> => {
   return quests.docs
 }
 
-export const getQuestById = async (questId: number) => {
+export const getQuestById = async (questId: number): Promise<Quest | undefined> => {
   const quests = await getQuests()
   return quests.find((quest) => quest.id === questId)
 }
 
-export const getQuestByType = async (questType: QuestType) => {
+export const getQuestByType = async (questType: QuestType): Promise<Quest | undefined> => {
   const quests = await getQuests()
 
   return quests.find((quest) => quest.type === questType)

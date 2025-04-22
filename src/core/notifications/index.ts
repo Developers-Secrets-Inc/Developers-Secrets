@@ -22,11 +22,16 @@ export const createNotification = async (input: NotificationCreateInput): Promis
   })
 }
 
-export const getNotifications = async (): Promise<Notification[]> => {
+export const getNotifications = async (userId: string): Promise<Notification[]> => {
   const payload = await getPayload({ config })
 
   const notifications = await payload.find({
     collection: 'notifications',
+    where: {
+      userId: {
+        equals: userId,
+      },
+    },
   })
 
   return notifications.docs

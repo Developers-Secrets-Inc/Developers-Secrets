@@ -30,6 +30,14 @@ import {
   TypographyItalic,
 } from './typography'
 
+// Add slugify function
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
 export type MarkdownProps = {
   children: string
   id?: string
@@ -50,31 +58,49 @@ function extractLanguage(className?: string): string {
 
 const INITIAL_COMPONENTS: Partial<Components> = {
   h1: function H1Component({ children, ...props }) {
-    return <TypographyH1 {...props}>{children}</TypographyH1>
+    const id = typeof children === 'string' ? slugify(children) : ''
+    return (
+      <TypographyH1 id={id} {...props}>
+        {children}
+      </TypographyH1>
+    )
   },
   h2: function H2Component({ children, ...props }) {
-    return <TypographyH2 {...props}>{children}</TypographyH2>
+    const id = typeof children === 'string' ? slugify(children) : ''
+    return (
+      <TypographyH2 id={id} {...props}>
+        {children}
+      </TypographyH2>
+    )
   },
   h3: function H3Component({ children, ...props }) {
-    return <TypographyH3 {...props}>{children}</TypographyH3>
+    const id = typeof children === 'string' ? slugify(children) : ''
+    return (
+      <TypographyH3 id={id} {...props}>
+        {children}
+      </TypographyH3>
+    )
   },
   h4: function H4Component({ children, ...props }) {
+    const id = typeof children === 'string' ? slugify(children) : ''
     return (
-      <TypographyH3 className="text-lg" {...props}>
+      <TypographyH3 id={id} className="text-lg" {...props}>
         {children}
       </TypographyH3>
     )
   },
   h5: function H5Component({ children, ...props }) {
+    const id = typeof children === 'string' ? slugify(children) : ''
     return (
-      <TypographyH3 className="text-base" {...props}>
+      <TypographyH3 id={id} className="text-base" {...props}>
         {children}
       </TypographyH3>
     )
   },
   h6: function H6Component({ children, ...props }) {
+    const id = typeof children === 'string' ? slugify(children) : ''
     return (
-      <TypographyH3 className="text-sm" {...props}>
+      <TypographyH3 id={id} className="text-sm" {...props}>
         {children}
       </TypographyH3>
     )

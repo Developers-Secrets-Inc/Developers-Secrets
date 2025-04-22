@@ -81,7 +81,7 @@ export interface Config {
     quests: Quest;
     'user-quests': UserQuest;
     achievements: Achievement;
-    'user-achievements': UserAchievement;
+    'user-achievement-progress': UserAchievementProgress;
     challenges: Challenge;
     userChallengeProgression: UserChallengeProgression;
     comments: Comment;
@@ -92,6 +92,16 @@ export interface Config {
     'base-concepts': BaseConcept;
     'skill-concepts': SkillConcept;
     'challenge-categories': ChallengeCategory;
+    'user-following-informations': UserFollowingInformation;
+    items: Item;
+    'user-items': UserItem;
+    'active-effects': ActiveEffect;
+    'marketplace-items': MarketplaceItem;
+    divisions: Division;
+    'experience-logs': ExperienceLog;
+    'weekly-division-leaderboards': WeeklyDivisionLeaderboard;
+    'weekly-leaderboard-members': WeeklyLeaderboardMember;
+    'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -113,7 +123,7 @@ export interface Config {
     quests: QuestsSelect<false> | QuestsSelect<true>;
     'user-quests': UserQuestsSelect<false> | UserQuestsSelect<true>;
     achievements: AchievementsSelect<false> | AchievementsSelect<true>;
-    'user-achievements': UserAchievementsSelect<false> | UserAchievementsSelect<true>;
+    'user-achievement-progress': UserAchievementProgressSelect<false> | UserAchievementProgressSelect<true>;
     challenges: ChallengesSelect<false> | ChallengesSelect<true>;
     userChallengeProgression: UserChallengeProgressionSelect<false> | UserChallengeProgressionSelect<true>;
     comments: CommentsSelect<false> | CommentsSelect<true>;
@@ -124,6 +134,16 @@ export interface Config {
     'base-concepts': BaseConceptsSelect<false> | BaseConceptsSelect<true>;
     'skill-concepts': SkillConceptsSelect<false> | SkillConceptsSelect<true>;
     'challenge-categories': ChallengeCategoriesSelect<false> | ChallengeCategoriesSelect<true>;
+    'user-following-informations': UserFollowingInformationsSelect<false> | UserFollowingInformationsSelect<true>;
+    items: ItemsSelect<false> | ItemsSelect<true>;
+    'user-items': UserItemsSelect<false> | UserItemsSelect<true>;
+    'active-effects': ActiveEffectsSelect<false> | ActiveEffectsSelect<true>;
+    'marketplace-items': MarketplaceItemsSelect<false> | MarketplaceItemsSelect<true>;
+    divisions: DivisionsSelect<false> | DivisionsSelect<true>;
+    'experience-logs': ExperienceLogsSelect<false> | ExperienceLogsSelect<true>;
+    'weekly-division-leaderboards': WeeklyDivisionLeaderboardsSelect<false> | WeeklyDivisionLeaderboardsSelect<true>;
+    'weekly-leaderboard-members': WeeklyLeaderboardMembersSelect<false> | WeeklyLeaderboardMembersSelect<true>;
+    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -138,7 +158,13 @@ export interface Config {
     collection: 'users';
   };
   jobs: {
-    tasks: unknown;
+    tasks: {
+      createWeeklyDivisionLeaderboards: TaskCreateWeeklyDivisionLeaderboards;
+      inline: {
+        input: unknown;
+        output: unknown;
+      };
+    };
     workflows: unknown;
   };
 }
@@ -501,31 +527,41 @@ export interface Permission {
   createdAt: string;
 }
 /**
+ * Tracks user level, experience, and division.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "user-gamification".
  */
 export interface UserGamification {
   id: number;
-  /**
-   * The ID of the user this gamification data belongs to
-   */
   userId: string;
-  /**
-   * The current level of the user
-   */
   currentLevel: number;
-  /**
-   * The current experience points towards the next level
-   */
   currentExperience: number;
-  /**
-   * The total experience points earned by the user
-   */
   totalExperience: number;
-  /**
-   * The date when the user last leveled up
-   */
   lastLevelUpDate?: string | null;
+  division?: (number | null) | Division;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "divisions".
+ */
+export interface Division {
+  id: number;
+  name: string;
+  /**
+   * Optional: Minimum user level required to be initially placed in this division.
+   */
+  levelRequirement?: number | null;
+  /**
+   * Top X% of users in a weekly leaderboard group to be promoted.
+   */
+  promotionThreshold: number;
+  /**
+   * Bottom X% of users in a weekly leaderboard group to be demoted.
+   */
+  demotionThreshold: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -582,45 +618,25 @@ export interface UserInventory {
 export interface UserCurrency {
   id: number;
   /**
-   * The ID of the user this currency belongs to
+   * The ID of the user who owns this currency
    */
   userId: string;
   /**
-   * Standard currency earned through regular activities
+   * The amount of currency owned by the user
    */
-  coins: number;
+  quantity: number;
   /**
    * History of currency transactions
    */
   transactionHistory?:
     | {
-        /**
-         * When the transaction occurred
-         */
         timestamp: string;
-        /**
-         * The type of transaction
-         */
-        type: 'earn' | 'spend' | 'admin_adjustment';
-        /**
-         * The amount of coins (positive for earning, negative for spending)
-         */
+        type: 'earn' | 'spend' | 'system';
         amount: number;
-        /**
-         * The source or reason for the transaction (e.g., "daily_challenge", "level_up", "achievement")
-         */
-        source?: string | null;
-        /**
-         * Additional details about the transaction
-         */
-        details?: string | null;
+        description: string;
         id?: string | null;
       }[]
     | null;
-  /**
-   * When this currency record was last updated
-   */
-  lastUpdated?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -665,8 +681,8 @@ export interface Achievement {
    * The type of achievement that determines how progress is calculated
    */
   type:
-    | 'level'
-    | 'exercises_completed'
+    | 'experience_gained'
+    | 'challenges_completed'
     | 'streak'
     | 'tutorials_completed'
     | 'quests_completed'
@@ -704,8 +720,16 @@ export interface Achievement {
      * The number of experience points given as a reward for this tier
      */
     rewardXp: number;
+    /**
+     * An optional item given as a reward for this tier.
+     */
+    rewardItem?: (number | null) | Item;
     id?: string | null;
   }[];
+  /**
+   * Optional: The achievement that follows this one in a sequence.
+   */
+  nextAchievement?: (number | null) | Achievement;
   /**
    * Indicates if this achievement is currently active in the system
    */
@@ -715,68 +739,89 @@ export interface Achievement {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "user-achievements".
+ * via the `definition` "items".
  */
-export interface UserAchievement {
+export interface Item {
   id: number;
   /**
-   * The ID of the user this progress belongs to
+   * The name of the item
    */
-  userId: string;
+  name: string;
   /**
-   * List of the user's achievement progresses
+   * A detailed description of what this item does
    */
-  achievements?:
-    | {
-        /**
-         * The achievement this progress is linked to
-         */
-        achievementId: number | Achievement;
-        /**
-         * The current progress value for this achievement
-         */
-        currentValue: number;
-        /**
-         * The current tier reached for this achievement
-         */
-        currentTier?: ('none' | 'bronze' | 'silver' | 'gold' | 'diamond' | 'platinum') | null;
-        /**
-         * The tiers unlocked for this achievement
-         */
-        unlockedTiers?:
-          | {
-              /**
-               * The unlocked tier
-               */
-              tier: 'bronze' | 'silver' | 'gold' | 'diamond' | 'platinum';
-              /**
-               * The date when this tier was unlocked
-               */
-              unlockedAt: string;
-              /**
-               * Indicates if the reward for this tier has been claimed
-               */
-              rewardClaimed?: boolean | null;
-              id?: string | null;
-            }[]
-          | null;
-        /**
-         * The date of the last update for this progress
-         */
-        lastUpdated?: string | null;
-        id?: string | null;
-      }[]
-    | null;
+  description: string;
   /**
-   * The total number of achievements unlocked by the user
+   * The type of effect this item provides, or if it is a chest
    */
-  totalAchievements?: number | null;
+  type: 'xpBoost' | 'currencyBoost' | 'streakRestore' | 'unlockFeature' | 'chest';
   /**
-   * The date of the last update for this collection
+   * How this item is activated and used
    */
-  lastUpdated?: string | null;
+  activationMode: 'consumableDuration' | 'consumableInstant' | 'passive';
+  /**
+   * Multiplier value for boost effects (e.g. 1.5 for 50% boost)
+   */
+  multiplier?: number | null;
+  /**
+   * Duration of the effect in seconds (only for consumable duration items)
+   */
+  duration?: number | null;
+  /**
+   * Whether this item provides its effect just by being owned
+   */
+  appliesPassively?: boolean | null;
+  /**
+   * Icon identifier for this item
+   */
+  icon?: string | null;
+  /**
+   * The rarity level of this item
+   */
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  /**
+   * Define the rewards contained in this chest (coins, XP, and number of items per rarity).
+   */
+  chestRewards?: {
+    minCoins: number;
+    maxCoins: number;
+    minXp: number;
+    maxXp: number;
+    commonItemsCount: number;
+    rareItemsCount: number;
+    epicItemsCount: number;
+    legendaryItemsCount: number;
+  };
+  /**
+   * Whether this item is currently available in the game
+   */
+  isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Tracks user progress towards specific achievements.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-achievement-progress".
+ */
+export interface UserAchievementProgress {
+  id: number;
+  /**
+   * The Supabase UUID of the user.
+   */
+  userId: string;
+  achievement: number | Achievement;
+  /**
+   * The current progress value towards the next tier threshold.
+   */
+  currentProgress: number;
+  /**
+   * The index of the highest achieved tier in the Achievement's tiers array (-1 if none).
+   */
+  currentTierIndex: number;
+  createdAt: string;
+  updatedAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1394,6 +1439,291 @@ export interface ChallengeCategory {
   createdAt: string;
 }
 /**
+ * User following relationships and blocked users
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-following-informations".
+ */
+export interface UserFollowingInformation {
+  id: number;
+  userId: string;
+  followers?:
+    | {
+        id: string | null;
+      }[]
+    | null;
+  following?:
+    | {
+        id: string | null;
+      }[]
+    | null;
+  blockedUsers?:
+    | {
+        id: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-items".
+ */
+export interface UserItem {
+  id: number;
+  /**
+   * The ID of the user who owns this item
+   */
+  userId: string;
+  /**
+   * The item owned by the user
+   */
+  item: number | Item;
+  /**
+   * The number of this item owned by the user
+   */
+  quantity: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "active-effects".
+ */
+export interface ActiveEffect {
+  id: number;
+  /**
+   * The ID of the user who has this active effect
+   */
+  userId: string;
+  /**
+   * The type of effect that is active
+   */
+  effectType: 'xpBoost' | 'currencyBoost' | 'streakRestore' | 'unlockFeature';
+  /**
+   * The multiplier value for this effect (e.g. 1.5 for 50% boost)
+   */
+  multiplier: number;
+  /**
+   * When this effect was activated
+   */
+  activatedAt: string;
+  /**
+   * When this effect will expire
+   */
+  expiresAt: string;
+  /**
+   * Whether this effect is currently active
+   */
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "marketplace-items".
+ */
+export interface MarketplaceItem {
+  id: number;
+  /**
+   * The item being sold in the marketplace
+   */
+  item: number | Item;
+  /**
+   * The price of the item in currency
+   */
+  price: number;
+  /**
+   * Whether this item is currently available for purchase
+   */
+  isAvailable?: boolean | null;
+  /**
+   * Maximum number of times this item can be purchased (0 for unlimited)
+   */
+  purchaseLimit?: number | null;
+  /**
+   * Number of times this item has been purchased
+   */
+  purchaseCount?: number | null;
+  /**
+   * When this item becomes available for purchase
+   */
+  startDate?: string | null;
+  /**
+   * When this item will no longer be available for purchase
+   */
+  endDate?: string | null;
+  /**
+   * Optional discount information
+   */
+  discount?: {
+    /**
+     * Percentage discount (0-100)
+     */
+    percentage?: number | null;
+    /**
+     * When the discount becomes active
+     */
+    startDate?: string | null;
+    /**
+     * When the discount expires
+     */
+    endDate?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Records every instance of experience points gained by users.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "experience-logs".
+ */
+export interface ExperienceLog {
+  id: number;
+  userId: string;
+  amount: number;
+  timestamp: string;
+  /**
+   * Optional: Where the experience came from (e.g., challenge, quest).
+   */
+  source?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Represents a specific leaderboard group within a division for a given week.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "weekly-division-leaderboards".
+ */
+export interface WeeklyDivisionLeaderboard {
+  id: number;
+  /**
+   * Unique identifier for the week, e.g., YYYY-W## (2024-W30).
+   */
+  weekIdentifier: string;
+  division: number | Division;
+  startDate: string;
+  endDate: string;
+  isProcessed?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Links users to their weekly leaderboard group and tracks their performance.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "weekly-leaderboard-members".
+ */
+export interface WeeklyLeaderboardMember {
+  id: number;
+  leaderboard: number | WeeklyDivisionLeaderboard;
+  userId: string;
+  /**
+   * Total experience gained during the specific week of this leaderboard.
+   */
+  weeklyExperience?: number | null;
+  /**
+   * User's final rank within this leaderboard group for the week.
+   */
+  finalRank?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs".
+ */
+export interface PayloadJob {
+  id: number;
+  /**
+   * Input data provided to the job
+   */
+  input?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  taskStatus?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  completedAt?: string | null;
+  totalTried?: number | null;
+  /**
+   * If hasError is true this job will not be retried
+   */
+  hasError?: boolean | null;
+  /**
+   * If hasError is true, this is the error that caused it
+   */
+  error?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Task execution log
+   */
+  log?:
+    | {
+        executedAt: string;
+        completedAt: string;
+        taskSlug: 'inline' | 'createWeeklyDivisionLeaderboards';
+        taskID: string;
+        input?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        output?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        state: 'failed' | 'succeeded';
+        error?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  taskSlug?: ('inline' | 'createWeeklyDivisionLeaderboards') | null;
+  queue?: string | null;
+  waitUntil?: string | null;
+  processing?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -1461,8 +1791,8 @@ export interface PayloadLockedDocument {
         value: number | Achievement;
       } | null)
     | ({
-        relationTo: 'user-achievements';
-        value: number | UserAchievement;
+        relationTo: 'user-achievement-progress';
+        value: number | UserAchievementProgress;
       } | null)
     | ({
         relationTo: 'challenges';
@@ -1503,6 +1833,46 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'challenge-categories';
         value: number | ChallengeCategory;
+      } | null)
+    | ({
+        relationTo: 'user-following-informations';
+        value: number | UserFollowingInformation;
+      } | null)
+    | ({
+        relationTo: 'items';
+        value: number | Item;
+      } | null)
+    | ({
+        relationTo: 'user-items';
+        value: number | UserItem;
+      } | null)
+    | ({
+        relationTo: 'active-effects';
+        value: number | ActiveEffect;
+      } | null)
+    | ({
+        relationTo: 'marketplace-items';
+        value: number | MarketplaceItem;
+      } | null)
+    | ({
+        relationTo: 'divisions';
+        value: number | Division;
+      } | null)
+    | ({
+        relationTo: 'experience-logs';
+        value: number | ExperienceLog;
+      } | null)
+    | ({
+        relationTo: 'weekly-division-leaderboards';
+        value: number | WeeklyDivisionLeaderboard;
+      } | null)
+    | ({
+        relationTo: 'weekly-leaderboard-members';
+        value: number | WeeklyLeaderboardMember;
+      } | null)
+    | ({
+        relationTo: 'payload-jobs';
+        value: number | PayloadJob;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1777,6 +2147,7 @@ export interface UserGamificationSelect<T extends boolean = true> {
   currentExperience?: T;
   totalExperience?: T;
   lastLevelUpDate?: T;
+  division?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1809,18 +2180,16 @@ export interface UserInventorySelect<T extends boolean = true> {
  */
 export interface UserCurrencySelect<T extends boolean = true> {
   userId?: T;
-  coins?: T;
+  quantity?: T;
   transactionHistory?:
     | T
     | {
         timestamp?: T;
         type?: T;
         amount?: T;
-        source?: T;
-        details?: T;
+        description?: T;
         id?: T;
       };
-  lastUpdated?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1866,39 +2235,25 @@ export interface AchievementsSelect<T extends boolean = true> {
         threshold?: T;
         rewardCoins?: T;
         rewardXp?: T;
+        rewardItem?: T;
         id?: T;
       };
+  nextAchievement?: T;
   isActive?: T;
   createdAt?: T;
   updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "user-achievements_select".
+ * via the `definition` "user-achievement-progress_select".
  */
-export interface UserAchievementsSelect<T extends boolean = true> {
+export interface UserAchievementProgressSelect<T extends boolean = true> {
   userId?: T;
-  achievements?:
-    | T
-    | {
-        achievementId?: T;
-        currentValue?: T;
-        currentTier?: T;
-        unlockedTiers?:
-          | T
-          | {
-              tier?: T;
-              unlockedAt?: T;
-              rewardClaimed?: T;
-              id?: T;
-            };
-        lastUpdated?: T;
-        id?: T;
-      };
-  totalAchievements?: T;
-  lastUpdated?: T;
-  updatedAt?: T;
+  achievement?: T;
+  currentProgress?: T;
+  currentTierIndex?: T;
   createdAt?: T;
+  updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2202,6 +2557,187 @@ export interface ChallengeCategoriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-following-informations_select".
+ */
+export interface UserFollowingInformationsSelect<T extends boolean = true> {
+  userId?: T;
+  followers?:
+    | T
+    | {
+        id?: T;
+      };
+  following?:
+    | T
+    | {
+        id?: T;
+      };
+  blockedUsers?:
+    | T
+    | {
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "items_select".
+ */
+export interface ItemsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  type?: T;
+  activationMode?: T;
+  multiplier?: T;
+  duration?: T;
+  appliesPassively?: T;
+  icon?: T;
+  rarity?: T;
+  chestRewards?:
+    | T
+    | {
+        minCoins?: T;
+        maxCoins?: T;
+        minXp?: T;
+        maxXp?: T;
+        commonItemsCount?: T;
+        rareItemsCount?: T;
+        epicItemsCount?: T;
+        legendaryItemsCount?: T;
+      };
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-items_select".
+ */
+export interface UserItemsSelect<T extends boolean = true> {
+  userId?: T;
+  item?: T;
+  quantity?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "active-effects_select".
+ */
+export interface ActiveEffectsSelect<T extends boolean = true> {
+  userId?: T;
+  effectType?: T;
+  multiplier?: T;
+  activatedAt?: T;
+  expiresAt?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "marketplace-items_select".
+ */
+export interface MarketplaceItemsSelect<T extends boolean = true> {
+  item?: T;
+  price?: T;
+  isAvailable?: T;
+  purchaseLimit?: T;
+  purchaseCount?: T;
+  startDate?: T;
+  endDate?: T;
+  discount?:
+    | T
+    | {
+        percentage?: T;
+        startDate?: T;
+        endDate?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "divisions_select".
+ */
+export interface DivisionsSelect<T extends boolean = true> {
+  name?: T;
+  levelRequirement?: T;
+  promotionThreshold?: T;
+  demotionThreshold?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "experience-logs_select".
+ */
+export interface ExperienceLogsSelect<T extends boolean = true> {
+  userId?: T;
+  amount?: T;
+  timestamp?: T;
+  source?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "weekly-division-leaderboards_select".
+ */
+export interface WeeklyDivisionLeaderboardsSelect<T extends boolean = true> {
+  weekIdentifier?: T;
+  division?: T;
+  startDate?: T;
+  endDate?: T;
+  isProcessed?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "weekly-leaderboard-members_select".
+ */
+export interface WeeklyLeaderboardMembersSelect<T extends boolean = true> {
+  leaderboard?: T;
+  userId?: T;
+  weeklyExperience?: T;
+  finalRank?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs_select".
+ */
+export interface PayloadJobsSelect<T extends boolean = true> {
+  input?: T;
+  taskStatus?: T;
+  completedAt?: T;
+  totalTried?: T;
+  hasError?: T;
+  error?: T;
+  log?:
+    | T
+    | {
+        executedAt?: T;
+        completedAt?: T;
+        taskSlug?: T;
+        taskID?: T;
+        input?: T;
+        output?: T;
+        state?: T;
+        error?: T;
+        id?: T;
+      };
+  taskSlug?: T;
+  queue?: T;
+  waitUntil?: T;
+  processing?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents_select".
  */
 export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
@@ -2231,6 +2767,14 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskCreateWeeklyDivisionLeaderboards".
+ */
+export interface TaskCreateWeeklyDivisionLeaderboards {
+  input?: unknown;
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

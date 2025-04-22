@@ -28,5 +28,15 @@
     }
   ],
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "crons": [
+    {
+      "path": "/api/payload-jobs/run?queue=weekly-start",
+      "schedule": "1 0 * * 1"
+    },
+    {
+      "path": "/api/payload-jobs/run?queue=weekly-end",
+      "schedule": "58 23 * * 0"
+    }
+  ]
 }

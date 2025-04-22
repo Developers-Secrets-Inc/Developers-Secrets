@@ -20,7 +20,7 @@ import { ProCtaCard } from '@/components/cards/pro-cta-card'
 import { FeedbackDialog } from '@/components/feedback-dialog'
 import { SupportDialog } from '@/components/support-dialog'
 import { QuestsDialog } from '@/components/quests-dialog'
-import { AchievementsDialog } from '@/components/achievements-dialog'
+import { AchievementsDialog } from '@/core/gamification/achievements/components/achievements-dialog'
 import {
   Sidebar,
   SidebarContent,

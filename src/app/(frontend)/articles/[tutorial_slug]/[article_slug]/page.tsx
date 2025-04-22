@@ -76,7 +76,7 @@ export async function generateMetadata(
         description: description,
       },
     }
-  } catch (error) {
+  } catch (_error) {
     // Return basic metadata if there's an error
     return {
       title: 'Article',

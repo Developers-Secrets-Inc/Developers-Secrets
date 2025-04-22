@@ -2,23 +2,24 @@ import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
 import { OpenChallengeCompletionDialogInDevelopment } from '@/components/challenges/open-challenge-completion-dialog-in-development'
 import { RatingText } from '@/components/rating-dialog'
 import { IconSidebar } from '@/components/sidebars/home-sidebar/icon-sidebar'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { NotificationButton } from '@/components/sidebars/home-sidebar/notification-button'
 import { Button } from '@/components/ui/button'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { getChallengeBySlug, getNextChallenge, getPreviousChallenge } from '@/core/challenges'
 import { ChallengeNavigationButtons } from '@/core/challenges/components/challenge-navigation-buttons'
+import { ChallengeStatusProvider } from '@/core/challenges/components/challenge-status-provider'
 import { ReactionButtons } from '@/core/challenges/components/reaction-buttons'
-import { getUserRating, getUserCompletionStatus } from '@/core/challenges/user-progression'
+import { getUserCompletionStatus, getUserRating } from '@/core/challenges/user-progression'
 import { getUser } from '@/core/user'
+import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
 import { Eclipse } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { ChallengeEditor } from './components/challenge-editor'
-import { ChallengeNavigation } from './components/challenge-navigation'
-import { ChallengeStatusProvider } from '@/core/challenges/components/challenge-status-provider'
-import { NotificationButton } from '@/components/sidebars/home-sidebar/notification-button'
-import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
+import { ChallengeNavigation } from '@/core/challenges/components/navigation/challenge-navigation'
+import { User } from '@/types/user'
+import { redirect } from 'next/navigation'
 
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
@@ -77,6 +78,11 @@ export default async function ChallengeLayout({
   const challenge = await getChallengeBySlug(challenge_slug)
   const user = await getUser()
 
+  // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
+  if (!user) {
+    redirect('/auth/login?redirect=' + encodeURIComponent('/challenges/' + challenge_slug))
+  }
+
   // Extraire les versions de code disponibles
   const availableLanguages =
     challenge.codeVersions?.map((version) => ({
@@ -114,34 +120,15 @@ export default async function ChallengeLayout({
   const previousChallenge = await getPreviousChallenge(challenge_slug)
   const nextChallenge = await getNextChallenge(challenge_slug)
 
-  // Get user info
-  let userId = ''
-  let userRating: number | null | undefined = undefined
-
-  try {
-    userId = user.id
-
-    // Fetch user progression if we have a user ID
-    if (userId) {
-      try {
-        userRating = await getUserRating(userId, challenge.id)
-      } catch (progressError) {
-        console.error('Error fetching user progression:', progressError)
-        // Continue with default values
-      }
-    }
-  } catch (userError) {
-    console.error('Error fetching user:', userError)
-    // Continue as guest user
-  }
-
-  const initialStatus = await getUserCompletionStatus(userId, challenge.id)
+  // Get user progression
+  const initialStatus = await getUserCompletionStatus(user.id, challenge.id)
+  const userRating = await getUserRating(user.id, challenge.id)
 
   return (
     <SidebarProvider>
       <ChallengeStatusProvider
         challengeId={challenge.id}
-        userId={userId}
+        userId={user.id}
         initialStatus={initialStatus}
       >
         <div className="flex h-screen">
@@ -150,8 +137,8 @@ export default async function ChallengeLayout({
             <div className="flex flex-col h-full w-[calc(100vw-3.5rem)]">
               <ChallengeLayoutHeader
                 challengeSlug={challenge_slug}
-                user={user}
                 challengeId={challenge.id}
+                user={user}
               />
 
               <div className="flex-1 overflow-hidden">
@@ -159,16 +146,18 @@ export default async function ChallengeLayout({
                   <ResizablePanel defaultSize={50} minSize={40}>
                     <div className="flex flex-col h-full">
                       <ChallengeNavigation
-                        challengeSlug={challenge_slug}
-                        challengeId={challenge.id}
-                        userId={userId}
+                        challenge={{
+                          id: challenge.id,
+                          slug: challenge_slug,
+                        }}
+                        userId={user.id}
                       />
                       <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
                         <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
                       </div>
                       <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50">
                         <div className="flex items-center justify-between gap-3 mb-3">
-                          <ReactionButtons challengeId={challenge.id} userId={userId} />
+                          <ReactionButtons challengeId={challenge.id} userId={user.id} />
                           <RatingText
                             challengeId={challenge.id}
                             initialRating={userRating ?? undefined}
@@ -188,7 +177,7 @@ export default async function ChallengeLayout({
                         codeVersions={initialCodeVersions}
                         tests={testCasesByLanguage}
                         challenge={challenge}
-                        userId={userId}
+                        userId={user.id}
                       />
                     </div>
                   </ResizablePanel>

@@ -7,6 +7,7 @@ import config from '@payload-config'
 import { getUserInformation } from '@/core/user'
 import { handleExperienceGainForQuests } from './quests/actions'
 import { createNotification } from '@/core/notifications'
+import { getActiveXPBoost, getPassiveXPBoostMultiplier } from './effects'
 
 import { UserGamification } from '@/payload-types'
 
@@ -93,6 +94,7 @@ export const getUserNextLevelExperience = async (userId: string): Promise<number
 export async function addExperience(
   userId: string,
   experienceAmount: number,
+  source?: string,
 ): Promise<UserGamification> {
   const payload = await getPayload({ config })
 
@@ -104,9 +106,39 @@ export async function addExperience(
   }
   const userInfo = await getGamificationInformations(userId)
 
+  // Récupérer les multiplicateurs actifs et passifs
+  const activeMultiplier = await getActiveXPBoost(userId)
+  const passiveMultiplier = await getPassiveXPBoostMultiplier(userId)
+
+  // Calculer le bonus additif
+  const activeBonus = activeMultiplier - 1
+  const passiveBonus = passiveMultiplier - 1
+  const totalBonus = activeBonus + passiveBonus
+
+  // Calculer le multiplicateur effectif cumulé
+  const effectiveMultiplier = 1 + totalBonus
+
+  const boostedExperience = Math.floor(experienceAmount * effectiveMultiplier)
+
+  if (boostedExperience > 0) {
+    try {
+      await payload.create({
+        collection: 'experience-logs',
+        data: {
+          userId: userId,
+          amount: boostedExperience,
+          timestamp: new Date().toISOString(),
+          source: source,
+        },
+      })
+    } catch (logError) {
+      console.error(`Failed to log experience gain for user ${userId}:`, logError)
+    }
+  }
+
   // Calculer la nouvelle expérience
-  let newCurrentExperience = userInfo.currentExperience + experienceAmount
-  const newTotalExperience = userInfo.totalExperience + experienceAmount
+  let newCurrentExperience = userInfo.currentExperience + boostedExperience
+  const newTotalExperience = userInfo.totalExperience + boostedExperience
   let newLevel = userInfo.currentLevel
   let shouldUpdateLevelUpDate = false
   let levelsGained = 0

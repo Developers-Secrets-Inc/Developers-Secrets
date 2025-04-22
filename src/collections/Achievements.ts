@@ -27,8 +27,8 @@ export const Achievements: CollectionConfig = {
       type: 'select',
       required: true,
       options: [
-        { label: 'Level', value: 'level' },
-        { label: 'Exercises Completed', value: 'exercises_completed' },
+        { label: 'Experience gained', value: 'experience_gained' },
+        { label: 'Challenges completed', value: 'challenges_completed' },
         { label: 'Streak', value: 'streak' },
         { label: 'Tutorials Completed', value: 'tutorials_completed' },
         { label: 'Quests Completed', value: 'quests_completed' },
@@ -126,7 +126,27 @@ export const Achievements: CollectionConfig = {
             description: 'The number of experience points given as a reward for this tier',
           },
         },
+        {
+          name: 'rewardItem',
+          label: 'Reward (Item)',
+          type: 'relationship',
+          relationTo: 'items',
+          required: false,
+          admin: {
+            description: 'An optional item given as a reward for this tier.',
+          },
+        },
       ],
+    },
+    {
+      name: 'nextAchievement',
+      label: 'Next Achievement in Series',
+      type: 'relationship',
+      relationTo: 'achievements',
+      required: false,
+      admin: {
+        description: 'Optional: The achievement that follows this one in a sequence.',
+      },
     },
     {
       name: 'isActive',

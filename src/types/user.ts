@@ -1,8 +1,12 @@
 import { User as SupabaseUser } from '@supabase/supabase-js'
 
-export type User = SupabaseUser & {
-  informations: UserInformations
-  connectionStats?: UserConnectionStats
+export interface User  {
+  id: string
+  informations: {
+    name: string
+    avatar: string
+    role: string
+  }
 }
 
 /**

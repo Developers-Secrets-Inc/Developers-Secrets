@@ -1,7 +1,9 @@
 'use client'
 
-import { ChallengeCompletionDialog } from '@/components/challenges/challenge-completion-dialog'
+import { CompletionDialog } from '@/core/challenges/components/completion-dialog'
 import { handleChallengeCompletion } from '@/core/challenges/actions'
+import { getChallengeCompletionData } from '@/core/challenges'
+import { getUserIsSolutionUnlocked } from '@/core/challenges/user-progression'
 import { ChallengeStatusContext } from '@/core/challenges/components/challenge-status-provider'
 import { handleSubmission } from '@/core/challenges/submissions/client-actions'
 import {
@@ -13,7 +15,7 @@ import {
 import { CodeEditor } from '@/core/compiler/components/editor'
 import { Challenge } from '@/payload-types'
 import { nanoid } from 'nanoid'
-import { useContext, useState } from 'react'
+import { useContext, useState, useEffect } from 'react'
 import { toast } from 'sonner'
 
 type ChallengeEditorProps = {
@@ -39,7 +41,24 @@ export function ChallengeEditor({
   userId,
 }: ChallengeEditorProps) {
   const [showCompletionDialog, setShowCompletionDialog] = useState(false)
-  const { status, updateStatus } = useContext(ChallengeStatusContext)!
+  const [completionData, setCompletionData] = useState<Awaited<
+    ReturnType<typeof getChallengeCompletionData>
+  > | null>(null)
+  const { visualStatus, persistedStatus, updateVisualStatus, updatePersistedStatus } =
+    useContext(ChallengeStatusContext)!
+
+  // Précharger les données de complétion
+  useEffect(() => {
+    const preloadCompletionData = async () => {
+      try {
+        const data = await getChallengeCompletionData(userId, challenge.id, challenge.slug)
+        setCompletionData(data)
+      } catch (error) {
+        console.error('Error preloading completion data:', error)
+      }
+    }
+    preloadCompletionData()
+  }, [userId, challenge.id, challenge.slug])
 
   const handleSubmit = async (
     submission:
@@ -50,8 +69,8 @@ export function ChallengeEditor({
   ) => {
     try {
       // Si c'est la première soumission et que le statut est 'not_started'
-      if (status === 'not_started') {
-        await updateStatus('in_progress')
+      if (persistedStatus === 'not_started') {
+        await updatePersistedStatus('in_progress')
       }
 
       // Créer un ID temporaire
@@ -96,12 +115,26 @@ export function ChallengeEditor({
       }
 
       // If the submission is successful and all tests passed
-      if (submission.type === 'accepted' && status !== 'completed') {
-        // Show completion dialog immediately (optimistic UI)
+      if (submission.type === 'accepted' && persistedStatus !== 'completed') {
+        // Mettre à jour immédiatement le statut visuel
+        updateVisualStatus('completed')
+
+        // Vérifier uniquement si la solution est débloquée
+        const wasUnlocked = await getUserIsSolutionUnlocked(userId, challenge.id)
+        if (completionData) {
+          setCompletionData({
+            ...completionData,
+            wasUnlocked,
+          })
+        }
+
+        // Show completion dialog
         setShowCompletionDialog(true)
 
         // Handle challenge completion in the background
-        handleChallengeCompletion(challenge, userId).catch(console.error)
+        handleChallengeCompletion(challenge, userId, submission.code.language)
+          .then(() => updatePersistedStatus('completed'))
+          .catch(console.error)
       }
     } catch (error) {
       console.error('Error submitting code:', error)
@@ -121,12 +154,18 @@ export function ChallengeEditor({
         onSubmit={handleSubmit}
       />
 
-      <ChallengeCompletionDialog
-        isOpen={showCompletionDialog}
-        onClose={() => setShowCompletionDialog(false)}
-        challengeId={challenge.id}
-        userId={userId}
-      />
+      {showCompletionDialog && completionData && (
+        <CompletionDialog
+          open={showCompletionDialog}
+          onOpen={() => setShowCompletionDialog(false)}
+          experienceGained={completionData.challengeExperience}
+          currentLevel={completionData.gamificationInfo.currentLevel}
+          currentExperience={completionData.gamificationInfo.currentExperience}
+          nextLevelExperience={completionData.gamificationInfo.nextLevelExperience}
+          nextChallengeUrl={completionData.nextChallengeUrl}
+          hasUnlockedSolution={completionData.wasUnlocked}
+        />
+      )}
     </>
   )
 }

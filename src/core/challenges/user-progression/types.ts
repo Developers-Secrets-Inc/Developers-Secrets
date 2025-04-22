@@ -129,3 +129,20 @@ export const validateCodeLanguage = (language: string): CodeLanguage => {
   return result.data
 }
 
+// --- Types for Calendar and Challenge Details ---
+
+// Information about a completed challenge (previously in use-completed-challenges hook)
+export interface CompletedChallengeInfo {
+  id: number
+  title: string
+  slug: string
+  difficulty: 'easy' | 'medium' | 'hard' | 'horrible'
+}
+
+// Structure for calendar day data, including prefetched challenges
+export interface CalendarDay {
+  date: string
+  day: number
+  completedChallengesCount: number
+  completedChallenges: CompletedChallengeInfo[] // Added list of challenges
+}

@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { Award, CheckCircle, X } from 'lucide-react'
+import { Award, CheckCircle, X, Gift, RefreshCw, Loader2 } from 'lucide-react'
 import { Quest as PayloadQuest, UserQuest as PayloadUserQuest } from '@/payload-types'
 
 type QuestDifficulty = 'easy' | 'medium' | 'hard'
@@ -45,12 +45,32 @@ const QuestDifficultyBadge = ({
   )
 }
 
-const QuestExperience = ({ experience }: { experience: number }) => {
+const QuestChestIcon = ({ difficulty }: { difficulty: QuestDifficulty }) => {
+  const difficultyColors: Record<QuestDifficulty, string> = {
+    easy: 'text-slate-500',
+    medium: 'text-blue-500',
+    hard: 'text-purple-500',
+  }
+  return <Gift className={cn('h-3.5 w-3.5', difficultyColors[difficulty])} />
+}
+
+const QuestRewardDisplay = ({
+  experience,
+  difficulty,
+}: {
+  experience: number
+  difficulty: QuestDifficulty
+}) => {
   return (
-    <span className="text-muted-foreground text-xs leading-[inherit] font-normal flex items-center gap-1">
-      <Award className="h-3 w-3" />
-      {experience} XP
-    </span>
+    <div className="flex items-center gap-2 text-muted-foreground text-xs leading-[inherit] font-normal">
+      <span className="flex items-center gap-1">
+        <Award className="h-3 w-3" />
+        {experience} XP
+      </span>
+      <span className="flex items-center gap-1">
+        <QuestChestIcon difficulty={difficulty} />
+      </span>
+    </div>
   )
 }
 
@@ -91,14 +111,23 @@ const QuestProgress = ({ current, total }: { current: number; total: number }) =
   )
 }
 
-const DeclineQuestButton = ({ onDeclineQuest }: { onDeclineQuest: () => void }) => {
+const ReplaceQuestButton = ({
+  onReplaceQuest,
+  disabled,
+  isLoading,
+}: {
+  onReplaceQuest: () => void
+  disabled: boolean
+  isLoading: boolean
+}) => {
   return (
     <button
-      onClick={onDeclineQuest}
-      className="absolute top-2 right-2 p-1 rounded-full text-slate-400/80 hover:text-red-400 transition-colors z-10"
-      aria-label="Decline quest"
+      onClick={onReplaceQuest}
+      disabled={disabled || isLoading}
+      className="absolute top-2 right-2 p-1 rounded-full text-slate-400/80 hover:text-blue-400 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors z-10"
+      aria-label="Replace quest"
     >
-      <X className="h-4 w-4" />
+      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
     </button>
   )
 }
@@ -141,12 +170,16 @@ const QuestIcon = ({
 
 export const QuestCard = ({
   userQuest,
-  onDeclineQuest,
+  onReplaceQuest,
   onCompleteQuest,
+  canReplace,
+  isReplacing,
 }: {
   userQuest: UserQuest
-  onDeclineQuest?: () => void
+  onReplaceQuest?: () => void
   onCompleteQuest?: () => void
+  canReplace: boolean
+  isReplacing: boolean
 }) => {
   const { quest, currentProgression, isCompleted } = userQuest
   const { title, difficulty, experience: xp, value: total } = quest
@@ -158,14 +191,20 @@ export const QuestCard = ({
         isCompleted && 'bg-emerald-950/40 border-emerald-800/40',
       )}
     >
-      {onDeclineQuest && !isCompleted && <DeclineQuestButton onDeclineQuest={onDeclineQuest} />}
+      {onReplaceQuest && !isCompleted && (
+        <ReplaceQuestButton
+          onReplaceQuest={onReplaceQuest}
+          disabled={!canReplace}
+          isLoading={isReplacing}
+        />
+      )}
 
       <QuestIcon Icon={CheckCircle} difficulty={difficulty} isCompleted={isCompleted} />
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1.5">
           <QuestDifficultyBadge difficulty={difficulty} isCompleted={isCompleted} />
-          <QuestExperience experience={xp} />
+          <QuestRewardDisplay experience={xp} difficulty={difficulty} />
         </div>
 
         <QuestDescription description={title} isCompleted={isCompleted} />

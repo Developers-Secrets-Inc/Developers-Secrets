@@ -1,9 +1,6 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { FileText, Award, Users, ListChecks, Lock, LucideIcon } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -12,9 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { setUserIsSolutionUnlocked } from '@/core/challenges/user-progression'
-import { isSolutionUnlocked } from '@/core/challenges/user-progression/actions'
+import { useNavigationState } from '@/core/challenges/hooks/use-navigation-state'
+import { cn } from '@/lib/utils'
+import { Award, FileText, ListChecks, Lock, LucideIcon, Users } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useMemo } from 'react'
 
 type Tab = {
   name: string
@@ -24,82 +23,7 @@ type Tab = {
   requiresConfirmation: boolean
 }
 
-type NavigationState = {
-  showConfirmDialog: boolean
-  pendingPath: string | null
-  unlockedPaths: string[]
-}
 
-function useNavigationState(
-  initialState: Partial<NavigationState> = {},
-  challengeId: number,
-  userId: string,
-  challengeSlug: string,
-) {
-  const [state, setState] = useState<NavigationState>({
-    showConfirmDialog: false,
-    pendingPath: null,
-    unlockedPaths: [],
-    ...initialState,
-  })
-
-  useEffect(() => {
-    const checkSolutionUnlock = async () => {
-      try {
-        const isUnlocked = await isSolutionUnlocked(userId, challengeId)
-        if (isUnlocked) {
-          setState((prev) => ({
-            ...prev,
-            unlockedPaths: [
-              ...prev.unlockedPaths,
-              `/challenges/${challengeSlug}/official-solution`,
-              `/challenges/${challengeSlug}/solutions`,
-            ],
-          }))
-        }
-      } catch (error) {
-        console.error('Failed to check solution unlock status:', error)
-      }
-    }
-
-    checkSolutionUnlock()
-  }, [challengeId, userId, challengeSlug])
-
-  const setShowConfirmDialog = (show: boolean) =>
-    setState((prev) => ({ ...prev, showConfirmDialog: show }))
-
-  const setPendingPath = (path: string | null) =>
-    setState((prev) => ({ ...prev, pendingPath: path }))
-
-  const unlockPath = async (path: string) => {
-    setState((prev) => ({
-      ...prev,
-      unlockedPaths: [
-        ...prev.unlockedPaths,
-        path,
-        `/challenges/${challengeSlug}/official-solution`,
-        `/challenges/${challengeSlug}/solutions`,
-      ],
-    }))
-
-    try {
-      await setUserIsSolutionUnlocked(userId, challengeId, true)
-    } catch (error) {
-      console.error('Failed to unlock solution:', error)
-      // Optionally handle error state here
-    }
-  }
-
-  const isPathUnlocked = (path: string) => state.unlockedPaths.includes(path)
-
-  return {
-    state,
-    setShowConfirmDialog,
-    setPendingPath,
-    unlockPath,
-    isPathUnlocked,
-  }
-}
 
 function useTabsConfiguration(challengeSlug: string, pathname: string, unlockedPaths: string[]) {
   return useMemo(
