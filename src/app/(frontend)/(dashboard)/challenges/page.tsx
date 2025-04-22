@@ -12,6 +12,7 @@ import { Suspense } from 'react'
 // Remove Payload imports if no longer needed here
 // import { getPayload } from 'payload'
 // import config from '@payload-config'
+import { LearningPathCarousel } from './components/learning-path-carousel'
 
 export default async function ChallengesPage() {
   const user = await getUser()
@@ -27,8 +28,9 @@ export default async function ChallengesPage() {
         <HomeHeader />
         <div className="flex-1 w-full h-[calc(100vh-4rem)] overflow-auto max-w-7xl px-4 mx-auto">
           <div className="flex gap-6 p-6 h-full">
-            <div className="flex-1 flex flex-col gap-6">
+            <div className="flex-1 flex flex-col gap-6 max-w-[800px]">
               <RecommendedChallenge />
+              {/* {process.env.NODE_ENV === 'development' && <LearningPathCarousel />} */}
               <ChallengeCategories />
               <ChallengesTable userId={user.id} />
             </div>

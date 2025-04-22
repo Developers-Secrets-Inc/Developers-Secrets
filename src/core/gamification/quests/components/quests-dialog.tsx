@@ -8,11 +8,11 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Quest, UserQuest as PayloadUserQuest } from '@/payload-types'
-import { Award } from 'lucide-react'
+import { Award, RefreshCw } from 'lucide-react'
 import { useMemo } from 'react'
 import { QuestCard } from './quest-card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useQuests, useQuestActions } from '../hooks/use-quests'
+import { useQuests, useQuestActions, useQuestReplacementInfo } from '../hooks/use-quests'
 
 // Extend PayloadUserQuest to ensure we have all required fields
 interface UserQuest extends PayloadUserQuest {
@@ -44,8 +44,25 @@ export const QuestsDialog = ({
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }) => {
-  const { data: activeQuests, isLoading, error } = useQuests()
-  const { completeQuest, replaceQuest, invalidateQuests } = useQuestActions()
+  // Fetch quests and replacement info
+  const { data: activeQuests, isLoading: isLoadingQuests, error: questsError } = useQuests()
+  const {
+    data: replacementInfo,
+    isLoading: isLoadingInfo,
+    error: infoError,
+  } = useQuestReplacementInfo()
+  const { completeQuest, replaceQuest, invalidateQuests, isReplacingQuestId } = useQuestActions()
+
+  // Combine loading states
+  const isLoading = isLoadingQuests || isLoadingInfo
+
+  // Calculate remaining replacements
+  const remainingReplacements = useMemo(() => {
+    if (!replacementInfo || replacementInfo.maxReplacements === Infinity) {
+      return Infinity
+    }
+    return Math.max(0, replacementInfo.maxReplacements - replacementInfo.replacementsUsed)
+  }, [replacementInfo])
 
   // Mémoiser les quêtes triées
   const sortedQuests = useMemo(() => {
@@ -65,45 +82,63 @@ export const QuestsDialog = ({
   // Mémoiser le contenu des quêtes
   const questContent = useMemo(() => {
     if (isLoading) {
-      return (
-        <>
-          <QuestSkeleton />
-          <QuestSkeleton />
-          <QuestSkeleton />
-          <QuestSkeleton />
-        </>
-      )
+      return Array.from({ length: 4 }).map((_, index) => <QuestSkeleton key={index} />)
     }
 
-    if (error) {
-      return <div className="text-center text-red-500">Failed to load quests</div>
+    if (questsError || infoError) {
+      return <div className="text-center text-red-500">Failed to load quest data</div>
     }
 
     if (sortedQuests.length === 0) {
       return <div className="text-center text-muted-foreground">No quests available</div>
     }
 
-    return sortedQuests.map((userQuest) => (
-      <QuestCard
-        key={userQuest.id}
-        userQuest={userQuest}
-        onDeclineQuest={() => {
-          if (userQuest.quest && typeof userQuest.quest.id !== 'undefined') {
-            replaceQuest(userQuest.quest.id.toString())
-          } else {
-            console.error('Cannot replace quest: Quest ID is missing.')
-          }
-        }}
-        onCompleteQuest={() => {
-          if (userQuest.quest && typeof userQuest.quest.id !== 'undefined') {
-            completeQuest(userQuest.quest.id.toString())
-          } else {
-            console.error('Cannot complete quest: Quest ID is missing.')
-          }
-        }}
-      />
-    ))
-  }, [isLoading, error, sortedQuests, completeQuest, replaceQuest, invalidateQuests])
+    return sortedQuests.map((userQuest) => {
+      const questId = typeof userQuest.quest === 'number' ? userQuest.quest : userQuest.quest?.id
+      const canReplaceQuest = !userQuest.isCompleted && remainingReplacements > 0
+      const isCurrentQuestReplacing = !!questId && isReplacingQuestId === questId.toString()
+
+      return (
+        <QuestCard
+          key={userQuest.id}
+          userQuest={userQuest}
+          onReplaceQuest={() => {
+            if (questId) {
+              replaceQuest(questId.toString())
+            } else {
+              console.error('Cannot replace quest: Quest ID is missing.')
+            }
+          }}
+          canReplace={canReplaceQuest && !isReplacingQuestId}
+          isReplacing={isCurrentQuestReplacing}
+          onCompleteQuest={() => {
+            if (questId) {
+              completeQuest(questId.toString())
+            } else {
+              console.error('Cannot complete quest: Quest ID is missing.')
+            }
+          }}
+        />
+      )
+    })
+  }, [
+    isLoading,
+    questsError,
+    infoError,
+    sortedQuests,
+    remainingReplacements,
+    completeQuest,
+    replaceQuest,
+    invalidateQuests,
+    isReplacingQuestId,
+  ])
+
+  // Display remaining replacements
+  const replacementText = useMemo(() => {
+    if (isLoading || !replacementInfo) return 'Loading...'
+    if (remainingReplacements === Infinity) return 'Unlimited replacements left'
+    return `${remainingReplacements} replacement${remainingReplacements !== 1 ? 's' : ''} left today`
+  }, [isLoading, replacementInfo, remainingReplacements])
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -114,11 +149,15 @@ export const QuestsDialog = ({
             Available Quests
           </DialogTitle>
           <DialogDescription>
-            Progress in your learning journey by completing these quests to earn experience.
+            Complete quests for XP and chests. Replace quests you don't like.
+            <span className="block text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <RefreshCw className="h-3 w-3" />
+              {replacementText}
+            </span>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4 space-y-4">{questContent}</div>
+        <div className="mt-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">{questContent}</div>
       </DialogContent>
     </Dialog>
   )

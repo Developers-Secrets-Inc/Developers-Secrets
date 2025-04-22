@@ -63,8 +63,8 @@ export const UserGamification: CollectionConfig = {
       name: 'lastLevelUpDate',
       label: 'Last Level Up Date',
       type: 'date',
+      required: true,
       admin: {
-        readOnly: true,
         date: {
           pickerAppearance: 'dayAndTime',
         },
@@ -78,6 +78,27 @@ export const UserGamification: CollectionConfig = {
       hasMany: false,
       index: true,
       admin: {},
+    },
+    {
+      name: 'dailyQuestReplacementsUsed',
+      label: 'Daily Quest Replacements Used',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      admin: {
+        description: 'Number of times the user has replaced a daily quest today.',
+      },
+    },
+    {
+      name: 'lastQuestReplacementDate',
+      label: 'Last Quest Replacement Date',
+      type: 'date',
+      admin: {
+        description: 'The date the user last replaced a quest.',
+        date: {
+          pickerAppearance: 'dayOnly', // Keep it simple, time is not needed
+        },
+      },
     },
   ],
   hooks: {

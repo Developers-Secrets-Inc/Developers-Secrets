@@ -2,7 +2,7 @@ import { Quest, UserQuest as PayloadUserQuest } from '@/payload-types'
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { getQuestById } from '.'
+import { getQuestById } from '..'
 /*  
 
 Every user should have 4 quests per day. Two easy quests, one medium and one hard.
@@ -14,14 +14,21 @@ type UserQuest = PayloadUserQuest & {
   quest: Quest
 }
 
+
 // ========== User Quests Creation ==========
 
-export const addUserQuest = async (userId: string, quest: Quest): Promise<void> => {
+export const addUserQuest = async (userId: string, quest: Quest): Promise<UserQuest> => {
   const payload = await getPayload({ config })
-  await payload.create({
+  const userQuest = await payload.create({
     collection: 'user-quests',
     data: { userId, quest, currentProgression: 0, isCompleted: false },
+    depth: 1,
   })
+
+  return {
+    ...userQuest,
+    quest,
+  }
 }
 
 export const addMultipleUserQuests = async (userId: string, quests: Quest[]): Promise<void> => {

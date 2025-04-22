@@ -41,7 +41,7 @@ const getRoleBadgeClass = (role: string | undefined): string => {
     case 'pro':
       return 'bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20'
     case 'max':
-      return 'bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 dark:text-amber-500'
+      return 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-500'
     case 'basic':
     default:
       return ''
@@ -68,19 +68,19 @@ export const UserProfile = async ({ user }: UserProfileProps) => {
         aria-hidden="true"
         className="absolute top-0 right-0 h-40 w-40 -translate-y-1/2 translate-x-1/2 pointer-events-none"
       >
-        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-30" />
+        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-20" />
       </div>
       <div
         aria-hidden="true"
         className="absolute top-0 right-0 h-32 w-32 -translate-y-1/2 translate-x-1/2 pointer-events-none"
       >
-        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-25" />
+        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-15" />
       </div>
       <div
         aria-hidden="true"
         className="absolute top-0 right-0 h-24 w-24 -translate-y-1/2 translate-x-1/2 pointer-events-none"
       >
-        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-20" />
+        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-10" />
       </div>
 
       <div className="relative z-10">
