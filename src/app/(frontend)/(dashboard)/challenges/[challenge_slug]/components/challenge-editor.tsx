@@ -132,7 +132,7 @@ export function ChallengeEditor({
         setShowCompletionDialog(true)
 
         // Handle challenge completion in the background
-        handleChallengeCompletion(challenge, userId)
+        handleChallengeCompletion(challenge, userId, submission.code.language)
           .then(() => updatePersistedStatus('completed'))
           .catch(console.error)
       }

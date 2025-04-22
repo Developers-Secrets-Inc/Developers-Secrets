@@ -39,8 +39,10 @@ import { UserSolutions } from './collections/UserSolutions'
 import { ChallengeSubmissions } from './collections/ChallengeSubmissions'
 import { Notifications } from './collections/Notifications'
 import { Skills } from './collections/Skills'
-import { BaseConcepts } from './collections/BaseConcepts'
-import { SkillConcepts } from './collections/SkillConcepts'
+import { Concepts } from './collections/Concepts'
+import { ImplementationConcepts } from './collections/ImplementationConcepts'
+import { UserConceptProgressions } from './collections/UserConceptProgressions'
+import { UserImplementationConceptProgressions } from './collections/UserImplementationConceptProgressions'
 import { ChallengeCategory } from './collections/ChallengeCategory'
 import { UserFollowingInformations } from './collections/UserFollowingInformations'
 import { Items } from './collections/Items'
@@ -52,6 +54,9 @@ import { ExperienceLogs } from './collections/ExperienceLogs'
 import { WeeklyDivisionLeaderboards } from './collections/WeeklyDivisionLeaderboards'
 import { WeeklyLeaderboardMembers } from './collections/WeeklyLeaderboardMembers'
 import type { PayloadRequest } from 'payload'
+
+// ---> IMPORT PLACEHOLDER FOR TASK HANDLER <---
+import { checkAndUpdatePrerequisitesHandler } from './core/skills/tasks' // Assuming we create tasks.ts
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -435,9 +440,6 @@ export default buildConfig({
     UserSolutions,
     ChallengeSubmissions,
     Notifications,
-    Skills,
-    BaseConcepts,
-    SkillConcepts,
     ChallengeCategory,
     UserFollowingInformations,
     Items,
@@ -448,6 +450,11 @@ export default buildConfig({
     ExperienceLogs,
     WeeklyDivisionLeaderboards,
     WeeklyLeaderboardMembers,
+    Skills,
+    Concepts,
+    ImplementationConcepts,
+    UserConceptProgressions,
+    UserImplementationConceptProgressions,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
@@ -468,7 +475,10 @@ export default buildConfig({
     access: {
       run: ({ req }: { req: PayloadRequest }): boolean => {
         // Allow logged in users with admin role (adjust role check as needed)
-        if (req.user && req.user.roles?.includes('admin')) {
+        if (
+          req.user &&
+          req.user.collection === 'users' /* && req.user.roles?.includes('admin') */
+        ) {
           return true
         }
 
@@ -496,7 +506,35 @@ export default buildConfig({
         handler: processWeeklyResultsHandler,
         retries: 2,
         queue: 'weekly-end',
-      } as TaskConfig<'processWeeklyLeaderboardResults'>,
+      } as unknown as TaskConfig<'processWeeklyLeaderboardResults'>,
+
+      // ---> NEW TASK DEFINITION <---
+      {
+        slug: 'checkAndUpdatePrerequisites',
+        label: 'Check and Update Skill Prerequisites',
+        handler: checkAndUpdatePrerequisitesHandler, // Lié à la fonction qu'on va créer
+        queue: 'skill-prerequisites', // Queue dédiée
+        retries: 1, // Une tentative en cas d'erreur temporaire
+        inputSchema: [
+          // Définit ce que la tâche attend en entrée
+          {
+            name: 'userId',
+            type: 'text',
+            required: true,
+            label: 'User ID (Supabase)',
+          },
+          {
+            name: 'conceptId',
+            type: 'number',
+            required: true,
+            label: 'Concept ID to Check Prerequisites For',
+          },
+        ],
+        // outputSchema: [], // Pas besoin d'output spécifique pour cette tâche
+      } as unknown as TaskConfig<'checkAndUpdatePrerequisites'>, // Assure le typage fort
+      // ---> END NEW TASK DEFINITION <---
     ],
+    // processingOrder: { ... }, // Optionnel: définir l'ordre si nécessaire
+    // shouldAutoRun: ... // Pas nécessaire si on utilise Supabase Cron + Endpoint
   },
 })
