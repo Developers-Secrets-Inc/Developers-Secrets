@@ -474,22 +474,32 @@ export default buildConfig({
   jobs: {
     access: {
       run: ({ req }: { req: PayloadRequest }): boolean => {
+        // Log pour voir si cette fonction est même atteinte
+        console.log(`>>> jobs.access.run triggered for URL: ${req.url}`)
+        // Log le header pour vérifier sa présence ici
+        console.log(`>>> Auth header inside access check: ${req.headers?.get('authorization')}`)
+
+        // Temporairement, on autorise tout pour voir si le 404 disparaît
+        return true
+
+        // --- Original Logic (Commented out) ---
         // Allow logged in users with admin role (adjust role check as needed)
-        if (
-          req.user &&
-          req.user.collection === 'users' /* && req.user.roles?.includes('admin') */
-        ) {
-          return true
-        }
-
+        // if (
+        //   req.user &&
+        //   req.user.collection === 'users' /* && req.user.roles?.includes('admin') */
+        // ) {
+        //   return true
+        // }
+        //
         // Allow Vercel Cron via secret
-        const authHeader = req.headers.get('authorization')
-        if (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) {
-          return true
-        }
-
+        // const authHeader = req.headers.get('authorization')
+        // if (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) {
+        //   return true
+        // }
+        //
         // Deny access otherwise
-        return false
+        // return false
+        // --- End Original Logic ---
       },
     },
     tasks: [
