@@ -16,6 +16,7 @@ import {
   Trophy,
   User,
   Users,
+  GitMerge,
 } from 'lucide-react'
 import * as React from 'react'
 import { useState, useEffect } from 'react'
@@ -233,6 +234,14 @@ export function HomeSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
                   <Link href="/challenges">
                     <Trophy className="size-4" />
                     <span>Challenges</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem key="skills-tree">
+                <SidebarMenuButton asChild>
+                  <Link href="/skills">
+                    <GitMerge className="size-4" />
+                    <span>Skills</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

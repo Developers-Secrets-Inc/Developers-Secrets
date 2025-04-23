@@ -88,9 +88,6 @@ export interface Config {
     'user-solutions': UserSolution;
     'challenge-submissions': ChallengeSubmission;
     notifications: Notification;
-    skills: Skill;
-    'base-concepts': BaseConcept;
-    'skill-concepts': SkillConcept;
     'challenge-categories': ChallengeCategory;
     'user-following-informations': UserFollowingInformation;
     items: Item;
@@ -101,6 +98,11 @@ export interface Config {
     'experience-logs': ExperienceLog;
     'weekly-division-leaderboards': WeeklyDivisionLeaderboard;
     'weekly-leaderboard-members': WeeklyLeaderboardMember;
+    skills: Skill;
+    concepts: Concept;
+    implementationConcepts: ImplementationConcept;
+    userConceptProgressions: UserConceptProgression;
+    userImplementationConceptProgressions: UserImplementationConceptProgression;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -130,9 +132,6 @@ export interface Config {
     'user-solutions': UserSolutionsSelect<false> | UserSolutionsSelect<true>;
     'challenge-submissions': ChallengeSubmissionsSelect<false> | ChallengeSubmissionsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
-    skills: SkillsSelect<false> | SkillsSelect<true>;
-    'base-concepts': BaseConceptsSelect<false> | BaseConceptsSelect<true>;
-    'skill-concepts': SkillConceptsSelect<false> | SkillConceptsSelect<true>;
     'challenge-categories': ChallengeCategoriesSelect<false> | ChallengeCategoriesSelect<true>;
     'user-following-informations': UserFollowingInformationsSelect<false> | UserFollowingInformationsSelect<true>;
     items: ItemsSelect<false> | ItemsSelect<true>;
@@ -143,6 +142,11 @@ export interface Config {
     'experience-logs': ExperienceLogsSelect<false> | ExperienceLogsSelect<true>;
     'weekly-division-leaderboards': WeeklyDivisionLeaderboardsSelect<false> | WeeklyDivisionLeaderboardsSelect<true>;
     'weekly-leaderboard-members': WeeklyLeaderboardMembersSelect<false> | WeeklyLeaderboardMembersSelect<true>;
+    skills: SkillsSelect<false> | SkillsSelect<true>;
+    concepts: ConceptsSelect<false> | ConceptsSelect<true>;
+    implementationConcepts: ImplementationConceptsSelect<false> | ImplementationConceptsSelect<true>;
+    userConceptProgressions: UserConceptProgressionsSelect<false> | UserConceptProgressionsSelect<true>;
+    userImplementationConceptProgressions: UserImplementationConceptProgressionsSelect<false> | UserImplementationConceptProgressionsSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -160,6 +164,7 @@ export interface Config {
   jobs: {
     tasks: {
       createWeeklyDivisionLeaderboards: TaskCreateWeeklyDivisionLeaderboards;
+      processWeeklyLeaderboardResults: TaskProcessWeeklyLeaderboardResults;
       inline: {
         input: unknown;
         output: unknown;
@@ -538,8 +543,16 @@ export interface UserGamification {
   currentLevel: number;
   currentExperience: number;
   totalExperience: number;
-  lastLevelUpDate?: string | null;
+  lastLevelUpDate: string;
   division?: (number | null) | Division;
+  /**
+   * Number of times the user has replaced a daily quest today.
+   */
+  dailyQuestReplacementsUsed?: number | null;
+  /**
+   * The date the user last replaced a quest.
+   */
+  lastQuestReplacementDate?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -562,6 +575,30 @@ export interface Division {
    * Bottom X% of users in a weekly leaderboard group to be demoted.
    */
   demotionThreshold: number;
+  /**
+   * Numerical order for divisions (e.g., 1 for Bronze, 2 for Silver). Lower numbers are lower ranks.
+   */
+  rankOrder?: number | null;
+  /**
+   * Define coin rewards based on final weekly rank ranges.
+   */
+  rewards?:
+    | {
+        /**
+         * The starting rank for this reward tier.
+         */
+        rankStart: number;
+        /**
+         * The ending rank for this reward tier.
+         */
+        rankEnd: number;
+        /**
+         * The number of coins to award for this rank range.
+         */
+        coinAmount: number;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1084,6 +1121,51 @@ export interface Challenge {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Define how completing this challenge (per skill) affects user skill/concept progression.
+   */
+  skillImpacts?:
+    | {
+        /**
+         * The Skill (language/framework) used to complete the challenge for these impacts to apply.
+         */
+        skill: number | Skill;
+        /**
+         * Define the specific concept progressions gained for completing the challenge with the selected Skill.
+         */
+        impacts?:
+          | (
+              | {
+                  /**
+                   * The specific concept implementation (e.g., Loops in Python) that progresses.
+                   */
+                  implementationConcept: number | ImplementationConcept;
+                  /**
+                   * How many points (e.g., 0-100) this completion adds to the implementation concept mastery.
+                   */
+                  progressAmount: number;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'skillConceptImpact';
+                }
+              | {
+                  /**
+                   * The abstract concept (e.g., Loops, Encapsulation) that progresses directly.
+                   */
+                  concept: number | Concept;
+                  /**
+                   * How many points (e.g., 0-100) this completion adds directly to the base concept mastery.
+                   */
+                  progressAmount: number;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'baseConceptImpact';
+                }
+            )[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1207,6 +1289,95 @@ export interface UserSolution {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Represents technical or conceptual skills (e.g., Python, React, POO, Algorithms).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills".
+ */
+export interface Skill {
+  id: number;
+  /**
+   * The name of the skill (e.g., Python, React, Object-Oriented Programming).
+   */
+  name: string;
+  /**
+   * A unique, URL-friendly identifier for the skill.
+   */
+  slug: string;
+  /**
+   * A brief description of the skill and its scope.
+   */
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Represents a specific Concept applied within a particular Skill (e.g., Loops in Python, Encapsulation in Java).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "implementationConcepts".
+ */
+export interface ImplementationConcept {
+  id: number;
+  /**
+   * The abstract concept being implemented.
+   */
+  concept: number | Concept;
+  /**
+   * The specific skill (language, framework, etc.) where the concept is applied.
+   */
+  implementationSkill: number | Skill;
+  /**
+   * Optional specific name for this implementation context (e.g., "Python For Loops", "Java Private Fields"). Can be auto-generated.
+   */
+  name?: string | null;
+  /**
+   * Optional unique, URL-friendly identifier. Can be auto-generated from concept and skill slugs.
+   */
+  slug?: string | null;
+  /**
+   * Optional description specific to this implementation context.
+   */
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Represents abstract concepts (e.g., Loops, Encapsulation, Stacks). Can be linked to a parent skill (e.g., Encapsulation belongs to POO).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "concepts".
+ */
+export interface Concept {
+  id: number;
+  /**
+   * The name of the abstract concept (e.g., Loops, Encapsulation, Stacks).
+   */
+  name: string;
+  /**
+   * A unique, URL-friendly identifier for the concept.
+   */
+  slug: string;
+  /**
+   * A brief description of the concept.
+   */
+  description?: string | null;
+  /**
+   * Optional: The main skill or paradigm this concept belongs to (e.g., Encapsulation belongs to POO). Helps categorize and link concepts.
+   */
+  parentSkill?: (number | null) | Skill;
+  /**
+   * Concepts that should generally be understood before tackling this one.
+   */
+  requiredConcepts?: (number | Concept)[] | null;
+  /**
+   * Concepts that logically follow this one in potential learning paths.
+   */
+  nextConcepts?: (number | Concept)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1349,43 +1520,6 @@ export interface Notification {
    * Optional expiration date for the notification
    */
   expiresAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "skills".
- */
-export interface Skill {
-  id: number;
-  name: string;
-  skillConcepts?: (number | SkillConcept)[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "skill-concepts".
- */
-export interface SkillConcept {
-  id: number;
-  baseConcept: number | BaseConcept;
-  skill: number | Skill;
-  difficulty?: number | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "base-concepts".
- */
-export interface BaseConcept {
-  id: number;
-  name: string;
-  description: string;
-  requiredBaseConcepts?: (number | BaseConcept)[] | null;
-  nextBaseConcepts?: (number | BaseConcept)[] | null;
-  similarBaseConcepts?: (number | BaseConcept)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1632,6 +1766,54 @@ export interface WeeklyLeaderboardMember {
   createdAt: string;
 }
 /**
+ * Stores a user's progress on an abstract Concept.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userConceptProgressions".
+ */
+export interface UserConceptProgression {
+  id: number;
+  /**
+   * The Supabase unique identifier for the user.
+   */
+  user: string;
+  concept: number | Concept;
+  /**
+   * The user's current mastery level for this concept (0-100).
+   */
+  progressValue: number;
+  /**
+   * Timestamp of the last activity that contributed to this concept progression.
+   */
+  lastActivityAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Stores a user's progress on a specific Implementation Concept.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userImplementationConceptProgressions".
+ */
+export interface UserImplementationConceptProgression {
+  id: number;
+  /**
+   * The Supabase unique identifier for the user.
+   */
+  user: string;
+  implementationConcept: number | ImplementationConcept;
+  /**
+   * The user's current mastery level for this specific implementation (0-100).
+   */
+  progressValue: number;
+  /**
+   * Timestamp of the last activity that contributed to this progression.
+   */
+  lastActivityAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-jobs".
  */
@@ -1683,7 +1865,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'createWeeklyDivisionLeaderboards';
+        taskSlug: 'inline' | 'createWeeklyDivisionLeaderboards' | 'processWeeklyLeaderboardResults';
         taskID: string;
         input?:
           | {
@@ -1716,7 +1898,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'createWeeklyDivisionLeaderboards') | null;
+  taskSlug?: ('inline' | 'createWeeklyDivisionLeaderboards' | 'processWeeklyLeaderboardResults') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -1819,18 +2001,6 @@ export interface PayloadLockedDocument {
         value: number | Notification;
       } | null)
     | ({
-        relationTo: 'skills';
-        value: number | Skill;
-      } | null)
-    | ({
-        relationTo: 'base-concepts';
-        value: number | BaseConcept;
-      } | null)
-    | ({
-        relationTo: 'skill-concepts';
-        value: number | SkillConcept;
-      } | null)
-    | ({
         relationTo: 'challenge-categories';
         value: number | ChallengeCategory;
       } | null)
@@ -1869,6 +2039,26 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'weekly-leaderboard-members';
         value: number | WeeklyLeaderboardMember;
+      } | null)
+    | ({
+        relationTo: 'skills';
+        value: number | Skill;
+      } | null)
+    | ({
+        relationTo: 'concepts';
+        value: number | Concept;
+      } | null)
+    | ({
+        relationTo: 'implementationConcepts';
+        value: number | ImplementationConcept;
+      } | null)
+    | ({
+        relationTo: 'userConceptProgressions';
+        value: number | UserConceptProgression;
+      } | null)
+    | ({
+        relationTo: 'userImplementationConceptProgressions';
+        value: number | UserImplementationConceptProgression;
       } | null)
     | ({
         relationTo: 'payload-jobs';
@@ -2148,6 +2338,8 @@ export interface UserGamificationSelect<T extends boolean = true> {
   totalExperience?: T;
   lastLevelUpDate?: T;
   division?: T;
+  dailyQuestReplacementsUsed?: T;
+  lastQuestReplacementDate?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2370,6 +2562,32 @@ export interface ChallengesSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  skillImpacts?:
+    | T
+    | {
+        skill?: T;
+        impacts?:
+          | T
+          | {
+              skillConceptImpact?:
+                | T
+                | {
+                    implementationConcept?: T;
+                    progressAmount?: T;
+                    id?: T;
+                    blockName?: T;
+                  };
+              baseConceptImpact?:
+                | T
+                | {
+                    concept?: T;
+                    progressAmount?: T;
+                    id?: T;
+                    blockName?: T;
+                  };
+            };
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -2497,40 +2715,6 @@ export interface NotificationsSelect<T extends boolean = true> {
   isRead?: T;
   actionUrl?: T;
   expiresAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "skills_select".
- */
-export interface SkillsSelect<T extends boolean = true> {
-  name?: T;
-  skillConcepts?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "base-concepts_select".
- */
-export interface BaseConceptsSelect<T extends boolean = true> {
-  name?: T;
-  description?: T;
-  requiredBaseConcepts?: T;
-  nextBaseConcepts?: T;
-  similarBaseConcepts?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "skill-concepts_select".
- */
-export interface SkillConceptsSelect<T extends boolean = true> {
-  baseConcept?: T;
-  skill?: T;
-  difficulty?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2665,6 +2849,15 @@ export interface DivisionsSelect<T extends boolean = true> {
   levelRequirement?: T;
   promotionThreshold?: T;
   demotionThreshold?: T;
+  rankOrder?: T;
+  rewards?:
+    | T
+    | {
+        rankStart?: T;
+        rankEnd?: T;
+        coinAmount?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2702,6 +2895,68 @@ export interface WeeklyLeaderboardMembersSelect<T extends boolean = true> {
   userId?: T;
   weeklyExperience?: T;
   finalRank?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills_select".
+ */
+export interface SkillsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "concepts_select".
+ */
+export interface ConceptsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  parentSkill?: T;
+  requiredConcepts?: T;
+  nextConcepts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "implementationConcepts_select".
+ */
+export interface ImplementationConceptsSelect<T extends boolean = true> {
+  concept?: T;
+  implementationSkill?: T;
+  name?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userConceptProgressions_select".
+ */
+export interface UserConceptProgressionsSelect<T extends boolean = true> {
+  user?: T;
+  concept?: T;
+  progressValue?: T;
+  lastActivityAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userImplementationConceptProgressions_select".
+ */
+export interface UserImplementationConceptProgressionsSelect<T extends boolean = true> {
+  user?: T;
+  implementationConcept?: T;
+  progressValue?: T;
+  lastActivityAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2773,6 +3028,14 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  * via the `definition` "TaskCreateWeeklyDivisionLeaderboards".
  */
 export interface TaskCreateWeeklyDivisionLeaderboards {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskProcessWeeklyLeaderboardResults".
+ */
+export interface TaskProcessWeeklyLeaderboardResults {
   input?: unknown;
   output?: unknown;
 }

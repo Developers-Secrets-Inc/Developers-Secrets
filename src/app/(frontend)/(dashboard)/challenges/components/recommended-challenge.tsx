@@ -1,59 +1,106 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
-import { getRandomChallenge } from '@/core/challenges'
-import { Brain, Trophy } from 'lucide-react'
+import { getUser } from '@/core/user'
+import { getRecommendedChallenges } from '@/core/skills/recommendations'
+import { Brain, Trophy, SearchX } from 'lucide-react'
 import Link from 'next/link'
+import type { Challenge } from '@/payload-types'
 
 export const RecommendedChallenge = async () => {
-  const challenge = await getRandomChallenge()
+  const user = await getUser()
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty.toLowerCase()) {
+  let recommendedChallenge: Challenge | null = null
+  let recommendedSkillName: string | null = null
+
+  if (user && user.id) {
+    const recommendationsBySkill = await getRecommendedChallenges(user.id)
+
+    const skillNames = Object.keys(recommendationsBySkill)
+    if (skillNames.length > 0) {
+      const firstSkillName = skillNames[0]
+      const challengesForFirstSkill = recommendationsBySkill[firstSkillName]
+      if (challengesForFirstSkill && challengesForFirstSkill.length > 0) {
+        recommendedChallenge = challengesForFirstSkill[0]
+        recommendedSkillName = firstSkillName
+      }
+    }
+  } else {
+    console.warn('RecommendedChallenge: User not found.')
+  }
+
+  const getDifficultyColor = (difficulty: string | null | undefined) => {
+    switch (difficulty?.toLowerCase()) {
       case 'easy':
         return 'bg-emerald-500/10 text-emerald-500'
       case 'medium':
         return 'bg-amber-500/10 text-amber-500'
       case 'hard':
         return 'bg-red-500/10 text-red-500'
+      case 'horrible':
+        return 'bg-purple-500/10 text-purple-500'
       default:
         return 'bg-slate-500/10 text-slate-500'
     }
+  }
+
+  if (!recommendedChallenge) {
+    return (
+      <Card className="w-full py-0">
+        <div className="flex flex-col items-center justify-center p-6 text-center">
+          <SearchX className="h-12 w-12 text-muted-foreground mb-4" />
+          <CardTitle className="text-xl mb-1">No recommendations right now</CardTitle>
+          <CardDescription className="mb-4">
+            Keep exploring challenges so we can better suggest your next steps!
+          </CardDescription>
+          <Button asChild>
+            <Link href="/challenges">Explore Challenges</Link>
+          </Button>
+        </div>
+      </Card>
+    )
   }
 
   return (
     <Card className="w-full py-0">
       <div className="flex justify-between items-center p-6">
         <div className="flex-1 mr-6">
+          <div className="mb-2 text-sm font-medium text-primary">
+            Recommended for: {recommendedSkillName || 'your progress'}
+          </div>
           <div className="flex items-center gap-2 mb-1.5">
-            <CardTitle className="text-xl">{challenge.title}</CardTitle>
-            <Badge className={getDifficultyColor(challenge.difficulty)} variant="secondary">
-              {challenge.difficulty}
+            <CardTitle className="text-xl">{recommendedChallenge.title}</CardTitle>
+            <Badge
+              className={getDifficultyColor(recommendedChallenge.difficulty)}
+              variant="secondary"
+            >
+              {recommendedChallenge.difficulty || 'N/A'}
             </Badge>
           </div>
           <div className="flex items-center gap-4">
             <CardDescription className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
-              <span>{challenge.baseExperience} XP</span>
+              <span>{recommendedChallenge.baseExperience || '?'} XP</span>
             </CardDescription>
             <div className="flex flex-wrap gap-2">
-              {challenge.concepts?.map((conceptObj) => (
-                <Badge key={conceptObj.id} variant="outline" className="flex items-center gap-1">
-                  <Brain className="h-3 w-3" />
-                  {conceptObj.concept}
-                </Badge>
-              ))}
+              {recommendedChallenge.concepts?.map((conceptObj: any) =>
+                conceptObj && conceptObj.id && conceptObj.concept ? (
+                  <Badge key={conceptObj.id} variant="outline" className="flex items-center gap-1">
+                    <Brain className="h-3 w-3" />
+                    {typeof conceptObj.concept === 'string' ? conceptObj.concept : 'Concept'}
+                  </Badge>
+                ) : null,
+              )}
             </div>
           </div>
         </div>
         <Button asChild>
-          <Link href={`/challenges/${challenge.slug}`}>Start Challenge</Link>
+          <Link href={`/challenges/${recommendedChallenge.slug}`}>Start Challenge</Link>
         </Button>
       </div>
     </Card>
   )
 }
-
 
 /*  
 

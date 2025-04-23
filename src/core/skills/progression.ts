@@ -1,13 +1,9 @@
+import type {
+  Concept
+} from '@/payload-types'; // Assurez-vous que les types Payload sont à jour
 import config from '@payload-config'
 import { getPayload } from 'payload'
-import type {
-  Challenge,
-  Skill,
-  Concept,
-  ImplementationConcept,
-  UserImplementationConceptProgressions,
-  UserConceptProgressions,
-} from '@/payload-types' // Assurez-vous que les types Payload sont à jour
+import { getChallengeWithDepth, getSkillBySlug } from './index'
 
 const PROPAGATION_FACTOR = 0.5 // Facteur de propagation (ajuster si nécessaire)
 
@@ -29,35 +25,22 @@ export const recordChallengeCompletion = async (
   )
 
   try {
-    const payload = await getPayload({ config })
 
     // 1. Trouver l'ID de la Skill correspondant au slug
-    const skillQueryResult = await payload.find({
-      collection: 'skills',
-      where: {
-        slug: {
-          equals: skillSlug,
-        },
-      },
-      limit: 1,
-      depth: 0, // On n'a besoin que de l'ID
-    })
+    const skillQueryResult = await getSkillBySlug(skillSlug)
 
-    if (!skillQueryResult.docs.length) {
+    if (!skillQueryResult) {
       console.error(`Skill with slug "${skillSlug}" not found! Cannot apply impacts.`)
       return // Arrêter si la skill n'existe pas
     }
-    const targetSkillId = skillQueryResult.docs[0].id
+
+    const targetSkillId = skillQueryResult.id
     console.log(`Found target Skill ID: ${targetSkillId}`)
 
     // 2. Récupérer le document Challenge avec ses impacts
     // Note: La depth nécessaire peut varier selon votre configuration et si les relations sont stockées comme ID ou objets.
     // depth: 3 pourrait être nécessaire pour peupler skill -> impacts -> implementationConcept/concept
-    const challenge = await payload.findByID({
-      collection: 'challenges',
-      id: challengeId,
-      depth: 3, // Augmenter la profondeur pour peupler les relations nécessaires
-    })
+    const challenge = await getChallengeWithDepth(challengeId)
 
     if (!challenge) {
       console.error(`Challenge with ID ${challengeId} not found.`)
@@ -188,7 +171,7 @@ export const updateUserImplementationProgression = async (
       // 3. Créer si elle n'existe pas
       const newProgress = Math.min(100, amount) // Capper à 100
       console.log(`  Creating new progression record with value ${newProgress}.`)
-      const createdProgression = await payload.create({
+      await payload.create({
         // Garder une référence
         collection: 'userImplementationConceptProgressions',
         data: {
@@ -363,17 +346,6 @@ export const propagateProgressionToBaseConcept = async (
 
     // 4. Appeler la fonction de mise à jour pour le Concept parent
     await updateUserConceptProgression(userId, parentConceptId, modulatedGain)
-
-    // ---> TRIGGER PREREQUISITE CHECK JOB <---
-    console.log(
-      `  -> Queueing prerequisite check job for the updated parent concept ${parentConceptId}`,
-    )
-    await payload.jobs.queue({
-      task: 'checkAndUpdatePrerequisites',
-      input: { userId: userId, conceptId: parentConceptId }, // Vérifier les prérequis du concept qui vient de progresser
-      queue: 'skill-prerequisites',
-    })
-    // ---> END TRIGGER <---
   } catch (error) {
     console.error(
       `Error propagating progression for user ${userId}, implConcept ${implementationConceptId}:`,
