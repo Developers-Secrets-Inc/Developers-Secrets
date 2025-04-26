@@ -21,7 +21,7 @@ interface SkillsClientWrapperProps {
   skills: Skill[] // Recevoir la liste des skills en prop
 }
 
-function SkillsClientWrapper({ skills }: SkillsClientWrapperProps) {
+export function SkillsClientWrapper({ skills }: SkillsClientWrapperProps) {
   // État pour la compétence sélectionnée (initialiser avec le premier skill si disponible)
   const [selectedSkillSlug, setSelectedSkillSlug] = useState<string | undefined>(skills[0]?.slug)
 
@@ -36,33 +36,32 @@ function SkillsClientWrapper({ skills }: SkillsClientWrapperProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Sélecteur de compétences */}
-      <div className="p-4 border-b">
-        {' '}
-        {/* Ajouter un peu de style */}
-        <Select value={selectedSkillSlug} onValueChange={handleSkillChange}>
-          <SelectTrigger className="w-[280px]">
-            <SelectValue placeholder="Select a skill" />
-          </SelectTrigger>
-          <SelectContent>
-            {skills.map((skill) => (
-              <SelectItem key={skill.id} value={skill.slug}>
-                {skill.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <div className="flex-1 w-full h-[calc(100vh-4rem)] overflow-auto px-4 mx-auto">
+      <div className="flex flex-col h-full">
+        {/* Sélecteur de compétences */}
+        <div className="p-4 border-b">
+          {' '}
+          {/* Ajouter un peu de style */}
+          <Select value={selectedSkillSlug} onValueChange={handleSkillChange}>
+            <SelectTrigger className="w-[280px]">
+              <SelectValue placeholder="Select a skill" />
+            </SelectTrigger>
+            <SelectContent>
+              {skills.map((skill) => (
+                <SelectItem key={skill.id} value={skill.slug}>
+                  {skill.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      {/* Conteneur pour le SkillTreeViewer qui prend la hauteur restante */}
-      <div className="flex-grow">
-        {/* Passer le slug de la compétence sélectionnée à SkillTreeViewer */}
-        <SkillTreeViewer selectedSkillSlug={selectedSkillSlug} />
+        {/* Conteneur pour le SkillTreeViewer qui prend la hauteur restante */}
+        <div className="flex-grow">
+          {/* Passer le slug de la compétence sélectionnée à SkillTreeViewer */}
+          <SkillTreeViewer selectedSkillSlug={selectedSkillSlug} />
+        </div>
       </div>
     </div>
   )
 }
-
-export default SkillsClientWrapper
- 

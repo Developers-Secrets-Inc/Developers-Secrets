@@ -3,17 +3,16 @@
 import 'server-only'
 
 import { UserInformation as PayloadUserInformation } from '@/payload-types'
-import {
-  User,
-  UserInformations,
-  UserPermission,
-  UserRole
-} from '@/types/user'
+import { User, UserInformations, UserPermission, UserRole } from '@/types/user'
 import { createClient } from '@/utils/supabase/server'
 import config from '@payload-config'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 import { getPayload } from 'payload'
-import { SupabaseUserNotFoundError, UserInformationsNotFoundError, UserNotFoundError } from './errors'
+import {
+  SupabaseUserNotFoundError,
+  UserInformationsNotFoundError,
+  UserNotFoundError,
+} from './errors'
 import { isError, Result } from './result'
 import { UserId, validateUserId } from './types'
 
@@ -120,9 +119,6 @@ const getSupabaseUser = async (): Promise<SupabaseUser | null> => {
   return data.user
 }
 
-
-
-
 export const getUser = async (): Promise<User | null> => {
   const supabaseUser = await getSupabaseUser()
 
@@ -153,11 +149,6 @@ export const getUserById = async (userId: UserId): Promise<Result<User, UserNotF
   return { success: true, value: { ...data.user, informations: user } }
 }
 
-
-
-
-
-
 const getSessionUserInformations = async (
   supabaseUser: SupabaseUser,
 ): Promise<Result<UserInformations, UserInformationsNotFoundError>> => {
@@ -165,8 +156,9 @@ const getSessionUserInformations = async (
   return { success: true, value: userInformations }
 }
 
-
-const getSupabaseSessionUser = async (): Promise<Result<SupabaseUser, SupabaseUserNotFoundError>> => {
+const getSupabaseSessionUser = async (): Promise<
+  Result<SupabaseUser, SupabaseUserNotFoundError>
+> => {
   try {
     const supabaseClient = await createClient()
     const { data, error } = await supabaseClient.auth.getUser()
@@ -193,17 +185,19 @@ export const getSessionUser = async (): Promise<Result<User, UserNotFoundError>>
 
   const userInformations = await getSessionUserInformations(supabaseSessionUser.value)
 
-
   if (isError(userInformations)) {
     return { success: false, error: new UserNotFoundError(userInformations.error.message) }
   }
 
-  return { success: true, value: { ...supabaseSessionUser.value, informations: userInformations.value } }
+  return {
+    success: true,
+    value: { ...supabaseSessionUser.value, informations: userInformations.value },
+  }
 }
 
-
-
-const getAllSupabaseUsers = async (): Promise<Result<SupabaseUser[], SupabaseUserNotFoundError>> => {
+const getAllSupabaseUsers = async (): Promise<
+  Result<SupabaseUser[], SupabaseUserNotFoundError>
+> => {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.admin.listUsers()
 
@@ -214,7 +208,9 @@ const getAllSupabaseUsers = async (): Promise<Result<SupabaseUser[], SupabaseUse
   return { success: true, value: data.users }
 }
 
-const getSupabaseUserByEmail = async (email: string): Promise<Result<SupabaseUser, SupabaseUserNotFoundError>> => {
+const getSupabaseUserByEmail = async (
+  email: string,
+): Promise<Result<SupabaseUser, SupabaseUserNotFoundError>> => {
   const allSupabaseUsers = await getAllSupabaseUsers()
 
   if (isError(allSupabaseUsers)) {
@@ -242,13 +238,4 @@ export const getUserByEmail = async (email: string): Promise<Result<User, UserNo
   return { success: true, value: { ...supabaseUser.value, informations: userInformations } }
 }
 
-
-
-
-// ============= 
-
-
-
-
-
-
+// =============

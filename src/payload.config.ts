@@ -44,6 +44,12 @@ import { Users } from './collections/Users'
 import { UserSolutions } from './collections/UserSolutions'
 import { WeeklyDivisionLeaderboards } from './collections/WeeklyDivisionLeaderboards'
 import { WeeklyLeaderboardMembers } from './collections/WeeklyLeaderboardMembers'
+import { ConceptGroups } from './collections/ConceptGroups'
+import { Courses } from './collections/Courses'
+import { Chapters } from './collections/Chapters'
+import { CourseParts } from './collections/CourseParts'
+import { CoursePartUserProgression } from './collections/CoursePartUserProgression'
+import { CoursePartSubmissions } from './collections/CoursePartSubmissions'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -93,6 +99,12 @@ export default buildConfig({
     ImplementationConcepts,
     UserConceptProgressions,
     UserImplementationConceptProgressions,
+    ConceptGroups,
+    Courses,
+    Chapters,
+    CourseParts,
+    CoursePartUserProgression,
+    CoursePartSubmissions,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

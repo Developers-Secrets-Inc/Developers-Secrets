@@ -213,17 +213,12 @@ export async function getRecommendedChallenges(
         return false // Aucun impact pertinent trouvé pour ce challenge et cette skill
       })
 
-      console.log(`  Found ${relevantChallenges.length} relevant challenges for ${skillInfo.name}.`)
 
       // 7. Ordonner (simpliste) et sélectionner
       // TODO: Améliorer l'ordonnancement (difficulté, etc.)
       recommendations[skillInfo.name] = relevantChallenges
         .sort((a, b) => (a.difficulty || '').localeCompare(b.difficulty || '')) // Tri simple par difficulté
         .slice(0, countPerSkill)
-
-      console.log(
-        `  Recommending ${recommendations[skillInfo.name].length} challenges for ${skillInfo.name}.`,
-      )
     } // Fin de la boucle sur les skills actives
 
     return recommendations

@@ -24,8 +24,14 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet' // Assuming this is the correct path
 import ConceptNode from './concept-node' // Import the custom node
-import { fetchSkillTreeAction } from '@/core/skills/actions' // Import the Server Action
+import { fetchSkillTreeAction, fetchChallengesForConceptAction } from '@/core/skills/actions' // Import the Server Action
 import { Skeleton } from '@/components/ui/skeleton' // For loading state
+import type { SimpleChallenge } from '@/core/challenges' // Assuming SimpleChallenge is exported
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
+import { ReactFlowProvider } from 'reactflow' // Keep provider import
 
 // Define the props interface
 interface SkillTreeViewerProps {
@@ -148,36 +154,127 @@ const ErrorDisplay = ({ message }: { message: string }) => (
   </div>
 )
 
+// --- Helper for Challenge Difficulty Badge Style ---
+const getDifficultyBadgeClass = (difficulty: SimpleChallenge['difficulty']): string => {
+  switch (difficulty) {
+    case 'easy':
+      return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+    case 'medium':
+      return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+    case 'hard':
+      return 'bg-red-500/10 text-red-500 border-red-500/20'
+    case 'horrible':
+      return 'bg-purple-500/10 text-purple-500 border-purple-500/20'
+    default:
+      return ''
+  }
+}
+
+// --- Component to render the list inside the sheet ---
+const SheetChallengeList = ({
+  challenges,
+  isLoading,
+  error,
+}: {
+  challenges: SimpleChallenge[] | null
+  isLoading: boolean
+  error: string | null
+}) => {
+  if (isLoading) {
+    return (
+      <div className="space-y-3 py-4 px-4">
+        {/* Skeleton for challenge list */}
+        {[1, 2].map((i) => (
+          <div key={i} className="p-3 border rounded-md flex items-center justify-between gap-3">
+            <div className="flex-1 flex items-center gap-2 min-w-0">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <Skeleton className="h-8 w-16" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (error) {
+    return <p className="text-sm text-destructive py-4">{error}</p>
+  }
+
+  if (!challenges || challenges.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground py-4">
+        No related challenges found for this concept.
+      </p>
+    )
+  }
+
+  return (
+    <div className="py-4 space-y-3 px-4">
+      {challenges.map((challenge) => (
+        <div
+          key={challenge.id}
+          className="p-3 border rounded-md flex items-center justify-between gap-3"
+        >
+          <div className="flex-1 flex items-center gap-2 min-w-0">
+            <p className="font-medium truncate text-sm" title={challenge.title}>
+              {challenge.title}
+            </p>
+            <Badge
+              variant="secondary"
+              className={cn(
+                'capitalize text-xs px-1.5 py-0.5 font-medium border whitespace-nowrap',
+                getDifficultyBadgeClass(challenge.difficulty),
+              )}
+            >
+              {challenge.difficulty}
+            </Badge>
+          </div>
+          {/* Ensure link points to the correct challenge description page */}
+          <Button asChild variant="outline" size="sm" className="whitespace-nowrap">
+            <Link href={`/challenges/${challenge.slug}/description`}>View</Link>
+          </Button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function SkillTreeViewer({ selectedSkillSlug }: SkillTreeViewerProps) {
   // Initialize state empty, data will be fetched
   const [nodes, setNodes] = useState<Node[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isLoadingTree, setIsLoadingTree] = useState(false)
+  const [treeError, setTreeError] = useState<string | null>(null)
   const [selectedConcept, setSelectedConcept] = useState<any>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const { fitView } = useReactFlow() // Get fitView function
+
+  // State for the sheet content (challenges)
+  const [challengeList, setChallengeList] = useState<SimpleChallenge[] | null>(null)
+  const [isLoadingChallenges, setIsLoadingChallenges] = useState(false)
+  const [challengesError, setChallengesError] = useState<string | null>(null)
 
   // Effect to fetch data when selectedSkillSlug changes
   useEffect(() => {
     if (!selectedSkillSlug) {
       setNodes([])
       setEdges([])
-      setError(null)
-      setIsLoading(false)
+      setTreeError(null)
+      setIsLoadingTree(false)
       return // No skill selected
     }
 
     const fetchData = async () => {
-      setIsLoading(true)
-      setError(null)
+      setIsLoadingTree(true)
+      setTreeError(null)
       console.log(`Calling fetchSkillTreeAction for slug: ${selectedSkillSlug}`)
       try {
         const result = await fetchSkillTreeAction(selectedSkillSlug)
 
         if (result.error) {
           console.error('Error from Server Action:', result.error)
-          setError(result.error)
+          setTreeError(result.error)
           setNodes([])
           setEdges([])
         } else {
@@ -192,11 +289,11 @@ function SkillTreeViewer({ selectedSkillSlug }: SkillTreeViewerProps) {
         }
       } catch (err: any) {
         console.error('Client-side error calling action:', err)
-        setError('An unexpected error occurred.')
+        setTreeError('An unexpected error occurred.')
         setNodes([])
         setEdges([])
       } finally {
-        setIsLoading(false)
+        setIsLoadingTree(false)
       }
     }
 
@@ -205,6 +302,38 @@ function SkillTreeViewer({ selectedSkillSlug }: SkillTreeViewerProps) {
     // Only re-run when the slug changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSkillSlug, fitView]) // Added fitView to dependency array
+
+  // Effect to fetch CHALLENGES when sheet opens for a concept
+  useEffect(() => {
+    if (isSheetOpen && selectedConcept?.conceptId) {
+      const conceptId = selectedConcept.conceptId
+      const fetchChallenges = async () => {
+        setIsLoadingChallenges(true)
+        setChallengesError(null)
+        setChallengeList(null) // Clear previous list
+        console.log(`Fetching challenges for concept: ${conceptId}`)
+        try {
+          const result = await fetchChallengesForConceptAction(conceptId)
+          if (result.error) {
+            setChallengesError(result.error)
+          } else {
+            setChallengeList(result.challenges || [])
+          }
+        } catch (err) {
+          console.error('Client-side error fetching challenges:', err)
+          setChallengesError('Failed to load challenges.')
+        } finally {
+          setIsLoadingChallenges(false)
+        }
+      }
+      fetchChallenges()
+    } else {
+      // Clear state when sheet is closed or no concept selected
+      setChallengeList(null)
+      setIsLoadingChallenges(false)
+      setChallengesError(null)
+    }
+  }, [isSheetOpen, selectedConcept?.conceptId]) // Dependencies: sheet state and concept ID
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -215,11 +344,15 @@ function SkillTreeViewer({ selectedSkillSlug }: SkillTreeViewerProps) {
     [setEdges], // Keep setEdges dependency
   )
 
-  // Handler for node clicks
+  // Reset challenge state when node is clicked BEFORE opening sheet
   const handleNodeClick: NodeMouseHandler = useCallback((event, node) => {
     console.log('Node clicked:', node)
-    setSelectedConcept(node.data) // Store node data (or just the ID)
-    setIsSheetOpen(true) // Open the sheet
+    setSelectedConcept(node.data)
+    // Reset challenge-related states immediately
+    setChallengeList(null)
+    setIsLoadingChallenges(false)
+    setChallengesError(null)
+    setIsSheetOpen(true) // Then open the sheet
   }, [])
 
   return (
@@ -228,8 +361,8 @@ function SkillTreeViewer({ selectedSkillSlug }: SkillTreeViewerProps) {
       style={{ height: '100%', width: '100%' }}
       className="relative bg-muted/20 rounded-md overflow-hidden"
     >
-      {isLoading && <TreeSkeleton />}
-      {error && !isLoading && <ErrorDisplay message={error} />}
+      {isLoadingTree && <TreeSkeleton />}
+      {treeError && !isLoadingTree && <ErrorDisplay message={treeError} />}
 
       <ReactFlow
         nodes={nodes}
@@ -258,27 +391,27 @@ function SkillTreeViewer({ selectedSkillSlug }: SkillTreeViewerProps) {
         defaultEdgeOptions={{ type: 'smoothstep', style: { strokeWidth: 1.5, stroke: '#a1a1aa' } }} // zinc-500
         connectionLineStyle={{ strokeWidth: 1.5, stroke: '#a1a1aa' }}
         // Only render flow when not loading and no error, or if nodes exist despite error
-        style={{ visibility: isLoading || (error && nodes.length === 0) ? 'hidden' : 'visible' }}
+        style={{
+          visibility: isLoadingTree || (treeError && nodes.length === 0) ? 'hidden' : 'visible',
+        }}
       >
         <Background gap={16} color="#e4e4e7" />
       </ReactFlow>
       {/* Sheet Component */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
           {' '}
-          {/* You can specify side='left' or others */}
+          {/* Allow scroll */}
           <SheetHeader>
             <SheetTitle>Concept: {selectedConcept?.label}</SheetTitle>
-            <SheetDescription>
-              Challenges and courses related to this concept will be displayed here. Concept ID:{' '}
-              {selectedConcept?.conceptId}
-            </SheetDescription>
+            <SheetDescription>Related challenges to practice this concept.</SheetDescription>
           </SheetHeader>
-          <div className="p-4">
-            {/* TODO: Fetch and display actual challenges/courses based on selectedConcept */}
-            <p>List of related content...</p>
-          </div>
-          {/* Add SheetFooter if needed */}
+          {/* Render the challenge list component */}
+          <SheetChallengeList
+            challenges={challengeList}
+            isLoading={isLoadingChallenges}
+            error={challengesError}
+          />
         </SheetContent>
       </Sheet>
     </div>
@@ -286,8 +419,6 @@ function SkillTreeViewer({ selectedSkillSlug }: SkillTreeViewerProps) {
 }
 
 // Wrap SkillTreeViewer with ReactFlowProvider to use useReactFlow hook
-import { ReactFlowProvider } from 'reactflow'
-
 function SkillTreeViewerWrapper(props: SkillTreeViewerProps) {
   return (
     <ReactFlowProvider>

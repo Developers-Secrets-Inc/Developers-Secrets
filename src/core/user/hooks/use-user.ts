@@ -2,10 +2,15 @@ import { useQuery } from '@tanstack/react-query'
 import { getUser } from '..'
 import { User } from '@/types/user'
 
-export const useUser = () => {
-  const { data: user, isLoading } = useQuery<User>({
-    queryKey: ['user'],
-    queryFn: () => getUser(),
+export const useSessionUser = () => {
+  const {
+    data: user,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<User | null>({
+    queryKey: ['sessionUser'],
+    queryFn: getUser,
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: false,
   })
@@ -13,5 +18,7 @@ export const useUser = () => {
   return {
     user,
     isLoading,
+    isError,
+    error,
   }
 }

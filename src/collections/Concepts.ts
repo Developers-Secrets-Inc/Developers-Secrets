@@ -52,6 +52,26 @@ export const Concepts: CollectionConfig = {
       },
     },
     {
+      name: 'parentConcept',
+      label: 'Parent Concept (for Grouping)',
+      type: 'relationship',
+      relationTo: 'concepts', // Self-relation
+      hasMany: false, // A concept belongs to at most one parent group concept
+      required: false, // Optional, not all concepts need a grouping parent
+      admin: {
+        description:
+          'Optional: Select another concept that acts as a logical parent or category for this one (e.g., "Data Types" could be the parent of "Strings").',
+        position: 'sidebar', // Keep sidebar less cluttered
+      },
+      filterOptions: ({ id }) => {
+        // Prevent a concept from being its own parent
+        if (id) {
+          return { id: { not_equals: id } }
+        }
+        return true
+      },
+    },
+    {
       name: 'requiredConcepts',
       label: 'Required Concepts',
       type: 'relationship',
@@ -69,6 +89,16 @@ export const Concepts: CollectionConfig = {
       hasMany: true,
       admin: {
         description: 'Concepts that logically follow this one in potential learning paths.',
+      },
+    },
+    {
+      name: 'groups', // Categories/groups this concept belongs to
+      label: 'Concept Groups',
+      type: 'relationship',
+      relationTo: 'conceptGroups',
+      hasMany: true,
+      admin: {
+        position: 'sidebar',
       },
     },
   ],

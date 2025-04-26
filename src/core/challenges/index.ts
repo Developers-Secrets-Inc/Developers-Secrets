@@ -1,12 +1,13 @@
 'use server'
 
+import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { DEFAULT_LEVEL_UP_FORMULA, getGamificationInformations } from '@/core/gamification/level'
 import { getUserIsSolutionUnlocked } from '@/core/challenges/user-progression'
 
 import { Challenge } from '@/types/challenge'
-import { Challenge as PayloadChallenge } from '@/payload-types'
+import type { Challenge as PayloadChallenge } from '@/payload-types'
 
 class ChallengeNotFoundError extends Error {
   constructor() {
@@ -273,7 +274,6 @@ export const getNextChallengeUrl = async (currentSlug: string): Promise<string> 
 }
 
 export const getChallengeExperience = async (challengeId: number): Promise<number> => {
-  const payload = await getPayload({ config })
   const challenge = await getPayloadChallenge(challengeId)
   return challenge.baseExperience || 50 // Default to 50 if not set
 }
@@ -295,8 +295,6 @@ export const getChallengeCompletionData = async (
   challengeId: number,
   challengeSlug: string,
 ): Promise<ChallengeCompletionData> => {
-  const payload = await getPayload({ config })
-
   // Fetch all required data in parallel
   const [challenge, nextChallenge, wasUnlocked, gamificationInfo] = await Promise.all([
     getPayloadChallenge(challengeId),
@@ -317,3 +315,96 @@ export const getChallengeCompletionData = async (
     },
   }
 }
+
+// Define the simplified structure for return (id is number)
+export interface SimpleChallenge {
+  id: number
+  title: string
+  slug: string
+  difficulty: 'easy' | 'medium' | 'hard' | 'horrible' | string // Allow string for flexibility
+}
+
+/**
+ * Fetches challenges related to a specific abstract Concept ID.
+ * Searches through nested skillImpacts blocks.
+ *
+ * @param conceptId - The ID of the abstract Concept.
+ * @returns A promise resolving to an array of simplified challenge objects.
+ */
+export const getChallengesForConcept = async (conceptId: number): Promise<SimpleChallenge[]> => {
+  if (!conceptId) {
+    console.warn('getChallengesForConcept called with invalid conceptId')
+    return []
+  }
+
+  console.log(`Fetching challenges related to Concept ID: ${conceptId}`)
+  const payload = await getPayload({ config })
+
+  try {
+    const challengesResult = await payload.find({
+      collection: 'challenges',
+      limit: 0,
+      depth: 2, // Keep depth 2
+      pagination: false,
+    })
+
+    // Filter in code with correct nested iteration
+    const filteredDocs = (challengesResult.docs as PayloadChallenge[]).filter(
+      (challenge) =>
+        challenge.skillImpacts?.some((skillImpactSet) =>
+          skillImpactSet.impacts?.some((impactBlock) => {
+            // Use type assertion as any to bypass persistent linter issue
+            const block = impactBlock as any
+
+            // Check if it's the correct block type
+            if (block.blockType !== 'baseConceptImpact') {
+              return false
+            }
+            // Check if the concept field exists
+            if (!block.concept) {
+              return false
+            }
+            // Compare the concept ID
+            const impactConceptId =
+              typeof block.concept === 'number' ? block.concept : block.concept.id
+            return impactConceptId === conceptId
+          }),
+        ) ?? false,
+    )
+
+    // Map the *filtered* documents
+    const challenges = filteredDocs
+      .map((doc) => ({
+        id: doc.id,
+        title: doc.title,
+        slug: doc.slug,
+        difficulty: doc.difficulty ?? 'medium',
+      }))
+      .filter((c) => c.id && c.title && c.slug && c.difficulty)
+
+    console.log(`Found ${challenges.length} challenges for concept ${conceptId} after filtering.`)
+    return challenges
+  } catch (error) {
+    console.error(`Error fetching challenges for concept ID ${conceptId}:`, error)
+    return [] // Return empty array on error
+  }
+}
+
+// --- Keep other existing functions in this file ---
+// Example: Assuming getChallengeWithDepth exists here
+export const getChallengeWithDepth = async (challengeId: number): Promise<PayloadChallenge> => {
+  const payload = await getPayload({ config })
+  const challenge = await payload.findByID({
+    collection: 'challenges',
+    id: challengeId,
+    depth: 3,
+  })
+
+  if (!challenge) {
+    throw new Error(`Challenge with ID "${challengeId}" not found`)
+  }
+
+  return challenge as PayloadChallenge
+}
+
+// Add other functions from src/core/challenges/index.ts if they exist

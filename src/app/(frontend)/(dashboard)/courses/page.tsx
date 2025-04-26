@@ -1,20 +1,15 @@
-import { ProfileCard } from '@/core/profile/components/profile-card'
-import { SidebarInset } from '@/components/ui/sidebar'
-import { HomeHeader } from '../home/components/home-header'
-import { CurrentCourseCard } from '@/components/cards/current-course-card'
+import { AuthGuard } from '@/components/auth/auth-guard'
 import { CoursesGrid } from '@/components/cards/courses-grid'
-import { HomeSidebar } from '../home/components/home-sidebar'
-import { SidebarProvider } from '@/components/ui/sidebar'
-import { ChallengeCard } from '@/components/cards/challenge-card'
-import { LeaderboardCard } from '@/components/cards/leaderboard-card'
-import { GuildCard } from '@/components/cards/guild-card'
+import { CurrentCourseCard } from '@/components/cards/current-course-card'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
+import { getCoursesWithStartUrl } from '@/core/courses'
 
-export default function Page() {
+export default async function Page() {
+  const courses = await getCoursesWithStartUrl()
+
   return (
-    <SidebarProvider>
-      <HomeSidebar />
-      <SidebarInset>
-        <HomeHeader />
+    <AuthGuard>
+      <DashboardLayout>
         <div className="flex flex-1 flex-col gap-6 max-w-[1400px] mx-auto py-8">
           <div className="flex flex-wrap gap-6">
             {/* Colonne de gauche : Cours actuel et Challenge */}
@@ -25,10 +20,10 @@ export default function Page() {
 
           {/* Troisième rangée: Guilde (pleine largeur) */}
           <div className="w-full">
-            <CoursesGrid />
+            <CoursesGrid courses={courses} />
           </div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </DashboardLayout>
+    </AuthGuard>
   )
 }
