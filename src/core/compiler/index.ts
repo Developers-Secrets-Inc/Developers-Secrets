@@ -39,54 +39,19 @@ const createJavaScriptWorker = (code: string): Promise<CompilationResult> => {
   }
 
   return new Promise((resolve) => {
-    // Create a blob that contains the worker code
-    const blob = new Blob([
-      `
-      self.onmessage = function(e) {
-        try {
-          // Create a function from the code and execute it
-          const result = new Function(e.data)();
-          
-          // Capture console.log output
-          let output = '';
-          const originalLog = console.log;
-          console.log = function(...args) {
-            output += args.map(arg => 
-              typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-            ).join(' ') + '\\n';
-            originalLog.apply(console, args);
-          };
-          
-          // Execute the code
-          eval(e.data);
-          
-          // Restore console.log
-          console.log = originalLog;
-          
-          self.postMessage({ success: true, output });
-        } catch (error) {
-          self.postMessage({ success: false, error: error.message, output: '' });
-        }
-      };
-      `,
-    ])
-
-    // Create a URL for the blob
-    const blobURL = URL.createObjectURL(blob)
-
-    // Create a new worker
-    const worker = new Worker(blobURL)
+    // Create a new worker from the external file, specifying it's a module
+    const worker = new Worker(new URL('./workers/eval-worker.mjs', import.meta.url), {
+      type: 'module',
+    })
 
     // Handle messages from the worker
     worker.onmessage = (e) => {
-      URL.revokeObjectURL(blobURL)
       worker.terminate()
       resolve(e.data)
     }
 
     // Handle errors
     worker.onerror = (e) => {
-      URL.revokeObjectURL(blobURL)
       worker.terminate()
       resolve({
         success: false,
@@ -111,45 +76,17 @@ const createTypeScriptWorker = (code: string): Promise<CompilationResult> => {
   }
 
   return new Promise((resolve) => {
-    const blob = new Blob([
-      `
-      self.onmessage = function(e) {
-        try {
-          // Capture console.log output
-          let output = '';
-          const originalLog = console.log;
-          console.log = function(...args) {
-            output += args.map(arg => 
-              typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-            ).join(' ') + '\\n';
-            originalLog.apply(console, args);
-          };
-          
-          // Execute the code
-          eval(e.data);
-          
-          // Restore console.log
-          console.log = originalLog;
-          
-          self.postMessage({ success: true, output });
-        } catch (error) {
-          self.postMessage({ success: false, error: error.message, output: '' });
-        }
-      };
-      `,
-    ])
-
-    const blobURL = URL.createObjectURL(blob)
-    const worker = new Worker(blobURL)
+    // Create a new worker from the external file, specifying it's a module
+    const worker = new Worker(new URL('./workers/eval-worker.mjs', import.meta.url), {
+      type: 'module',
+    })
 
     worker.onmessage = (e) => {
-      URL.revokeObjectURL(blobURL)
       worker.terminate()
       resolve(e.data)
     }
 
     worker.onerror = (e) => {
-      URL.revokeObjectURL(blobURL)
       worker.terminate()
       resolve({
         success: false,

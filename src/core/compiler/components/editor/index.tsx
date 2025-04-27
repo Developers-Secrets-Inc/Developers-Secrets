@@ -1,11 +1,17 @@
 'use client'
 
-import { AcceptedSubmission, RunTimeErrorSubmission, submitCode, TimeLimitExceededSubmission, WrongAnswerSubmission } from '@/core/challenges/submissions/index.client'
 import {
-    compileCode,
-    getPyodideLoadError,
-    isPyodideLoaded,
-    isPyodideLoading
+  AcceptedSubmission,
+  RunTimeErrorSubmission,
+  submitCode,
+  TimeLimitExceededSubmission,
+  WrongAnswerSubmission,
+} from '@/core/challenges/submissions/index.client'
+import {
+  compileCode,
+  getPyodideLoadError,
+  isPyodideLoaded,
+  isPyodideLoading,
 } from '@/core/compiler'
 import { cn } from '@/lib/utils'
 import { Editor, OnMount } from '@monaco-editor/react'
@@ -50,7 +56,11 @@ type CodeEditorProps = {
   onChange?: (value: string) => void
   onRun?: (code: string) => void
   onSubmit?: (
-    submission: AcceptedSubmission | RunTimeErrorSubmission | WrongAnswerSubmission | TimeLimitExceededSubmission,
+    submission:
+      | AcceptedSubmission
+      | RunTimeErrorSubmission
+      | WrongAnswerSubmission
+      | TimeLimitExceededSubmission,
   ) => void
   readOnly?: boolean
   height?: string
@@ -370,7 +380,6 @@ export function CodeEditor({
 
       // Submit the code regardless of test results
 
-      
       const submission = await submitCode(
         {
           content: currentCode,

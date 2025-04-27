@@ -1,13 +1,9 @@
+'use server'
+
+import type { Concept } from '@/payload-types' // Assurez-vous que les types Payload sont à jour
 import config from '@payload-config'
 import { getPayload } from 'payload'
-import type {
-  Challenge,
-  Skill,
-  Concept,
-  ImplementationConcept,
-  UserImplementationConceptProgressions,
-  UserConceptProgressions,
-} from '@/payload-types' // Assurez-vous que les types Payload sont à jour
+import { getChallengeWithDepth, getSkillBySlug } from './index'
 
 const PROPAGATION_FACTOR = 0.5 // Facteur de propagation (ajuster si nécessaire)
 
@@ -29,35 +25,21 @@ export const recordChallengeCompletion = async (
   )
 
   try {
-    const payload = await getPayload({ config })
-
     // 1. Trouver l'ID de la Skill correspondant au slug
-    const skillQueryResult = await payload.find({
-      collection: 'skills',
-      where: {
-        slug: {
-          equals: skillSlug,
-        },
-      },
-      limit: 1,
-      depth: 0, // On n'a besoin que de l'ID
-    })
+    const skillQueryResult = await getSkillBySlug(skillSlug)
 
-    if (!skillQueryResult.docs.length) {
+    if (!skillQueryResult) {
       console.error(`Skill with slug "${skillSlug}" not found! Cannot apply impacts.`)
       return // Arrêter si la skill n'existe pas
     }
-    const targetSkillId = skillQueryResult.docs[0].id
+
+    const targetSkillId = skillQueryResult.id
     console.log(`Found target Skill ID: ${targetSkillId}`)
 
     // 2. Récupérer le document Challenge avec ses impacts
     // Note: La depth nécessaire peut varier selon votre configuration et si les relations sont stockées comme ID ou objets.
     // depth: 3 pourrait être nécessaire pour peupler skill -> impacts -> implementationConcept/concept
-    const challenge = await payload.findByID({
-      collection: 'challenges',
-      id: challengeId,
-      depth: 3, // Augmenter la profondeur pour peupler les relations nécessaires
-    })
+    const challenge = await getChallengeWithDepth(challengeId)
 
     if (!challenge) {
       console.error(`Challenge with ID ${challengeId} not found.`)
@@ -188,7 +170,7 @@ export const updateUserImplementationProgression = async (
       // 3. Créer si elle n'existe pas
       const newProgress = Math.min(100, amount) // Capper à 100
       console.log(`  Creating new progression record with value ${newProgress}.`)
-      const createdProgression = await payload.create({
+      await payload.create({
         // Garder une référence
         collection: 'userImplementationConceptProgressions',
         data: {
@@ -363,21 +345,84 @@ export const propagateProgressionToBaseConcept = async (
 
     // 4. Appeler la fonction de mise à jour pour le Concept parent
     await updateUserConceptProgression(userId, parentConceptId, modulatedGain)
-
-    // ---> TRIGGER PREREQUISITE CHECK JOB <---
-    console.log(
-      `  -> Queueing prerequisite check job for the updated parent concept ${parentConceptId}`,
-    )
-    await payload.jobs.queue({
-      task: 'checkAndUpdatePrerequisites',
-      input: { userId: userId, conceptId: parentConceptId }, // Vérifier les prérequis du concept qui vient de progresser
-      queue: 'skill-prerequisites',
-    })
-    // ---> END TRIGGER <---
   } catch (error) {
     console.error(
       `Error propagating progression for user ${userId}, implConcept ${implementationConceptId}:`,
       error,
     )
+  }
+}
+
+/**
+ * Manually marks a specific implementation of a concept as mastered (100%)
+ * for a given user and skill.
+ *
+ * @param userId - The ID of the user (Supabase).
+ * @param conceptId - The ID of the BASE concept to master.
+ * @param skillSlug - The slug of the skill context (e.g., 'python').
+ * @returns Promise resolving when the update is attempted.
+ */
+export const masterConceptManually = async (
+  userId: string,
+  conceptId: number,
+  skillSlug: string,
+): Promise<void> => {
+  console.log(
+    `Attempting manual mastery for user ${userId}, concept ${conceptId}, skill ${skillSlug}`,
+  )
+  if (!userId || !conceptId || !skillSlug) {
+    console.error('Invalid arguments provided to masterConceptManually.')
+    throw new Error('Invalid arguments')
+  }
+
+  const payload = await getPayload({ config })
+
+  try {
+    // 1. Find the Skill ID
+    const skill = await getSkillBySlug(skillSlug)
+    if (!skill) {
+      console.error(`Skill "${skillSlug}" not found.`)
+      throw new Error('Skill not found')
+    }
+    const skillId = skill.id
+
+    // 2. Find the specific ImplementationConcept for this concept and skill
+    const implConceptsResult = await payload.find({
+      collection: 'implementationConcepts',
+      where: {
+        concept: { equals: conceptId },
+        implementationSkill: { equals: skillId },
+      },
+      limit: 1,
+      depth: 0, // Don't need relations here
+    })
+
+    if (implConceptsResult.docs.length === 0) {
+      console.error(
+        `No ImplementationConcept found for concept ${conceptId} and skill ${skillSlug}. Cannot master manually.`,
+      )
+      // Optionally: Fallback to mastering the base concept?
+      // await updateUserConceptProgression(userId, conceptId, 100);
+      // For now, we throw an error as the request implies skill-specific mastery
+      throw new Error('ImplementationConcept not found for this skill')
+    }
+
+    const implementationConceptId = implConceptsResult.docs[0].id
+    console.log(
+      `Found ImplementationConcept ID: ${implementationConceptId}. Proceeding to update...`,
+    )
+
+    // 3. Update the UserImplementationConceptProgression to 100
+    // Use a large amount like 1000 to ensure it reaches 100 even if propagation is weird
+    // The updateUserImplementationProgression function caps it at 100 anyway.
+    await updateUserImplementationProgression(userId, implementationConceptId, 1000) // Amount > 100 is fine
+
+    console.log(
+      `Manual mastery process completed for user ${userId}, concept ${conceptId}, skill ${skillSlug}.`,
+    )
+  } catch (error) {
+    console.error(`Error during manual mastery for user ${userId}, concept ${conceptId}:`, error)
+    // Re-throw the error so the frontend knows something went wrong
+    throw error
   }
 }
