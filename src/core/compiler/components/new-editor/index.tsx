@@ -277,7 +277,7 @@ function CodeEditorProvider({
 
   return (
     <GenericCodeEditorContext.Provider value={contextValue}>
-      <div className="h-full flex flex-col border overflow-hidden bg-background">{children}</div>
+      <div className="h-full flex flex-col overflow-hidden bg-background">{children}</div>
     </GenericCodeEditorContext.Provider>
   )
 }

@@ -32,13 +32,16 @@ type CreateSubmissionInput = Omit<PayloadSubmission, 'id' | 'createdAt' | 'updat
 // Counter for temporary IDs during optimistic updates
 let tempIdCounter = -1
 
-export const useCoursePartSubmissions = (partId: number, userId: string | null) => {
+export const useCoursePartSubmissions = (
+  partId: number,
+  userId: string | null,
+  initialData?: CoursePartSubmission[], // Add optional initialData
+) => {
   const queryClient = useQueryClient()
-  // Ensure query key reflects both partId and userId
   const queryKey = ['coursePartSubmissions', partId, userId] as const
 
   const {
-    data: submissions = [],
+    data: submissions = initialData || [], // Use initialData for default state if provided
     isLoading,
     isFetching,
   } = useQuery<CoursePartSubmission[]>({
@@ -65,7 +68,8 @@ export const useCoursePartSubmissions = (partId: number, userId: string | null) 
     },
     enabled: !!userId, // Only run query if userId is available
     staleTime: 60000, // Cache for 1 minute
-    placeholderData: (previousData) => previousData, // Keep showing old data while refetching
+    initialData: initialData, // Explicitly pass initialData here
+    placeholderData: undefined, // Remove placeholderData if using initialData
   })
 
   const addSubmission = useMutation({

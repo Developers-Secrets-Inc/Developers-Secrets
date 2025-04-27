@@ -3,6 +3,8 @@ import { CoursePartStatus, PartStatusSkeleton } from '@/core/courses/components/
 import React, { Suspense } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { FeedbackButton } from '@/core/courses/components/feedback-button'
+import { PartSkillsTags, PartSkillsTagsSkeleton } from '@/core/courses/components/part-skills-tags'
 
 // Style mapping for difficulty badges
 const difficultyStyles: Record<string, string> = {
@@ -55,16 +57,27 @@ const PartTitle = ({ title, difficulty }: { title: string; difficulty?: string |
 
 interface PartHeaderProps {
   part: CoursePart
+  userId: string | null
 }
 
-export const PartHeader = ({ part }: PartHeaderProps) => {
+export const PartHeader = ({ part, userId }: PartHeaderProps) => {
   return (
     <div className="mb-6 border-b pb-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
         <PartTitle title={part.name} difficulty={part.difficulty} />
-        <Suspense fallback={<PartStatusSkeleton />}>
-          <CoursePartStatus partId={part.id} />
-        </Suspense>
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex items-center gap-2">
+            <Suspense fallback={<PartStatusSkeleton />}>
+              <CoursePartStatus partId={part.id} />
+            </Suspense>
+            <FeedbackButton partId={part.id} partName={part.name} userId={userId} />
+          </div>
+          <div className="flex items-center gap-2">
+            <Suspense fallback={<PartSkillsTagsSkeleton />}>
+              <PartSkillsTags part={part} />
+            </Suspense>
+          </div>
+        </div>
       </div>
     </div>
   )

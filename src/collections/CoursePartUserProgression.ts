@@ -65,6 +65,19 @@ export const CoursePartUserProgression: CollectionConfig = {
         description: 'The completion status of the part for the user.',
       },
     },
+    {
+      name: 'isSolutionUnlocked',
+      label: 'Solution Unlocked?',
+      type: 'checkbox',
+      defaultValue: false,
+      required: true,
+      index: true, // Useful for potential future filtering
+      admin: {
+        description: 'Indicates if the user has viewed the official solution for this part.',
+        readOnly: true, // Should only be modified programmatically
+        position: 'sidebar', // Place it in the sidebar for better organization
+      },
+    },
   ],
   timestamps: true, // Adds createdAt and updatedAt
   // Note: Compound unique index (userId, part) should be enforced via hooks if needed,

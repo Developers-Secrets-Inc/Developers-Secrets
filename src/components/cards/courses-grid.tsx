@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,33 @@ import { NoCoursesCard } from './no-courses-card'
 
 interface CoursesGridProps {
   courses: CourseWithStartUrl[]
+}
+
+interface CourseLinkWrapperProps {
+  courseSlug: string
+  defaultHref: string
+  children: React.ReactNode
+}
+
+const CourseLinkWrapper: React.FC<CourseLinkWrapperProps> = ({
+  courseSlug,
+  defaultHref,
+  children,
+}) => {
+  const [effectiveHref, setEffectiveHref] = useState(defaultHref)
+
+  useEffect(() => {
+    const lastVisitedUrl = localStorage.getItem('lastVisitedPartUrl')
+    const lastVisitedCourseSlug = localStorage.getItem('lastVisitedCourseSlug')
+
+    if (lastVisitedUrl && lastVisitedCourseSlug === courseSlug) {
+      setEffectiveHref(lastVisitedUrl)
+    }
+    // On ne veut exécuter ceci qu'au montage côté client
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // courseSlug et defaultHref ne changeront pas après le rendu initial du serveur
+
+  return <Link href={effectiveHref}>{children}</Link>
 }
 
 export const CoursesGrid = ({ courses }: CoursesGridProps) => {
@@ -60,13 +87,15 @@ export const CoursesGrid = ({ courses }: CoursesGridProps) => {
                 </div> */}
                 {/* <Progress value={course.progress} className="h-2" /> */}
               </div>
-              <Button className="w-full group mt-auto" asChild>
-                <Link href={course.startUrl ?? `/courses/${course.slug}`}>
-                  {' '}
+              <CourseLinkWrapper
+                courseSlug={course.slug}
+                defaultHref={course.startUrl ?? `/courses/${course.slug}`}
+              >
+                <Button className="w-full group mt-auto">
                   View Course
                   <ChevronRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
-              </Button>
+                </Button>
+              </CourseLinkWrapper>
             </CardContent>
           </Card>
         </motion.div>

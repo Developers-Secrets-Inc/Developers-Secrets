@@ -4,13 +4,8 @@ import { CircleCheckIcon, XIcon } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import {
-    Toast,
-    ToastClose,
-    ToastDescription,
-    ToastTitle
-} from '@/components/ui/toast'
-import type { PartCompletionToastProps } from './completion-toast-context'; // Import the props type
+import { Toast, ToastClose, ToastDescription, ToastTitle } from '@/components/ui/toast'
+import type { PartCompletionToastProps } from './completion-toast-context' // Import the props type
 
 interface UseProgressTimerProps {
   duration: number

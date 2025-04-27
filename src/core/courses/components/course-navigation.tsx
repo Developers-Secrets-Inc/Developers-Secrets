@@ -14,6 +14,12 @@ import { Award, FileText, ListChecks, Lock, LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useMemo } from 'react'
+import { toast } from 'sonner'
+import { useSolutionUnlockStatus } from '@/core/courses/progression/hooks/useSolutionUnlockStatus'
+import {
+  useCoursePartCompletionStatus,
+  CompletionStatus,
+} from '@/core/courses/hooks/use-course-part-completion-status'
 
 type TabDefinition = {
   name: string
@@ -83,44 +89,66 @@ function NavigationTab({
 
 interface CourseNavigationProps {
   baseHref: string
+  userId: string | null
+  partId: number
 }
 
-export const CourseNavigation = ({ baseHref }: CourseNavigationProps) => {
+export const CourseNavigation = ({ baseHref, userId, partId }: CourseNavigationProps) => {
   const pathname = usePathname()
   const router = useRouter()
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
-  const [pendingPath, setPendingPath] = useState<string | null>(null)
-  const [unlockedPaths, setUnlockedPaths] = useState<string[]>(() =>
-    tabDefinitions
-      .filter((tab) => !tab.requiresConfirmation)
-      .map((tab) => `${baseHref}/${tab.slug}`),
-  )
 
-  const isPathUnlocked = (path: string) => unlockedPaths.includes(path)
+  const {
+    isUnlocked: isSolutionExplicitlyUnlocked,
+    unlockSolution,
+    isLoading: isUnlocking,
+    isFetchingStatus,
+  } = useSolutionUnlockStatus({
+    partId,
+    userId,
+    enabled: !!userId,
+  })
 
-  const handleTabClick = (href: string, requiresConfirmation: boolean) => {
-    if (requiresConfirmation && !isPathUnlocked(href)) {
-      setShowConfirmDialog(true)
-      setPendingPath(href)
-      return
+  const { status: completionStatus, isInitialLoading } = useCoursePartCompletionStatus({
+    partId,
+    userId: userId ?? '',
+    initialStatus: 'not_started',
+    enabled: !!userId,
+  })
+
+  const isLoadingCombinedStatus = isFetchingStatus || isInitialLoading
+
+  const canAccessSolution =
+    !isLoadingCombinedStatus && (isSolutionExplicitlyUnlocked || completionStatus === 'completed')
+
+  const handleTabClick = (href: string, tab: TabDefinition) => {
+    if (tab.slug === 'official-solution') {
+      if (isLoadingCombinedStatus) {
+        console.log('Solution status loading, click ignored.')
+        return
+      }
+      if (!canAccessSolution) {
+        setShowConfirmDialog(true)
+      } else {
+        router.push(href)
+      }
+    } else {
+      router.push(href)
     }
-    router.push(href)
-  }
-
-  const unlockPath = (path: string) => {
-    setUnlockedPaths((prev) => [...prev, path])
-    console.log(`Path ${path} unlocked visually.`)
   }
 
   const handleConfirm = () => {
-    if (pendingPath) {
-      const pathToNavigate = pendingPath
-      setShowConfirmDialog(false)
-      setPendingPath(null)
-      unlockPath(pathToNavigate)
-      router.push(pathToNavigate)
+    if (!userId || !partId) {
+      toast.error('Cannot unlock solution: User or Part information is missing.')
+      return
     }
+    setShowConfirmDialog(false)
+    unlockSolution(undefined, {
+      onSuccess: () => {
+        router.push(`${baseHref}/official-solution`)
+      },
+    })
   }
 
   return (
@@ -130,15 +158,17 @@ export const CourseNavigation = ({ baseHref }: CourseNavigationProps) => {
           {tabDefinitions.map((tab, index) => {
             const href = `${baseHref}/${tab.slug}`
             const current = pathname === href
-            const isLocked = tab.requiresConfirmation && !isPathUnlocked(href)
-            const IconToShow = isLocked ? Lock : tab.icon
+            const showLockIcon =
+              tab.slug === 'official-solution' && (isLoadingCombinedStatus || !canAccessSolution)
+
+            const IconToShow = showLockIcon ? Lock : tab.icon
 
             return (
               <NavigationTab
                 key={tab.name}
                 tab={tab}
-                onClick={() => handleTabClick(href, tab.requiresConfirmation)}
-                isLocked={isLocked}
+                onClick={() => handleTabClick(href, tab)}
+                isLocked={tab.slug === 'official-solution' ? !canAccessSolution : false}
                 current={current}
                 icon={IconToShow}
                 className={cn(index === tabDefinitions.length - 1 ? 'border-r-0' : '')}
@@ -152,6 +182,7 @@ export const CourseNavigation = ({ baseHref }: CourseNavigationProps) => {
         open={showConfirmDialog}
         onOpenChange={setShowConfirmDialog}
         onConfirm={handleConfirm}
+        isConfirming={isUnlocking}
       />
     </>
   )
@@ -163,13 +194,15 @@ function ConfirmationDialog({
   open,
   onOpenChange,
   onConfirm,
+  isConfirming,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
+  isConfirming?: boolean
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(open) => !isConfirming && onOpenChange(open)}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Confirmation</DialogTitle>
@@ -178,10 +211,12 @@ function ConfirmationDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isConfirming}>
             Cancel
           </Button>
-          <Button onClick={onConfirm}>Confirm</Button>
+          <Button onClick={onConfirm} disabled={isConfirming}>
+            {isConfirming ? 'Unlocking...' : 'Confirm'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

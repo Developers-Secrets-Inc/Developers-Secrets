@@ -57,7 +57,7 @@ export const SettingsBubble = ({ partId, initialCompletionStatus }: SettingsBubb
           // onPointerUp n'est plus nécessaire, on gère dans onOpenChange
           whileTap={{ scale: 0.95, cursor: 'grabbing' }}
           className={cn(
-            'fixed bottom-5 right-5 z-[100]',
+            'fixed bottom-20 right-5 z-[100]',
             'flex h-10 w-10 cursor-grab items-center justify-center',
             'rounded-full bg-background border text-foreground shadow-lg',
             'hover:bg-muted transition-colors duration-200',

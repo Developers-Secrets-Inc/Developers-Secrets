@@ -109,6 +109,8 @@ export interface Config {
     courseParts: CoursePart;
     coursePartUserProgression: CoursePartUserProgression;
     coursePartSubmissions: CoursePartSubmission;
+    userChapterProgress: UserChapterProgress;
+    coursePartFeedback: CoursePartFeedback;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -159,6 +161,8 @@ export interface Config {
     courseParts: CoursePartsSelect<false> | CoursePartsSelect<true>;
     coursePartUserProgression: CoursePartUserProgressionSelect<false> | CoursePartUserProgressionSelect<true>;
     coursePartSubmissions: CoursePartSubmissionsSelect<false> | CoursePartSubmissionsSelect<true>;
+    userChapterProgress: UserChapterProgressSelect<false> | UserChapterProgressSelect<true>;
+    coursePartFeedback: CoursePartFeedbackSelect<false> | CoursePartFeedbackSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -1975,6 +1979,43 @@ export interface CoursePart {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Define how completing this part affects user skill/concept progression.
+   */
+  skillImpacts?:
+    | (
+        | {
+            /**
+             * The skill context for this specific impact.
+             */
+            implementationSkill: number | Skill;
+            /**
+             * The specific concept implementation that progresses.
+             */
+            implementationConcept: number | ImplementationConcept;
+            /**
+             * Points added to the concept mastery (e.g., 0-100).
+             */
+            progressAmount: number;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'skillConceptImpact';
+          }
+        | {
+            /**
+             * The abstract concept that progresses directly.
+             */
+            concept: number | Concept;
+            /**
+             * Points added to the concept mastery (e.g., 0-100).
+             */
+            progressAmount: number;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'baseConceptImpact';
+          }
+      )[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2002,6 +2043,10 @@ export interface CoursePartUserProgression {
    * The completion status of the part for the user.
    */
   completionStatus: 'not_started' | 'in_progress' | 'completed';
+  /**
+   * Indicates if the user has viewed the official solution for this part.
+   */
+  isSolutionUnlocked: boolean;
   updatedAt: string;
   createdAt: string;
 }
@@ -2068,6 +2113,60 @@ export interface CoursePartSubmission {
    * Expected output for wrong answer.
    */
   expectedOutput?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Tracks user progression status for entire course chapters.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChapterProgress".
+ */
+export interface UserChapterProgress {
+  id: number;
+  /**
+   * The ID of the user.
+   */
+  userId: string;
+  /**
+   * The specific chapter this progression refers to.
+   */
+  chapter: number | Chapter;
+  /**
+   * The overall completion status of the chapter for the user.
+   */
+  completionStatus: 'not_started' | 'in_progress' | 'completed';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Feedback submitted by users for specific course parts.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coursePartFeedback".
+ */
+export interface CoursePartFeedback {
+  id: number;
+  /**
+   * The specific course part this feedback relates to.
+   */
+  part: number | CoursePart;
+  /**
+   * The category of the feedback provided.
+   */
+  feedbackType: 'typo' | 'error' | 'unclear' | 'suggestion' | 'other';
+  /**
+   * The detailed feedback submitted by the user.
+   */
+  details: string;
+  /**
+   * The current status of this feedback item.
+   */
+  status: 'new' | 'acknowledged' | 'resolved' | 'rejected';
+  /**
+   * The UUID of the user who submitted the feedback.
+   */
+  userId: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -2341,6 +2440,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'coursePartSubmissions';
         value: number | CoursePartSubmission;
+      } | null)
+    | ({
+        relationTo: 'userChapterProgress';
+        value: number | UserChapterProgress;
+      } | null)
+    | ({
+        relationTo: 'coursePartFeedback';
+        value: number | CoursePartFeedback;
       } | null)
     | ({
         relationTo: 'payload-jobs';
@@ -3338,6 +3445,27 @@ export interface CoursePartsSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  skillImpacts?:
+    | T
+    | {
+        skillConceptImpact?:
+          | T
+          | {
+              implementationSkill?: T;
+              implementationConcept?: T;
+              progressAmount?: T;
+              id?: T;
+              blockName?: T;
+            };
+        baseConceptImpact?:
+          | T
+          | {
+              concept?: T;
+              progressAmount?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3350,6 +3478,7 @@ export interface CoursePartUserProgressionSelect<T extends boolean = true> {
   part?: T;
   engagementStatus?: T;
   completionStatus?: T;
+  isSolutionUnlocked?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3379,6 +3508,30 @@ export interface CoursePartSubmissionsSelect<T extends boolean = true> {
   input?: T;
   output?: T;
   expectedOutput?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChapterProgress_select".
+ */
+export interface UserChapterProgressSelect<T extends boolean = true> {
+  userId?: T;
+  chapter?: T;
+  completionStatus?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coursePartFeedback_select".
+ */
+export interface CoursePartFeedbackSelect<T extends boolean = true> {
+  part?: T;
+  feedbackType?: T;
+  details?: T;
+  status?: T;
+  userId?: T;
   updatedAt?: T;
   createdAt?: T;
 }

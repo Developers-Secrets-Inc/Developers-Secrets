@@ -81,3 +81,30 @@ export async function getCoursePartSubmissions(
     return [] // Return empty array on error
   }
 }
+
+/**
+ * Fetches a single course part submission by its ID.
+ * @param submissionId The ID of the submission to fetch.
+ * @returns The submission document or null if not found or error.
+ */
+export async function getCoursePartSubmissionById(
+  submissionId: string | number, // Accept string or number based on Payload ID type
+): Promise<CoursePartSubmission | null> {
+  const payload = await getPayload({ config })
+
+  try {
+    const submission = await payload.findByID({
+      collection: 'coursePartSubmissions',
+      id: submissionId,
+    })
+    return submission
+  } catch (error) {
+    // Payload findByID throws an error if not found with specific types
+    // Handle not found or other errors gracefully
+    if (error instanceof Error && error.message.includes('not found')) {
+      return null
+    }
+    console.error(`Error fetching submission ${submissionId}:`, error)
+    return null
+  }
+}

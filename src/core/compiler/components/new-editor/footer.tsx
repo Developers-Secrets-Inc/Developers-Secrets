@@ -128,7 +128,7 @@ export const Footer = ({ children }: { children: React.ReactNode }) => {
   return (
     <div
       className={cn(
-        'transition-all duration-300 ease-in-out overflow-hidden border-t flex-shrink-0 flex flex-col',
+        'transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0 flex flex-col',
         isTerminalOpen ? 'h-[30%]' : 'h-10',
       )}
     >

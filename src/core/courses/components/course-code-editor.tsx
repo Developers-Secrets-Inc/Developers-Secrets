@@ -23,6 +23,15 @@ import {
   useCoursePartCompletionStatus,
   CompletionStatus,
 } from '../hooks/use-course-part-completion-status'
+// Import the completion toast hook
+import { useCompletionToast } from '../components/completion-toast-context'
+// --- CORRECTED IMPORT PATH (Relative) ---
+import { recordCoursePartCompletion } from '../skills'
+// --- END CORRECTED IMPORT PATH ---
+// Import the new hook
+import { useSolutionUnlockStatus } from '../progression/hooks/useSolutionUnlockStatus'
+// Import the context hook
+import { useEditorState } from '../contexts/editor-state-context'
 
 // Define locally until structure is confirmed/imported
 type CoursePartTest = {
@@ -137,21 +146,34 @@ export function CourseCodeEditor({
 }: CourseCodeEditorProps) {
   // State for run output, submit checking, and test results
   const [runOutput, setRunOutput] = useState<string | null>(null)
-  const [isChecking, setIsChecking] = useState(false)
   const [lastTestResult, setLastTestResult] = useState<CoursePartTestResult | null>(null)
   const [activeTabOverride, setActiveTabOverride] = useState<string>('output')
 
+  // Get the state update functions from the context
+  const { _setCurrentCode, _setCurrentLanguage, _setRunOutput, _setLastTestResult } =
+    useEditorState()
+
   // Instantiate the completion status hook
   const {
-    status: completionStatus, // Use the status from the hook if needed elsewhere
-    updateStatus: updateCompletionStatus, // Get the update function
-    isLoading: isUpdatingStatus, // Optional: use loading state
+    status: completionStatus,
+    updateStatus: updateCompletionStatus,
+    isLoading: isUpdatingStatus,
   } = useCoursePartCompletionStatus({
-    partId: coursePart?.id ?? 0, // Provide a default or handle null case appropriately
-    userId: userId ?? '', // Provide a default or handle null case
+    partId: coursePart?.id ?? 0,
+    userId: userId ?? '',
     initialStatus: initialCompletionStatus,
-    enabled: !!userId && !!coursePart, // Only enable if userId and coursePart are valid
+    enabled: !!userId && !!coursePart,
   })
+
+  // Instantiate the solution unlock status hook
+  const { unlockSolution } = useSolutionUnlockStatus({
+    partId: coursePart?.id ?? 0,
+    userId: userId,
+    enabled: !!userId && !!coursePart,
+  })
+
+  // Instantiate the completion toast hook
+  const { showToast } = useCompletionToast()
 
   // Memoize the extracted editor data
   const { initialCodePerLanguage, availableLanguages, tests, initialLanguage } = useMemo(() => {
@@ -159,27 +181,36 @@ export function CourseCodeEditor({
   }, [coursePart])
 
   // Handler for simple RUN action
-  const handleSimpleRun = useCallback(async (getCode: () => { code: string; lang: string }) => {
-    const { code: currentCode, lang: currentLang } = getCode()
-    setRunOutput('Compiling...')
-    setActiveTabOverride('output') // Switch to output tab on run
-    try {
-      const result = await compileCode(currentCode, currentLang as any)
-      setRunOutput(
-        result.success
+  const handleSimpleRun = useCallback(
+    async (getCode: () => { code: string; lang: string }) => {
+      const { code: currentCode, lang: currentLang } = getCode()
+      _setCurrentCode(currentCode)
+      _setCurrentLanguage(currentLang)
+      setRunOutput('Compiling...')
+      setActiveTabOverride('output')
+      let outputResult: string | null = null
+      try {
+        const result = await compileCode(currentCode, currentLang as any)
+        outputResult = result.success
           ? result.output || '(No output)'
-          : `Error: ${result.error || 'Unknown error'}`,
-      )
-    } catch (error) {
-      setRunOutput(`Execution Error: ${error instanceof Error ? error.message : String(error)}`)
-    }
-  }, []) // No external dependencies needed here if compileCode is pure
+          : `Error: ${result.error || 'Unknown error'}`
+        setRunOutput(outputResult)
+      } catch (error) {
+        outputResult = `Execution Error: ${error instanceof Error ? error.message : String(error)}`
+        setRunOutput(outputResult)
+      }
+      _setRunOutput(outputResult)
+    },
+    [_setCurrentCode, _setCurrentLanguage, _setRunOutput],
+  )
 
   // Handler for SUBMIT action (testing and saving)
   const handleSubmit = useCallback(
     async (getCode: () => { code: string; lang: string }) => {
       if (!userId || !coursePart) return
       const { code: currentCode, lang: currentLang } = getCode()
+      _setCurrentCode(currentCode)
+      _setCurrentLanguage(currentLang)
       const currentTests = tests[currentLang] || []
       if (currentTests.length === 0) {
         toast.info('No tests configured for this language.')
@@ -187,7 +218,7 @@ export function CourseCodeEditor({
       }
 
       setLastTestResult(null)
-      setActiveTabOverride('testResults') // Switch to test results tab on submit
+      setActiveTabOverride('testResults')
       toast.info('Running tests...')
 
       try {
@@ -196,24 +227,22 @@ export function CourseCodeEditor({
           currentTests,
         )
         setLastTestResult(result)
+        _setLastTestResult(result)
 
-        // Save the submission attempt (no changes needed here)
         const submissionResult = await createCoursePartSubmission({
-          part: coursePart.id, // Assuming coursePart is not null here
+          part: coursePart.id,
           authorId: userId,
           code: result.code,
           submissionType: result.type === 'passed' ? 'accepted' : result.type,
           testsPassed: result.testsPassed,
           testsTotal: result.testsTotal,
-          // Add failure details if present
           error: 'error' in result ? result.error : undefined,
           input: 'input' in result ? result.input : undefined,
           output: 'output' in result ? result.output : undefined,
           expectedOutput: 'expectedOutput' in result ? result.expectedOutput : undefined,
-          // Correctly format lastExpectedOutput based on error type and expected structure
           lastExpectedOutput:
             result.type === 'runtimeError' || result.type === 'timeLimitExceeded'
-              ? [{ output: result.failedTestExpectedOutput }] // Create the expected array structure
+              ? [{ output: result.failedTestExpectedOutput }]
               : undefined,
         })
 
@@ -223,22 +252,50 @@ export function CourseCodeEditor({
           })
         }
 
-        // Update progression if passed using the hook
         if (result.type === 'passed') {
           toast.success('All tests passed!')
-          // Call the hook's update function for optimistic update
           updateCompletionStatus('completed')
-          // No need for try/catch here, hook handles errors
-          // // try {
-          // //   await updateUserPartCompletionStatus(userId, coursePart.id, 'completed')
-          // //   // Optionally trigger confetti or other success UI
-          // // } catch (progressionError) {
-          // //   toast.error('Failed to update completion status.', {
-          // //     description: progressionError instanceof Error ? progressionError.message : undefined,
-          // //   })
-          // // }
+
+          if (completionStatus !== 'completed') {
+            try {
+              await recordCoursePartCompletion(userId, coursePart.id)
+              console.log(`Skill progression recorded for part ${coursePart.id}`)
+            } catch (skillError) {
+              console.error('Error triggering skill progression update:', skillError)
+              toast.error('Failed to update skill progression, but part is marked complete.')
+            }
+
+            console.log(
+              `Part ${coursePart.id} already completed, skipping skill progression and solution unlock.`,
+            )
+          } else {
+            console.log(
+              `Part ${coursePart.id} already completed, skipping skill progression and solution unlock.`,
+            )
+          }
+
+          let xpMultiplier = 1
+          switch (coursePart?.difficulty) {
+            case 'easy':
+              xpMultiplier = 1
+              break
+            case 'medium':
+              xpMultiplier = 2
+              break
+            case 'hard':
+              xpMultiplier = 3
+              break
+            case 'horrible':
+              xpMultiplier = 4
+              break
+          }
+          const xpEarned = 50 * xpMultiplier
+
+          showToast({
+            xpEarned: xpEarned,
+            solutionUnlocked: true,
+          })
         } else {
-          // Give feedback on failure type
           if (result.type === 'wrongAnswer') toast.warning('Some tests failed.')
           else if (result.type === 'runtimeError') toast.error('Runtime Error.')
           else if (result.type === 'timeLimitExceeded') toast.error('Time Limit Exceeded.')
@@ -246,10 +303,21 @@ export function CourseCodeEditor({
       } catch (error) {
         console.error('Error running course part tests:', error)
         toast.error('An unexpected error occurred while running tests.')
-        // TODO: Update terminal UI with generic error message
+        _setLastTestResult(null)
       }
     },
-    [userId, coursePart, tests, updateCompletionStatus], // Removed isChecking dependency
+    [
+      userId,
+      coursePart,
+      tests,
+      updateCompletionStatus,
+      showToast,
+      completionStatus,
+      unlockSolution,
+      _setCurrentCode,
+      _setCurrentLanguage,
+      _setLastTestResult,
+    ],
   )
 
   // Render the provider and compose the editor UI
@@ -258,7 +326,6 @@ export function CourseCodeEditor({
       initialCodePerLanguage={initialCodePerLanguage}
       availableLanguages={availableLanguages}
       initialLanguage={initialLanguage ?? 'javascript'}
-      // Pass the override handlers
       onRunOverride={handleSimpleRun}
       onSubmitOverride={handleSubmit}
     >
@@ -277,7 +344,6 @@ export function CourseCodeEditor({
       </div>
 
       <GenericCodeEditor.Footer>
-        {/* Define the tabs for the footer */}
         <GenericCodeEditor.TabTrigger value="output">
           <FileOutput size={14} /> Output
         </GenericCodeEditor.TabTrigger>
@@ -286,11 +352,9 @@ export function CourseCodeEditor({
         </GenericCodeEditor.TabTrigger>
 
         <GenericCodeEditor.TabContent value="output">
-          {/* Content for the Output tab comes from runOutput state */}
           {runOutput ?? '> Click Run to execute code.'}
         </GenericCodeEditor.TabContent>
         <GenericCodeEditor.TabContent value="testResults">
-          {/* Content for the Test Results tab */}
           <TestResultDisplay result={lastTestResult} />
         </GenericCodeEditor.TabContent>
       </GenericCodeEditor.Footer>
