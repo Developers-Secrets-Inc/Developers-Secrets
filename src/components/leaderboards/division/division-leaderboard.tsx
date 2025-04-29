@@ -32,10 +32,15 @@ export const DivisionLeaderboard = () => {
     const fetchLeaderboard = async () => {
       setIsLoading(true)
       setError(null)
+      setLeaderboardData(null)
+      setCurrentUserId(null)
+
       try {
         const userResult = await getSessionUser()
-        if (!userResult.success) {
-          throw new Error('User not authenticated')
+        if (!userResult.success || !userResult.value?.id) {
+          setError('User not authenticated or session expired.')
+          setIsLoading(false)
+          return
         }
         const userId = userResult.value.id
         setCurrentUserId(userId)
@@ -73,7 +78,7 @@ export const DivisionLeaderboard = () => {
   if (!leaderboardData || leaderboardData.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-6">
-        <p>You are not currently ranked in a division leaderboard.</p>
+        <p>No division leaderboard data found for the current week.</p>
         <p className="text-xs">Leaderboards are generated at the start of each week.</p>
       </div>
     )

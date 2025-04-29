@@ -158,15 +158,21 @@ export function MainNavigationMenu() {
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/pricing" legacyBehavior passHref>
-            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              Pricing
-            </NavigationMenuLink>
+          <Link
+            href="/pricing"
+            component={NavigationMenuLink as React.ElementType}
+            className={navigationMenuTriggerStyle()}
+          >
+            Pricing
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/blog" legacyBehavior passHref>
-            <NavigationMenuLink className={navigationMenuTriggerStyle()}>Blog</NavigationMenuLink>
+          <Link
+            href="/blog"
+            component={NavigationMenuLink as React.ElementType}
+            className={navigationMenuTriggerStyle()}
+          >
+            Blog
           </Link>
         </NavigationMenuItem>
       </NavigationMenuList>
