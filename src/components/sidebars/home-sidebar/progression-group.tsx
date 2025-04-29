@@ -86,7 +86,7 @@ export const ProgressionGroup = ({ userId }: { userId: string }) => {
           userId={userId}
         />
       )}
-      <QuestsDialog open={questsOpen} onOpenChange={setQuestsOpen} />
+      <QuestsDialog isOpen={questsOpen} onOpenChange={setQuestsOpen} />
 
       <Dialog open={divisionLeaderboardOpen} onOpenChange={setDivisionLeaderboardOpen}>
         <DialogContent className="sm:max-w-[550px]">
