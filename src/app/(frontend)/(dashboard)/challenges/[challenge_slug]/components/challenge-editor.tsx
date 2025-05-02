@@ -17,9 +17,9 @@ import { Challenge } from '@/payload-types'
 import { nanoid } from 'nanoid'
 import { useContext, useState, useEffect } from 'react'
 import { toast } from 'sonner'
+import { useChallengeEditor } from '@/core/challenges/contexts/challenge-editor-context'
 
 type ChallengeEditorProps = {
-  initialCode: string
   language: string
   availableLanguages: {
     value: string
@@ -32,7 +32,6 @@ type ChallengeEditorProps = {
 }
 
 export function ChallengeEditor({
-  initialCode,
   language,
   availableLanguages,
   codeVersions,
@@ -47,7 +46,15 @@ export function ChallengeEditor({
   const { visualStatus, persistedStatus, updateVisualStatus, updatePersistedStatus } =
     useContext(ChallengeStatusContext)!
 
-  // Précharger les données de complétion
+  const { currentCodeByLanguage, currentLanguage, setCurrentCode, setCurrentLanguage } =
+    useChallengeEditor()
+
+  useEffect(() => {
+    if (language !== currentLanguage) {
+      setCurrentLanguage(language)
+    }
+  }, [language, currentLanguage, setCurrentLanguage])
+
   useEffect(() => {
     const preloadCompletionData = async () => {
       try {
@@ -68,15 +75,11 @@ export function ChallengeEditor({
       | TimeLimitExceededSubmission,
   ) => {
     try {
-      // Si c'est la première soumission et que le statut est 'not_started'
       if (persistedStatus === 'not_started') {
         await updatePersistedStatus('in_progress')
       }
 
-      // Créer un ID temporaire
       const tempId = nanoid()
-
-      // Créer une soumission temporaire
       const tempSubmission = {
         id: tempId,
         submissionType: submission.type,
@@ -85,22 +88,18 @@ export function ChallengeEditor({
         createdAt: new Date().toISOString(),
         code: submission.code,
       }
-
-      // Ajouter la soumission temporaire à la liste
       if (typeof window.addTempSubmission === 'function') {
         window.addTempSubmission(tempSubmission)
       } else {
         console.warn('addTempSubmission not available - skipping optimistic update')
       }
 
-      // Envoyer la soumission au serveur
       const result = await handleSubmission(submission, challenge.id, userId)
 
       if (!result.success || !result.data) {
         throw new Error(result.error || 'Failed to submit')
       }
 
-      // Mettre à jour la soumission avec les données du serveur
       if (typeof window.updateSubmission === 'function') {
         window.updateSubmission(tempId, {
           id: result.data.id.toString(),
@@ -114,24 +113,13 @@ export function ChallengeEditor({
         console.warn('updateSubmission not available - skipping optimistic update')
       }
 
-      // If the submission is successful and all tests passed
       if (submission.type === 'accepted' && persistedStatus !== 'completed') {
-        // Mettre à jour immédiatement le statut visuel
         updateVisualStatus('completed')
-
-        // Vérifier uniquement si la solution est débloquée
         const wasUnlocked = await getUserIsSolutionUnlocked(userId, challenge.id)
         if (completionData) {
-          setCompletionData({
-            ...completionData,
-            wasUnlocked,
-          })
+          setCompletionData({ ...completionData, wasUnlocked })
         }
-
-        // Show completion dialog
         setShowCompletionDialog(true)
-
-        // Handle challenge completion in the background
         handleChallengeCompletion(challenge, userId, submission.code.language)
           .then(() => updatePersistedStatus('completed'))
           .catch(console.error)
@@ -142,16 +130,27 @@ export function ChallengeEditor({
     }
   }
 
+  const handleCodeChange = (newCode: string = '') => {
+    setCurrentCode(currentLanguage, newCode)
+  }
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setCurrentLanguage(newLanguage)
+  }
+
   return (
     <>
       <CodeEditor
-        initialCode={initialCode}
-        language={language}
+        key={currentLanguage}
+        initialCode={currentCodeByLanguage[currentLanguage] || ''}
+        language={currentLanguage}
         showLanguageSelector={availableLanguages.length > 1}
         availableLanguages={availableLanguages}
         codeVersions={codeVersions}
         tests={tests}
         onSubmit={handleSubmit}
+        onChange={handleCodeChange}
+        onLanguageChange={handleLanguageChange}
       />
 
       {showCompletionDialog && completionData && (

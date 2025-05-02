@@ -1,10 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DivisionLeaderboardUser } from './division-leaderboard-user'
-import { RankedLeaderboardUser, getUserDivisionLeaderboard } from '@/core/gamification/divisions'
-import { getSessionUser } from '@/core/user'
+import { RankedLeaderboardUser } from '@/core/gamification/divisions'
 import { ShieldAlert } from 'lucide-react'
 
 const LeaderboardSkeleton = () => (
@@ -22,45 +20,20 @@ const LeaderboardSkeleton = () => (
   </div>
 )
 
-export const DivisionLeaderboard = () => {
-  const [leaderboardData, setLeaderboardData] = useState<RankedLeaderboardUser[] | null>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+interface DivisionLeaderboardProps {
+  initialLeaderboardData: RankedLeaderboardUser[] | null
+  initialError: string | null
+  currentUserId: string | null
+}
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      setIsLoading(true)
-      setError(null)
-      setLeaderboardData(null)
-      setCurrentUserId(null)
-
-      try {
-        const userResult = await getSessionUser()
-        if (!userResult.success || !userResult.value?.id) {
-          setError('User not authenticated or session expired.')
-          setIsLoading(false)
-          return
-        }
-        const userId = userResult.value.id
-        setCurrentUserId(userId)
-
-        const data = await getUserDivisionLeaderboard(userId)
-        setLeaderboardData(data)
-      } catch (err) {
-        console.error('Failed to fetch leaderboard:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load leaderboard data.')
-        setLeaderboardData(null)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchLeaderboard()
-    // Optional: Add polling interval
-    // const interval = setInterval(fetchLeaderboard, 60000); // Refresh every minute
-    // return () => clearInterval(interval);
-  }, [])
+export const DivisionLeaderboard = ({
+  initialLeaderboardData,
+  initialError,
+  currentUserId,
+}: DivisionLeaderboardProps) => {
+  const isLoading = initialLeaderboardData === null && initialError === null
+  const error = initialError
+  const leaderboardData = initialLeaderboardData
 
   if (isLoading) {
     return <LeaderboardSkeleton />

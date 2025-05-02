@@ -4,30 +4,6 @@ import { Comment } from '@/payload-types'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 
-export const getChallengeDescriptionComments = async (challengeId: number): Promise<Comment[]> => {
-  const payload = await getPayload({ config })
-
-  const challenge = await payload.findByID({
-    collection: 'challenges',
-    id: challengeId,
-  })
-
-  return challenge.description.comments as Comment[]
-}
-
-export const getChallengeOfficialSolutionComments = async (
-  challengeId: number,
-): Promise<Comment[]> => {
-  const payload = await getPayload({ config })
-
-  const challenge = await payload.findByID({
-    collection: 'challenges',
-    id: challengeId,
-  })
-
-  return challenge.officialSolution.comments as Comment[]
-}
-
 export const addCommentToChallengeDescription = async (
   challengeId: number,
   commentId: number,
@@ -70,47 +46,6 @@ export const addCommentToChallengeOfficialSolution = async (
       },
     },
   })
-}
-
-export const createDescriptionComment = async (
-  challengeId: number,
-  content: string,
-  authorId: string,
-): Promise<Comment> => {
-  'use server'
-  const payload = await getPayload({ config })
-
-  // Créer d'abord le commentaire
-  const newComment = await payload.create({
-    collection: 'comments',
-    data: {
-      content,
-      authorId,
-      isReply: false,
-    },
-  })
-
-  // Récupérer le challenge
-  const challenge = await payload.findByID({
-    collection: 'challenges',
-    id: challengeId,
-  })
-
-  const existingComments = challenge?.description?.comments || []
-
-  // Mettre à jour le challenge avec la référence au nouveau commentaire
-  await payload.update({
-    collection: 'challenges',
-    id: challengeId,
-    data: {
-      description: {
-        ...challenge?.description,
-        comments: [...existingComments, newComment.id],
-      },
-    },
-  })
-
-  return newComment
 }
 
 export const createOfficialSolutionComment = async (

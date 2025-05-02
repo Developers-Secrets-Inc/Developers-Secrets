@@ -16,6 +16,8 @@ import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
 import { Eclipse } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import { ChallengeProvider } from '@/core/challenges/contexts/challenge-context'
+import { ChallengeEditorProvider } from '@/core/challenges/contexts/challenge-editor-context'
 import { ChallengeEditor } from './components/challenge-editor'
 import { ChallengeNavigation } from '@/core/challenges/components/navigation/challenge-navigation'
 import { User } from '@/types/user'
@@ -125,23 +127,28 @@ export default async function ChallengeLayout({
   const userRating = await getUserRating(user.id, challenge.id)
 
   return (
-    <SidebarProvider>
+    // <SidebarProvider>
+    <ChallengeProvider challenge={challenge}>
       <ChallengeStatusProvider
         challengeId={challenge.id}
         userId={user.id}
         initialStatus={initialStatus}
       >
         <div className="flex h-screen">
-          <IconSidebar />
-          <SidebarInset>
-            <div className="flex flex-col h-full w-[calc(100vw-3.5rem)]">
-              <ChallengeLayoutHeader
-                challengeSlug={challenge_slug}
-                challengeId={challenge.id}
-                user={user}
-              />
+          {/* <IconSidebar /> */}
+          {/* <SidebarInset> */}
+          <div className="flex flex-col h-full w-[calc(100vw)]">
+            <ChallengeLayoutHeader
+              challengeSlug={challenge_slug}
+              challengeId={challenge.id}
+              user={user}
+            />
 
-              <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden">
+              <ChallengeEditorProvider
+                initialLanguage={initialLanguage}
+                initialCodePerLanguage={initialCodeVersions}
+              >
                 <ResizablePanelGroup direction="horizontal">
                   <ResizablePanel defaultSize={50} minSize={40}>
                     <div className="flex flex-col h-full">
@@ -171,7 +178,6 @@ export default async function ChallengeLayout({
                   <ResizablePanel defaultSize={50} minSize={40}>
                     <div className="flex flex-col h-full">
                       <ChallengeEditor
-                        initialCode={initialCodeVersions[initialLanguage] || ''}
                         language={initialLanguage}
                         availableLanguages={availableLanguages}
                         codeVersions={initialCodeVersions}
@@ -182,11 +188,13 @@ export default async function ChallengeLayout({
                     </div>
                   </ResizablePanel>
                 </ResizablePanelGroup>
-              </div>
+              </ChallengeEditorProvider>
             </div>
-          </SidebarInset>
+          </div>
+          {/* </SidebarInset> */}
         </div>
       </ChallengeStatusProvider>
-    </SidebarProvider>
+    </ChallengeProvider>
+    // </SidebarProvider>
   )
 }

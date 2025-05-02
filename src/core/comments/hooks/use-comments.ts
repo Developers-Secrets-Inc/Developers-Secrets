@@ -1,10 +1,20 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getComments } from '..'
 import { CommentContext, CommentResponse } from '../types'
 import { Comment } from '@/payload-types'
 import { getUserById } from '@/core/user'
 import { isError } from '@/core/user/result'
+import { deleteCommentAction, modifyCommentAction, createReplyAction } from '../actions'
+import {
+  getChallengeDescriptionCommentsAction,
+  createDescriptionCommentAction,
+  getChallengeOfficialSolutionCommentsAction,
+  createOfficialSolutionCommentAction,
+} from '@/core/challenges/comments.actions'
+import {
+  getUserSolutionCommentsAction,
+  createUserSolutionCommentAction,
+} from '@/core/challenges/users-solutions/comments.actions'
 
 // Compteur global pour les IDs temporaires
 let tempIdCounter = -1
@@ -20,11 +30,40 @@ export const useComments = (context: CommentContext, userId?: string) => {
     isFetching,
   } = useQuery<CommentResponse>({
     queryKey,
-    queryFn: () =>
-      getComments({
-        context,
-        userId,
-      }),
+    queryFn: async () => {
+      let fetchedComments: Comment[] = []
+      switch (context.type) {
+        case 'challenge_description':
+          fetchedComments = await getChallengeDescriptionCommentsAction(context.parentId)
+          break
+        case 'challenge_solution':
+          fetchedComments = await getChallengeOfficialSolutionCommentsAction(context.parentId)
+          break
+        case 'user_solution':
+          fetchedComments = await getUserSolutionCommentsAction(context.parentId)
+          break
+        default:
+          console.error('Unknown comment context type:', context.type)
+          throw new Error('Unknown comment context type')
+      }
+
+      // Sort and prioritize user comments (existing logic from getComments)
+      const sortedComments = fetchedComments.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+      if (userId) {
+        const userComments = sortedComments.filter((comment) => comment.authorId === userId)
+        const otherComments = sortedComments.filter((comment) => comment.authorId !== userId)
+        return {
+          comments: [...userComments, ...otherComments],
+          totalComments: sortedComments.length,
+        }
+      }
+      return {
+        comments: sortedComments,
+        totalComments: sortedComments.length,
+      }
+    },
     staleTime: 60000,
     placeholderData: (previousData) => previousData,
   })
@@ -57,7 +96,17 @@ export const useComments = (context: CommentContext, userId?: string) => {
 
   const addComment = useMutation({
     mutationFn: async ({ content, authorId }: { content: string; authorId: string }) => {
-      return await context.createComment(context.parentId, content, authorId)
+      // Call action directly based on context type
+      switch (context.type) {
+        case 'challenge_description':
+          return await createDescriptionCommentAction(context.parentId, content, authorId)
+        case 'challenge_solution':
+          return await createOfficialSolutionCommentAction(context.parentId, content, authorId)
+        case 'user_solution':
+          return await createUserSolutionCommentAction(context.parentId, content, authorId)
+        default:
+          throw new Error(`Unsupported context type for addComment: ${context.type}`)
+      }
     },
     onMutate: async (newComment) => {
       await queryClient.cancelQueries({ queryKey })
@@ -96,7 +145,8 @@ export const useComments = (context: CommentContext, userId?: string) => {
     mutationFn: async (commentId: number) => {
       // Ne pas appeler l'API si c'est un commentaire temporaire
       if (commentId < 0) return
-      return await context.deleteComment(commentId)
+      // Call generic delete action
+      return await deleteCommentAction(commentId)
     },
     onMutate: async (commentId) => {
       await queryClient.cancelQueries({ queryKey })
@@ -159,7 +209,8 @@ export const useComments = (context: CommentContext, userId?: string) => {
       content: string
       authorId: string
     }) => {
-      return await context.createReply(parentCommentId, content, authorId)
+      // Call generic reply action
+      return await createReplyAction(parentCommentId, content, authorId)
     },
     onMutate: async ({ parentCommentId, content, authorId }) => {
       await queryClient.cancelQueries({ queryKey })
@@ -204,7 +255,8 @@ export const useComments = (context: CommentContext, userId?: string) => {
 
   const editComment = useMutation({
     mutationFn: async ({ commentId, content }: { commentId: number; content: string }) => {
-      return await context.updateComment(commentId, content)
+      // Call generic edit action
+      return await modifyCommentAction(commentId, content)
     },
     onMutate: async ({ commentId, content }) => {
       await queryClient.cancelQueries({ queryKey })

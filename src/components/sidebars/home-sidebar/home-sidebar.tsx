@@ -1,17 +1,11 @@
 
-import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import {
-  BarChart,
   Book,
-  CheckCircle,
   GitMerge,
   Home,
   Lock,
-  Star,
-  Trophy,
-  User,
-  Users
+  Trophy
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -26,14 +20,14 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar'
 import { getSessionUser } from '@/core/user'
+import { isError } from '@/core/user/result'
+import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { LearningPathSwitcher } from './learning-path-switcher'
 import { ProgressionGroup } from './progression-group'
 import { SearchForm } from './search-form'
-import { SocialGroup } from './social-group'
 import { HomeSidebarFooter } from './sidebar-footer'
-import { isError } from '@/core/user/result'
-import { cn } from '@/lib/utils'
+import { SocialGroup } from './social-group'
 
 
 const ComingSoonTooltip = () => {

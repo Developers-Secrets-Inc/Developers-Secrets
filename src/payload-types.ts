@@ -1305,6 +1305,10 @@ export interface UserSolution {
         id?: string | null;
       }[]
     | null;
+  /**
+   * The current status of the solution.
+   */
+  status: 'drafted' | 'published';
   updatedAt: string;
   createdAt: string;
 }
@@ -3060,6 +3064,7 @@ export interface UserSolutionsSelect<T extends boolean = true> {
         createdAt?: T;
         id?: T;
       };
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }

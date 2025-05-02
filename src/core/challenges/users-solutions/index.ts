@@ -104,17 +104,6 @@ export const getUserSolutionById = async (id: string): Promise<UserSolution | nu
   return userSolution
 }
 
-export const getUserSolutionComments = async (solutionId: number): Promise<Comment[]> => {
-  const payload = await getPayload({ config })
-
-  const solution = await payload.findByID({
-    collection: 'user-solutions',
-    id: solutionId,
-  })
-
-  return solution?.comments as Comment[]
-}
-
 export const addCommentToUserSolution = async (
   solutionId: number,
   commentId: number,
@@ -133,41 +122,6 @@ export const addCommentToUserSolution = async (
       comments: [...existingComments, { id: commentId }],
     },
   })
-}
-
-export const createUserSolutionComment = async (
-  solutionId: number,
-  content: string,
-  authorId: string,
-): Promise<Comment> => {
-  'use server'
-  const payload = await getPayload({ config })
-
-  // Créer le commentaire
-  const newComment = await payload.create({
-    collection: 'comments',
-    data: {
-      content,
-      authorId,
-      isReply: false,
-    },
-  })
-
-  // Ajouter le commentaire à la solution
-  const solution = await payload.findByID({
-    collection: 'user-solutions',
-    id: solutionId,
-  })
-
-  await payload.update({
-    collection: 'user-solutions',
-    id: solutionId,
-    data: {
-      comments: [...(solution?.comments || []), newComment.id],
-    },
-  })
-
-  return newComment
 }
 
 export const updateUserSolutionTitle = async (id: string, title: string): Promise<void> => {
@@ -423,6 +377,30 @@ export const updateTags = async (id: string, tagIds: number[]): Promise<void> =>
     },
   })
 }
+
+// --- AJOUT : Fonction Core pour mettre à jour le statut ---
+export const updateSolutionStatus = async (
+  id: string,
+  status: 'drafted' | 'published',
+): Promise<void> => {
+  const payload = await getPayload({ config })
+
+  try {
+    await payload.update({
+      collection: 'user-solutions',
+      id,
+      data: {
+        status,
+      },
+    })
+    console.log(`Core: Status updated for solution ${id} to ${status}`)
+  } catch (error) {
+    console.error(`Core: Failed to update status for solution ${id}`, error)
+    // Propager l'erreur pour la gestion en amont (par l'action serveur)
+    throw error
+  }
+}
+// --- FIN AJOUT ---
 
 // =============
 

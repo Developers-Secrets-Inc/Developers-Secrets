@@ -4,7 +4,7 @@ export const UserSolutions: CollectionConfig = {
   slug: 'user-solutions',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'authorId', 'views'],
+    defaultColumns: ['title', 'authorId', 'views', 'status'],
   },
   fields: [
     {
@@ -132,6 +132,20 @@ export const UserSolutions: CollectionConfig = {
           required: true,
         },
       ],
+    },
+    {
+      name: 'status',
+      type: 'select',
+      options: [
+        { label: 'Drafted', value: 'drafted' },
+        { label: 'Published', value: 'published' },
+      ],
+      defaultValue: 'drafted',
+      required: true,
+      admin: {
+        position: 'sidebar',
+        description: 'The current status of the solution.',
+      },
     },
   ],
 }

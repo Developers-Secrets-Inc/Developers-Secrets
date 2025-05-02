@@ -1,30 +1,84 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { forwardRef } from 'react'
+import { forwardRef, useImperativeHandle, useEffect } from 'react'
+import '@blocknote/core/fonts/inter.css'
+import { Theme, lightDefaultTheme, darkDefaultTheme, BlockNoteView } from '@blocknote/mantine'
+import '@blocknote/mantine/style.css'
+import { useSolutionEditor } from '../hooks/use-solution-editor'
+import { PartialBlock } from '@blocknote/core'
+import { Skeleton } from '@/components/ui/skeleton'
 
-const Editor = dynamic(() => import('./Editor'), {
-  ssr: false,
-  loading: () => (
-    <div className="h-full w-full flex items-center justify-center bg-background/50">
-      Loading editor...
-    </div>
-  ),
-})
+// --- Theme Definition ---
+const lightAppTheme = {
+  ...lightDefaultTheme,
+  colors: {
+    ...lightDefaultTheme.colors,
+    editor: {
+      text: 'oklch(0.141 0.005 285.823)', // --foreground
+      background: 'oklch(1 0 0)', // --background
+    },
+  },
+} satisfies Theme
 
-interface DynamicEditorProps {
-  onSaveContent?: (markdown: string) => void
-  initialContent?: string
+const darkAppTheme = {
+  ...darkDefaultTheme,
+  colors: {
+    ...darkDefaultTheme.colors,
+    editor: {
+      text: 'oklch(0.985 0 0)', // dark --foreground
+      background: 'oklch(0.21 0.006 285.885)', // dark --background
+    },
+  },
+} satisfies Theme
+
+const appTheme = {
+  light: lightAppTheme,
+  dark: darkAppTheme,
+}
+// --- End Theme Definition ---
+
+// --- Props and Ref Interfaces ---
+interface EditorProps {
+  initialBlocks?: PartialBlock[]
+  onEditorReady?: (getter: () => Promise<string>) => void
 }
 
-export interface DynamicEditorRef {
+export interface EditorRef {
   getCurrentContent: () => Promise<string>
 }
+// --- End Interfaces ---
 
-export const DynamicEditor = forwardRef<DynamicEditorRef, DynamicEditorProps>(
-  ({ onSaveContent, initialContent }, ref) => {
-    return <Editor ref={ref} onSaveContent={onSaveContent} initialContent={initialContent} />
+// --- Main Editor Component Logic ---
+export const DynamicEditor = forwardRef<EditorRef, EditorProps>(
+  ({ initialBlocks, onEditorReady }, ref) => {
+    const { editor, getCurrentContent } = useSolutionEditor(initialBlocks)
+
+    useImperativeHandle(ref, () => ({
+      getCurrentContent: getCurrentContent,
+    }))
+
+    useEffect(() => {
+      if (editor && typeof onEditorReady === 'function') {
+        console.log('DynamicEditor: Editor ready, calling onEditorReady.')
+        onEditorReady(getCurrentContent)
+      }
+    }, [editor, onEditorReady, getCurrentContent])
+
+    if (!editor) {
+      return <Skeleton className="h-[500px] w-full rounded-lg" />
+    }
+
+    return (
+      <BlockNoteView
+        editor={editor}
+        editable={true}
+        theme={appTheme}
+        sideMenu={false}
+        className="h-full rounded-none pl-0"
+      />
+    )
   },
 )
 
 DynamicEditor.displayName = 'DynamicEditor'
+// --- End Main Editor Component Logic ---

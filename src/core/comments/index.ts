@@ -26,33 +26,6 @@ export const createComment = async (authorId: string, content: string): Promise<
   })
 }
 
-export const getComments = async ({
-  context,
-  userId,
-}: GetCommentsOptions): Promise<CommentResponse> => {
-  const comments = await context.getComments(context.parentId)
-
-  // Trier les commentaires par date de création (du plus récent au plus ancien)
-  const sortedComments = comments.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  )
-
-  // Si un userId est fourni, mettre les commentaires de l'utilisateur en premier
-  if (userId) {
-    const userComments = sortedComments.filter((comment) => comment.authorId === userId)
-    const otherComments = sortedComments.filter((comment) => comment.authorId !== userId)
-    return {
-      comments: [...userComments, ...otherComments],
-      totalComments: comments.length,
-    }
-  }
-
-  return {
-    comments: sortedComments,
-    totalComments: comments.length,
-  }
-}
-
 export const getCommentById = async (commentId: number): Promise<Comment> => {
   const validatedCommentId = validateCommentId(commentId)
 
@@ -107,31 +80,6 @@ export const addReplyToComment = async (
     collection: 'comments',
     id: commentId,
     data: { replies: [...(comment.replies || []), { id: reply.id }] },
-  })
-}
-
-export const modifyComment = async (commentId: number, newContent: string): Promise<Comment> => {
-  const payload = await getPayload({ config })
-  const comment = await payload.findByID({ collection: 'comments', id: commentId })
-
-  if (!comment) {
-    throw new Error('Comment not found')
-  }
-
-  return await payload.update({
-    collection: 'comments',
-    id: commentId,
-    data: { content: newContent },
-  })
-}
-
-export const deleteComment = async (commentId: number): Promise<void> => {
-  'use server'
-  const payload = await getPayload({ config })
-
-  await payload.delete({
-    collection: 'comments',
-    id: commentId,
   })
 }
 
@@ -234,38 +182,3 @@ export const replyToComment = async (
   authorId: string,
   content: string,
 ): Promise<void> => {}
-
-export const createReply = async (
-  parentCommentId: number,
-  content: string,
-  authorId: string,
-): Promise<Comment> => {
-  'use server'
-  const payload = await getPayload({ config })
-
-  // Créer la réponse
-  const reply = await payload.create({
-    collection: 'comments',
-    data: {
-      content,
-      authorId,
-      isReply: true,
-    },
-  })
-
-  // Ajouter la réponse au commentaire parent
-  const parentComment = await payload.findByID({
-    collection: 'comments',
-    id: parentCommentId,
-  })
-
-  await payload.update({
-    collection: 'comments',
-    id: parentCommentId,
-    data: {
-      replies: [...(parentComment.replies || []), reply.id],
-    },
-  })
-
-  return reply
-}
