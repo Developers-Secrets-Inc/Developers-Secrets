@@ -1,7 +1,7 @@
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import { Beaker, ChevronDown, ChevronUp, FileOutput } from 'lucide-react'
+import { Beaker, ChevronDown, ChevronUp, FileOutput, CheckCircle, XCircle } from 'lucide-react'
 
 type TerminalTab = 'tests' | 'output'
 
@@ -84,7 +84,23 @@ type TestCaseDisplayProps = {
 
 const TestCaseDisplay = ({ testResult, index }: TestCaseDisplayProps) => (
   <div className="space-y-4 p-4">
-    <div className="grid grid-cols-3 gap-4">
+    <div
+      className={cn(
+        'flex items-center justify-between text-sm font-medium',
+        testResult.success ? 'text-green-500' : 'text-red-500',
+      )}
+    >
+      <span>
+        Test Case #{index + 1}: {testResult.success ? 'Passed' : 'Failed'}
+      </span>
+      {testResult.success ? (
+        <CheckCircle size={16} className="text-green-500" />
+      ) : (
+        <XCircle size={16} className="text-red-500" />
+      )}
+    </div>
+
+    <div className="space-y-4">
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-muted-foreground">Input</h3>
         <pre className="p-2 rounded bg-muted/50 text-xs">{testResult.input}</pre>
@@ -104,11 +120,6 @@ const TestCaseDisplay = ({ testResult, index }: TestCaseDisplayProps) => (
           {testResult.actualOutput}
         </pre>
       </div>
-    </div>
-    <div
-      className={cn('text-sm font-medium', testResult.success ? 'text-green-500' : 'text-red-500')}
-    >
-      Test Case #{index + 1}: {testResult.success ? 'Passed' : 'Failed'}
     </div>
   </div>
 )

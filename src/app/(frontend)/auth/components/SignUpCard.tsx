@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { loginWithGoogle, loginWithGitHub } from '@/actions/auth'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -47,6 +48,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
     confirmPassword?: string
   }>({})
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,6 +90,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
 
     // Clear errors
     setErrors({})
+    setIsLoading(true)
 
     try {
       const result = await onSubmit(username, email, password, rememberMe)
@@ -100,6 +103,8 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
         console.error('Signup error:', error)
         toast.error('An error occurred during registration.')
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -195,8 +200,8 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
             </label>
           </div>
 
-          <Button type="submit" className="w-full">
-            Sign up
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign up'}
           </Button>
 
           <div className="relative my-6">

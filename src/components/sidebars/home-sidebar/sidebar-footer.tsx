@@ -1,19 +1,16 @@
 'use client'
 
+import { ProCtaCard } from '@/components/cards/pro-cta-card'
+import { FeedbackDialog } from '@/components/feedback-dialog'
 
-import { ProCtaCard } from "@/components/cards/pro-cta-card"
-import { FeedbackDialog } from "@/components/feedback-dialog"
-
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import {
   SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem
+  SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { getActiveEffects, getPassiveXPBoostMultiplier } from '@/core/gamification/effects'
-import { getSessionUser } from '@/core/user'
 import { ActiveEffect as ActiveEffectType } from '@/payload-types'
 import { ActiveEffectDisplay } from '@/core/gamification/effects/components/active-effect-display'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -21,73 +18,19 @@ import { MessageSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { HelpCircle } from 'lucide-react'
 import { PassiveBoostDisplay } from '@/core/gamification/effects/components/passive-boost-display'
-import { SupportDialog } from "@/components/support-dialog"
+import { SupportDialog } from '@/components/support-dialog'
 
-const EffectSkeleton = () => (
-  <SidebarMenuItem>
-    <div className="flex h-8 items-center gap-2 rounded-md px-2">
-      <Skeleton className="size-4" />
-      <Skeleton className="h-4 w-2/3" />
-    </div>
-  </SidebarMenuItem>
-)
+interface HomeSidebarFooterProps {
+  activeEffect: ActiveEffectType | null
+  passiveXPMultiplier: number
+}
 
-
-
-export const HomeSidebarFooter = () => {
+export const HomeSidebarFooter = ({
+  activeEffect,
+  passiveXPMultiplier,
+}: HomeSidebarFooterProps) => {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
-  const [isLoadingEffects, setIsLoadingEffects] = useState(true)
-  const [activeEffect, setActiveEffect] = useState<ActiveEffectType | null>(null)
-  const [passiveXPMultiplier, setPassiveXPMultiplier] = useState<number>(1)
-  const [userId, setUserId] = useState<string | null>(null)
-
-  useEffect(() => {
-    let isMounted = true
-    async function fetchInitialData() {
-      setIsLoadingEffects(true)
-      const userResult = await getSessionUser()
-      if (!userResult.success || !isMounted) {
-        setIsLoadingEffects(false)
-        setUserId(null)
-        return
-      }
-      const currentUserId = userResult.value.id
-      setUserId(currentUserId)
-
-      try {
-        const [effects, passiveXP] = await Promise.all([
-          getActiveEffects(currentUserId),
-          getPassiveXPBoostMultiplier(currentUserId),
-        ])
-
-        if (!isMounted) return
-
-        const currentActive = effects.find((e) => e.effectType === 'xpBoost') || effects[0] || null
-
-        setActiveEffect(currentActive)
-        setPassiveXPMultiplier(passiveXP)
-      } catch (error) {
-        console.error('Error fetching effects:', error)
-        if (isMounted) {
-          setActiveEffect(null)
-          setPassiveXPMultiplier(1)
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingEffects(false)
-        }
-      }
-    }
-
-    fetchInitialData()
-    const interval = setInterval(fetchInitialData, 60000 * 2)
-
-    return () => {
-      isMounted = false
-      clearInterval(interval)
-    }
-  }, [])
 
   const shouldShowActive = activeEffect && activeEffect.effectType === 'xpBoost'
   const shouldShowPassive = passiveXPMultiplier > 1 && !shouldShowActive
@@ -116,9 +59,7 @@ export const HomeSidebarFooter = () => {
   return (
     <SidebarFooter>
       <SidebarMenu>
-        {isLoadingEffects ? (
-          <EffectSkeleton />
-        ) : shouldShowActive ? (
+        {shouldShowActive ? (
           <ActiveEffectDisplay
             activeEffect={activeEffect!}
             passiveMultiplier={passiveXPMultiplier}

@@ -55,7 +55,10 @@ const convertPayloadUserInformationToUserInformations = (
   }
 }
 
-export const createInitialUserInformation = async (userId: string): Promise<void> => {
+export const createInitialUserInformation = async (
+  userId: string,
+  username: string,
+): Promise<void> => {
   const payload = await getPayload({ config })
 
   try {
@@ -66,6 +69,7 @@ export const createInitialUserInformation = async (userId: string): Promise<void
         collection: 'user-informations',
         data: {
           userId,
+          name: username,
           role: 'basic', // Rôle par défaut
           preferences: {
             notifications: {

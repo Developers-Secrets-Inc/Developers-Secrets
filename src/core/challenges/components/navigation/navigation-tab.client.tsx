@@ -36,11 +36,11 @@ export function NavigationTab({ onClick, isLocked, ...props }: NavigationTabProp
     <button
       onClick={onClick}
       className={cn(
-        'relative overflow-hidden rounded-none border border-r h-12 min-h-[48px] flex-1',
+        'relative overflow-hidden rounded-none border border-r h-12 min-h-[48px] flex-1 cursor-pointer',
         props.current
           ? 'bg-muted after:bg-primary after:absolute after:pointer-events-none after:inset-x-0 after:bottom-0 after:h-0.5'
           : '',
-        isLocked ? 'cursor-pointer text-muted-foreground' : '',
+        isLocked ? 'text-muted-foreground' : '',
         props.className,
       )}
     >

@@ -1,9 +1,11 @@
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { CodeBlock, CodeBlockCode, CodeBlockGroup } from '@/components/code-block'
-import { XCircle } from 'lucide-react'
+import { ArrowLeft, XCircle } from 'lucide-react'
+import Link from 'next/link'
 
 type SubmissionWrongAnswerProps = {
+  challengeSlug: string
   testsPassed: number
   testsTotal: number
   code: {
@@ -16,6 +18,7 @@ type SubmissionWrongAnswerProps = {
 }
 
 export function SubmissionWrongAnswer({
+  challengeSlug,
   testsPassed,
   testsTotal,
   code,
@@ -24,8 +27,17 @@ export function SubmissionWrongAnswer({
   expectedOutput,
 }: SubmissionWrongAnswerProps) {
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+    <div className="w-full space-y-6 p-6">
+      <div className="flex items-center justify-between py-2 border-b -mx-6 px-6">
+        <Button variant="ghost" size="sm" className="gap-1.5" asChild>
+          <Link href={`/challenges/${challengeSlug}/submissions`} prefetch={true}>
+            <ArrowLeft className="h-4 w-4" />
+            Back to submissions
+          </Link>
+        </Button>
+      </div>
+
+      <div className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <XCircle className="h-6 w-6 text-red-500" />
@@ -36,9 +48,9 @@ export function SubmissionWrongAnswer({
         <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20 px-3 py-1">
           {testsPassed}/{testsTotal} tests passed
         </Badge>
-      </CardHeader>
+      </div>
 
-      <CardContent className="space-y-6 pt-6">
+      <div className="space-y-6 pt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -89,7 +101,7 @@ export function SubmissionWrongAnswer({
             <CodeBlockCode code={code.content} language={code.language} />
           </CodeBlock>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

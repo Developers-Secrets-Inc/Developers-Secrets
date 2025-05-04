@@ -53,6 +53,10 @@ export const UserInformations: CollectionConfig = {
           label: 'Max',
           value: 'max',
         },
+        {
+          label: 'Admin',
+          value: 'admin',
+        },
       ],
       defaultValue: 'basic',
       required: true,

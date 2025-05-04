@@ -1,5 +1,5 @@
 import { getUserSolution } from '@/core/challenges/users-solutions'
-import { Challenge, Tag } from '@/payload-types'
+import { Challenge, Tag, UserSolution } from '@/payload-types'
 import { useEffect, useState } from 'react'
 import { type Option } from '@/components/ui/multiselect'
 
@@ -8,6 +8,8 @@ type Metadata = {
   description: string
   tags: Option[]
 }
+
+type SolutionStatus = 'drafted' | 'published'
 
 const convertTagToOption = (tag: Tag): Option => ({
   value: tag.id.toString(),
@@ -20,6 +22,8 @@ export const useUserSolution = (
 ): {
   metadata: Metadata
   content: string
+  status: SolutionStatus
+  setStatus: (status: SolutionStatus) => void
   isLoading: boolean
   setIsLoading: (isLoading: boolean) => void
   setMetadata: (metadata: Metadata) => void
@@ -31,13 +35,15 @@ export const useUserSolution = (
     tags: [],
   })
   const [content, setContent] = useState<string>('')
+  const [status, setStatus] = useState<SolutionStatus>('drafted')
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
   useEffect(() => {
     const fetchSolution = async () => {
       try {
         setIsLoading(true)
-        const solution = await getUserSolution(challenge.id, userId)
+        const solution: (Omit<UserSolution, 'tags'> & { tags: Tag[] }) | null =
+          await getUserSolution(challenge.id, userId)
         if (solution) {
           setMetadata({
             title: solution.title || '',
@@ -45,9 +51,13 @@ export const useUserSolution = (
             tags: solution.tags.map(convertTagToOption),
           })
           setContent(solution.content || '')
+          setStatus((solution.status as SolutionStatus) || 'drafted')
+        } else {
+          setStatus('drafted')
         }
       } catch (error) {
         console.error('Error fetching solution:', error)
+        setStatus('drafted')
       } finally {
         setIsLoading(false)
       }
@@ -60,6 +70,8 @@ export const useUserSolution = (
     setMetadata,
     content,
     setContent,
+    status,
+    setStatus,
     isLoading,
     setIsLoading,
   }

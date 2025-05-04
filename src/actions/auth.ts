@@ -1,16 +1,15 @@
 'use server'
 
+import { initializeUser } from '@/core/gamification/level'
+import { createInitialUserInformation } from '@/core/user'
+import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
-import { createClient } from '@/utils/supabase/server'
-import { createInitialUserInformation } from '@/core/users'
-import { initializeUser } from '@/core/gamification/level'
 
 export async function login(email: string, password: string, rememberMe: boolean) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })

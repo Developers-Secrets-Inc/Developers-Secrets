@@ -2,16 +2,16 @@ import { Metadata } from 'next'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 
 export const metadata: Metadata = {
-  title: 'FullStack Challenge Platform',
+  title: 'Developers Secrets',
   description: 'Master fullstack development through interactive coding challenges',
   openGraph: {
-    title: 'FullStack Challenge Platform',
+    title: 'Developers Secrets',
     description: 'Master fullstack development through interactive coding challenges',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FullStack Challenge Platform',
+    title: 'Developers Secrets',
     description: 'Master fullstack development through interactive coding challenges',
   },
 }

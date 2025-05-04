@@ -1,86 +1,72 @@
-'use client'
+// Import server-side data fetching functions
+import { getMarketplaceItems } from '@/core/gamification/marketplace'
+import { getUserCurrency } from '@/core/gamification/marketplace/currency'
+import { getUserInventory } from '@/core/gamification/inventory'
+import { getSessionUser } from '@/core/user' // To get userId
 
-import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
-import * as TooltipPrimitive from '@radix-ui/react-tooltip'
-import {
-    Lock,
-    Package,
-    Store,
-    User,
-    Users
-} from 'lucide-react'
-import { useState } from 'react'
+// Import the client layer component
+import { SocialGroupClientLayer } from './social-group-client-layer'
 
-import {
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem
-} from '@/components/ui/sidebar'
-import { InventorySheet } from '@/core/gamification/inventory/components/sheets/inventory-sheet'
-import { MarketplaceDialog } from '@/core/gamification/marketplace/components/dialogs/marketplace-dialog'
-import Link from 'next/link'
+// Import necessary types
+import { MarketplaceItem, UserItem } from '@/payload-types'
 
-export const SocialGroup = () => {
-    const [marketplaceOpen, setMarketplaceOpen] = useState(false)
-    const [inventoryOpen, setInventoryOpen] = useState(false)
-  
-    return (
-      <>
-        <SidebarGroup>
-          <SidebarGroupLabel>Social</SidebarGroupLabel>
-          <SidebarMenu>
-            <SidebarMenuItem key="marketplace">
-              <SidebarMenuButton asChild>
-                <button
-                  onClick={() => setMarketplaceOpen(true)}
-                  className="flex w-full items-center gap-2 cursor-pointer"
-                >
-                  <Store className="size-4" />
-                  <span>Marketplace</span>
-                </button>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem key="inventory">
-              <SidebarMenuButton asChild>
-                <button
-                  onClick={() => setInventoryOpen(true)}
-                  className="flex w-full items-center gap-2 cursor-pointer"
-                >
-                  <Package className="size-4" />
-                  <span>Inventory</span>
-                </button>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem key="guild">
-              <SidebarMenuButton asChild>
-                <Link href="#" className="relative text-muted-foreground pr-8">
-                  <Users className="size-4" />
-                  <span>Guild</span>
-                  <TooltipPrimitive.Root>
-                    <TooltipPrimitive.Trigger asChild>
-                      <Lock className="size-4 absolute right-2" />
-                    </TooltipPrimitive.Trigger>
-                    <TooltipContentCustom>Coming soon</TooltipContentCustom>
-                  </TooltipPrimitive.Root>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem key="profile">
-              <SidebarMenuButton asChild>
-                <Link href="/profile/me" className="flex w-full items-center gap-2 cursor-pointer">
-                  <User className="size-4" />
-                  <span>Profile</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-  
-        <MarketplaceDialog open={marketplaceOpen} onOpenChange={setMarketplaceOpen} />
-        <InventorySheet open={inventoryOpen} onOpenChange={setInventoryOpen} />
-      </>
-    )
+// Refactored SocialGroup as an async Server Component
+export const SocialGroup = async () => {
+  // Fetch user ID first
+  const userResult = await getSessionUser()
+  const userId = userResult.success ? userResult.value.id : null
+
+  let results: PromiseSettledResult<any>[] = []
+  if (userId) {
+    // Fetch marketplace and inventory data if user is logged in
+    results = await Promise.allSettled([
+      getMarketplaceItems(),
+      getUserCurrency(userId),
+      getUserInventory(userId),
+    ])
+  } else {
+    // If no user, set results as if fetches were rejected/empty
+    results = [
+      { status: 'fulfilled', value: [] }, // Empty marketplace items
+      { status: 'fulfilled', value: 0 }, // 0 currency
+      { status: 'fulfilled', value: [] }, // Empty inventory
+    ]
   }
-  
+
+  // Process results, handling potential errors
+  const initialMarketplaceItems = results[0].status === 'fulfilled' ? results[0].value : null
+  const initialMarketplaceError =
+    results[0].status === 'rejected' ? 'Failed to load marketplace items.' : null
+  if (results[0].status === 'rejected') {
+    console.error('getMarketplaceItems failed:', results[0].reason)
+  }
+
+  const initialUserCurrency = results[1].status === 'fulfilled' ? results[1].value : null
+  const initialCurrencyError =
+    results[1].status === 'rejected' ? 'Failed to load user currency.' : null
+  if (results[1].status === 'rejected') {
+    console.error('getUserCurrency failed:', results[1].reason)
+  }
+
+  const initialUserInventory = results[2].status === 'fulfilled' ? results[2].value : null
+  const initialInventoryError =
+    results[2].status === 'rejected' ? 'Failed to load user inventory.' : null
+  if (results[2].status === 'rejected') {
+    console.error('getUserInventory failed:', results[2].reason)
+  }
+
+  // Combine marketplace and currency errors for MarketplaceDialog
+  const finalMarketplaceError = initialMarketplaceError || initialCurrencyError
+
+  // Pass fetched data and userId to the client layer component
+  return (
+    <SocialGroupClientLayer
+      userId={userId}
+      initialMarketplaceItems={initialMarketplaceItems}
+      initialUserCurrency={initialUserCurrency}
+      initialUserInventory={initialUserInventory}
+      initialMarketplaceError={finalMarketplaceError}
+      initialInventoryError={initialInventoryError}
+    />
+  )
+}

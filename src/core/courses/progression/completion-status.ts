@@ -8,7 +8,7 @@ import { getUserPartProgress, createCoursePartUserProgression } from '.'
 import { getUserChapterProgress, createUserChapterProgress } from '.'
 import { CoursePartUserProgression, UserChapterProgress } from '@/payload-types'
 
-type CompletionStatus = 'not_started' | 'in_progress' | 'completed'
+export type CompletionStatus = 'not_started' | 'in_progress' | 'completed'
 
 export const getUserPartCompletionStatus = async (
   userId: string,

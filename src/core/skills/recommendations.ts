@@ -48,6 +48,27 @@ export async function getRecommendedChallenges(
   console.log(`Getting recommendations for user ${userId}, cutoff: ${cutoffDate.toISOString()}`)
 
   try {
+    // +++ Get IDs of challenges already completed by the user +++
+    const completedProgressions = await payload.find({
+      collection: 'userChallengeProgression',
+      where: {
+        userId: { equals: userId },
+        completionStatus: { equals: 'completed' },
+      },
+      limit: 0, // Get all completed
+      depth: 0, // No need for relations
+      select: ['challenge'], // Only need the challenge ID
+      pagination: false,
+    })
+
+    const completedChallengeIds = new Set(
+      completedProgressions.docs
+        .map((p) => (typeof p.challenge === 'number' ? p.challenge : p.challenge?.id))
+        .filter((id): id is number => id != null), // Ensure only valid numbers
+    )
+    console.log(`User ${userId} has completed ${completedChallengeIds.size} challenges.`)
+    // --- End completed challenges fetch ---
+
     // 1. Récupérer les progressions sur les concepts implémentés pour identifier les skills actives
     const implProgressions = await payload.find({
       collection: 'userImplementationConceptProgressions',
@@ -176,17 +197,26 @@ export async function getRecommendedChallenges(
       console.log(`  Target ImplConcepts for ${skillInfo.name}:`, targetImplConceptIdsForThisSkill)
       console.log(`  Target BaseConcepts for ${skillInfo.name}:`, targetConceptIdsForThisSkill)
 
-      // 5. Récupérer les challenges potentiels (non complétés)
-      // TODO: Add 'where' clause to filter out completed challenges
-      const potentialChallenges = await payload.find({
+      // 5. Récupérer les challenges potentiels
+      const potentialChallengesResult = await payload.find({
         collection: 'challenges',
         limit: 500, // Limite pour la performance
         depth: 3, // Nécessaire pour les impacts
-        // where: { ??? } // Filter completed challenges
+        pagination: false,
+        // TODO: Consider more targeted fetching if possible (e.g., only challenges linked to target concepts?)
       })
 
-      // 6. Filtrer les challenges pertinents pour CETTE skill et concepts cibles
-      const relevantChallenges = potentialChallenges.docs.filter((challenge) => {
+      // --- Filter out already completed challenges ---
+      const uncompletedPotentialChallenges = potentialChallengesResult.docs.filter(
+        (challenge) => !completedChallengeIds.has(challenge.id),
+      )
+      console.log(
+        `  Filtered potential challenges: ${potentialChallengesResult.docs.length} -> ${uncompletedPotentialChallenges.length} (uncompleted)`,
+      )
+      // --- End completed filter ---
+
+      // 6. Filtrer les challenges pertinents pour CETTE skill et concepts cibles (using uncompleted list)
+      const relevantChallenges = uncompletedPotentialChallenges.filter((challenge) => {
         if (!challenge.skillImpacts) return false
 
         const impactSetForThisSkill = challenge.skillImpacts.find((iset) => {
@@ -213,6 +243,9 @@ export async function getRecommendedChallenges(
         return false // Aucun impact pertinent trouvé pour ce challenge et cette skill
       })
 
+      console.log(
+        `  Found ${relevantChallenges.length} relevant (and uncompleted) challenges for skill ${skillInfo.name}.`,
+      )
 
       // 7. Ordonner (simpliste) et sélectionner
       // TODO: Améliorer l'ordonnancement (difficulté, etc.)

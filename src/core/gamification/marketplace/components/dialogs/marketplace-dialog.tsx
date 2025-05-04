@@ -27,19 +27,31 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/components/ui/use-toast'
 import { buyItem } from '@/core/gamification/marketplace/action'
 import { getUserInventory } from '@/core/gamification/inventory'
+import { ShieldAlert } from 'lucide-react'
+import { BluePotionIcon } from '@/components/icons/blue-potion'
+import { CoinIcon } from '@/components/icons/coin'
+import { GiftIcon } from '@/components/icons/gift'
+
+// Configuration for the glow effect based on rarity - moved outside component
+export const rarityGlowConfig = {
+  common: 'bg-emerald-500/20',
+  rare: 'bg-orange-500/20',
+  epic: 'bg-purple-500/20',
+  legendary: 'bg-amber-500/20',
+}
 
 // Composant pour afficher la rareté
-function RarityBadge({ rarity }: { rarity: 'common' | 'rare' | 'epic' | 'legendary' }) {
+export function RarityBadge({ rarity }: { rarity: 'common' | 'rare' | 'epic' | 'legendary' }) {
   const rarityConfig = {
-    common: 'bg-slate-100 text-slate-700',
-    rare: 'bg-blue-100 text-blue-700',
-    epic: 'bg-purple-100 text-purple-700',
-    legendary: 'bg-amber-100 text-amber-700',
+    common: 'bg-emerald-500/10 text-emerald-500',
+    rare: 'bg-orange-500/10 text-orange-500',
+    epic: 'bg-purple-500/10 text-purple-500',
+    legendary: 'bg-amber-500/10 text-amber-500',
   }
 
   return (
     <div
-      className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${rarityConfig[rarity]}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${rarityConfig[rarity]}`}
     >
       <Sparkles className="size-3" />
       <span className="capitalize">{rarity}</span>
@@ -48,18 +60,18 @@ function RarityBadge({ rarity }: { rarity: 'common' | 'rare' | 'epic' | 'legenda
 }
 
 // Fonction pour obtenir l'icône en fonction du type d'item
-function getItemIcon(type: string) {
+export function getItemIcon(type: string) {
   switch (type) {
     case 'xpBoost':
-      return Zap
+      return BluePotionIcon
     case 'currencyBoost':
-      return Coins
+      return CoinIcon
     case 'streakRestore':
       return Heart
     case 'unlockFeature':
       return Star
     default:
-      return Gift
+      return GiftIcon
   }
 }
 
@@ -91,8 +103,17 @@ const ItemCard: React.FC<ItemCardProps> = ({
         <div className="flex justify-between items-start mb-2">
           <RarityBadge rarity={item.rarity} />
         </div>
-        <div className="flex flex-col items-center py-4">
-          <Icon className="size-14 mb-4" />
+        <div className="flex flex-col items-center pt-4">
+          <div className="relative mb-4">
+            {' '}
+            {/* Wrapper for icon and glow */}
+            <div
+              className={`absolute inset-0 rounded-full blur-lg opacity-75 ${rarityGlowConfig[item.rarity]}`}
+            ></div>{' '}
+            {/* Glow element */}
+            <Icon className="relative z-10 size-16" />{' '}
+            {/* Icon itself, increased size slightly to better show glow */}
+          </div>
           <CardTitle className="text-lg">{item.name}</CardTitle>
         </div>
       </CardHeader>
@@ -110,10 +131,7 @@ const ItemCard: React.FC<ItemCardProps> = ({
           ) : isPurchasing ? (
             'Purchasing...'
           ) : (
-            <>
-              <Coins className="size-4" />
-              {`Purchase for ${marketplaceItem.price} coins`}
-            </>
+            <>{`Purchase for ${marketplaceItem.price} coins`}</>
           )}
         </Button>
       </CardFooter>
@@ -146,51 +164,38 @@ const LoadingSkeleton: React.FC = () => (
 interface MarketplaceDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialMarketplaceItems: MarketplaceItem[] | null
+  initialUserCurrency: number | null
+  initialUserInventory: UserItem[] | null
+  initialError: string | null
+  userId: string | null
 }
 
-export function MarketplaceDialog({ open, onOpenChange }: MarketplaceDialogProps) {
-  const [userCurrency, setUserCurrency] = useState<number>(0)
-  const [userInventory, setUserInventory] = useState<UserItem[]>([])
-  const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export function MarketplaceDialog({
+  open,
+  onOpenChange,
+  initialMarketplaceItems,
+  initialUserCurrency,
+  initialUserInventory,
+  initialError,
+  userId,
+}: MarketplaceDialogProps) {
   const [isPurchasingItemId, setIsPurchasingItemId] = useState<number | null>(null)
+  const [userCurrency, setUserCurrency] = useState(initialUserCurrency)
+  const [userInventory, setUserInventory] = useState(initialUserInventory)
   const { toast } = useToast()
 
   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true)
-      try {
-        const userResult = await getSessionUser()
-        let userId: string | null = null
-        if (userResult.success) {
-          userId = userResult.value.id
-          setUserCurrency(await getUserCurrency(userId))
-          setUserInventory(await getUserInventory(userId))
-        } else {
-          setUserCurrency(0)
-          setUserInventory([])
-        }
-
-        const items = await getMarketplaceItems()
-        setMarketplaceItems(items)
-      } catch (error) {
-        console.error('Error fetching marketplace data:', error)
-        setUserCurrency(0)
-        setUserInventory([])
-        setMarketplaceItems([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    if (open) {
-      fetchData()
-    }
-  }, [open])
+    setUserCurrency(initialUserCurrency)
+    setUserInventory(initialUserInventory)
+  }, [initialUserCurrency, initialUserInventory])
 
   const handlePurchase = async (marketplaceItem: MarketplaceItem) => {
     const item = marketplaceItem.item as Item
-    if (!item) return
+    if (!item || !userId) {
+      toast({ title: 'Error', description: 'User not identified.', variant: 'destructive' })
+      return
+    }
 
     try {
       setIsPurchasingItemId(item.id)
@@ -201,10 +206,18 @@ export function MarketplaceDialog({ open, onOpenChange }: MarketplaceDialogProps
           title: 'Purchase successful',
           description: 'The item has been added to your inventory',
         })
-        const userResult = await getSessionUser()
-        if (userResult.success) {
-          setUserCurrency(await getUserCurrency(userResult.value.id))
-          setUserInventory(await getUserInventory(userResult.value.id))
+        try {
+          const updatedCurrency = await getUserCurrency(userId)
+          const updatedInventory = await getUserInventory(userId)
+          setUserCurrency(updatedCurrency)
+          setUserInventory(updatedInventory)
+        } catch (refreshError) {
+          console.error('Failed to refresh user data after purchase:', refreshError)
+          toast({
+            title: 'Info',
+            description: 'Could not refresh balance/inventory display.',
+            variant: 'default',
+          })
         }
       } else {
         toast({
@@ -225,7 +238,10 @@ export function MarketplaceDialog({ open, onOpenChange }: MarketplaceDialogProps
     }
   }
 
-  // Filter items for different tabs
+  const isLoading = initialMarketplaceItems === null && initialError === null
+  const error = initialError
+  const marketplaceItems = initialMarketplaceItems ?? []
+
   const featuredItems = marketplaceItems.slice(0, 6)
   const consumableItems = marketplaceItems.filter((mpItem) => {
     const item = mpItem.item as Item
@@ -239,9 +255,8 @@ export function MarketplaceDialog({ open, onOpenChange }: MarketplaceDialogProps
     return item && item.activationMode === 'passive'
   })
 
-  // Check if a passive item is owned
   const isPassiveItemOwned = (itemId: number): boolean => {
-    return userInventory.some((userItem) => {
+    return (userInventory ?? []).some((userItem) => {
       const invItem = userItem.item as Item
       return invItem && invItem.activationMode === 'passive' && invItem.id === itemId
     })
@@ -283,97 +298,112 @@ export function MarketplaceDialog({ open, onOpenChange }: MarketplaceDialogProps
           </TabsList>
 
           <div className="p-6 flex-grow overflow-y-auto">
-            <TabsContent value="featured" className="m-0">
+            {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoading ? (
-                  [...Array(6)].map((_, index) => <LoadingSkeleton key={index} />)
-                ) : featuredItems.length > 0 ? (
-                  featuredItems.map((mpItem) => {
-                    const item = mpItem.item as Item
-                    return (
-                      <ItemCard
-                        key={mpItem.id}
-                        marketplaceItem={mpItem}
-                        userCurrency={userCurrency}
-                        isPurchasing={isPurchasingItemId === item?.id}
-                        isOwned={isPassiveItemOwned(item?.id)}
-                        onPurchase={handlePurchase}
-                      />
-                    )
-                  })
-                ) : (
-                  <p className="col-span-full text-center text-muted-foreground">
-                    No featured items available.
-                  </p>
-                )}
+                {[...Array(6)].map((_, index) => (
+                  <LoadingSkeleton key={index} />
+                ))}
               </div>
-            </TabsContent>
+            ) : error ? (
+              <div className="col-span-full text-center text-red-500 py-10">
+                <ShieldAlert className="mx-auto size-10 mb-2" />
+                {error}
+              </div>
+            ) : (
+              <>
+                <TabsContent value="featured" className="m-0">
+                  {featuredItems.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {featuredItems.map((mpItem) => {
+                        const item = mpItem.item as Item
+                        if (!item) return null
+                        return (
+                          <ItemCard
+                            key={mpItem.id}
+                            marketplaceItem={mpItem}
+                            userCurrency={userCurrency ?? 0}
+                            isPurchasing={isPurchasingItemId === item.id}
+                            isOwned={isPassiveItemOwned(item.id)}
+                            onPurchase={handlePurchase}
+                          />
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground">
+                      No featured items available.
+                    </p>
+                  )}
+                </TabsContent>
 
-            <TabsContent value="consumables" className="m-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoading ? (
-                  [...Array(3)].map((_, index) => <LoadingSkeleton key={index} />)
-                ) : consumableItems.length > 0 ? (
-                  consumableItems.map((mpItem) => {
-                    const item = mpItem.item as Item
-                    return (
-                      <ItemCard
-                        key={mpItem.id}
-                        marketplaceItem={mpItem}
-                        userCurrency={userCurrency}
-                        isPurchasing={isPurchasingItemId === item?.id}
-                        isOwned={false}
-                        onPurchase={handlePurchase}
-                      />
-                    )
-                  })
-                ) : (
-                  <p className="col-span-full text-center text-muted-foreground">
-                    No consumable items available.
-                  </p>
-                )}
-              </div>
-            </TabsContent>
+                <TabsContent value="consumables" className="m-0">
+                  {consumableItems.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {consumableItems.map((mpItem) => {
+                        const item = mpItem.item as Item
+                        if (!item) return null
+                        return (
+                          <ItemCard
+                            key={mpItem.id}
+                            marketplaceItem={mpItem}
+                            userCurrency={userCurrency ?? 0}
+                            isPurchasing={isPurchasingItemId === item.id}
+                            isOwned={false}
+                            onPurchase={handlePurchase}
+                          />
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground">
+                      No consumable items available.
+                    </p>
+                  )}
+                </TabsContent>
 
-            <TabsContent value="subscription" className="m-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <p className="text-muted-foreground">Subscription plans coming soon...</p>
-              </div>
-            </TabsContent>
+                <TabsContent value="subscription" className="m-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <p className="text-muted-foreground">Subscription plans coming soon...</p>
+                  </div>
+                </TabsContent>
 
-            <TabsContent value="items" className="m-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoading ? (
-                  [...Array(3)].map((_, index) => <LoadingSkeleton key={index} />)
-                ) : itemsTabItems.length > 0 ? (
-                  itemsTabItems.map((mpItem) => {
-                    const item = mpItem.item as Item
-                    return (
-                      <ItemCard
-                        key={mpItem.id}
-                        marketplaceItem={mpItem}
-                        userCurrency={userCurrency}
-                        isPurchasing={isPurchasingItemId === item?.id}
-                        isOwned={isPassiveItemOwned(item?.id)}
-                        onPurchase={handlePurchase}
-                      />
-                    )
-                  })
-                ) : (
-                  <p className="col-span-full text-center text-muted-foreground">
-                    No passive items available.
-                  </p>
-                )}
-              </div>
-            </TabsContent>
+                <TabsContent value="items" className="m-0">
+                  {itemsTabItems.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {itemsTabItems.map((mpItem) => {
+                        const item = mpItem.item as Item
+                        if (!item) return null
+                        return (
+                          <ItemCard
+                            key={mpItem.id}
+                            marketplaceItem={mpItem}
+                            userCurrency={userCurrency ?? 0}
+                            isPurchasing={isPurchasingItemId === item.id}
+                            isOwned={isPassiveItemOwned(item.id)}
+                            onPurchase={handlePurchase}
+                          />
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground">No passive items available.</p>
+                  )}
+                </TabsContent>
+              </>
+            )}
           </div>
         </Tabs>
 
         <DialogFooter className="sticky bottom-0 p-4 bg-background border-t flex justify-end items-center gap-2 shrink-0">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Coins className="size-4" />
+            <CoinIcon className="size-4" />
             <span>
-              Balance: {isLoading ? <Skeleton className="h-4 w-16" /> : userCurrency} coins
+              Balance:{' '}
+              {userCurrency === null ? (
+                <Skeleton className="h-4 w-16 inline-block" />
+              ) : (
+                `${userCurrency} coins`
+              )}
             </span>
           </div>
         </DialogFooter>

@@ -7,6 +7,7 @@ import { Division, UserInformation, WeeklyLeaderboardMember } from '@/payload-ty
 import { getWeeklyUserExperience } from '../leaderboard' // Use the function from leaderboard index
 import { getUserInformation } from '../../user' // Assuming a way to get user info by ID
 import { Where } from 'payload'
+import { startOfWeek } from 'date-fns'
 
 /**
  * Finds the ID of the next higher or lower division based on rankOrder.
@@ -92,18 +93,9 @@ export const getUserDivisionLeaderboard = async (
   const now = new Date()
 
   try {
-    // 1. Determine current week start date
-    const dayOfWeek = now.getUTCDay() // 0 = Sunday, 1 = Monday, ...
-    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-    const currentWeekStartDate = new Date(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() + diffToMonday,
-      0,
-      0,
-      0,
-      0,
-    )
+    // 1. Determine current week start date using the same logic as the creation action
+    const currentWeekStartDate = startOfWeek(now, { weekStartsOn: 1 })
+    currentWeekStartDate.setUTCHours(0, 0, 0, 0) // Ensure UTC midnight
     const currentWeekStartString = currentWeekStartDate.toISOString()
 
     // 2. Fetch all memberships for the user (potential improvement needed if many memberships)
@@ -122,12 +114,14 @@ export const getUserDivisionLeaderboard = async (
       if (typeof member.leaderboard === 'object' && member.leaderboard !== null) {
         // Compare start dates. Convert DB date string to Date object for reliable comparison
         const leaderboardStartDate = new Date(member.leaderboard.startDate)
+        // Comparison should now match because calculation is consistent
         return leaderboardStartDate.toISOString() === currentWeekStartString
       }
       return false
     })
 
     if (!currentMembership) {
+      // Log the consistently calculated start date for debugging
       console.log(
         `User ${userId} membership not found for the current week starting ${currentWeekStartString}`,
       )

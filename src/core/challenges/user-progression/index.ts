@@ -675,6 +675,9 @@ export const getTotalCompletedChallengesCount = async (userId: string): Promise<
       userId: {
         equals: validatedUserId,
       },
+      completionStatus: {
+        equals: 'completed',
+      },
     },
   })
 

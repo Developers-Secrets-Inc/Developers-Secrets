@@ -1,10 +1,14 @@
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export const ProCtaCard = () => {
   return (
     <div id="upgrade-cta" className="p-4 flex flex-col gap-4 bg-background border rounded-md">
       <div id="icon-and-text" className="flex flex-col gap-3">
-        <div id="featured-icon" className="w-[40px] h-[40px] rounded-[8px] border flex items-center justify-center">
+        <div
+          id="featured-icon"
+          className="w-[40px] h-[40px] rounded-[8px] border flex items-center justify-center"
+        >
           <svg
             className="size-5"
             width="100%"
@@ -29,10 +33,16 @@ export const ProCtaCard = () => {
               <p className="text-xs font-medium">20% OFF</p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">Unlock all features and support with the pro version</p>
+          <p className="text-sm text-muted-foreground">
+            Unlock all features and support with the pro version
+          </p>
         </div>
       </div>
-      <Button className="w-full">Upgrade to Pro</Button>
+      <Link href="/pricing" passHref legacyBehavior>
+        <Button className="w-full" asChild={false}>
+          Upgrade to Pro
+        </Button>
+      </Link>
     </div>
   )
 }

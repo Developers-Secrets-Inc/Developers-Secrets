@@ -1,38 +1,42 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Option } from '@/components/ui/multiselect'
+// Remove Option import if no longer needed here
+// import { Option } from '@/components/ui/multiselect'
 
-export interface SolutionMetadata {
+// Remove 'tags' from this interface
+export interface SolutionMetadataFields {
   title: string
   description: string
-  tags: Option[]
 }
 
-const useUserSolutionMetadata = (initialData?: SolutionMetadata) => {
-  const [metadata, setMetadata] = useState<SolutionMetadata>({
+const useUserSolutionMetadata = (initialData?: SolutionMetadataFields) => {
+  // Remove 'tags' from state
+  const [metadata, setMetadata] = useState<SolutionMetadataFields>({
     title: initialData?.title || '',
     description: initialData?.description || '',
-    tags: initialData?.tags || [],
   })
 
   useEffect(() => {
     if (initialData) {
+      // Update only title and description
       setMetadata({
         title: initialData.title || metadata.title,
         description: initialData.description || metadata.description,
-        tags: initialData.tags || metadata.tags,
       })
     }
-  }, [initialData])
+    // metadata dependency removed to avoid loop if initialData changes less often
+  }, [initialData]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const updateField = (field: keyof SolutionMetadata, value: any) => {
+  // Update field signature
+  const updateField = (field: keyof SolutionMetadataFields, value: string) => {
     setMetadata((prev) => ({ ...prev, [field]: value }))
   }
 
   return {
     metadata,
     updateField,
+    setMetadata, // Keep setMetadata if SolutionMetadata component needs to update the whole object
   }
 }
 

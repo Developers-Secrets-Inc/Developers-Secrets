@@ -7,7 +7,10 @@ import { DEFAULT_LEVEL_UP_FORMULA, getGamificationInformations } from '@/core/ga
 import { getUserIsSolutionUnlocked } from '@/core/challenges/user-progression'
 
 import { Challenge } from '@/types/challenge'
-import type { Challenge as PayloadChallenge } from '@/payload-types'
+import type { Challenge as PayloadChallenge, UserChallengeProgression } from '@/payload-types'
+import { Where } from 'payload/types'
+import { PaginatedDocs } from 'payload/database'
+import { Payload } from 'payload'
 
 class ChallengeNotFoundError extends Error {
   constructor() {
@@ -259,6 +262,7 @@ export const getAllChallenges = async (): Promise<PayloadChallenge[]> => {
   const payload = await getPayload({ config })
   const challenges = await payload.find({
     collection: 'challenges',
+    pagination: false,
   })
   return challenges.docs
 }
@@ -408,3 +412,131 @@ export const getChallengeWithDepth = async (challengeId: number): Promise<Payloa
 }
 
 // Add other functions from src/core/challenges/index.ts if they exist
+
+// Interface for the combined data structure
+export interface ChallengeWithProgress {
+  id: number
+  title: string
+  difficulty: 'easy' | 'medium' | 'hard' | 'horrible' | string
+  baseExperience: number
+  slug: string
+  status: 'not_started' | 'in_progress' | 'completed'
+}
+
+// Define the pagination structure directly
+export interface PaginatedChallengesWithProgress {
+  docs: ChallengeWithProgress[]
+  totalDocs: number
+  limit: number
+  totalPages: number
+  page: number
+  pagingCounter: number
+  hasPrevPage: boolean
+  hasNextPage: boolean
+  prevPage: number | null | undefined
+  nextPage: number | null | undefined
+}
+
+// Interface for the parameters of the new action
+interface GetChallengesWithProgressParams {
+  userId: string
+  limit?: number
+  page?: number
+  sort?: string
+  filter?: string
+}
+
+/**
+ * Fetches challenges with their completion status for a specific user,
+ * supporting pagination, sorting, and filtering by title.
+ */
+export const getChallengesWithProgress = async ({
+  userId,
+  limit = 25,
+  page = 1,
+  sort = '-baseExperience',
+  filter = '',
+}: GetChallengesWithProgressParams): Promise<PaginatedChallengesWithProgress> => {
+  const payload = await getPayload({ config })
+
+  const challengeWhereClause: Where = {}
+  if (filter) {
+    challengeWhereClause.title = {
+      like: filter,
+    }
+  }
+
+  const challengesResult = await payload.find({
+    collection: 'challenges',
+    where: challengeWhereClause,
+    limit,
+    page,
+    sort,
+    depth: 0,
+    pagination: true,
+  })
+
+  const userProgressionsResult = await payload.find({
+    collection: 'userChallengeProgression',
+    where: {
+      userId: { equals: userId },
+      challenge: { in: challengesResult.docs.map((doc) => doc.id) },
+    },
+    limit: 0,
+    pagination: false,
+    depth: 0,
+  })
+
+  const progressionMap = new Map<number, UserChallengeProgression>()
+  userProgressionsResult.docs.forEach((prog) => {
+    const challengeId = typeof prog.challenge === 'number' ? prog.challenge : prog.challenge?.id
+    if (challengeId) {
+      progressionMap.set(challengeId, prog)
+    }
+  })
+
+  const challengesWithProgress: ChallengeWithProgress[] = challengesResult.docs.map((challenge) => {
+    const progression = progressionMap.get(challenge.id)
+    return {
+      id: challenge.id,
+      title: challenge.title,
+      difficulty: challenge.difficulty ?? 'medium',
+      // Ensure baseExperience has a default value if undefined
+      baseExperience: challenge.baseExperience ?? 50,
+      slug: challenge.slug,
+      status: progression?.completionStatus ?? 'not_started',
+    }
+  })
+
+  // Explicitly check and provide defaults for potentially undefined pagination fields
+  const safeTotalDocs = challengesResult.totalDocs ?? 0
+  const safeLimit = challengesResult.limit ?? limit
+  const safeTotalPages = challengesResult.totalPages ?? Math.ceil(safeTotalDocs / safeLimit)
+  const safePage = challengesResult.page ?? page
+  const safePagingCounter = challengesResult.pagingCounter ?? (safePage - 1) * safeLimit + 1
+
+  return {
+    docs: challengesWithProgress,
+    totalDocs: safeTotalDocs,
+    limit: safeLimit,
+    totalPages: safeTotalPages,
+    page: safePage,
+    pagingCounter: safePagingCounter,
+    hasPrevPage: challengesResult.hasPrevPage ?? safePage > 1,
+    hasNextPage: challengesResult.hasNextPage ?? safePage < safeTotalPages,
+    prevPage: challengesResult.prevPage ?? (safePage > 1 ? safePage - 1 : null),
+    nextPage: challengesResult.nextPage ?? (safePage < safeTotalPages ? safePage + 1 : null),
+  }
+}
+
+// --- Comment out or remove the old getAllChallenges function ---
+/*
+export const getAllChallenges = async (): Promise<PayloadChallenge[]> => {
+  const payload = await getPayload({ config })
+  const challenges = await payload.find({
+    collection: 'challenges',
+    pagination: false,
+  })
+  return challenges.docs
+}
+*/

@@ -13,13 +13,13 @@ type ChallengeHeaderProps = {
 
 export const ChallengeHeader = ({ challenge, status = 'not_started' }: ChallengeHeaderProps) => {
   return (
-    <>
+    <div className="mb-6 border-b pb-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">{challenge.title}</h2>
         <ChallengeStatus />
       </div>
       <ChallengeHeaderTags challenge={challenge} />
-    </>
+    </div>
   )
 }
 

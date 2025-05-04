@@ -7,15 +7,21 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { getUserInventory, consumeItem } from '@/core/gamification/inventory'
-import { getSessionUser } from '@/core/user'
 import { UserItem, Item } from '@/payload-types'
 import { useState, useEffect } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Backpack, InfinityIcon, Gift, Coins, Star } from 'lucide-react'
+import { Backpack, InfinityIcon, Gift, Coins, Star, ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { ChestOpeningDialog } from '../dialogs/chest-opening-dialog'
+import {
+  RarityBadge,
+  getItemIcon,
+  rarityGlowConfig,
+} from '@/core/gamification/marketplace/components/dialogs/marketplace-dialog'
+import { cn } from '@/lib/utils'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 // Helper function to format rewards for the toast message
 function formatRewardsForToast(rewards: any): React.ReactNode {
@@ -82,37 +88,49 @@ function formatRewardsForToast(rewards: any): React.ReactNode {
 interface InventorySheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  initialInventory: UserItem[] | null
+  initialError: string | null
+  userId: string | null
 }
 
-export function InventorySheet({ open, onOpenChange }: InventorySheetProps) {
-  const [inventory, setInventory] = useState<UserItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export function InventorySheet({
+  open,
+  onOpenChange,
+  initialInventory,
+  initialError,
+  userId,
+}: InventorySheetProps) {
+  const [inventory, setInventory] = useState(initialInventory)
   const [consumingItemId, setConsumingItemId] = useState<number | null>(null)
   const [chestRewards, setChestRewards] = useState<any>(null)
   const [isChestDialogOpen, setIsChestDialogOpen] = useState(false)
 
+  useEffect(() => {
+    setInventory(initialInventory)
+  }, [initialInventory])
+
   const handleConsumeItem = async (userItemId: number, itemType: string) => {
+    if (!userId) {
+      toast.error('User not identified for inventory refresh.')
+      return
+    }
     try {
       setConsumingItemId(userItemId)
       const result = await consumeItem(userItemId)
       if (result.success) {
         if (itemType === 'chest' && result.rewards) {
-          // Show chest opening dialog instead of toast
           setChestRewards(result.rewards)
           setIsChestDialogOpen(true)
         } else {
-          // Generic success message for other consumables
           toast.success('Item consumed successfully!')
         }
 
-        // Refresh inventory after success
-        const userResult = await getSessionUser()
-        if (userResult.success) {
-          const items = await getUserInventory(userResult.value.id)
+        try {
+          const items = await getUserInventory(userId)
           setInventory(items)
-        } else {
-          // Handle case where user session is lost?
-          setInventory([])
+        } catch (refreshError) {
+          console.error('Failed to refresh inventory after consume:', refreshError)
+          toast.error('Could not refresh inventory display.')
         }
       } else {
         toast.error(result.error || 'Failed to consume item')
@@ -125,30 +143,8 @@ export function InventorySheet({ open, onOpenChange }: InventorySheetProps) {
     }
   }
 
-  useEffect(() => {
-    async function fetchInventory() {
-      try {
-        setIsLoading(true)
-        const userResult = await getSessionUser()
-        if (userResult.success) {
-          const items = await getUserInventory(userResult.value.id)
-          setInventory(items)
-        } else {
-          // Handle case where user session is lost or not logged in
-          setInventory([])
-        }
-      } catch (error) {
-        console.error('Error fetching inventory:', error)
-        setInventory([]) // Clear inventory on error
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    if (open) {
-      fetchInventory()
-    }
-  }, [open])
+  const isLoading = initialInventory === null && initialError === null
+  const error = initialError
 
   return (
     <>
@@ -176,7 +172,13 @@ export function InventorySheet({ open, onOpenChange }: InventorySheetProps) {
                     </div>
                   ))}
                 </div>
-              ) : inventory.length === 0 ? (
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center text-red-500">
+                  <ShieldAlert className="size-12 mb-4" />
+                  <h3 className="font-medium mb-2">Error Loading Inventory</h3>
+                  <p className="text-sm">{error}</p>
+                </div>
+              ) : !inventory || inventory.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
                   <Backpack className="size-12 mb-4" />
                   <h3 className="font-medium mb-2">Your inventory is empty</h3>
@@ -187,39 +189,42 @@ export function InventorySheet({ open, onOpenChange }: InventorySheetProps) {
                   if (!userItem.item || typeof userItem.item !== 'object') {
                     return null
                   }
-                  // Skip rendering if quantity is zero or less
                   if (userItem.quantity <= 0) {
                     return null
                   }
                   const item = userItem.item as Item
                   const isPassive = item.activationMode === 'passive'
-                  const isChest = item.type === 'chest'
-                  const Icon = isChest ? Gift : Backpack
+                  const Icon = getItemIcon(item.type)
 
                   return (
                     <div
                       key={userItem.id}
-                      className="flex items-center justify-between gap-4 p-4 border rounded-lg"
+                      className="flex items-center justify-between gap-4 p-3 border rounded-lg"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-lg bg-muted flex items-center justify-center">
-                          <Icon className="size-6" />
+                      <div className="flex items-center gap-3">
+                        <div className="size-12 flex items-center justify-center bg-muted rounded-lg">
+                          <Icon className="size-7" />
                         </div>
                         <div>
-                          <h4 className="font-medium flex items-center gap-1.5">
+                          <h4 className="font-medium flex items-center gap-2">
                             {item.name}
                             {isPassive && (
-                              <InfinityIcon className="size-3.5 text-muted-foreground" />
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <InfinityIcon className="size-3.5 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Passive item - Always active</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             )}
                           </h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs capitalize px-2 py-1 rounded-full bg-gray-100 text-gray-700">
-                              {item.rarity}
-                            </span>
-                            <p className="text-sm text-muted-foreground">
-                              Quantity: {userItem.quantity}
-                            </p>
-                          </div>
+                          <RarityBadge rarity={item.rarity} />
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Quantity: {userItem.quantity}
+                          </p>
                         </div>
                       </div>
                       {!isPassive && (
@@ -229,13 +234,7 @@ export function InventorySheet({ open, onOpenChange }: InventorySheetProps) {
                           onClick={() => handleConsumeItem(userItem.id, item.type)}
                           disabled={consumingItemId === userItem.id || userItem.quantity <= 0}
                         >
-                          {consumingItemId === userItem.id
-                            ? isChest
-                              ? 'Opening...'
-                              : 'Consuming...'
-                            : isChest
-                              ? 'Open'
-                              : 'Consume'}
+                          {consumingItemId === userItem.id ? 'Opening...' : 'Consume'}
                         </Button>
                       )}
                     </div>

@@ -149,7 +149,7 @@ export const QuestsDialog = ({
             Available Quests
           </DialogTitle>
           <DialogDescription>
-            Complete quests for XP and chests. Replace quests you don't like.
+            Complete quests for XP and chests. Replace quests you don&apos;t like.
             <span className="block text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <RefreshCw className="h-3 w-3" />
               {replacementText}

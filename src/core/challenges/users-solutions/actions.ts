@@ -3,6 +3,7 @@
 import { createTag, getTagIds } from '@/core/tags'
 import {
   createUserSolution,
+  updateSolutionStatus as updateSolutionStatusCore,
   updateUserSolutionTitle,
   updateUserSolutionDescription,
   updateUserSolutionContent,
@@ -19,6 +20,7 @@ interface SolutionMetadata {
 interface SubmitSolutionParams {
   content: string
   metadata: SolutionMetadata
+  status: 'drafted' | 'published'
   existingSolutionId?: string
   challengeId: number
   userId: string
@@ -31,38 +33,39 @@ interface SolutionResponse {
   resetForm?: boolean
 }
 
-const handleTagsCreation = async (tags: Option[], userId: string) => {
+const handleTagsCreation = async (tags: Option[], userId: string): Promise<string[]> => {
   const newTags = tags.filter((tag) => !tag.value.match(/^\d+$/))
   if (newTags.length > 0) {
     await Promise.all(newTags.map((tag) => createTag(tag.label, userId)))
-    await new Promise((resolve) => setTimeout(resolve, 2000)) // Wait for tags to be created
+    await new Promise((resolve) => setTimeout(resolve, 1000))
   }
-  return await getTagIds()
+  const allTagIds = await getTagIds()
+  const finalTagIds = tags
+    .map((tagOpt) => {
+      if (tagOpt.value.match(/^\d+$/)) {
+        return tagOpt.value
+      }
+      const foundTag = allTagIds.find((t) => t.name === tagOpt.label)
+      return foundTag ? foundTag.id : null
+    })
+    .filter((id): id is string => id !== null)
+
+  return finalTagIds
 }
 
 const updateExistingSolution = async (
   solutionId: string,
   content: string,
   metadata: SolutionMetadata,
+  status: 'drafted' | 'published',
   tagsIds: string[],
 ): Promise<SolutionResponse> => {
   try {
     console.log('Starting solution update with ID:', solutionId)
-    console.log('Content to update:', content)
-    console.log('Metadata to update:', metadata)
-    console.log('Tags to update:', tagsIds)
 
-    // Effectuer les mises à jour une par une pour mieux tracer les erreurs
-    console.log('Updating title...')
     await updateUserSolutionTitle(solutionId, metadata.title.trim())
-
-    console.log('Updating description...')
     await updateUserSolutionDescription(solutionId, metadata.description.trim())
-
-    console.log('Updating content...')
     await updateUserSolutionContent(solutionId, content.trim())
-
-    console.log('Updating tags...')
     await updateTags(solutionId, tagsIds.map(Number))
 
     console.log('Solution update completed successfully')
@@ -91,6 +94,7 @@ async function createNewSolution(
       description: metadata.description.trim() || 'No description provided',
       content: content.trim(),
       tagsIds: tagsIds.map(Number),
+      status: 'drafted',
     }
 
     await createUserSolution(solution)
@@ -108,6 +112,7 @@ async function createNewSolution(
 export async function submitUserSolution({
   content,
   metadata,
+  status,
   existingSolutionId,
   challengeId,
   userId,
@@ -120,19 +125,18 @@ export async function submitUserSolution({
       }
     }
 
-    // Handle tags creation and get IDs
-    const tagsIds = await handleTagsCreation(metadata.tags, userId)
+    const finalTagIds = await handleTagsCreation(metadata.tags, userId)
 
-    // Handle solution submission
     if (existingSolutionId) {
       return await updateExistingSolution(
         existingSolutionId,
         content,
         metadata,
-        tagsIds.map(String),
+        status,
+        finalTagIds,
       )
     } else {
-      return await createNewSolution(content, metadata, challengeId, userId, tagsIds.map(String))
+      return await createNewSolution(content, metadata, challengeId, userId, finalTagIds)
     }
   } catch (error) {
     console.error('Error handling solution:', error)
@@ -143,3 +147,18 @@ export async function submitUserSolution({
   }
 }
 
+export async function updateSolutionStatus(
+  solutionId: string,
+  newStatus: 'drafted' | 'published',
+): Promise<void> {
+  console.log(`Updating status for solution ${solutionId} to ${newStatus}`)
+  try {
+    await updateSolutionStatusCore(solutionId, newStatus)
+    console.log(`Status updated successfully for solution ${solutionId}`)
+  } catch (error) {
+    console.error(`Error updating status for solution ${solutionId}:`, error)
+    throw new Error(
+      `Failed to update solution status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    )
+  }
+}

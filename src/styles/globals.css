@@ -172,3 +172,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Override BlockNote default editor padding */
+.bn-editor.bn-default-styles {
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+}

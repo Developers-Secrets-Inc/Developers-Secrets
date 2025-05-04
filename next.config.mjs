@@ -4,6 +4,7 @@ const nextConfig = {
   // Your Next.js config here
   experimental: {
     reactCompiler: true,
+    ppr: 'incremental', // Enable experimental Partial Prerendering
   },
   eslint: {
     ignoreDuringBuilds: true,

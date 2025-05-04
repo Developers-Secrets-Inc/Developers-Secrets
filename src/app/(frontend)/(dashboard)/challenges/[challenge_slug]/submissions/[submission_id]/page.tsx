@@ -65,9 +65,9 @@ export default async function SubmissionPage({
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen">
       <div className="container max-w-5xl py-8">
-        <div className="bg-background rounded-lg shadow-sm border p-6">{renderSubmission()}</div>
+        <div className="p-6">{renderSubmission()}</div>
       </div>
     </div>
   )
