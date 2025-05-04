@@ -1,21 +1,13 @@
 import { redirect } from 'next/navigation'
 
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { createClient } from '@/utils/supabase/server'
-import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
-import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
-import { CurrentCourseCard } from '@/components/cards/current-course-card'
-import { ProfileCard } from '@/core/profile/components/profile-card'
-import { ChallengeCard } from '@/components/cards/challenge-card'
-import { LeaderboardCard } from '@/components/cards/leaderboard-card'
-import { GuildCard } from '@/components/cards/guild-card'
 
 export default async function Home() {
   const supabase = await createClient()
 
   const { data, error } = await supabase.auth.getUser()
   if (error || !data?.user) {
-    redirect('/login')
+    redirect('/auth/login')
   }
 
   // return (

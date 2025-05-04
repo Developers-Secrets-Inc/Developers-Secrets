@@ -7,10 +7,16 @@ import { DEFAULT_LEVEL_UP_FORMULA, getGamificationInformations } from '@/core/ga
 import { getUserIsSolutionUnlocked } from '@/core/challenges/user-progression'
 
 import { Challenge } from '@/types/challenge'
-import type { Challenge as PayloadChallenge, UserChallengeProgression } from '@/payload-types'
+import type {
+  Challenge as PayloadChallenge,
+  UserChallengeProgression,
+  CodeVersion,
+  Concept,
+} from '@/payload-types'
 import { Where } from 'payload/types'
 import { PaginatedDocs } from 'payload/database'
 import { Payload } from 'payload'
+import { Result } from '@/core/user/result'
 
 class ChallengeNotFoundError extends Error {
   constructor() {
@@ -540,3 +546,64 @@ export const getAllChallenges = async (): Promise<PayloadChallenge[]> => {
   return challenges.docs
 }
 */
+
+// Define the input data structure for creating a challenge
+// Based on src/collections/Challenges.ts, focusing on required fields for creation
+interface CreateChallengeData {
+  title: string
+  slug: string
+  difficulty: 'easy' | 'medium' | 'hard' | 'horrible'
+  description: {
+    statement: string
+    hints?: Array<{ content: string }> // Optional hints
+    similarChallenges?: Array<{ challenge: string | number }> // Optional related challenges (pass IDs)
+  }
+  // Require at least one code version
+  codeVersions: Array<{
+    language: string
+    initialCode: string
+    testCases: Array<{
+      input: string
+      expectedOutput: string
+    }>
+  }>
+  concepts?: Array<{ concept: string }> // Optional concepts
+  // Optional: Add other fields like officialSolution if needed for direct creation
+}
+
+// Define a more specific error type if needed
+class ChallengeCreationError extends Error {
+  constructor(message: string) {
+    super(`Challenge creation failed: ${message}`)
+    this.name = 'ChallengeCreationError'
+  }
+}
+
+/**
+ * Creates a new challenge in the Payload CMS.
+ * @param challengeData - The data for the new challenge.
+ * @returns A Result object containing the created challenge or an error.
+ */
+export const createChallenge = async (
+  challengeData: CreateChallengeData,
+): Promise<Result<PayloadChallenge, ChallengeCreationError>> => {
+  const payload = await getPayload({ config })
+
+  try {
+    // Payload handles field validation based on the collection config
+    // The baseExperience hook will run automatically
+    const newChallenge = await payload.create({
+      collection: 'challenges',
+      data: challengeData,
+      // Optional: Add depth if you need populated relations immediately
+      // depth: 1,
+    })
+
+    return { success: true, value: newChallenge as PayloadChallenge }
+  } catch (error: any) {
+    console.error('Error creating challenge:', error)
+    // Check for specific Payload validation errors if possible, otherwise return a generic error
+    const errorMessage = error?.message || 'An unknown error occurred during challenge creation.'
+    return { success: false, error: new ChallengeCreationError(errorMessage) }
+  }
+}
