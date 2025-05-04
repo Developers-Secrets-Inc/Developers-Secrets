@@ -15,6 +15,13 @@ import { Backpack, InfinityIcon, Gift, Coins, Star, ShieldAlert } from 'lucide-r
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { ChestOpeningDialog } from '../dialogs/chest-opening-dialog'
+import {
+  RarityBadge,
+  getItemIcon,
+  rarityGlowConfig,
+} from '@/core/gamification/marketplace/components/dialogs/marketplace-dialog'
+import { cn } from '@/lib/utils'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 // Helper function to format rewards for the toast message
 function formatRewardsForToast(rewards: any): React.ReactNode {
@@ -187,33 +194,37 @@ export function InventorySheet({
                   }
                   const item = userItem.item as Item
                   const isPassive = item.activationMode === 'passive'
-                  const isChest = item.type === 'chest'
-                  const Icon = isChest ? Gift : Backpack
+                  const Icon = getItemIcon(item.type)
 
                   return (
                     <div
                       key={userItem.id}
-                      className="flex items-center justify-between gap-4 p-4 border rounded-lg"
+                      className="flex items-center justify-between gap-4 p-3 border rounded-lg"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-lg bg-muted flex items-center justify-center">
-                          <Icon className="size-6" />
+                      <div className="flex items-center gap-3">
+                        <div className="size-12 flex items-center justify-center bg-muted rounded-lg">
+                          <Icon className="size-7" />
                         </div>
                         <div>
-                          <h4 className="font-medium flex items-center gap-1.5">
+                          <h4 className="font-medium flex items-center gap-2">
                             {item.name}
                             {isPassive && (
-                              <InfinityIcon className="size-3.5 text-muted-foreground" />
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <InfinityIcon className="size-3.5 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Passive item - Always active</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             )}
                           </h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs capitalize px-2 py-1 rounded-full bg-gray-100 text-gray-700">
-                              {item.rarity}
-                            </span>
-                            <p className="text-sm text-muted-foreground">
-                              Quantity: {userItem.quantity}
-                            </p>
-                          </div>
+                          <RarityBadge rarity={item.rarity} />
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Quantity: {userItem.quantity}
+                          </p>
                         </div>
                       </div>
                       {!isPassive && (
@@ -223,13 +234,7 @@ export function InventorySheet({
                           onClick={() => handleConsumeItem(userItem.id, item.type)}
                           disabled={consumingItemId === userItem.id || userItem.quantity <= 0}
                         >
-                          {consumingItemId === userItem.id
-                            ? isChest
-                              ? 'Opening...'
-                              : 'Consuming...'
-                            : isChest
-                              ? 'Open'
-                              : 'Consume'}
+                          {consumingItemId === userItem.id ? 'Opening...' : 'Consume'}
                         </Button>
                       )}
                     </div>

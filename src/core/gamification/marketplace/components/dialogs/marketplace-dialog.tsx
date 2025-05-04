@@ -28,19 +28,30 @@ import { useToast } from '@/components/ui/use-toast'
 import { buyItem } from '@/core/gamification/marketplace/action'
 import { getUserInventory } from '@/core/gamification/inventory'
 import { ShieldAlert } from 'lucide-react'
+import { BluePotionIcon } from '@/components/icons/blue-potion'
+import { CoinIcon } from '@/components/icons/coin'
+import { GiftIcon } from '@/components/icons/gift'
+
+// Configuration for the glow effect based on rarity - moved outside component
+export const rarityGlowConfig = {
+  common: 'bg-emerald-500/20',
+  rare: 'bg-orange-500/20',
+  epic: 'bg-purple-500/20',
+  legendary: 'bg-amber-500/20',
+}
 
 // Composant pour afficher la rareté
-function RarityBadge({ rarity }: { rarity: 'common' | 'rare' | 'epic' | 'legendary' }) {
+export function RarityBadge({ rarity }: { rarity: 'common' | 'rare' | 'epic' | 'legendary' }) {
   const rarityConfig = {
-    common: 'bg-slate-100 text-slate-700',
-    rare: 'bg-blue-100 text-blue-700',
-    epic: 'bg-purple-100 text-purple-700',
-    legendary: 'bg-amber-100 text-amber-700',
+    common: 'bg-emerald-500/10 text-emerald-500',
+    rare: 'bg-orange-500/10 text-orange-500',
+    epic: 'bg-purple-500/10 text-purple-500',
+    legendary: 'bg-amber-500/10 text-amber-500',
   }
 
   return (
     <div
-      className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${rarityConfig[rarity]}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${rarityConfig[rarity]}`}
     >
       <Sparkles className="size-3" />
       <span className="capitalize">{rarity}</span>
@@ -49,18 +60,18 @@ function RarityBadge({ rarity }: { rarity: 'common' | 'rare' | 'epic' | 'legenda
 }
 
 // Fonction pour obtenir l'icône en fonction du type d'item
-function getItemIcon(type: string) {
+export function getItemIcon(type: string) {
   switch (type) {
     case 'xpBoost':
-      return Zap
+      return BluePotionIcon
     case 'currencyBoost':
-      return Coins
+      return CoinIcon
     case 'streakRestore':
       return Heart
     case 'unlockFeature':
       return Star
     default:
-      return Gift
+      return GiftIcon
   }
 }
 
@@ -92,8 +103,17 @@ const ItemCard: React.FC<ItemCardProps> = ({
         <div className="flex justify-between items-start mb-2">
           <RarityBadge rarity={item.rarity} />
         </div>
-        <div className="flex flex-col items-center py-4">
-          <Icon className="size-14 mb-4" />
+        <div className="flex flex-col items-center pt-4">
+          <div className="relative mb-4">
+            {' '}
+            {/* Wrapper for icon and glow */}
+            <div
+              className={`absolute inset-0 rounded-full blur-lg opacity-75 ${rarityGlowConfig[item.rarity]}`}
+            ></div>{' '}
+            {/* Glow element */}
+            <Icon className="relative z-10 size-16" />{' '}
+            {/* Icon itself, increased size slightly to better show glow */}
+          </div>
           <CardTitle className="text-lg">{item.name}</CardTitle>
         </div>
       </CardHeader>
@@ -111,10 +131,7 @@ const ItemCard: React.FC<ItemCardProps> = ({
           ) : isPurchasing ? (
             'Purchasing...'
           ) : (
-            <>
-              <Coins className="size-4" />
-              {`Purchase for ${marketplaceItem.price} coins`}
-            </>
+            <>{`Purchase for ${marketplaceItem.price} coins`}</>
           )}
         </Button>
       </CardFooter>
@@ -379,7 +396,7 @@ export function MarketplaceDialog({
 
         <DialogFooter className="sticky bottom-0 p-4 bg-background border-t flex justify-end items-center gap-2 shrink-0">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Coins className="size-4" />
+            <CoinIcon className="size-4" />
             <span>
               Balance:{' '}
               {userCurrency === null ? (

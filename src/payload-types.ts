@@ -511,7 +511,7 @@ export interface UserInformation {
   name?: string | null;
   avatar?: string | null;
   initials?: string | null;
-  role: 'basic' | 'lite' | 'pro' | 'max';
+  role: 'basic' | 'lite' | 'pro' | 'max' | 'admin';
   /**
    * Select permissions for this user
    */

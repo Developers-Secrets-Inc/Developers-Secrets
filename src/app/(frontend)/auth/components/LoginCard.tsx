@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { loginWithGoogle, loginWithGitHub } from '@/actions/auth'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -38,6 +39,7 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,6 +64,7 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
 
     // Clear errors
     setErrors({})
+    setIsLoading(true)
 
     try {
       const result = await onSubmit(email, password, rememberMe)
@@ -74,6 +77,8 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
         console.error('Login error:', error)
         toast.error('An error occurred during login.')
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -160,8 +165,8 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
             </Link>
           </div>
 
-          <Button type="submit" className="w-full">
-            Sign in
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign in'}
           </Button>
 
           <div className="relative my-6">

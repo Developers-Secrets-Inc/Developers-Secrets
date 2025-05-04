@@ -8,12 +8,12 @@ import { Eclipse } from 'lucide-react' // Utiliser PanelLeftOpen ou une autre ic
 import Link from 'next/link'
 // Importer le nouveau composant client
 import { CourseOutlineSheetTrigger } from './course-outline-sheet-trigger'
-// Importer le type pour les données de l'outline
-import { CourseOutlineData } from '../layout'
+// Importer le type correct pour les données de l'outline depuis parts.ts
+import type { CourseOutlineUserData } from '@/core/courses/parts'
 
-// Définir les props pour le header
+// Définir les props pour le header avec le type mis à jour
 interface CoursePartMainHeaderProps {
-  courseOutlineData: CourseOutlineData
+  courseOutlineData: CourseOutlineUserData // Utiliser le type importé
   courseSlug: string
 }
 

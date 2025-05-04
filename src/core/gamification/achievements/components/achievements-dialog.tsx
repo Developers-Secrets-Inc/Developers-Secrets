@@ -121,12 +121,9 @@ export function AchievementsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl md:max-w-5xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="md:max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Star className="h-6 w-6 text-yellow-500" />
-            Achievements
-          </DialogTitle>
+          <DialogTitle className="flex items-center gap-2 text-xl">Achievements</DialogTitle>
           <DialogDescription>
             Track your progress and earn rewards by completing achievements.
           </DialogDescription>
