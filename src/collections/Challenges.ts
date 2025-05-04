@@ -25,6 +25,7 @@ export const Challenges: CollectionConfig = {
   },
   access: {
     read: () => true, // Tous les utilisateurs peuvent lire les challenges
+    create: () => true, // Tous les utilisateurs peuvent créer des challenges
   },
   fields: [
     {
