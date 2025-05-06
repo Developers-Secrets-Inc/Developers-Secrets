@@ -9,6 +9,7 @@ import {
   DatabaseIcon,
   GanttChartIcon,
   LayoutDashboardIcon, // Nouvelle icône pour les parcours
+  LockIcon,
   LucideIcon,
   PlusIcon,
 } from 'lucide-react'
@@ -31,15 +32,16 @@ const dummyLearningPaths: DummyLearningPath[] = [
     name: 'Python Fundamentals',
     description: 'Master the basics of Python programming.',
     slug: 'python',
-    courseCount: 5,
+    courseCount: 0,
+    isLocked: true,
   },
   {
     id: 2,
     name: 'Web Development Intro',
     description: 'Build your first websites with HTML, CSS, and JS.',
     slug: 'web-dev',
-    courseCount: 8,
-    isLocked: false,
+    courseCount: 0,
+    isLocked: true,
   },
   {
     id: 3,
@@ -127,14 +129,17 @@ function LearningPathCard({ path }: { path: DummyLearningPath }) {
           <div className="p-2 rounded-md bg-primary/10 text-primary">
             <Icon className="h-6 w-6" />
           </div>
-          <span className="text-sm text-muted-foreground">
-            {path.courseCount} {path.courseCount === 1 ? 'course' : 'courses'}
-          </span>
+          <div className="flex items-center gap-2">
+            {isLocked && <LockIcon className="h-4 w-4 text-muted-foreground" />}
+            <span className="text-sm text-muted-foreground">
+              {path.courseCount} {path.courseCount === 1 ? 'course' : 'courses'}
+            </span>
+          </div>
         </div>
         <h3 className="font-semibold leading-none tracking-tight">{path.name}</h3>
         <p className="text-sm text-muted-foreground line-clamp-2">{path.description}</p>
       </div>
-      {isLocked && <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" />}
+      {isLocked && <div className="absolute inset-0 bg-background/10" />}
     </>
   )
 

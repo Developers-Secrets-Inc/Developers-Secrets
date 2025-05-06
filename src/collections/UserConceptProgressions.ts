@@ -58,7 +58,7 @@ export const UserConceptProgressions: CollectionConfig = {
   // Ensure a user can only have one progression entry per concept
   indexes: [
     {
-      fields: { user: 1, concept: 1 }, // Index on Supabase User ID and concept
+      fields: ['user', 'concept'], // Corrected to array of field names
       options: { unique: true },
     },
   ],

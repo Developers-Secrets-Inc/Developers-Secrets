@@ -17,6 +17,7 @@ import { Where } from 'payload/types'
 import { PaginatedDocs } from 'payload/database'
 import { Payload } from 'payload'
 import { Result } from '@/core/user/result'
+import { CompletionStatus } from './user-progression/types'
 
 class ChallengeNotFoundError extends Error {
   constructor() {
@@ -556,7 +557,7 @@ interface CreateChallengeData {
   description: {
     statement: string
     hints?: Array<{ content: string }> // Optional hints
-    similarChallenges?: Array<{ challenge: string | number }> // Optional related challenges (pass IDs)
+    similarChallenges?: Array<{ challenge: number }> // Use number for ID reference
   }
   // Require at least one code version
   codeVersions: Array<{
@@ -568,7 +569,18 @@ interface CreateChallengeData {
     }>
   }>
   concepts?: Array<{ concept: string }> // Optional concepts
-  // Optional: Add other fields like officialSolution if needed for direct creation
+
+  // Use optional '?' instead of '| null'
+  officialSolution?: {
+    statement: string
+    comments?: number[] | null
+  }
+  // Use optional '?' for code and its required fields
+  code?: {
+    language?: string
+    initialCode?: string
+    testCases?: Array<{ input: string; expectedOutput: string }>
+  }
 }
 
 // Define a more specific error type if needed
@@ -594,7 +606,7 @@ export const createChallenge = async (
     // The baseExperience hook will run automatically
     const newChallenge = await payload.create({
       collection: 'challenges',
-      data: challengeData,
+      data: challengeData as any,
       // Optional: Add depth if you need populated relations immediately
       // depth: 1,
     })
@@ -605,5 +617,31 @@ export const createChallenge = async (
     // Check for specific Payload validation errors if possible, otherwise return a generic error
     const errorMessage = error?.message || 'An unknown error occurred during challenge creation.'
     return { success: false, error: new ChallengeCreationError(errorMessage) }
+  }
+}
+
+/**
+ * Fetches all challenge progressions for a specific user.
+ * @param userId - The Supabase user ID.
+ * @returns A promise that resolves to an array of UserChallengeProgression documents.
+ */
+export const getUserChallengeProgressions = async (
+  userId: string,
+): Promise<UserChallengeProgression[]> => {
+  const payload = await getPayload({ config })
+  try {
+    const result = await payload.find({
+      collection: 'userChallengeProgression',
+      where: {
+        userId: { equals: userId },
+      },
+      limit: 0, // Fetch all
+      depth: 1, // Get challenge relation (optional, adjust if needed)
+      pagination: false,
+    })
+    return result.docs as UserChallengeProgression[]
+  } catch (error) {
+    console.error('Error fetching user challenge progressions:', error)
+    return [] // Return empty array on error
   }
 }

@@ -45,10 +45,21 @@ export const CurrentCourseCard = () => {
   }
 
   if (!lastUrl) {
-    // Si aucune URL n'est stockée, ne rien afficher ou afficher un placeholder
-    // Pour l'instant, on ne rend rien.
-    // Alternative: Afficher une carte invitant à commencer un cours.
-    return null
+    // Si aucune URL n'est stockée, afficher une carte invitant à commencer un cours.
+    return (
+      <Card className="w-full max-w-lg border-dashed border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            Start Learning
+          </CardTitle>
+          <CardDescription>
+            You haven&apos;t started any courses yet. Explore our catalog to find your next
+            challenge!
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    )
   }
 
   // Extraire un nom de cours plus lisible (simpliste)

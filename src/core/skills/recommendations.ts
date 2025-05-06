@@ -1,15 +1,17 @@
 'use server'
 
-import { getPayload } from 'payload'
-import config from '@payload-config'
 import type {
   Challenge,
   Concept,
   ImplementationConcept,
   Skill,
-  UserConceptProgressions,
-  UserImplementationConceptProgressions,
+  UserConceptProgression,
+  UserImplementationConceptProgression,
+  UserChallengeProgression,
 } from '@/payload-types' // Assurez-vous que les types sont à jour
+import config from '@payload-config'
+import { getPayload } from 'payload'
+import type { Payload } from 'payload' // Import Payload type
 
 // --- Constantes de Configuration (Ajuster si nécessaire) ---
 const RECENT_ACTIVITY_THRESHOLD_DAYS = 30 // Considérer une skill active si travaillée dans les X derniers jours
@@ -25,6 +27,79 @@ interface RecommendationOptions {
 
 interface RecommendationsBySkill {
   [skillName: string]: Challenge[] // Utiliser le nom de la skill comme clé pour l'affichage
+}
+
+/**
+ * Helper function to retrieve a random challenge not yet completed by the user.
+ * @param userId - The ID of the user (Supabase).
+ * @param payload - Payload client instance.
+ * @returns A random uncompleted Challenge object or null if none found.
+ */
+async function getRandomUncompletedChallenge(
+  userId: string,
+  payload: Payload, // Use imported Payload type
+): Promise<Challenge | null> {
+  console.log(`Attempting to find a random uncompleted challenge for user ${userId}...`)
+  try {
+    // 1. Get IDs of completed challenges
+    const completedProgressions = await payload.find({
+      collection: 'userChallengeProgression',
+      where: {
+        userId: { equals: userId },
+        completionStatus: { equals: 'completed' },
+      },
+      limit: 0,
+      depth: 0,
+      select: { challenge: true },
+      pagination: false,
+    })
+
+    const completedChallengeIds = new Set<number>(
+      completedProgressions.docs
+        .map((p: { challenge?: number | { id: number } | null }) => {
+          if (typeof p.challenge === 'number') return p.challenge
+          if (typeof p.challenge === 'object' && p.challenge !== null) return p.challenge.id
+          return null
+        })
+        .filter((id): id is number => id !== null),
+    )
+    console.log(`  User has ${completedChallengeIds.size} completed challenges.`)
+
+    // 2. Fetch a sample of potential challenges (adjust limit as needed)
+    const potentialChallengesResult = await payload.find({
+      collection: 'challenges',
+      limit: 100, // Fetch a sample
+      depth: 2, // Depth 2 should include concepts, difficulty etc. needed for display
+      pagination: false,
+      // Optionally add where clause to exclude specific types if needed
+    })
+
+    // 3. Filter out completed challenges
+    const uncompletedChallenges = (potentialChallengesResult.docs as Challenge[]).filter(
+      (challenge) => !completedChallengeIds.has(challenge.id),
+    )
+
+    console.log(
+      `  Found ${potentialChallengesResult.docs.length} potential, ${uncompletedChallenges.length} uncompleted challenges in the sample.`,
+    )
+
+    // 4. Select randomly if any remain
+    if (uncompletedChallenges.length > 0) {
+      const randomIndex = Math.floor(Math.random() * uncompletedChallenges.length)
+      const randomChallenge = uncompletedChallenges[randomIndex]
+      console.log(
+        `  Selected random challenge: ${randomChallenge.title} (ID: ${randomChallenge.id})`,
+      )
+      return randomChallenge
+    } else {
+      console.log(`  No uncompleted challenges found in the sample for user ${userId}.`)
+      // Optional: Could try fetching ALL challenges if the sample fails, but might be slow.
+      return null
+    }
+  } catch (error) {
+    console.error(`Error fetching random uncompleted challenge for user ${userId}:`, error)
+    return null
+  }
 }
 
 /**
@@ -47,6 +122,8 @@ export async function getRecommendedChallenges(
 
   console.log(`Getting recommendations for user ${userId}, cutoff: ${cutoffDate.toISOString()}`)
 
+  let activeSkillMap = new Map<number, { name: string; lastActivity: Date }>() // Initialize here
+
   try {
     // +++ Get IDs of challenges already completed by the user +++
     const completedProgressions = await payload.find({
@@ -55,16 +132,20 @@ export async function getRecommendedChallenges(
         userId: { equals: userId },
         completionStatus: { equals: 'completed' },
       },
-      limit: 0, // Get all completed
-      depth: 0, // No need for relations
-      select: ['challenge'], // Only need the challenge ID
+      limit: 0,
+      depth: 0,
+      select: { challenge: true },
       pagination: false,
     })
 
-    const completedChallengeIds = new Set(
+    const completedChallengeIds = new Set<number>(
       completedProgressions.docs
-        .map((p) => (typeof p.challenge === 'number' ? p.challenge : p.challenge?.id))
-        .filter((id): id is number => id != null), // Ensure only valid numbers
+        .map((p: { challenge?: number | { id: number } | null }) => {
+          if (typeof p.challenge === 'number') return p.challenge
+          if (typeof p.challenge === 'object' && p.challenge !== null) return p.challenge.id
+          return null
+        })
+        .filter((id): id is number => id !== null),
     )
     console.log(`User ${userId} has completed ${completedChallengeIds.size} challenges.`)
     // --- End completed challenges fetch ---
@@ -75,7 +156,6 @@ export async function getRecommendedChallenges(
       where: {
         user: { equals: userId },
         progressValue: { greater_than: 0, less_than: 100 }, // Progression en cours
-        // Filtrer par date si 'lastActivityAt' est fiable et indexé
         updatedAt: { greater_than_equal: cutoffDate.toISOString() }, // Utiliser updatedAt comme proxy de récence
       },
       limit: 0, // Tout récupérer
@@ -84,11 +164,11 @@ export async function getRecommendedChallenges(
     })
 
     // 2. Identifier les Skills Actives (les plus récentes)
-    const activeSkillMap = new Map<number, { name: string; lastActivity: Date }>()
-    for (const prog of implProgressions.docs) {
+    activeSkillMap = new Map<number, { name: string; lastActivity: Date }>()
+    for (const prog of implProgressions.docs as UserImplementationConceptProgression[]) {
       if (activeSkillMap.size >= MAX_ACTIVE_SKILLS_TO_RECOMMEND) break // Limiter le nombre de skills traitées
 
-      const implConcept = prog.implementationConcept as ImplementationConcept // Type assertion
+      const implConcept = prog.implementationConcept
       if (
         implConcept &&
         typeof implConcept === 'object' &&
@@ -125,16 +205,24 @@ export async function getRecommendedChallenges(
         collection: 'userImplementationConceptProgressions',
         where: { user: { equals: userId } },
         limit: 0,
-        depth: 0, // Pas besoin de depth ici, on a déjà les infos de skill
+        depth: 1, // Need depth 1 to get implementationConcept -> concept link
       }),
     ])
 
     // Créer des maps pour un accès rapide à la progression
-    const conceptProgressMap = new Map(
-      allConceptProgressions.docs.map((p) => [p.concept, p.progressValue]),
+    const conceptProgressMap = new Map<number, number | null | undefined>(
+      (allConceptProgressions.docs as UserConceptProgression[]).map((p) => [
+        typeof p.concept === 'number' ? p.concept : p.concept.id, // Handle populated concept
+        p.progressValue,
+      ]),
     )
-    const implConceptProgressMap = new Map(
-      allImplConceptProgressions.docs.map((p) => [p.implementationConcept, p.progressValue]),
+    const implConceptProgressMap = new Map<number, number | null | undefined>(
+      (allImplConceptProgressions.docs as UserImplementationConceptProgression[]).map((p) => [
+        typeof p.implementationConcept === 'number'
+          ? p.implementationConcept
+          : p.implementationConcept.id, // Handle populated impl concept
+        p.progressValue,
+      ]),
     )
 
     // --- Boucle principale : Recommandations par Skill Active ---
@@ -142,49 +230,42 @@ export async function getRecommendedChallenges(
       console.log(`\nProcessing recommendations for Skill: ${skillInfo.name} (ID: ${skillId})`)
 
       // 4. Identifier les concepts cibles "en cours" pour CETTE skill
-      const targetImplConceptsForSkill = allImplConceptProgressions.docs.filter((p) => {
-        // Filtrer pour garder seulement les concepts de la skill actuelle
-        // ET dont la progression est dans la bonne fourchette
-        const implConceptDoc = p.implementationConcept as ImplementationConcept // Suppose que l'ID suffit ? Sinon depth 1 ici. Ou vérifier dans les données déjà chargées
-        // Note: This assumes we have the ImplementationConcept documents or can filter by skillId if stored directly
-        // This part might need adjustment based on actual data structure access
-        const progress = implConceptProgressMap.get(p.implementationConcept) || 0 // Utiliser la map
-        // We need a way to link p.implementationConcept ID back to its skill ID if not populated
-        // Let's re-fetch just the ImplConcepts linked to this skill for clarity
-        // This is less efficient but clearer without complex joins
-        return progress >= MIN_PROGRESS_FOR_TARGET && progress < MAX_PROGRESS_FOR_TARGET // Placeholder filter logic
-      })
-      // TODO: Need to properly filter implConceptProgressions based on skillId
-
-      const targetConceptsForSkill = allConceptProgressions.docs.filter((p) => {
-        const progress = conceptProgressMap.get(p.concept) || 0
-        return progress >= MIN_PROGRESS_FOR_TARGET && progress < MAX_PROGRESS_FOR_TARGET
-        // TODO: Filter concepts potentially linked to this skill via parentSkill? Or just global concepts?
+      const implConceptsForThisSkill = await payload.find({
+        collection: 'implementationConcepts',
+        where: {
+          implementationSkill: { equals: skillId },
+        },
+        limit: 0,
+        depth: 1, // Need the parent concept ID
       })
 
-      // Simplification: pour l'instant, utilisons les IDs récupérés plus tôt des progressions actives
-      const targetImplConceptIdsForThisSkill = implProgressions.docs
-        .filter((p) => {
-          const implConcept = p.implementationConcept as ImplementationConcept
+      const targetImplConceptIdsForThisSkill: number[] = []
+      const targetParentConceptIds = new Set<number>()
+
+      for (const implConcept of implConceptsForThisSkill.docs as ImplementationConcept[]) {
+        const progress = implConceptProgressMap.get(implConcept.id) ?? 0 // Use map, default to 0
+        if (progress >= MIN_PROGRESS_FOR_TARGET && progress < MAX_PROGRESS_FOR_TARGET) {
+          targetImplConceptIdsForThisSkill.push(implConcept.id)
+          // Add parent concept ID to target set if implementation is in progress
+          const parentConceptId =
+            typeof implConcept.concept === 'number' ? implConcept.concept : implConcept.concept?.id
+          if (parentConceptId) {
+            targetParentConceptIds.add(parentConceptId)
+          }
+        }
+      }
+
+      // Additionally, find Base Concepts 'in progress' that might be relevant (using the map)
+      const targetConceptIdsForThisSkill = Array.from(conceptProgressMap.entries())
+        .filter(([conceptId, progress]) => {
+          const pVal = progress ?? 0
+          // Include if in target range OR if it's a parent of an in-progress implementation concept
           return (
-            typeof implConcept === 'object' &&
-            typeof implConcept.implementationSkill === 'object' &&
-            implConcept.implementationSkill.id === skillId
+            (pVal >= MIN_PROGRESS_FOR_TARGET && pVal < MAX_PROGRESS_FOR_TARGET) ||
+            targetParentConceptIds.has(conceptId)
           )
         })
-        .map((p) =>
-          typeof p.implementationConcept === 'object'
-            ? p.implementationConcept.id
-            : p.implementationConcept,
-        )
-
-      // TODO: Get related target base concept IDs more intelligently
-      const targetConceptIdsForThisSkill =
-        targetImplConceptIdsForThisSkill.length > 0
-          ? [
-              /* Get parent IDs */
-            ]
-          : []
+        .map(([conceptId]) => conceptId)
 
       if (
         targetImplConceptIdsForThisSkill.length === 0 &&
@@ -203,11 +284,10 @@ export async function getRecommendedChallenges(
         limit: 500, // Limite pour la performance
         depth: 3, // Nécessaire pour les impacts
         pagination: false,
-        // TODO: Consider more targeted fetching if possible (e.g., only challenges linked to target concepts?)
       })
 
       // --- Filter out already completed challenges ---
-      const uncompletedPotentialChallenges = potentialChallengesResult.docs.filter(
+      const uncompletedPotentialChallenges = (potentialChallengesResult.docs as Challenge[]).filter(
         (challenge) => !completedChallengeIds.has(challenge.id),
       )
       console.log(
@@ -233,11 +313,16 @@ export async function getRecommendedChallenges(
               typeof impactBlock.implementationConcept === 'object'
                 ? impactBlock.implementationConcept.id
                 : impactBlock.implementationConcept
-            if (targetImplConceptIdsForThisSkill.includes(implConceptId)) return true
+            if (
+              typeof implConceptId === 'number' &&
+              targetImplConceptIdsForThisSkill.includes(implConceptId)
+            )
+              return true
           } else if (impactBlock.blockType === 'baseConceptImpact') {
             const conceptId =
               typeof impactBlock.concept === 'object' ? impactBlock.concept.id : impactBlock.concept
-            if (targetConceptIdsForThisSkill.includes(conceptId)) return true
+            if (typeof conceptId === 'number' && targetConceptIdsForThisSkill.includes(conceptId))
+              return true
           }
         }
         return false // Aucun impact pertinent trouvé pour ce challenge et cette skill
@@ -249,10 +334,30 @@ export async function getRecommendedChallenges(
 
       // 7. Ordonner (simpliste) et sélectionner
       // TODO: Améliorer l'ordonnancement (difficulté, etc.)
-      recommendations[skillInfo.name] = relevantChallenges
-        .sort((a, b) => (a.difficulty || '').localeCompare(b.difficulty || '')) // Tri simple par difficulté
-        .slice(0, countPerSkill)
+      if (relevantChallenges.length > 0) {
+        // Only add if relevant challenges were found for the skill
+        recommendations[skillInfo.name] = relevantChallenges
+          .sort((a: Challenge, b: Challenge) =>
+            (a.difficulty || '').localeCompare(b.difficulty || ''),
+          ) // Tri simple par difficulté
+          .slice(0, countPerSkill)
+      }
     } // Fin de la boucle sur les skills actives
+
+    // --- FALLBACK LOGIC --- Moved outside the loop
+    if (Object.keys(recommendations).length === 0) {
+      // Check if NO recommendations were added in the loop
+      console.log(
+        `No relevant skill-based recommendations found for user ${userId} across active skills. Attempting fallback...`,
+      )
+      const randomChallenge = await getRandomUncompletedChallenge(userId, payload)
+      if (randomChallenge) {
+        recommendations['general_recommendation'] = [randomChallenge]
+        console.log(`Fallback successful: Added random challenge ${randomChallenge.id}`)
+      } else {
+        console.log('Fallback failed: No random uncompleted challenge could be found.')
+      }
+    }
 
     return recommendations
   } catch (error) {

@@ -60,7 +60,7 @@ export const UserImplementationConceptProgressions: CollectionConfig = {
   // Ensure a user can only have one progression entry per implementation concept
   indexes: [
     {
-      fields: { user: 1, implementationConcept: 1 },
+      fields: ['user', 'implementationConcept'],
       options: { unique: true },
     },
   ],

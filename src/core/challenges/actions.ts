@@ -17,9 +17,7 @@ import config from '@payload-config'
 
 import { getSessionUser } from '@/core/user'
 import { isError, Result } from '@/core/user/result'
-import { createChallenge } from '@/core/challenges' // Assuming CreateChallengeData is exported
-
-
+import { createChallenge, CreateChallengeData } from '@/core/challenges'
 
 /**
  * Handles all the logic when a challenge is completed by a user.
@@ -62,9 +60,6 @@ export const handleChallengeCompletion = async (
   }
 }
 
-
-
-
 export const importChallengesAction = async (
   jsonContent: string,
 ): Promise<Result<{ count: number }, Error>> => {
@@ -75,17 +70,21 @@ export const importChallengesAction = async (
   }
 
   // 2. Parse JSON
-  let challengesToCreate: unknown
-  let parsedData: unknown // Define parsedData here
+  let challengesToCreate: CreateChallengeData[]
+  let parsedData: unknown
   try {
-    // Directly parse and assume it's an array of the correct type
-    // This is UNSAFE without validation. Errors might occur later.
     parsedData = JSON.parse(jsonContent)
     if (!Array.isArray(parsedData)) {
-      throw new Error('Invalid format: Input must be a JSON array.')
+      // If it's not an array, maybe it's a single object? Wrap it.
+      if (typeof parsedData === 'object' && parsedData !== null) {
+        challengesToCreate = [parsedData as CreateChallengeData] // Treat single object as array of one
+      } else {
+        throw new Error('Invalid format: Input must be a JSON array or a single JSON object.')
+      }
+    } else {
+      // Trusting the structure matches CreateChallengeData
+      challengesToCreate = parsedData as CreateChallengeData[]
     }
-    // Trusting the structure matches CreateChallengeData
-    challengesToCreate = parsedData as unknown[]
   } catch (error: any) {
     return { success: false, error: new Error(`JSON Parsing Error: ${error.message}`) }
   }
@@ -93,24 +92,44 @@ export const importChallengesAction = async (
   // 3. Create Challenges
   let importedCount = 0
   const creationErrors: string[] = []
-  const payload = await getPayload({ config }) // Get payload instance once
+  const payload = await getPayload({ config })
 
   for (const challengeData of challengesToCreate) {
     try {
-      // Directly pass the data, relying on createChallenge/Payload for validation
-      const createResult = await createChallenge(challengeData)
+      // --- NEW: Replace escaped newlines before creation ---
+      if (
+        challengeData.description?.statement &&
+        typeof challengeData.description.statement === 'string'
+      ) {
+        challengeData.description.statement = challengeData.description.statement.replace(
+          /\\n/g,
+          '\n',
+        )
+      }
+      if (
+        challengeData.officialSolution?.statement &&
+        typeof challengeData.officialSolution.statement === 'string'
+      ) {
+        challengeData.officialSolution.statement = challengeData.officialSolution.statement.replace(
+          /\\n/g,
+          '\n',
+        )
+      }
+      // --- End of New Code ---
+
+      // Directly pass the *modified* data, relying on createChallenge/Payload for validation
+      // We still need the 'as any' due to the persistent type issues elsewhere
+      const createResult = await createChallenge(challengeData as any) // Pass modified data
 
       if (isError(createResult)) {
-        // Log the specific error and the data that failed
-        const title = challengeData?.title || 'Untitled Challenge (Error)'
+        const title = (challengeData as any)?.title || 'Untitled Challenge (Error)'
         console.error(`Failed to create challenge "${title}": ${createResult.error.message}`)
         creationErrors.push(`"${title}": ${createResult.error.message}`)
       } else {
         importedCount++
       }
     } catch (error: any) {
-      // Catch unexpected errors during the loop
-      const title = challengeData?.title || 'Untitled Challenge (Unexpected Error)'
+      const title = (challengeData as any)?.title || 'Untitled Challenge (Unexpected Error)'
       console.error(`Unexpected error creating challenge "${title}": ${error.message}`)
       creationErrors.push(`"${title}": Unexpected error - ${error.message}`)
     }
@@ -127,9 +146,7 @@ export const importChallengesAction = async (
     // Handle case where loop finished but nothing was imported (all failed?)
     return {
       success: false,
-      error: new Error(
-        'No challenges were successfully imported, check logs for creation errors.',
-      ),
+      error: new Error('No challenges were successfully imported, check logs for creation errors.'),
     }
   }
 

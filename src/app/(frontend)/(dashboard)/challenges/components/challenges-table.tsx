@@ -101,6 +101,7 @@ type ChallengesTableProps = {
 }
 
 const difficulties = [
+  { value: 'very_easy', label: 'Very Easy' },
   { value: 'easy', label: 'Easy' },
   { value: 'medium', label: 'Medium' },
   { value: 'hard', label: 'Hard' },
@@ -163,6 +164,7 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
         cell: ({ row }) => {
           const difficulty = row.getValue('difficulty') as string
           const styles = {
+            very_easy: 'bg-cyan-500/10 text-cyan-500',
             easy: 'bg-emerald-500/10 text-emerald-500',
             medium: 'bg-amber-500/10 text-amber-500',
             hard: 'bg-red-500/10 text-red-500',
@@ -170,7 +172,7 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
           }[difficulty]
           return (
             <Badge className={cn(styles)} variant="secondary">
-              {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+              {difficulty.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
             </Badge>
           )
         },

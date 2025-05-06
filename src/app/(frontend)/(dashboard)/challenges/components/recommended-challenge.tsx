@@ -5,24 +5,35 @@ import { getUser } from '@/core/user'
 import { getRecommendedChallenges } from '@/core/skills/recommendations'
 import { Brain, Trophy, SearchX } from 'lucide-react'
 import Link from 'next/link'
-import type { Challenge } from '@/payload-types'
+import type { Challenge, Concept } from '@/payload-types'
+
+const FALLBACK_KEY = 'general_recommendation' // Define the key for clarity
 
 export const RecommendedChallenge = async () => {
   const user = await getUser()
 
   let recommendedChallenge: Challenge | null = null
   let recommendedSkillName: string | null = null
+  let isFallbackRecommendation = false
 
   if (user && user.id) {
     const recommendationsBySkill = await getRecommendedChallenges(user.id)
 
-    const skillNames = Object.keys(recommendationsBySkill)
-    if (skillNames.length > 0) {
-      const firstSkillName = skillNames[0]
-      const challengesForFirstSkill = recommendationsBySkill[firstSkillName]
-      if (challengesForFirstSkill && challengesForFirstSkill.length > 0) {
-        recommendedChallenge = challengesForFirstSkill[0]
-        recommendedSkillName = firstSkillName
+    if (recommendationsBySkill[FALLBACK_KEY]?.length > 0) {
+      // Handle fallback recommendation
+      recommendedChallenge = recommendationsBySkill[FALLBACK_KEY][0]
+      isFallbackRecommendation = true
+      recommendedSkillName = null // Explicitly null for fallback
+    } else {
+      // Handle skill-based recommendation (existing logic)
+      const skillNames = Object.keys(recommendationsBySkill)
+      if (skillNames.length > 0) {
+        const firstSkillName = skillNames[0]
+        const challengesForFirstSkill = recommendationsBySkill[firstSkillName]
+        if (challengesForFirstSkill && challengesForFirstSkill.length > 0) {
+          recommendedChallenge = challengesForFirstSkill[0]
+          recommendedSkillName = firstSkillName // Set the specific skill name
+        }
       }
     }
   } else {
@@ -45,30 +56,35 @@ export const RecommendedChallenge = async () => {
   }
 
   if (!recommendedChallenge) {
+    // Display this only if NO challenge (skill-based or fallback) was found
     return (
-      <Card className="w-full py-0">
+      <Card className="w-full py-0 border-dashed border-border">
         <div className="flex flex-col items-center justify-center p-6 text-center">
           <SearchX className="h-12 w-12 text-muted-foreground mb-4" />
-          <CardTitle className="text-xl mb-1">No recommendations right now</CardTitle>
+          <CardTitle className="text-xl mb-1">No challenges available right now</CardTitle>
           <CardDescription className="mb-4">
-            Keep exploring challenges so we can better suggest your next steps!
+            Please check back later or explore existing challenges!
           </CardDescription>
-          <Button asChild>
-            <Link href="/challenges">Explore Challenges</Link>
-          </Button>
+          {/* Optional: Link to explore challenges */}
+          {/* <Button asChild><Link href="/challenges">Explore Challenges</Link></Button> */}
         </div>
       </Card>
     )
   }
 
+  // Display the recommended challenge (either skill-based or fallback)
   return (
     <Card className="w-full py-0">
-      <div className="flex justify-between items-center p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 gap-4">
+        {/* Left side */}
         <div className="flex-1 mr-6">
+          {/* Conditional text based on recommendation type */}
           <div className="mb-2 text-sm font-medium text-primary">
-            Recommended for: {recommendedSkillName || 'your progress'}
+            {isFallbackRecommendation
+              ? 'Suggested for you:'
+              : `Recommended for: ${recommendedSkillName || 'your progress'}`}
           </div>
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <CardTitle className="text-xl">{recommendedChallenge.title}</CardTitle>
             <Badge
               className={getDifficultyColor(recommendedChallenge.difficulty)}
@@ -77,26 +93,50 @@ export const RecommendedChallenge = async () => {
               {recommendedChallenge.difficulty || 'N/A'}
             </Badge>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <CardDescription className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
               <span>{recommendedChallenge.baseExperience || '?'} XP</span>
             </CardDescription>
+            {/* Concepts Display */}
             <div className="flex flex-wrap gap-2">
-              {recommendedChallenge.concepts?.map((conceptObj: any) =>
-                conceptObj && conceptObj.id && conceptObj.concept ? (
-                  <Badge key={conceptObj.id} variant="outline" className="flex items-center gap-1">
-                    <Brain className="h-3 w-3" />
-                    {typeof conceptObj.concept === 'string' ? conceptObj.concept : 'Concept'}
-                  </Badge>
-                ) : null,
+              {recommendedChallenge.concepts?.map(
+                (conceptRelation: {
+                  id?: string | number | null
+                  concept: string | number | Concept | null
+                }) => {
+                  const concept =
+                    typeof conceptRelation.concept === 'object' ? conceptRelation.concept : null
+                  const conceptName = concept ? concept.name : 'Concept' // Safely access name
+                  // Ensure conceptId is derived correctly, handling null/undefined
+                  const conceptId =
+                    typeof conceptRelation.concept === 'number'
+                      ? conceptRelation.concept
+                      : typeof conceptRelation.concept === 'object' && conceptRelation.concept?.id
+                        ? conceptRelation.concept.id
+                        : conceptRelation.id // Fallback to relation ID if concept isn't populated
+
+                  return conceptId ? ( // Only render if we have a valid ID
+                    <Badge
+                      key={String(conceptId)} // Ensure key is string
+                      variant="outline"
+                      className="flex items-center gap-1 whitespace-nowrap"
+                    >
+                      <Brain className="h-3 w-3" />
+                      {conceptName}
+                    </Badge>
+                  ) : null
+                },
               )}
             </div>
           </div>
         </div>
-        <Button asChild>
-          <Link href={`/challenges/${recommendedChallenge.slug}`}>Start Challenge</Link>
-        </Button>
+        {/* Right side */}
+        <div className="flex-shrink-0 mt-4 md:mt-0">
+          <Button asChild>
+            <Link href={`/challenges/${recommendedChallenge.slug}`}>Start Challenge</Link>
+          </Button>
+        </div>
       </div>
     </Card>
   )
