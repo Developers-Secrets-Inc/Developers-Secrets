@@ -1,5 +1,4 @@
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { CodeBlock, CodeBlockCode, CodeBlockGroup } from '@/components/code-block'
 import { Clock } from 'lucide-react'
 import { CoursePartSubmission } from '@/payload-types'
@@ -17,8 +16,9 @@ export function CourseSubmissionTimeLimitExceeded({
   lastExpectedOutput,
 }: CourseSubmissionTimeLimitExceededProps) {
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+    <div className="w-full space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-row items-center justify-between space-y-0 pb-4 mb-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Clock className="h-6 w-6 text-amber-500" />
@@ -32,42 +32,35 @@ export function CourseSubmissionTimeLimitExceeded({
         >
           {testsPassed}/{testsTotal} tests passed
         </Badge>
-      </CardHeader>
+      </div>
 
-      <CardContent className="space-y-6 pt-6">
-        {/* Last Expected Output Section - Check if exists */}
-        {lastExpectedOutput && lastExpectedOutput.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Input That Timed Out's Expected Output</h3>
-            {/* CoursePartSubmission stores lastExpectedOutput differently */}
-            <CodeBlock>
-              <CodeBlockGroup>
-                <span>Expected Output</span>
-              </CodeBlockGroup>
-              <CodeBlockCode code={lastExpectedOutput[0]?.output || 'N/A'} language="plaintext" />
-            </CodeBlock>
-            {/* Optional: Display input if available from the payload type */}
-            {/* {submission.input && ...} */}
-          </div>
-        )}
-
-        {/* Your Code Section */}
+      {/* Main Content */}
+      {/* Last Expected Output Section */}
+      {lastExpectedOutput && lastExpectedOutput.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Your Code</h3>
-            <span className="text-sm text-muted-foreground">
-              Language: {code?.language || 'N/A'}
-            </span>
-          </div>
           <CodeBlock>
             <CodeBlockGroup>
-              <span>Solution Code</span>
-              <span className="text-amber-500">⏱ Time Limit Exceeded</span>
+              <span>Expected Output</span>
             </CodeBlockGroup>
-            <CodeBlockCode code={code?.content || ''} language={code?.language || 'plaintext'} />
+            <CodeBlockCode code={lastExpectedOutput[0]?.output || 'N/A'} language="plaintext" />
           </CodeBlock>
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {/* Your Code Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">Your Code</h3>
+          <span className="text-sm text-muted-foreground">Language: {code?.language || 'N/A'}</span>
+        </div>
+        <CodeBlock>
+          <CodeBlockGroup>
+            <span>Solution Code</span>
+            <span className="text-amber-500">⏱ Time Limit Exceeded</span>
+          </CodeBlockGroup>
+          <CodeBlockCode code={code?.content || ''} language={code?.language || 'plaintext'} />
+        </CodeBlock>
+      </div>
+    </div>
   )
 }

@@ -33,7 +33,7 @@ export default async function CoursePartOfficialSolutionPage({
   }
 
   return (
-    <div className="py-4 px-1">
+    <div className="py-4 px-6">
       <Suspense fallback={<HeaderFallback />}>
         <DynamicCourseHeader part={part} />
       </Suspense>

@@ -29,52 +29,35 @@ interface DummyLearningPath {
 const dummyLearningPaths: DummyLearningPath[] = [
   {
     id: 1,
-    name: 'Python Fundamentals',
-    description: 'Master the basics of Python programming.',
-    slug: 'python',
+    name: 'Backend Development in Python',
+    description: 'Master backend development using Python and popular frameworks.',
+    slug: 'python-backend',
     courseCount: 0,
     isLocked: true,
   },
   {
     id: 2,
-    name: 'Web Development Intro',
-    description: 'Build your first websites with HTML, CSS, and JS.',
-    slug: 'web-dev',
+    name: 'Frontend Development in React',
+    description: 'Build modern and interactive user interfaces with React.',
+    slug: 'react-frontend',
     courseCount: 0,
     isLocked: true,
   },
   {
     id: 3,
-    name: 'Data Structures & Algorithms',
-    description: 'Understand core computer science concepts.',
-    slug: 'algorithms',
-    courseCount: 6,
-    isLocked: true,
-  },
-  {
-    id: 4,
-    name: 'Database Essentials',
-    description: 'Learn SQL and database design principles.',
-    slug: 'database',
-    courseCount: 4,
-  },
-  {
-    id: 5,
-    name: 'Advanced Backend',
-    description: 'Deep dive into backend technologies.',
-    slug: 'backend',
-    courseCount: 7,
+    name: 'Software Engineering',
+    description: 'Learn the principles and practices of professional software engineering.',
+    slug: 'software-engineering',
+    courseCount: 0,
     isLocked: true,
   },
 ]
 
 // --- Icônes ---
 const iconMap: Record<string, LucideIcon> = {
-  python: BrainCircuitIcon,
-  'web-dev': CodeIcon,
-  algorithms: GanttChartIcon,
-  database: DatabaseIcon,
-  backend: BinaryIcon,
+  'python-backend': BinaryIcon, // Using BinaryIcon for backend
+  'react-frontend': CodeIcon, // Using CodeIcon for frontend
+  'software-engineering': BrainCircuitIcon, // Using BrainCircuitIcon for software engineering principles
   default: LayoutDashboardIcon, // Icône par défaut pour les parcours
 }
 

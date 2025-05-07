@@ -14,7 +14,6 @@ import { Suspense } from 'react'
 // import config from '@payload-config'
 import { LearningPathCarousel } from './components/learning-path-carousel'
 import { DevSettingsBubble } from '@/core/dev/components/settings'
-import NewChallengesTable from './components/new-challenges-table'
 
 export default async function ChallengesPage() {
   const user = await getUser()
@@ -36,9 +35,6 @@ export default async function ChallengesPage() {
               <ChallengeCategories />
               <Suspense fallback={<TableSkeleton />}>
                 <ChallengesTable userId={user.id} />
-              </Suspense>
-              <Suspense fallback={<TableSkeleton />}>
-                <NewChallengesTable />
               </Suspense>
             </div>
             <div className="w-[360px] flex flex-col gap-6">

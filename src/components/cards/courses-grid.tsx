@@ -12,15 +12,41 @@ import type { CourseWithStartUrl } from '@/core/courses'
 import { NoCoursesCard } from './no-courses-card'
 import { cn } from '@/lib/utils'
 import { PythonLogoIcon } from '@/components/icons/python-logo-icon'
+import { Gauge } from '@/components/ui/gauge'
+import { getCourseCompletedPartsCount } from '@/core/courses/progression/completion-status'
 
 interface CoursesGridProps {
   courses: CourseWithStartUrl[]
+  userId: string | null
 }
 
 interface CourseLinkWrapperProps {
   courseSlug: string
   defaultHref: string
   children: React.ReactNode
+}
+
+// Helper function to format timestamp to "time ago" string
+const formatTimeAgo = (timestamp: number | null): string => {
+  if (timestamp === null) {
+    return 'Not visited yet'
+  }
+  const now = Date.now()
+  const seconds = Math.round((now - timestamp) / 1000)
+
+  if (seconds < 60) return 'Visited just now'
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return `Visited ${minutes}m ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `Visited ${hours}h ago`
+  const days = Math.round(hours / 24)
+  if (days < 7) return `Visited ${days}d ago`
+  const weeks = Math.round(days / 7)
+  if (weeks < 4) return `Visited ${weeks}w ago`
+  const months = Math.round(days / 30) // Approximation
+  if (months < 12) return `Visited ${months}mo ago`
+  const years = Math.round(days / 365) // Approximation
+  return `Visited ${years}y ago`
 }
 
 const CourseLinkWrapper: React.FC<CourseLinkWrapperProps> = ({
@@ -44,7 +70,7 @@ const CourseLinkWrapper: React.FC<CourseLinkWrapperProps> = ({
   return <Link href={effectiveHref}>{children}</Link>
 }
 
-export const CoursesGrid = ({ courses }: CoursesGridProps) => {
+export const CoursesGrid = ({ courses, userId }: CoursesGridProps) => {
   if (!courses || courses.length === 0) {
     return <NoCoursesCard />
   }
@@ -64,8 +90,53 @@ export const CoursesGrid = ({ courses }: CoursesGridProps) => {
         // Assurez-vous que `orderedChapters` est bien inclus dans `CourseWithStartUrl`
         const isLocked = !course.orderedChapters || course.orderedChapters.length === 0
 
+        // State for last visited text
+        const [lastVisitedText, setLastVisitedText] = useState<string>('Loading...')
+        // State for gauge
+        const [gaugeValue, setGaugeValue] = useState(0)
+        const [isLoadingGauge, setIsLoadingGauge] = useState(true)
+
+        useEffect(() => {
+          if (typeof window !== 'undefined' && course.slug) {
+            const storedTimestamp = localStorage.getItem(`lastVisitedTimestamp_${course.slug}`)
+            const timestamp = storedTimestamp ? parseInt(storedTimestamp, 10) : null
+            setLastVisitedText(formatTimeAgo(timestamp))
+          } else {
+            setLastVisitedText(formatTimeAgo(null))
+          }
+        }, [course.slug]) // Rerun if course.slug changes
+
+        useEffect(() => {
+          const fetchCompletedParts = async () => {
+            if (
+              userId &&
+              course.allPartIds &&
+              course.allPartIds.length > 0 &&
+              course.totalPartsCount
+            ) {
+              setIsLoadingGauge(true)
+              try {
+                const completedCount = await getCourseCompletedPartsCount(userId, course.allPartIds)
+                const percentage =
+                  course.totalPartsCount > 0
+                    ? Math.round((completedCount / course.totalPartsCount) * 100)
+                    : 0
+                setGaugeValue(percentage)
+              } catch (error) {
+                console.error('Error fetching completed parts count:', error)
+                setGaugeValue(0) // Default to 0 on error
+              }
+              setIsLoadingGauge(false)
+            } else {
+              setGaugeValue(0)
+              setIsLoadingGauge(false)
+            }
+          }
+          fetchCompletedParts()
+        }, [userId, course.allPartIds, course.totalPartsCount])
+
         const cardInnerContent = (
-          <Card className="w-full h-full hover:shadow-lg transition-shadow flex flex-col p-1 pb-0 relative gap-2">
+          <Card className="w-full h-full hover:shadow-lg transition-shadow flex flex-col p-1 pb-0 relative gap-0">
             <CardContent className="space-y-3 flex-grow flex flex-col justify-between pt-3 px-3">
               <div className="flex justify-between items-start mb-3">
                 <div className="p-2 bg-muted/50 rounded-md flex items-center justify-center w-10 h-10">
@@ -119,25 +190,24 @@ export const CoursesGrid = ({ courses }: CoursesGridProps) => {
             {/* Nouveau conteneur pour les infos et le bouton en bas */}
             <div className="flex justify-between items-center px-3 pb-3 mt-auto">
               <div className="flex items-center text-xs text-muted-foreground">
-                <span>Visited 5d ago</span>
+                <span>{lastVisitedText}</span>
                 <span className="mx-1">·</span>
                 <Target className="h-3 w-3 mr-1" />
-                <span>35 challenges</span>
+                <span>{course.totalPartsCount ?? 0} challenges</span>
               </div>
-              {/* Bouton d'options déplacé ici */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full w-8 h-8 border"
-                onClick={(e) => {
-                  e.preventDefault() // Empêcher la navigation si dans un lien
-                  e.stopPropagation()
-                  console.log('Options clicked for course:', course.id)
-                }}
-                disabled={isLocked} // Désactiver le bouton si verrouillé
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
+              {/* Gauge component replaces the Button */}
+              <div className="transform scale-75">
+                {isLoadingGauge ? (
+                  <div className="h-[27px] w-[27px] flex items-center justify-center">
+                    {' '}
+                    {/* Adjust size to match scaled gauge */}
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>{' '}
+                    {/* Changed to border-primary */}
+                  </div>
+                ) : (
+                  <Gauge value={gaugeValue} size="small" showValue={true} />
+                )}
+              </div>
             </div>
             {/* Overlay seulement si verrouillé et PAS à l'intérieur de la Card */}
           </Card>

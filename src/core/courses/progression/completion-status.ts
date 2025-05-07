@@ -221,3 +221,39 @@ export async function checkAndUpdateChapterCompletion(
     )
   }
 }
+
+/**
+ * Counts the number of completed parts for a user from a given list of part IDs.
+ * @param userId The ID of the user.
+ * @param allPartIdsForCourse An array of all part IDs for a specific course.
+ * @returns Promise<number> The count of completed parts.
+ */
+export const getCourseCompletedPartsCount = async (
+  userId: string,
+  allPartIdsForCourse: number[],
+): Promise<number> => {
+  if (!userId || !allPartIdsForCourse || allPartIdsForCourse.length === 0) {
+    return 0
+  }
+
+  try {
+    const partStatuses = await getAllUserPartCompletionStatusesForChapter(
+      userId,
+      allPartIdsForCourse,
+    )
+
+    let completedCount = 0
+    for (const partId of allPartIdsForCourse) {
+      if (partStatuses[partId] === 'completed') {
+        completedCount++
+      }
+    }
+    return completedCount
+  } catch (error) {
+    console.error(
+      `Error in getCourseCompletedPartsCount for user ${userId} and parts ${allPartIdsForCourse.join(',')}:`,
+      error,
+    )
+    return 0 // Return 0 in case of an error
+  }
+}

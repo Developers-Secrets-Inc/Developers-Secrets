@@ -9,7 +9,6 @@ import {
   UserProfile,
   UserProfileCardSkeleton,
 } from '@/app/(frontend)/(dashboard)/challenges/components/user-profile' // Assumer que le chemin est correct
-import { ChallengesLeaderboard } from '@/app/(frontend)/(dashboard)/challenges/components/challenges-leaderboard' // Assumer que le chemin est correct
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
@@ -50,7 +49,7 @@ export default async function Page() {
             {/* Section Grille de Cours (reste en dessous) */}
             <div className="flex flex-col gap-4">
               <h2 className="text-xl font-semibold tracking-tight">Available Courses</h2>
-              <CoursesGrid courses={courses} />
+              <CoursesGrid courses={courses} userId={user.id} />
             </div>
           </div>
         </div>

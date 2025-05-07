@@ -48,7 +48,7 @@ export default async function CoursePartSubmissionsPage({
   }))
 
   return (
-    <div className="p-6">
+    <div className="py-4 px-6">
       {/* Add context like part title if needed */}
       {/* <h1>Submissions for: {coursePart.name}</h1> */}
       <h3 className="text-lg font-semibold mb-3">Your Submissions</h3>
