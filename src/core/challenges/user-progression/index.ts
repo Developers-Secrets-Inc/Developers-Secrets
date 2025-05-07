@@ -205,7 +205,8 @@ export const getUserIsSolutionUnlocked = async (
   const validatedChallengeId = validateChallengeId(challengeId)
 
   const userProgression = await getUserProgression(validatedUserId, validatedChallengeId)
-  return userProgression?.isSolutionUnlocked ?? false
+  // Solution is unlocked if explicitly unlocked OR if the challenge is completed
+  return userProgression?.isSolutionUnlocked || userProgression?.completionStatus === 'completed'
 }
 
 export const setUserIsSolutionUnlocked = async (
