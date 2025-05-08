@@ -35,14 +35,16 @@ interface RecommendationsBySkill {
  * @param payload - Payload client instance.
  * @returns A random uncompleted Challenge object or null if none found.
  */
-async function getRandomUncompletedChallenge(
+export async function getRandomUncompletedChallenge(
   userId: string,
-  payload: Payload, // Use imported Payload type
+  payload?: Payload, // Make payload optional, get it if not provided
 ): Promise<Challenge | null> {
   console.log(`Attempting to find a random uncompleted challenge for user ${userId}...`)
+  const currentPayload = payload || (await getPayload({ config })) // Get payload if not passed
+
   try {
     // 1. Get IDs of completed challenges
-    const completedProgressions = await payload.find({
+    const completedProgressions = await currentPayload.find({
       collection: 'userChallengeProgression',
       where: {
         userId: { equals: userId },
@@ -66,7 +68,7 @@ async function getRandomUncompletedChallenge(
     console.log(`  User has ${completedChallengeIds.size} completed challenges.`)
 
     // 2. Fetch a sample of potential challenges (adjust limit as needed)
-    const potentialChallengesResult = await payload.find({
+    const potentialChallengesResult = await currentPayload.find({
       collection: 'challenges',
       limit: 100, // Fetch a sample
       depth: 2, // Depth 2 should include concepts, difficulty etc. needed for display

@@ -18,6 +18,7 @@ import { ArticleHeader } from '../components/article-header'
 import { ArticleSidebar } from '../components/article-sidebar'
 import { ArticleOutline } from './components/article-outline'
 import { Metadata, ResolvingMetadata } from 'next'
+import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 
 // Revalidate content every hour
 export const revalidate = 3600
@@ -164,7 +165,7 @@ export default async function ArticlePage({
           articleType="tutorial"
         />
         <SidebarInset>
-          <ArticleHeader />
+          <HomeHeader />
           <div className="flex flex-1">
             <ArticleContent
               article={article}

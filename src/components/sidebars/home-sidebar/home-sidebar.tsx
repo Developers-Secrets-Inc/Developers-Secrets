@@ -74,7 +74,6 @@ const LearningGroup = () => {
 
 // Skeleton for loading state
 
-
 export const HomeSidebar = async () => {
   const user = await getSessionUser()
 
