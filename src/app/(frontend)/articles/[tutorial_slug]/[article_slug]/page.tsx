@@ -19,94 +19,94 @@ import { ArticleSidebar } from '../components/article-sidebar'
 import { ArticleOutline } from './components/article-outline'
 import { Metadata, ResolvingMetadata } from 'next'
 
-// Revalidate content every hour
-export const revalidate = 3600
+// // Revalidate content every hour
+// export const revalidate = 3600
 
-// Allow dynamic params for articles not in generateStaticParams
-export const dynamicParams = true
+// // Allow dynamic params for articles not in generateStaticParams
+// export const dynamicParams = true
 
-// Generate metadata for SEO
-export async function generateMetadata(
-  { params }: { params: Promise<{ tutorial_slug: string; article_slug: string }> },
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const { tutorial_slug, article_slug } = await params
+// // Generate metadata for SEO
+// export async function generateMetadata(
+//   { params }: { params: Promise<{ tutorial_slug: string; article_slug: string }> },
+//   parent: ResolvingMetadata,
+// ): Promise<Metadata> {
+//   const { tutorial_slug, article_slug } = await params
 
-  try {
-    // Get the tutorial and article data
-    const payloadTutorial = await getTutorial(tutorial_slug)
-    const payloadArticle = await getArticle(tutorial_slug, article_slug)
+//   try {
+//     // Get the tutorial and article data
+//     const payloadTutorial = await getTutorial(tutorial_slug)
+//     const payloadArticle = await getArticle(tutorial_slug, article_slug)
 
-    // Convert to our custom types
-    const tutorial = convertPayloadTutorialToTutorial(payloadTutorial)
-    const article = convertPayloadArticleToArticle(payloadArticle)
+//     // Convert to our custom types
+//     const tutorial = convertPayloadTutorialToTutorial(payloadTutorial)
+//     const article = convertPayloadArticleToArticle(payloadArticle)
 
-    // Get the parent metadata
-    const previousImages = (await parent).openGraph?.images || []
+//     // Get the parent metadata
+//     const previousImages = (await parent).openGraph?.images || []
 
-    // Prepare SEO title - use SEO title if available, otherwise use article title
-    const title = article.seo?.title || article.title
-    const fullTitle = `${title} | ${tutorial.title}`
+//     // Prepare SEO title - use SEO title if available, otherwise use article title
+//     const title = article.seo?.title || article.title
+//     const fullTitle = `${title} | ${tutorial.title}`
 
-    // Prepare SEO description
-    const description =
-      article.seo?.description ||
-      article.subtitle ||
-      `Learn about ${article.title} in our ${tutorial.title} tutorial.`
+//     // Prepare SEO description
+//     const description =
+//       article.seo?.description ||
+//       article.subtitle ||
+//       `Learn about ${article.title} in our ${tutorial.title} tutorial.`
 
-    // Prepare keywords
-    const keywords = article.seo?.keywords?.map((k) => k.keyword) || []
+//     // Prepare keywords
+//     const keywords = article.seo?.keywords?.map((k) => k.keyword) || []
 
-    return {
-      title: fullTitle,
-      description: description,
-      keywords: keywords,
-      openGraph: {
-        title: fullTitle,
-        description: description,
-        type: 'article',
-        publishedTime: article.metadata.publishedAt,
-        modifiedTime: article.metadata.updatedAt,
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/${article_slug}`,
-        images: previousImages,
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: fullTitle,
-        description: description,
-      },
-    }
-  } catch (_error) {
-    // Return basic metadata if there's an error
-    return {
-      title: 'Article',
-      description: 'Learn with our comprehensive tutorials',
-    }
-  }
-}
+//     return {
+//       title: fullTitle,
+//       description: description,
+//       keywords: keywords,
+//       openGraph: {
+//         title: fullTitle,
+//         description: description,
+//         type: 'article',
+//         publishedTime: article.metadata.publishedAt,
+//         modifiedTime: article.metadata.updatedAt,
+//         url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/${article_slug}`,
+//         images: previousImages,
+//       },
+//       twitter: {
+//         card: 'summary_large_image',
+//         title: fullTitle,
+//         description: description,
+//       },
+//     }
+//   } catch (_error) {
+//     // Return basic metadata if there's an error
+//     return {
+//       title: 'Article',
+//       description: 'Learn with our comprehensive tutorials',
+//     }
+//   }
+// }
 
-// Pre-generate static params for all known tutorial/article combinations
-export async function generateStaticParams() {
-  // Get all tutorials
-  const tutorials = await getTutorials()
+// // Pre-generate static params for all known tutorial/article combinations
+// export async function generateStaticParams() {
+//   // Get all tutorials
+//   const tutorials = await getTutorials()
 
-  // For each tutorial, get all its articles
-  const params = await Promise.all(
-    tutorials.map(async (tutorial) => {
-      const tutorialSlug = tutorial.slug
-      const articles = await getTutorialArticles(tutorialSlug)
+//   // For each tutorial, get all its articles
+//   const params = await Promise.all(
+//     tutorials.map(async (tutorial) => {
+//       const tutorialSlug = tutorial.slug
+//       const articles = await getTutorialArticles(tutorialSlug)
 
-      // Map each article to its params
-      return articles.map((article) => ({
-        tutorial_slug: tutorialSlug,
-        article_slug: slugify(article.title),
-      }))
-    }),
-  )
+//       // Map each article to its params
+//       return articles.map((article) => ({
+//         tutorial_slug: tutorialSlug,
+//         article_slug: slugify(article.title),
+//       }))
+//     }),
+//   )
 
-  // Flatten the array of arrays
-  return params.flat()
-}
+//   // Flatten the array of arrays
+//   return params.flat()
+// }
 
 export default async function ArticlePage({
   params,
