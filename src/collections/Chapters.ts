@@ -7,6 +7,9 @@ export const Chapters: CollectionConfig = {
     defaultColumns: ['name', 'slug', 'course', 'updatedAt'],
     group: 'Courses', // Group with Courses
   },
+  access: {
+    read: () => true,
+  },
   fields: [
     {
       name: 'name',
