@@ -14,14 +14,16 @@ import { ArticleNotFoundError, TutorialNotFoundError } from '@/core/articles/err
 import { slugify } from '@/core/format'
 import { notFound } from 'next/navigation'
 import { ArticleContent } from '../components/article-content'
-import { ArticleHeader } from '../components/article-header'
 import { ArticleSidebar } from '../components/article-sidebar'
 import { ArticleOutline } from './components/article-outline'
 import { Metadata, ResolvingMetadata } from 'next'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
+import { Suspense } from 'react'
+import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
 
 // Revalidate content every hour
 export const revalidate = 3600
+export const experimental_ppr = true
 
 // Allow dynamic params for articles not in generateStaticParams
 export const dynamicParams = true
@@ -165,7 +167,9 @@ export default async function ArticlePage({
           articleType="tutorial"
         />
         <SidebarInset>
-          <HomeHeader />
+          <Suspense fallback={<HeaderPlaceholder />}>
+            <HomeHeader />
+          </Suspense>
           <div className="flex flex-1">
             <ArticleContent
               article={article}
@@ -173,7 +177,6 @@ export default async function ArticlePage({
               personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
               tutorial_slug={tutorial_slug}
             />
-
             <ArticleOutline outline={outline} />
           </div>
         </SidebarInset>

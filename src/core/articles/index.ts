@@ -1,3 +1,4 @@
+
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { Article as PayloadArticle, Tutorial as PayloadTutorial } from '@/payload-types'

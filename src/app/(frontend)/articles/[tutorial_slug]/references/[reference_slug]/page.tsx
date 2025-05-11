@@ -1,3 +1,4 @@
+export const experimental_ppr = true
 import { ArticleOutline } from '@/components/article-outline'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import {
@@ -18,6 +19,8 @@ import { ArticleContent } from '../../components/article-content'
 import { ArticleSidebar } from '../../components/article-sidebar'
 import { ArticleHeader } from '../../components/article-header'
 import { Metadata, ResolvingMetadata } from 'next'
+import { Suspense } from 'react'
+import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
 
 // Revalidate content every hour
 export const revalidate = 3600
@@ -165,7 +168,9 @@ export default async function ReferencePage({
           articleType="references"
         />
         <SidebarInset>
-          <ArticleHeader />
+          <Suspense fallback={<HeaderPlaceholder />}>
+            <ArticleHeader />
+          </Suspense>
           <div className="flex flex-1">
             <ArticleContent
               article={article}
@@ -173,7 +178,6 @@ export default async function ReferencePage({
               personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
               tutorial_slug={tutorial_slug}
             />
-
             <ArticleOutline outline={outline} />
           </div>
         </SidebarInset>
