@@ -72,19 +72,23 @@ export default async function CoursePartSubmissionPage({
   return (
     // Basic layout similar to challenge submission page
     <div className="min-h-screen">
-      <div className="container max-w-5xl py-8">
-        {/* Add Back Button */}
-        <Link href="." className="inline-block mb-6">
-          {' '}
-          {/* Link to parent directory */}
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Submissions
-          </Button>
-        </Link>
+      {/* Header with Back Button */}
+      <header className="border-b">
+        <div className="container max-w-5xl pb-4 px-4">
+          <Link href="." className="inline-block">
+            {' '}
+            {/* Link to parent directory */}
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Submissions
+            </Button>
+          </Link>
+        </div>
+      </header>
 
+      <div className="container max-w-5xl py-4 px-6">
         {/* Submission details card */}
-        <div className="bg-background rounded-lg shadow-sm border p-6">{renderSubmission()}</div>
+        <div>{renderSubmission()}</div>
       </div>
     </div>
   )

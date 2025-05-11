@@ -21,7 +21,8 @@ import { ChallengeEditorProvider } from '@/core/challenges/contexts/challenge-ed
 import { ChallengeEditor } from './components/challenge-editor'
 import { ChallengeNavigation } from '@/core/challenges/components/navigation/challenge-navigation'
 import { User } from '@/types/user'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { Challenge as PayloadChallenge } from '@/payload-types'
 
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
@@ -77,7 +78,12 @@ export default async function ChallengeLayout({
   const { challenge_slug } = await params
 
   // Get challenge info
-  const challenge = await getChallengeBySlug(challenge_slug)
+  let challenge: PayloadChallenge
+  try {
+    challenge = await getChallengeBySlug(challenge_slug)
+  } catch (error) {
+    notFound()
+  }
   const user = await getUser()
 
   // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté

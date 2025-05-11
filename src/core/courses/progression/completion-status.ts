@@ -6,7 +6,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getUserPartProgress, createCoursePartUserProgression } from '.'
 import { getUserChapterProgress, createUserChapterProgress } from '.'
-import { CoursePartUserProgression, UserChapterProgress } from '@/payload-types'
+import { CoursePartUserProgression, UserChapterProgress, Chapter } from '@/payload-types'
 
 export type CompletionStatus = 'not_started' | 'in_progress' | 'completed'
 
@@ -33,9 +33,34 @@ export const updateUserPartCompletionStatus = async (
     collection: 'coursePartUserProgression',
     where: { userId: { equals: userId }, part: { equals: partId } },
     data: { completionStatus: newStatus },
+    depth: 0,
   })
 
-  return result.docs[0]
+  if (newStatus === 'completed') {
+    const chapterResult = await payload.find({
+      collection: 'chapters',
+      where: {
+        parts: { equals: partId },
+      },
+      limit: 1,
+      depth: 0,
+    })
+
+    if (chapterResult.docs.length > 0 && chapterResult.docs[0]) {
+      const chapterId = chapterResult.docs[0].id
+      await checkAndUpdateChapterCompletion(userId, chapterId)
+    } else {
+      console.warn(`Could not find chapter for part ${partId} to check completion status.`)
+    }
+  }
+
+  const updatedDoc = await getUserPartProgress(userId, partId)
+  if (!updatedDoc) {
+    throw new Error(
+      `Failed to retrieve updated progress for user ${userId}, part ${partId} after update.`,
+    )
+  }
+  return updatedDoc
 }
 
 /**
@@ -59,26 +84,30 @@ export const getAllUserPartCompletionStatusesForChapter = async (
       collection: 'coursePartUserProgression',
       where: {
         userId: { equals: userId },
-        part: { in: partIds }, // Utiliser l'opérateur 'in'
+        part: { in: partIds },
       },
-      limit: partIds.length, // Limiter au nombre de parties demandées
-      depth: 0, // Pas besoin de peupler les relations ici
+      limit: partIds.length,
+      depth: 0,
     })
 
     const statusMap: Record<number, CompletionStatus> = {}
-    progressionRecords.docs.forEach((record) => {
-      // Assurer que 'part' est un nombre (ID)
-      const partId = typeof record.part === 'number' ? record.part : record.part.id
-      if (partId) {
-        statusMap[partId] = record.completionStatus
+    progressionRecords.docs.forEach((record: CoursePartUserProgression) => {
+      const partIdFromRecord = typeof record.part === 'number' ? record.part : record.part?.id
+      if (partIdFromRecord) {
+        statusMap[partIdFromRecord] = record.completionStatus
       }
     })
 
-    // Pour les parties sans enregistrement, le statut est 'not_started' par défaut (géré côté appelant)
+    partIds.forEach((id) => {
+      if (!(id in statusMap)) {
+        statusMap[id] = 'not_started'
+      }
+    })
+
     return statusMap
   } catch (error) {
     console.error(`Error fetching completion statuses for user ${userId}:`, error)
-    return {} // Retourner un objet vide en cas d'erreur
+    return {}
   }
 }
 
@@ -114,35 +143,25 @@ export const updateUserChapterCompletionStatus = async (
   let progressRecord = await getUserChapterProgress(userId, chapterId)
 
   if (!progressRecord) {
-    // Create the record if it doesn't exist
     progressRecord = await createUserChapterProgress(userId, chapterId)
-    // If the initial creation sets the desired status, we might return early
     if (progressRecord.completionStatus === newStatus) {
       return progressRecord
     }
   }
 
-  // If the status is already correct, no need to update
   if (progressRecord.completionStatus === newStatus) {
     return progressRecord
   }
 
-  // Update the existing record
   const updatedRecord = await payload.update({
     collection: 'userChapterProgress',
-    id: progressRecord.id, // Use the ID of the existing/created record
+    id: progressRecord.id,
     data: { completionStatus: newStatus },
-    // Optional: Add depth: 0 if relations are not needed
   })
 
-  // Ensure the correct type is returned after update
-  // Payload v3 update might return the updated doc directly
-  // Adjust based on actual Payload return type if necessary
   if (updatedRecord) {
-    return updatedRecord as UserChapterProgress // Cast if needed
+    return updatedRecord as UserChapterProgress
   } else {
-    // This case should theoretically not happen if creation/update is successful
-    // Fetch it again as a fallback
     const fallbackRecord = await getUserChapterProgress(userId, chapterId)
     if (!fallbackRecord) {
       throw new Error(
@@ -150,5 +169,91 @@ export const updateUserChapterCompletionStatus = async (
       )
     }
     return fallbackRecord
+  }
+}
+
+/**
+ * Checks if all parts within a chapter are completed by a user,
+ * and if so, updates the chapter's completion status to 'completed'.
+ * @param userId The user ID.
+ * @param chapterId The chapter ID.
+ */
+export async function checkAndUpdateChapterCompletion(
+  userId: string,
+  chapterId: number,
+): Promise<void> {
+  const payload = await getPayload({ config })
+
+  try {
+    const chapter = await payload.findByID({
+      collection: 'chapters',
+      id: chapterId,
+      depth: 0,
+    })
+
+    if (!chapter || typeof chapter !== 'object' || !('parts' in chapter)) {
+      console.warn(`Chapter ${chapterId} not found or invalid for completion check.`)
+      return
+    }
+
+    const partRefs = chapter.parts as (number | { id: number })[] | undefined | null
+    if (!partRefs || partRefs.length === 0) {
+      return
+    }
+
+    const partIds = partRefs.map((ref) => (typeof ref === 'number' ? ref : ref.id))
+
+    const partStatuses = await getAllUserPartCompletionStatusesForChapter(userId, partIds)
+
+    const allPartsCompleted = partIds.every((id) => partStatuses[id] === 'completed')
+
+    if (allPartsCompleted) {
+      console.log(
+        `All parts completed for chapter ${chapterId}, user ${userId}. Updating chapter status.`,
+      )
+      await updateUserChapterCompletionStatus(userId, chapterId, 'completed')
+    } else {
+    }
+  } catch (error) {
+    console.error(
+      `Error checking/updating chapter completion for user ${userId}, chapter ${chapterId}:`,
+      error,
+    )
+  }
+}
+
+/**
+ * Counts the number of completed parts for a user from a given list of part IDs.
+ * @param userId The ID of the user.
+ * @param allPartIdsForCourse An array of all part IDs for a specific course.
+ * @returns Promise<number> The count of completed parts.
+ */
+export const getCourseCompletedPartsCount = async (
+  userId: string,
+  allPartIdsForCourse: number[],
+): Promise<number> => {
+  if (!userId || !allPartIdsForCourse || allPartIdsForCourse.length === 0) {
+    return 0
+  }
+
+  try {
+    const partStatuses = await getAllUserPartCompletionStatusesForChapter(
+      userId,
+      allPartIdsForCourse,
+    )
+
+    let completedCount = 0
+    for (const partId of allPartIdsForCourse) {
+      if (partStatuses[partId] === 'completed') {
+        completedCount++
+      }
+    }
+    return completedCount
+  } catch (error) {
+    console.error(
+      `Error in getCourseCompletedPartsCount for user ${userId} and parts ${allPartIdsForCourse.join(',')}:`,
+      error,
+    )
+    return 0 // Return 0 in case of an error
   }
 }

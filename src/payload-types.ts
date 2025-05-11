@@ -54,6 +54,7 @@ export type SupportedTimezones =
   | 'Asia/Singapore'
   | 'Asia/Tokyo'
   | 'Asia/Seoul'
+  | 'Australia/Brisbane'
   | 'Australia/Sydney'
   | 'Pacific/Guam'
   | 'Pacific/Noumea'
@@ -893,7 +894,7 @@ export interface Challenge {
   /**
    * The difficulty level of the challenge
    */
-  difficulty: 'easy' | 'medium' | 'hard' | 'horrible';
+  difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible';
   /**
    * Experience points awarded for completing this challenge (calculated automatically)
    */
@@ -1079,15 +1080,15 @@ export interface Challenge {
   /**
    * Code related information for this challenge (Legacy field - Use codeVersions instead)
    */
-  code: {
+  code?: {
     /**
      * Default programming language for the challenge
      */
-    language: string;
+    language?: string | null;
     /**
      * Initial code provided to users
      */
-    initialCode: string;
+    initialCode?: string | null;
     /**
      * Test cases for validating solutions
      */

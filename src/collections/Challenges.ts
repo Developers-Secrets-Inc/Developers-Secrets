@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 // Fonction pour calculer l'expérience basée sur la difficulté
 const calculateExperience = (difficulty: string): number => {
   const difficultyRanks: Record<string, number> = {
+    very_easy: 0.5,
     easy: 1,
     medium: 2,
     hard: 3,
@@ -25,7 +26,6 @@ export const Challenges: CollectionConfig = {
   },
   access: {
     read: () => true, // Tous les utilisateurs peuvent lire les challenges
-    create: () => true, // Tous les utilisateurs peuvent créer des challenges
   },
   fields: [
     {
@@ -59,6 +59,7 @@ export const Challenges: CollectionConfig = {
       label: 'Difficulty',
       type: 'select',
       options: [
+        { label: 'Very Easy', value: 'very_easy' },
         { label: 'Easy', value: 'easy' },
         { label: 'Medium', value: 'medium' },
         { label: 'Hard', value: 'hard' },
@@ -526,7 +527,6 @@ export const Challenges: CollectionConfig = {
           name: 'language',
           label: 'Language',
           type: 'text',
-          required: true,
           admin: {
             description: 'Default programming language for the challenge',
           },
@@ -535,7 +535,6 @@ export const Challenges: CollectionConfig = {
           name: 'initialCode',
           label: 'Initial Code',
           type: 'textarea',
-          required: true,
           admin: {
             description: 'Initial code provided to users',
           },

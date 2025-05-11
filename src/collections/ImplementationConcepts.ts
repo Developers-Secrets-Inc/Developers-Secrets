@@ -69,7 +69,7 @@ export const ImplementationConcepts: CollectionConfig = {
   // Add a unique index across the combination of concept and skill to prevent duplicates
   indexes: [
     {
-      fields: { concept: 1, implementationSkill: 1 },
+      fields: ['concept', 'implementationSkill'],
       options: { unique: true },
     },
   ],

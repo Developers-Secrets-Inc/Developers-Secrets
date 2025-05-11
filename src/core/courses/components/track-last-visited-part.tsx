@@ -20,6 +20,7 @@ export const TrackLastVisitedPart = () => {
       try {
         localStorage.setItem('lastVisitedPartUrl', pathname)
         localStorage.setItem('lastVisitedCourseSlug', params.course_slug)
+        localStorage.setItem(`lastVisitedTimestamp_${params.course_slug}`, Date.now().toString())
       } catch (error) {
         // Gérer les erreurs potentielles (localStorage indisponible, etc.)
         console.error('Failed to save last visited part to localStorage:', error)

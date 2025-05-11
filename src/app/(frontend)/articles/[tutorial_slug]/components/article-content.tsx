@@ -1,4 +1,4 @@
-import { Markdown } from '@/components/markdown'
+import { Markdown } from './markdown'
 import { RecommendedArticles } from '@/components/recommended-articles'
 import { TypographyH1, TypographyP } from '@/components/typography'
 import { Article } from '@/types/article'

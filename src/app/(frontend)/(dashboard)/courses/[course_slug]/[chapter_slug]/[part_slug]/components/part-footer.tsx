@@ -153,7 +153,7 @@ export const PartFooter = ({
                 <span tabIndex={0}>
                   <Button variant="outline" disabled className="cursor-not-allowed">
                     <Lock className="h-4 w-4 mr-2" /> {/* Lock Icon */}
-                    Next
+                    {' Next'}
                     <ChevronRight className="h-4 w-4 ml-2 opacity-50" />
                   </Button>
                 </span>

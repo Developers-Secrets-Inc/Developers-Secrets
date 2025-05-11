@@ -76,7 +76,7 @@ export const ArticlesSwitcher = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton size="lg" asChild>
-              <div className="flex items-center gap-4 p-3 shadow-sm">
+              <div className="flex items-center gap-4 p-3">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <GalleryVerticalEnd className="size-4" />
                 </div>
@@ -92,7 +92,7 @@ export const ArticlesSwitcher = ({
           <DropdownMenuContent
             className="border border-border p-2 space-y-0.5 shadow-md"
             align="start"
-            side="right"
+            side="bottom"
             sideOffset={4}
             avoidCollisions={false}
             style={{ width: 'var(--radix-dropdown-menu-trigger-width)' }}

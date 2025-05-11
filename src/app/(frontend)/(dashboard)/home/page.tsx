@@ -1,50 +1,45 @@
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { createClient } from '@/utils/supabase/server'
+import { CurrentCourseCard } from '@/components/cards/current-course-card'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
-import { CurrentCourseCard } from '@/components/cards/current-course-card'
-import { ProfileCard } from '@/core/profile/components/profile-card'
-import { ChallengeCard } from '@/components/cards/challenge-card'
-import { LeaderboardCard } from '@/components/cards/leaderboard-card'
-import { GuildCard } from '@/components/cards/guild-card'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { getUser } from '@/core/user'
+import {
+  UserProfile,
+  UserProfileCardSkeleton,
+} from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/user-profile'
+import { DivisionLeaderboardCard } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/challenges-leaderboard'
+import { RecommendedChallenge } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/recommended-challenge'
 
 export default async function Home() {
-  const supabase = await createClient()
+  const user = await getUser()
 
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect('/login')
+  if (!user) {
+    redirect('/auth/login')
   }
 
-  // return (
-  //   <SidebarProvider>
-  //     <HomeSidebar />
-  //     <SidebarInset>
-  //       <HomeHeader />
-  //       <div className="flex flex-1 flex-col gap-6 max-w-[1400px] mx-auto py-8">
-  //         <div className="flex flex-wrap gap-6">
-  //           {/* Colonne de gauche : Cours actuel et Challenge */}
-  //           <div className="flex-1 min-w-[300px] max-w-[700px] space-y-6">
-  //             <CurrentCourseCard />
-  //             <ChallengeCard />
-  //           </div>
-
-  //           {/* Colonne de droite : Profil et Leaderboard */}
-  //           <div className="w-[360px] space-y-6">
-  //             <ProfileCard />
-  //             <LeaderboardCard />
-  //           </div>
-  //         </div>
-
-  //         {/* Troisième rangée: Guilde (pleine largeur) */}
-  //         <div className="w-full">
-  //           <GuildCard />
-  //         </div>
-  //       </div>
-  //     </SidebarInset>
-  //   </SidebarProvider>
-  // )
-  return redirect('/challenges')
+  return (
+    <SidebarProvider>
+      <HomeSidebar />
+      <SidebarInset>
+        <HomeHeader />
+        <div className="flex-1 w-full h-[calc(100vh-4rem)] overflow-auto max-w-7xl px-4 mx-auto">
+          <div className="flex gap-6 p-6 h-full">
+            <div className="flex-1 flex flex-col gap-6 w-[800px]">
+              <RecommendedChallenge />
+              <CurrentCourseCard />
+            </div>
+            <div className="w-[360px] flex flex-col gap-6">
+              <Suspense fallback={<UserProfileCardSkeleton />}>
+                <UserProfile user={user} />
+              </Suspense>
+              <DivisionLeaderboardCard />
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  )
 }

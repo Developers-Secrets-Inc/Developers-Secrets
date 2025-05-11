@@ -9,6 +9,7 @@ import {
   DatabaseIcon,
   GanttChartIcon,
   LayoutDashboardIcon, // Nouvelle icône pour les parcours
+  LockIcon,
   LucideIcon,
   PlusIcon,
 } from 'lucide-react'
@@ -28,51 +29,35 @@ interface DummyLearningPath {
 const dummyLearningPaths: DummyLearningPath[] = [
   {
     id: 1,
-    name: 'Python Fundamentals',
-    description: 'Master the basics of Python programming.',
-    slug: 'python',
-    courseCount: 5,
-  },
-  {
-    id: 2,
-    name: 'Web Development Intro',
-    description: 'Build your first websites with HTML, CSS, and JS.',
-    slug: 'web-dev',
-    courseCount: 8,
-    isLocked: false,
-  },
-  {
-    id: 3,
-    name: 'Data Structures & Algorithms',
-    description: 'Understand core computer science concepts.',
-    slug: 'algorithms',
-    courseCount: 6,
+    name: 'Backend Development in Python',
+    description: 'Master backend development using Python and popular frameworks.',
+    slug: 'python-backend',
+    courseCount: 0,
     isLocked: true,
   },
   {
-    id: 4,
-    name: 'Database Essentials',
-    description: 'Learn SQL and database design principles.',
-    slug: 'database',
-    courseCount: 4,
+    id: 2,
+    name: 'Frontend Development in React',
+    description: 'Build modern and interactive user interfaces with React.',
+    slug: 'react-frontend',
+    courseCount: 0,
+    isLocked: true,
   },
   {
-    id: 5,
-    name: 'Advanced Backend',
-    description: 'Deep dive into backend technologies.',
-    slug: 'backend',
-    courseCount: 7,
+    id: 3,
+    name: 'Software Engineering',
+    description: 'Learn the principles and practices of professional software engineering.',
+    slug: 'software-engineering',
+    courseCount: 0,
     isLocked: true,
   },
 ]
 
 // --- Icônes ---
 const iconMap: Record<string, LucideIcon> = {
-  python: BrainCircuitIcon,
-  'web-dev': CodeIcon,
-  algorithms: GanttChartIcon,
-  database: DatabaseIcon,
-  backend: BinaryIcon,
+  'python-backend': BinaryIcon, // Using BinaryIcon for backend
+  'react-frontend': CodeIcon, // Using CodeIcon for frontend
+  'software-engineering': BrainCircuitIcon, // Using BrainCircuitIcon for software engineering principles
   default: LayoutDashboardIcon, // Icône par défaut pour les parcours
 }
 
@@ -127,14 +112,17 @@ function LearningPathCard({ path }: { path: DummyLearningPath }) {
           <div className="p-2 rounded-md bg-primary/10 text-primary">
             <Icon className="h-6 w-6" />
           </div>
-          <span className="text-sm text-muted-foreground">
-            {path.courseCount} {path.courseCount === 1 ? 'course' : 'courses'}
-          </span>
+          <div className="flex items-center gap-2">
+            {isLocked && <LockIcon className="h-4 w-4 text-muted-foreground" />}
+            <span className="text-sm text-muted-foreground">
+              {path.courseCount} {path.courseCount === 1 ? 'course' : 'courses'}
+            </span>
+          </div>
         </div>
         <h3 className="font-semibold leading-none tracking-tight">{path.name}</h3>
         <p className="text-sm text-muted-foreground line-clamp-2">{path.description}</p>
       </div>
-      {isLocked && <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" />}
+      {isLocked && <div className="absolute inset-0 bg-background/10" />}
     </>
   )
 

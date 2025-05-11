@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CoursePart } from '@/payload-types'
 import { notFound } from 'next/navigation'
 
-
 export const experimental_ppr = true // Enable PPR for this route
 
 const DynamicCourseHeader = async ({ part }: { part: CoursePart }) => {
@@ -30,13 +29,13 @@ export default async function CoursePartDescriptionPage({
   const { course_slug, chapter_slug, part_slug } = await params
 
   const part = await getPartBySlug(course_slug, chapter_slug, part_slug)
-  
+
   if (!part) {
     notFound()
   }
 
   return (
-    <div className="py-4 px-1">
+    <div className="py-4 px-6">
       <Suspense fallback={<HeaderFallback />}>
         <DynamicCourseHeader part={part} />
       </Suspense>

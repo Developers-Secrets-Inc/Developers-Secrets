@@ -6,10 +6,13 @@ import {
   // and return all challenges. For now, let's simulate this.
   // We'll revert to the original logic pattern for simplicity here:
   getAllChallenges, // Assuming this fetches all challenges (needs pagination: false)
+  getUserChallengeProgressions, // Import the action to fetch all progressions for a user
 } from '..'
 import { getUser } from '@/core/user'
-import { getUserCompletionStatus } from '../user-progression' // Need this again
+// import { getUserCompletionStatus } from '../user-progression' // No longer needed here
 import { ChallengeWithProgress } from '@/core/challenges' // Keep this type
+import { UserChallengeProgression } from '@/payload-types' // Import the progression type
+import { CompletionStatus } from '../user-progression/types'
 
 // Remove UseChallengesParams interface and defaultParams
 
@@ -28,21 +31,51 @@ export const useChallenges = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
-  // Query to get progress status for ALL fetched challenges
-  const { data: challengesWithProgress, isLoading: isProgressLoading } = useQuery<
+  // Query to fetch ALL user challenge progressions for the current user
+  const { data: userProgressions, isLoading: isProgressionsLoading } = useQuery<
+    UserChallengeProgression[],
+    Error
+  >({
+    queryKey: ['user-challenge-progressions', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return []
+      // Assuming getUserChallengeProgressions fetches all progressions for the user
+      return getUserChallengeProgressions(user.id)
+    },
+    enabled: !!user?.id, // Enable only when user is available
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+
+  // Combine challenges and their progress status
+  const { data: challengesWithProgress, isLoading: isCombiningLoading } = useQuery<
     ChallengeWithProgress[],
     Error
   >({
-    queryKey: ['challenges-progress', user?.id, challenges?.map((c) => c.id).join('-')],
-    queryFn: async () => {
-      // If no user or no challenges fetched yet, return empty array
-      if (!user?.id || !challenges || challenges.length === 0) {
+    // Depend on challenges and user progressions
+    queryKey: [
+      'challenges-with-progress',
+      user?.id,
+      challenges?.map((c: { id: any }) => c.id).join('-'),
+      userProgressions?.map((p: { id: any }) => p.id).join('-'),
+    ],
+    queryFn: () => {
+      if (!challenges || !userProgressions) {
         return []
       }
-      // Fetch status for each challenge (original N+1 pattern, acceptable if client-side filtering is prioritized)
-      return Promise.all(
-        challenges.map(async (challenge) => {
-          const status = await getUserCompletionStatus(user.id, challenge.id as number)
+
+      // Create a map for quick lookup of progression status
+      const progressionMap = new Map<number, CompletionStatus>()
+      userProgressions.forEach((prog: UserChallengeProgression) => {
+        const challengeId = typeof prog.challenge === 'number' ? prog.challenge : prog.challenge?.id
+        if (challengeId && prog.completionStatus) {
+          progressionMap.set(challengeId, prog.completionStatus)
+        }
+      })
+
+      // Map challenges and add status from the map
+      return challenges.map(
+        (challenge: { id: any; title: any; difficulty: any; baseExperience: any; slug: any }) => {
+          const status = progressionMap.get(challenge.id as number) ?? 'not_started'
           return {
             id: challenge.id as number,
             title: challenge.title,
@@ -51,19 +84,20 @@ export const useChallenges = () => {
             slug: challenge.slug,
             status,
           }
-        }),
+        },
       )
     },
-    // Enable only when user and challenges are available
-    enabled: !!user?.id && !!challenges && challenges.length > 0,
+    // Enable only when challenges and progressions are available
+    enabled: !!challenges && !!userProgressions,
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
   return {
     // Return the combined data
-    challenges: challengesWithProgress ?? [], // Use the array with progress status
+    challenges: challengesWithProgress ?? [], // Use the combined array
     // Combine loading states
-    isLoading: isChallengesLoading || isProgressLoading || !challengesWithProgress,
+    isLoading:
+      isChallengesLoading || isProgressionsLoading || isCombiningLoading || !challengesWithProgress,
     // Explicitly return isFetching or other states if needed by UI
     // totalChallenges: challengesWithProgress?.length ?? 0, // Not needed for client-side pagination
     // pageCount: undefined, // Not needed

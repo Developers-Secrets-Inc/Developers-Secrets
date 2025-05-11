@@ -6,6 +6,7 @@ import { Suspense } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getUser } from '@/core/user'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
+import { redirect } from 'next/navigation'
 
 export const revalidate = 600 // 10 minutes in seconds
 
@@ -26,6 +27,10 @@ export default async function ChallengeDescriptionPage({
   try {
     const challenge = await getChallengeBySlug(challenge_slug)
     const user = await getUser()
+
+    if (!user) {
+      redirect('/auth/login')
+    }
 
     // Get the completion status for this challenge
     const status = await getUserCompletionStatus(user.id, challenge.id)

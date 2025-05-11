@@ -35,6 +35,7 @@ export const fetchUserQuests = async () => {
   }
 
   const payloadQuests = await getUserQuests(userResult.value.id)
+
   const convertedQuests = await Promise.all(
     payloadQuests.map(async (pq) => {
       const fullQuest =
@@ -202,18 +203,21 @@ export const completeUserQuest = async (questId: string, skipExperienceReward: b
 }
 
 const generateUserDailyQuests = async (): Promise<Quest[]> => {
-  const easyQuests = await getRandomQuest(2, 'easy')
-  const mediumQuest = await getRandomQuest(1, 'medium')
-  const hardQuest = await getRandomQuest(1, 'hard')
+  const easyQuestsArray = await getRandomQuest(2, 'easy') // Devrait retourner Quest[]
+  const mediumQuestObject = await getRandomQuest(1, 'medium') // Devrait retourner Quest (objet unique)
+  const hardQuestObject = await getRandomQuest(1, 'hard') // Devrait retourner Quest (objet unique)
 
-  const quests = [...easyQuests, mediumQuest, hardQuest]
+  // Construit la liste: 2 faciles (d'un tableau), 1 moyenne (objet), 1 difficile (objet)
+  const quests = [...easyQuestsArray, mediumQuestObject, hardQuestObject]
 
   return quests
 }
 
 export const setUserDailyQuests = async (userId: string): Promise<void> => {
   const quests = await generateUserDailyQuests()
+
   await deleteAllUserQuests(userId)
+
   await addMultipleUserQuests(userId, quests)
 }
 

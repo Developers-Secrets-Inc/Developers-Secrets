@@ -8,13 +8,6 @@ import { cache } from 'react'
 
 import { CreateAccountCTA } from '@/components/cards/create-account-cta'
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
-import { Badge } from '@/components/ui/badge'
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -36,6 +29,7 @@ import { ArticlesSwitcher } from './articles-switcher'
 import { FeedbackDialog } from '@/components/feedback-dialog'
 import { SupportDialog } from '@/components/support-dialog'
 import { getSupportStatus as fetchSupportStatus } from '@/actions/support'
+import { Badge } from '@/components/ui/badge'
 
 interface ArticleSidebarProps {
   tutorial: Tutorial
@@ -110,9 +104,6 @@ export const ArticleSidebar = ({
 
   // Use cached functions
   const tutorialOutline = createTutorialOutline(tutorial, articles, articleType)
-  const activeGroupIndex = tutorialOutline.findIndex((group) =>
-    group.items.some((item) => item.url === currentArticleSlug),
-  )
 
   // Determine the status indicator color
   const getStatusColor = () => {
@@ -138,45 +129,34 @@ export const ArticleSidebar = ({
         />
         <SearchForm />
       </SidebarHeader>
-      <SidebarContent className="gap-0">
-        <Accordion
-          type="single"
-          defaultValue={activeGroupIndex !== -1 ? `item-${activeGroupIndex}` : undefined}
-          collapsible
-        >
-          {tutorialOutline.map((section, index) => (
-            <AccordionItem key={section.title} value={`item-${index}`} className="border-0">
-              <SidebarGroup>
-                <SidebarGroupLabel
-                  asChild
-                  className="group/label text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                >
-                  <AccordionTrigger className="hover:no-underline">
-                    {section.title}
-                  </AccordionTrigger>
-                </SidebarGroupLabel>
-                <AccordionContent className="pb-0">
-                  <SidebarGroupContent>
-                    <SidebarMenu className="pt-2">
-                      {section.items.map((item) => (
-                        <SidebarMenuItem key={item.title} className="ml-2">
-                          <SidebarMenuButton asChild isActive={item.url === currentArticleSlug}>
-                            <Link
-                              href={`/articles/${tutorial.slug}/${articleType !== 'tutorial' ? `${articleType}/` : ''}${item.url}`}
-                              prefetch={true}
-                            >
-                              {item.title}
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </AccordionContent>
-              </SidebarGroup>
-            </AccordionItem>
-          ))}
-        </Accordion>
+      <SidebarContent className="gap-4">
+        {tutorialOutline.map((section) => (
+          <SidebarGroup key={section.title}>
+            <SidebarGroupLabel className="text-sm text-sidebar-foreground">
+              {section.title}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {section.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={item.url === currentArticleSlug}
+                      className="text-muted-foreground"
+                    >
+                      <Link
+                        href={`/articles/${tutorial.slug}/${articleType !== 'tutorial' ? `${articleType}/` : ''}${item.url}`}
+                        prefetch={true}
+                      >
+                        {item.title}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter>
