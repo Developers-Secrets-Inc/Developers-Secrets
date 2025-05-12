@@ -20,6 +20,7 @@ import { Metadata, ResolvingMetadata } from 'next'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { Suspense } from 'react'
 import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
+import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'
 
 // Revalidate content every hour
 export const revalidate = 3600
@@ -180,6 +181,13 @@ export default async function ArticlePage({
             <ArticleOutline outline={outline} />
           </div>
         </SidebarInset>
+        <ChatActivationButton
+          tutorialSlug={tutorial_slug}
+          articleSlug={article_slug}
+          tutorialTitle={tutorial.title}
+          articleTitle={article.title}
+          articleFullContent={article.content}
+        />
       </SidebarProvider>
     )
   } catch (error) {
