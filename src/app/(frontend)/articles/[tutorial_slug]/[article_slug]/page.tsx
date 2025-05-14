@@ -178,7 +178,7 @@ export default async function ArticlePage({
               personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
               tutorial_slug={tutorial_slug}
             />
-            <ArticleOutline outline={outline} />!{' '}
+            <ArticleOutline outline={outline} />
           </div>
         </SidebarInset>
         <ChatActivationButton
