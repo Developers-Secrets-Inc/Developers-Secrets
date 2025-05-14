@@ -53,7 +53,7 @@ const getPasswordCriteriaMessage = (
   if (!analysis.hasNumber) missing.push('number')
   if (!analysis.hasSpecialChar) missing.push('special char')
 
-  if (missing.length === 0) return '' // Should be covered by strength >= 5, but as a fallback
+  if (missing.length === 0) return ''
   if (missing.length > 2) return `Needs ${missing.slice(0, 2).join(', ')}, and more.`
   return `Needs ${missing.join(' & ')}.`
 }
@@ -96,6 +96,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
     getPasswordCriteriaMessage(analyzePassword(''), false),
   )
 
+
   useEffect(() => {
     const analysis = analyzePassword(password)
     setPasswordAnalysis(analysis)
@@ -112,7 +113,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
     const newPassword = e.target.value
     setPassword(newPassword)
     if (Object.keys(errors).length > 0 && errors.password) {
-      const { password, ...rest } = errors
+      const { password: _p, ...rest } = errors // renamed to avoid conflict with outer scope password
       setErrors(rest)
     }
   }
@@ -121,7 +122,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
     const newConfirmPassword = e.target.value
     setConfirmPassword(newConfirmPassword)
     if (Object.keys(errors).length > 0 && errors.confirmPassword) {
-      const { confirmPassword, ...rest } = errors
+      const { confirmPassword: _cp, ...rest } = errors // renamed to avoid conflict
       setErrors(rest)
     }
   }
@@ -254,23 +255,25 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
     }
   }
 
-  const strengthColors = [
-    'bg-slate-300', // Strength 0 (also for empty bar parts)
-    'bg-red-400', // Strength 1 (Weak)
-    'bg-orange-400', // Strength 2 (Fair)
-    'bg-amber-400', // Strength 3 (Medium)
-    'bg-lime-400', // Strength 4 (Strong)
-    'bg-green-500', // Strength 5 (Very Strong)
+  const strengthBarColors = [
+    'text-muted-foreground', // Strength 0 - Should not appear if password entered
+    'text-red-500', // Strength 1 (Weak)
+    'text-orange-500', // Strength 2 (Fair)
+    'text-amber-500', // Strength 3 (Medium)
+    'text-sky-500', // Strength 4 (Strong)
+    'text-emerald-500', // Strength 5 (Very Strong)
   ]
 
-  const strengthLabels = [
-    '', // No label for strength 0 when password empty
-    'Weak',
-    'Fair',
-    'Medium',
-    'Strong',
-    'Very Strong',
+  const strengthTextColors = [
+    'text-muted-foreground', // Strength 0 - Should not appear if password entered
+    'text-red-500', // Strength 1 (Weak)
+    'text-orange-500', // Strength 2 (Fair)
+    'text-amber-500', // Strength 3 (Medium)
+    'text-sky-500', // Strength 4 (Strong)
+    'text-emerald-500', // Strength 5 (Very Strong)
   ]
+
+  const strengthLabels = ['', 'Weak', 'Fair', 'Medium', 'Strong', 'Very Strong']
 
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -313,16 +316,16 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
             required
           />
           <div className="mt-1 space-y-1">
-            <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+            <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
                   className={`h-full transition-colors duration-300 ease-in-out w-1/5 ${
                     password.length === 0
-                      ? 'bg-slate-200' // Use a consistent empty color for segments
+                      ? 'bg-slate-100'
                       : passwordAnalysis.strength > i
-                        ? strengthColors[passwordAnalysis.strength]
-                        : 'bg-slate-200' // Unfilled part of the bar
+                        ? strengthBarColors[passwordAnalysis.strength]
+                        : 'bg-slate-100'
                   }`}
                 />
               ))}
@@ -330,24 +333,12 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
             <div className="flex items-center justify-between min-w-0 pt-0.5">
               {password.length > 0 && strengthLabels[passwordAnalysis.strength] ? (
                 <p
-                  className={`text-xs font-medium shrink-0 ${
-                    passwordAnalysis.strength === 0
-                      ? 'text-muted-foreground' // Should not happen if password.length > 0
-                      : passwordAnalysis.strength === 1
-                        ? 'text-red-600'
-                        : passwordAnalysis.strength === 2
-                          ? 'text-orange-600'
-                          : passwordAnalysis.strength === 3
-                            ? 'text-amber-600'
-                            : passwordAnalysis.strength === 4
-                              ? 'text-lime-600'
-                              : 'text-green-600' // For strength 5
-                  }`}
+                  className={`text-xs font-medium shrink-0 ${strengthTextColors[passwordAnalysis.strength]}`}
                 >
                   {strengthLabels[passwordAnalysis.strength]}
                 </p>
               ) : (
-                <div /> // Empty div to maintain space with justify-between if label is not shown
+                <div />
               )}
               {passwordCriteriaMessage && (
                 <p className="text-xs text-muted-foreground truncate text-right">
@@ -371,9 +362,9 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
               passwordsMatch !== null && (
                 <div className="absolute inset-y-0 right-10 pr-3 flex items-center pointer-events-none top-1/2 -translate-y-1/2 h-full">
                   {passwordsMatch ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                   ) : (
-                    <XCircle className="h-5 w-5 text-red-600" />
+                    <XCircle className="h-5 w-5 text-red-500" />
                   )}
                 </div>
               )}
