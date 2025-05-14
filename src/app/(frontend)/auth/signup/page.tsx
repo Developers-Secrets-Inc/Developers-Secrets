@@ -14,11 +14,16 @@ export default function SignUpPage() {
   }
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <HomeHeader />
-      <div className="flex items-center justify-center py-12">
-        <div className="w-full max-w-md">
+      <div className="flex-grow flex">
+        {/* Left Column for SignUpCard */}
+        <div className="w-1/2 flex flex-col items-center justify-center p-6 md:p-12 border-r border-border">
           <SignUpCard onSubmit={handleSignUp} />
+        </div>
+        {/* Right Column (empty or for illustration) */}
+        <div className="w-1/2  hidden md:flex items-center justify-center">
+          {/* Optional: Add an image or illustration here */}
         </div>
       </div>
     </div>
