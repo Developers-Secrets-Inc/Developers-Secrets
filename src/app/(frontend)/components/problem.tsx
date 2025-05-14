@@ -1,8 +1,8 @@
-import React from 'react';
+import React from 'react'
 
 interface ProblemCardProps {
-  title: string;
-  description: string;
+  title: string
+  description: string
   // icon?: React.ReactNode; // Optional: if you want to add icons later
 }
 
@@ -13,24 +13,27 @@ const ProblemCard: React.FC<ProblemCardProps> = ({ title, description }) => {
       <h3 className="text-xl font-semibold text-primary mb-3 mt-2">{title}</h3>
       <p className="text-card-foreground text-sm">{description}</p>
     </div>
-  );
-};
+  )
+}
 
 export const ProblemSection = () => {
   const problems: ProblemCardProps[] = [
     {
       title: 'Outdated Resources',
-      description: 'Struggling with irrelevant or overly theoretical learning materials that don\'t reflect current industry practices.',
+      description:
+        "Struggling with irrelevant or overly theoretical learning materials that don't reflect current industry practices.",
     },
     {
       title: 'Lack of Hands-On Practice',
-      description: 'Finding it hard to bridge the gap between theory and application without engaging, real-world coding exercises.',
+      description:
+        'Finding it hard to bridge the gap between theory and application without engaging, real-world coding exercises.',
     },
     {
       title: 'Learning in Isolation',
-      description: 'Missing the motivation, support, and valuable feedback that comes from being part of an active developer community.',
+      description:
+        'Missing the motivation, support, and valuable feedback that comes from being part of an active developer community.',
     },
-  ];
+  ]
 
   return (
     <section className="py-16 md:py-24 bg-muted/40">
@@ -40,7 +43,8 @@ export const ProblemSection = () => {
             Feeling Stuck in Your Learning Journey?
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Many aspiring developers face common roadblocks. We understand them, and we're here to help you overcome them.
+            Many aspiring developers face common roadblocks. We understand them, and we're here to
+            help you overcome them.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
@@ -50,5 +54,5 @@ export const ProblemSection = () => {
         </div>
       </div>
     </section>
-  );
-};
+  )
+}

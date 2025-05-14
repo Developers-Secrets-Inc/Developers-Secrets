@@ -9,11 +9,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <HomeHeader />
-      <div className="flex items-center justify-center py-12">
-        <div className="w-full max-w-md">
-          <LoginCard onSubmit={handleLogin} />
+      <div className="flex flex-grow justify-center">
+        <div className="flex w-full">
+          <div className="w-1/2 pr-8 border-r border-border py-12 flex flex-col items-center justify-center">
+            <LoginCard onSubmit={handleLogin} />
+          </div>
+          <div className="w-1/2 pl-8">
+            {/* Content for the right column can be added here later */}
+          </div>
         </div>
       </div>
     </div>

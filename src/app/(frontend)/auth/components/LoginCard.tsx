@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { EmailInput } from '@/components/inputs/EmailInput'
-import { PasswordInput } from '@/components/inputs/PasswordInput'
+import { useId, useState } from 'react'
+// import { EmailInput } from '@/components/inputs/EmailInput' // Already commented out
+import { PasswordInput } from '@/components/inputs/PasswordInput' // Re-enabled this import
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { OAuth2Buttons } from '@/components/buttons/OAuth2Buttons'
@@ -10,16 +10,11 @@ import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import { loginWithGoogle, loginWithGitHub } from '@/actions/auth'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { useToast } from '@/components/ui/use-toast'
+import { Loader2, AtSignIcon } from 'lucide-react' // Removed LockIcon as PasswordInput should handle it
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { CustomErrorToast } from './CustomErrorToast'
 
 interface LoginCardProps {
   onSubmit: (
@@ -40,6 +35,12 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const emailInputId = useId()
+  // const passwordInputId = useId() // No longer needed here if PasswordInput handles its own ID/label
+  const { toast } = useToast()
+
+  const [errorToastOpen, setErrorToastOpen] = useState(false)
+  const [errorToastProps, setErrorToastProps] = useState({ title: '', description: '' })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,13 +70,20 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
     try {
       const result = await onSubmit(email, password, rememberMe)
       if (!result.success) {
-        toast.error(result.error || 'An error occurred during login.')
+        setErrorToastProps({
+          title: 'Login Failed',
+          description: result.error || 'An unexpected error occurred. Please try again.',
+        })
+        setErrorToastOpen(true)
       }
     } catch (error: any) {
-      // Ignore Next.js redirect "errors" as they are expected
       if (!error.digest?.startsWith('NEXT_REDIRECT')) {
         console.error('Login error:', error)
-        toast.error('An error occurred during login.')
+        setErrorToastProps({
+          title: 'Login Error',
+          description: 'An unexpected error occurred. Please try again.',
+        })
+        setErrorToastOpen(true)
       }
     } finally {
       setIsLoading(false)
@@ -83,55 +91,96 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
   }
 
   const handleGoogleLogin = async () => {
+    setIsLoading(true)
     try {
       const result = await loginWithGoogle()
       if (result.success && result.url) {
         router.push(result.url)
       } else if (!result.success) {
-        toast.error(result.error || 'An error occurred during Google login.')
+        toast({
+          variant: 'destructive',
+          title: 'Google Login Failed',
+          description: result.error || 'Could not sign in with Google. Please try again.',
+        })
       }
     } catch (error: any) {
       // Ignore Next.js redirect "errors" as they are expected
       if (!error.digest?.startsWith('NEXT_REDIRECT')) {
         console.error('Google login error:', error)
-        toast.error('An error occurred during Google login.')
+        toast({
+          variant: 'destructive',
+          title: 'Google Login Error',
+          description: 'An unexpected error occurred. Please try again.',
+        })
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleGitHubLogin = async () => {
+    setIsLoading(true)
     try {
       const result = await loginWithGitHub()
       if (result.success && result.url) {
         router.push(result.url)
       } else if (!result.success) {
-        toast.error(result.error || 'An error occurred during GitHub login.')
+        toast({
+          variant: 'destructive',
+          title: 'GitHub Login Failed',
+          description: result.error || 'Could not sign in with GitHub. Please try again.',
+        })
       }
     } catch (error: any) {
       // Ignore Next.js redirect "errors" as they are expected
       if (!error.digest?.startsWith('NEXT_REDIRECT')) {
         console.error('GitHub login error:', error)
-        toast.error('An error occurred during GitHub login.')
+        toast({
+          variant: 'destructive',
+          title: 'GitHub Login Error',
+          description: 'An unexpected error occurred. Please try again.',
+        })
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Login</CardTitle>
-        <CardDescription>Sign in to your account to access your personal dashboard</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="w-full max-w-sm mx-auto">
+      <CustomErrorToast
+        open={errorToastOpen}
+        onOpenChange={setErrorToastOpen}
+        title={errorToastProps.title}
+        description={errorToastProps.description}
+      />
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Login</h1>
+        <p className="text-muted-foreground">
+          Sign in to your account to access your personal dashboard
+        </p>
+      </div>
+      <div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <EmailInput
-            label="Email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={errors.email}
-            required
-          />
+          <div className="space-y-1">
+            <Label htmlFor={emailInputId}>Email</Label>
+            <div className="relative">
+              <Input
+                id={emailInputId}
+                className={`peer ps-9 w-full ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                placeholder="your@email.com"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                aria-invalid={!!errors.email}
+              />
+              <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
+                <AtSignIcon size={16} aria-hidden="true" />
+              </div>
+            </div>
+            {errors.email && <p className="text-xs text-destructive pt-1">{errors.email}</p>}
+          </div>
 
           <PasswordInput
             label="Password"
@@ -180,15 +229,15 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
 
           <OAuth2Buttons onGoogleClick={handleGoogleLogin} onGitHubClick={handleGitHubLogin} />
         </form>
-      </CardContent>
-      <CardFooter className="flex justify-center">
+      </div>
+      <div className="flex justify-center pt-6">
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
           <Link href="/auth/signup" className="font-medium text-primary hover:underline">
             Sign up
           </Link>
         </p>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }
