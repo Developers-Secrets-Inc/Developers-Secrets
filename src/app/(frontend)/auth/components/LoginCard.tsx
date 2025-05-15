@@ -75,26 +75,37 @@ export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
     try {
       const result = await onSubmit(email, password, rememberMe)
       if (!result.success) {
-        // Gestion des erreurs structurées
+        // Handle structured errors
         const error = result.error as string | { code: string; message: string } | undefined
         if (typeof error === 'object' && error?.code) {
           if (error.code === 'EMAIL_IN_USE' || error.code === 'INVALID_CREDENTIALS') {
             setErrors({ email: error.message })
           } else if (error.code === 'INVALID_PASSWORD') {
             setErrors({ password: error.message })
+          } else if (error.code === 'TOO_MANY_ATTEMPTS') {
+            setToastProps({
+              type: 'error',
+              title: 'Too many attempts',
+              description: error.message
+                .replace(
+                  'Trop de tentatives. Réessayez dans',
+                  'Too many attempts. Please try again in',
+                )
+                .replace('minutes.', 'minutes.'),
+            })
+            setToastOpen(true)
           } else {
             setToastProps({
               type: 'error',
-              title: 'Erreur de connexion',
-              description:
-                error.message || 'Une erreur inattendue est survenue. Veuillez réessayer.',
+              title: 'Login error',
+              description: error.message || 'An unexpected error occurred. Please try again.',
             })
             setToastOpen(true)
           }
         } else if (typeof error === 'string') {
           setToastProps({
             type: 'error',
-            title: 'Erreur de connexion',
+            title: 'Login error',
             description: error,
           })
           setToastOpen(true)
