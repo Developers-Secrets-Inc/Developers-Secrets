@@ -52,15 +52,15 @@
 - **[FAIT]** UX validée : feedback instantané, accessible, dismissible, sans impact sur la navigation.
 
 ### 1.3 Gestion des erreurs
-- **[À FAIRE]** Centralisation et typage des erreurs côté serveur :
-  - Définir des classes d'erreur spécifiques (ex : EmailInUseError, InvalidPasswordError, etc.) dans `src/core/user/errors.ts`.
-  - Retourner des erreurs structurées `{ code: string, message: string }` dans les actions serveur (`auth.ts`).
-- **[À FAIRE]** Uniformisation côté client :
-  - Adapter les composants d'auth pour consommer ce format d'erreur.
-  - Afficher les messages d'erreur précis sous les champs concernés ou dans un toast global.
-  - Gérer l'accessibilité (focus, ARIA).
-- **[À FAIRE]** Préparation à la localisation (i18n) :
-  - Utiliser des clés ou messages prêts à être traduits.
+- **[FAIT]** Centralisation et typage des erreurs côté serveur :
+  - Classes d'erreur spécifiques (EmailInUseError, InvalidPasswordError, etc.) dans `src/core/user/errors.ts`.
+  - Erreurs structurées `{ code: string, message: string }` retournées par les actions serveur (`auth.ts`).
+- **[FAIT]** Uniformisation côté client :
+  - `LoginCard` et `SignUpCard` consomment le format d'erreur.
+  - Messages d'erreur précis affichés sous les champs ou dans un toast global.
+  - Accessibilité gérée (focus, ARIA).
+- **[FAIT]** Préparation à la localisation (i18n) :
+  - Messages d'erreur prêts à être traduits.
 - **[À FAIRE]** Logging serveur :
   - Logger les erreurs critiques côté serveur (console, Sentry, etc.).
 - **Exemples** :
@@ -72,11 +72,8 @@
     setErrors({ email: result.error.message })
   }
   ```
-- **Tests à prévoir** :
-  - Erreur email déjà utilisé → message sous le champ email.
-  - Erreur mot de passe faible → message sous le champ mot de passe.
-  - Erreur globale (ex : serveur) → toast d'erreur.
-  - Accessibilité : focus sur le champ en erreur, ARIA.
+- **Tests** :
+  - Tests manuels des cas d'erreur courants effectués.
 
 ### 1.4 Redirections
 - **Objectif** : Rendre les redirections post-authentification flexibles et contextuelles.

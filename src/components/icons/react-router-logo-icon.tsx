@@ -12,6 +12,9 @@ export const ReactRouterLogoIcon: React.FC<ReactRouterLogoIconProps> = (props) =
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       preserveAspectRatio="xMidYMid"
+      role="img"
+      aria-hidden="true"
+      fill="currentColor"
       {...props}
     >
       <g>
@@ -27,3 +30,5 @@ export const ReactRouterLogoIcon: React.FC<ReactRouterLogoIconProps> = (props) =
     </svg>
   )
 }
+
+ReactRouterLogoIcon.displayName = 'ReactRouterLogoIcon'

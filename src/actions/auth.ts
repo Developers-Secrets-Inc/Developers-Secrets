@@ -5,7 +5,12 @@ import { createInitialUserInformation } from '@/core/user'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { EmailInUseError, InvalidPasswordError, InvalidCredentialsError, UserNotVerifiedError } from '@/core/user/errors'
+import {
+  EmailInUseError,
+  InvalidPasswordError,
+  InvalidCredentialsError,
+  UserNotVerifiedError,
+} from '@/core/user/errors'
 
 export async function login(email: string, password: string, rememberMe: boolean) {
   const supabase = await createClient()
@@ -17,10 +22,19 @@ export async function login(email: string, password: string, rememberMe: boolean
 
   if (error) {
     if (error.message.toLowerCase().includes('invalid login credentials')) {
-      return { success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email ou mot de passe incorrect.' } }
+      return {
+        success: false,
+        error: { code: 'INVALID_CREDENTIALS', message: 'Email ou mot de passe incorrect.' },
+      }
     }
     if (error.message.toLowerCase().includes('email not confirmed')) {
-      return { success: false, error: { code: 'USER_NOT_VERIFIED', message: "L'email de ce compte n'a pas encore été vérifié." } }
+      return {
+        success: false,
+        error: {
+          code: 'USER_NOT_VERIFIED',
+          message: "L'email de ce compte n'a pas encore été vérifié.",
+        },
+      }
     }
     return { success: false, error: { code: 'LOGIN_ERROR', message: error.message } }
   }
@@ -48,10 +62,19 @@ export async function signup(username: string, email: string, password: string) 
 
   if (authError) {
     if (authError.message.toLowerCase().includes('user already registered')) {
-      return { success: false, error: { code: 'EMAIL_IN_USE', message: 'Cet email est déjà utilisé.' } }
+      return {
+        success: false,
+        error: { code: 'EMAIL_IN_USE', message: 'Cet email est déjà utilisé.' },
+      }
     }
     if (authError.message.toLowerCase().includes('password')) {
-      return { success: false, error: { code: 'INVALID_PASSWORD', message: 'Le mot de passe est invalide ou trop faible.' } }
+      return {
+        success: false,
+        error: {
+          code: 'INVALID_PASSWORD',
+          message: 'Le mot de passe est invalide ou trop faible.',
+        },
+      }
     }
     return { success: false, error: { code: 'SIGNUP_ERROR', message: authError.message } }
   }
@@ -60,7 +83,10 @@ export async function signup(username: string, email: string, password: string) 
     await createInitialUserInformation(authData.user.id, username)
     await initializeUser(authData.user.id)
   } else {
-    return { success: false, error: { code: 'USER_NOT_FOUND', message: 'Utilisateur non trouvé après inscription.' } }
+    return {
+      success: false,
+      error: { code: 'USER_NOT_FOUND', message: 'Utilisateur non trouvé après inscription.' },
+    }
   }
 
   revalidatePath('/', 'layout')

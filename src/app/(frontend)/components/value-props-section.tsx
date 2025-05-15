@@ -12,10 +12,7 @@ export const ValuePropsSection = () => {
         </h2>
         <div className="mx-auto grid max-w-sm grid-cols-1 gap-6 md:max-w-3xl md:grid-cols-2 xl:grid-rows-2 md:grid-rows-3 xl:max-w-6xl xl:auto-rows-fr xl:grid-cols-3">
           {/* Card 1: Advanced AI Algorithms */}
-          <div
-            className="group relative items-start overflow-hidden bg-background p-6 rounded-2xl border border-muted transition-all duration-500 ease-out"
-            style={{ opacity: 1, transform: 'none', willChange: 'auto' }}
-          >
+          <div className="group relative items-start overflow-hidden bg-background p-6 rounded-2xl border border-muted transition-all duration-500 ease-out">
             <div>
               <h3 className="font-semibold mb-2 text-primary">Advanced AI Algorithms</h3>
               <p className="text-foreground">
@@ -25,17 +22,14 @@ export const ValuePropsSection = () => {
             </div>
             <Safari
               imageSrc="/challenge-page.png"
-              url="https://developerssecrets.com"
+              url="/"
               className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
             />
-            <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-neutral-50 dark:from-neutral-900 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
           </div>
 
           {/* Card 2: Secure Data Handling */}
-          <div
-            className="group relative items-start overflow-hidden bg-background p-6 rounded-2xl border border-muted transition-all duration-500 ease-out"
-            style={{ opacity: 1, transform: 'none', willChange: 'auto' }}
-          >
+          <div className="group relative items-start overflow-hidden bg-background p-6 rounded-2xl border border-muted transition-all duration-500 ease-out">
             <div>
               <h3 className="font-semibold mb-2 text-primary">Secure Data Handling</h3>
               <p className="text-foreground">
@@ -45,17 +39,14 @@ export const ValuePropsSection = () => {
             </div>
             <Safari
               imageSrc="/course-page.png"
-              url="https://developerssecrets.com"
+              url="/"
               className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
             />
-            <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-neutral-50 dark:from-neutral-900 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
           </div>
 
           {/* Card 3: Seamless Integration */}
-          <div
-            className="group relative items-start overflow-hidden bg-background border border-muted p-6 rounded-2xl md:row-span-2 transition-all duration-500 ease-out"
-            style={{ opacity: 1, transform: 'none', willChange: 'auto' }}
-          >
+          <div className="group relative items-start overflow-hidden bg-background border border-muted p-6 rounded-2xl md:row-span-2 transition-all duration-500 ease-out">
             <div className="relative z-10">
               <h3 className="font-semibold mb-2 text-primary">Seamless Integration</h3>
               <p className="text-foreground">
@@ -68,36 +59,33 @@ export const ValuePropsSection = () => {
               squareSize={4}
               gridGap={6}
               color="hsl(var(--muted-foreground))"
-              maxOpacity={0.5}
-              flickerChance={0.1}
+              maxOpacity={0.3}
+              flickerChance={0.05}
             />
             <Safari
               imageSrc="/challenges-home.png"
-              url="https://developerssecrets.com"
+              url="/"
               className="-mb-48 ml-12 mt-16 h-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-x-[-10px] transition-all duration-300"
             />
-            <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-neutral-50 dark:from-neutral-900 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
           </div>
 
           {/* Card 4: Customizable Solutions */}
-          <div
-            className="group relative items-start overflow-hidden bg-background border border-muted p-6 rounded-2xl flex-row order-4 md:col-span-2 md:flex-row xl:order-none transition-all duration-500 ease-out"
-            style={{ opacity: 1, transform: 'none', willChange: 'auto' }}
-          >
+          <div className="group relative items-start overflow-hidden bg-background border border-muted p-6 rounded-2xl flex-row order-4 md:col-span-2 md:flex-row xl:order-none transition-all duration-500 ease-out">
             <div>
               <h3 className="font-semibold mb-2 text-primary">Advanced Gamification</h3>
               <p className="text-foreground">
-                Tailor our AI services to your specific needs with flexible customization options,
-                allowing you to get the most out of our platform.
+                Engage users with our advanced gamification features that make learning and
+                participation rewarding and enjoyable.
               </p>
             </div>
             <Ripple className="translate-y-1/2" />
             <Safari
               imageSrc="/quests-page.png"
-              url="https://developerssecrets.com"
+              url="/"
               className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
             />
-            <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-neutral-50 dark:from-neutral-900 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
           </div>
         </div>
       </div>

@@ -8,8 +8,9 @@ export const TypescriptLogoIcon: React.FC<TypescriptLogoIconProps> = (props) => 
       width="1em"
       height="1em"
       viewBox="0 0 400 400"
-      id="Layer_1"
       xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="TypeScript logo"
       {...props}
     >
       <style>{`.st0{fill:#007acc}.st1{fill:#fff}`}</style>

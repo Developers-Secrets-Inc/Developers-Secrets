@@ -8,11 +8,11 @@ interface ProblemCardProps {
 
 const ProblemCard: React.FC<ProblemCardProps> = ({ title, description }) => {
   return (
-    <div className="bg-card border border-muted p-6 rounded-lg shadow-lg flex flex-col items-center text-center">
+    <article className="bg-card border border-muted p-6 rounded-lg shadow-lg flex flex-col items-center text-center">
       {/* Optional: Icon can be placed here */}
       <h3 className="text-xl font-semibold text-primary mb-3 mt-2">{title}</h3>
       <p className="text-card-foreground text-sm">{description}</p>
-    </div>
+    </article>
   )
 }
 
@@ -47,9 +47,13 @@ export const ProblemSection = () => {
             help you overcome them.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {problems.map((problem, index) => (
-            <ProblemCard key={index} title={problem.title} description={problem.description} />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {problems.map((problem) => (
+            <ProblemCard
+              key={`problem-${problem.title.toLowerCase().replace(/\s+/g, '-')}`}
+              title={problem.title}
+              description={problem.description}
+            />
           ))}
         </div>
       </div>

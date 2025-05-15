@@ -12,6 +12,8 @@ export const GoLogoIcon: React.FC<GoLogoIconProps> = (props) => {
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       preserveAspectRatio="xMidYMid"
+      role="img"
+      aria-label="Go programming language logo"
       {...props}
     >
       <g>

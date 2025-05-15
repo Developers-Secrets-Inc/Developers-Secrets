@@ -40,10 +40,10 @@ interface Footer7Props {
 }
 const Footer7 = ({
   logo = {
-    url: 'https://www.shadcnblocks.com',
-    src: 'https://shadcnblocks.com/images/block/logos/shadcnblockscom-icon.svg',
-    alt: 'logo',
-    title: 'Shadcnblocks.com',
+    url: '/',
+    src: '/your-logo.svg',
+    alt: 'Your Company',
+    title: 'Your Company',
   },
 }: Footer7Props) => {
   return (
@@ -53,7 +53,7 @@ const Footer7 = ({
           <div className="flex w-full flex-col items-center justify-between gap-6 lg:items-start">
             {/* Logo */}
             <div className="flex items-center gap-2 lg:justify-start">
-              <a href="https://shadcnblocks.com">
+              <a href={logo.url}>
                 <img src={logo.src} alt={logo.alt} title={logo.title} className="h-8" />
               </a>
               <h2 className="text-xl font-semibold">{logo.title}</h2>
@@ -64,22 +64,22 @@ const Footer7 = ({
             </p>
             <ul className="flex items-center space-x-6 text-muted-foreground">
               <li className="font-medium hover:text-primary">
-                <a href="#">
+                <a href="#" aria-label="Instagram">
                   <FaInstagram className="size-6" />
                 </a>
               </li>
               <li className="font-medium hover:text-primary">
-                <a href="#">
+                <a href="#" aria-label="Facebook">
                   <FaFacebook className="size-6" />
                 </a>
               </li>
               <li className="font-medium hover:text-primary">
-                <a href="#">
+                <a href="#" aria-label="Twitter">
                   <FaTwitter className="size-6" />
                 </a>
               </li>
               <li className="font-medium hover:text-primary">
-                <a href="#">
+                <a href="#" aria-label="LinkedIn">
                   <FaLinkedin className="size-6" />
                 </a>
               </li>
@@ -101,7 +101,7 @@ const Footer7 = ({
           </div>
         </div>
         <div className="mt-8 flex flex-col justify-between gap-4 border-t pt-8 text-center text-sm font-medium text-muted-foreground lg:flex-row lg:items-center lg:text-left">
-          <p>© 2024 Shadcnblocks.com. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Your Company. All rights reserved.</p>
           <ul className="flex justify-center gap-4 lg:justify-start">
             <li className="hover:text-primary">
               <a href="#"> Terms and Conditions</a>

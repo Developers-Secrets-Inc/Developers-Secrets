@@ -10,6 +10,8 @@ export const CssLogoIcon: React.FC<CssLogoIconProps> = (props) => {
       viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
       {...props}
     >
       <path d="M6 28L4 3H28L26 28L16 31L6 28Z" fill="#1172B8" />

@@ -158,18 +158,12 @@ export function MainNavigationMenu() {
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link
-            href="/pricing"
-            className={navigationMenuTriggerStyle() + " text-muted-foreground"}
-          >
+          <Link href="/pricing" className={`${navigationMenuTriggerStyle()} text-muted-foreground`}>
             Pricing
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link
-            href="/blog"
-            className={navigationMenuTriggerStyle() + " text-muted-foreground"}
-          >
+          <Link href="/blog" className={`${navigationMenuTriggerStyle()} text-muted-foreground`}>
             Blog
           </Link>
         </NavigationMenuItem>

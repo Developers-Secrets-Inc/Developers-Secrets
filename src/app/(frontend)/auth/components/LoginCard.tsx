@@ -23,7 +23,7 @@ interface LoginCardProps {
     rememberMe: boolean,
   ) => Promise<{
     success: boolean
-    error?: string
+    error?: string | { code: string; message: string } | undefined
     url?: string
   }>
 }
@@ -75,16 +75,26 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
       const result = await onSubmit(email, password, rememberMe)
       if (!result.success) {
         // Gestion des erreurs structurées
-        if (result.error?.code === 'EMAIL_IN_USE' || result.error?.code === 'INVALID_CREDENTIALS') {
-          setErrors({ email: result.error.message })
-        } else if (result.error?.code === 'INVALID_PASSWORD') {
-          setErrors({ password: result.error.message })
-        } else {
+        const error = result.error as string | { code: string; message: string } | undefined
+        if (typeof error === 'object' && error?.code) {
+          if (error.code === 'EMAIL_IN_USE' || error.code === 'INVALID_CREDENTIALS') {
+            setErrors({ email: error.message })
+          } else if (error.code === 'INVALID_PASSWORD') {
+            setErrors({ password: error.message })
+          } else {
+            setToastProps({
+              type: 'error',
+              title: 'Erreur de connexion',
+              description:
+                error.message || 'Une erreur inattendue est survenue. Veuillez réessayer.',
+            })
+            setToastOpen(true)
+          }
+        } else if (typeof error === 'string') {
           setToastProps({
             type: 'error',
             title: 'Erreur de connexion',
-            description:
-              result.error?.message || 'Une erreur inattendue est survenue. Veuillez réessayer.',
+            description: error,
           })
           setToastOpen(true)
         }

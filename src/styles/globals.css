@@ -334,7 +334,8 @@
   50% {
     transform: translate(-50%, -50%) scale(0.9);
     }
-  }}
+  }
+}
 
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
