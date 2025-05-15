@@ -1,6 +1,7 @@
-import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
-import { Metadata } from 'next'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { Tooltip, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
+import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import { PythonLogoIcon } from '@/components/icons/python-logo-icon'
 import { ReactLogoIcon } from '@/components/icons/react-logo-icon'
 import { NextjsLogoIcon } from '@/components/icons/nextjs-logo-icon'
@@ -15,37 +16,16 @@ import { GoLogoIcon } from '@/components/icons/go-logo-icon'
 import { VueLogoIcon } from '@/components/icons/vue-logo-icon'
 import { PostgreSqlLogoIcon } from '@/components/icons/postgresql-logo-icon'
 import { ReactRouterLogoIcon } from '@/components/icons/react-router-logo-icon'
-import Link from 'next/link'
-import { Tooltip, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
-import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
-import { Feature197 } from './components/features'
-import { ValuePropsSection } from './components/value-props-section'
-import { Footer7 } from './components/footer'
-import { ProblemSection } from './components/problem'
-import { GraphQLLogoIcon } from '@/components/icons/graphql-logo-icon'
+import { GraphqlLogoIcon } from '@/components/icons/graphql-logo-icon'
+import React from 'react'
 
-export const metadata: Metadata = {
-  title: 'Developers Secrets',
-  description: 'Master fullstack development through interactive coding challenges',
-  openGraph: {
-    title: 'Developers Secrets',
-    description: 'Master fullstack development through interactive coding challenges',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Developers Secrets',
-    description: 'Master fullstack development through interactive coding challenges',
-  },
-}
-
-interface Integration {
+export interface Integration {
   id: string
   icon: React.ReactNode
   name?: string
 }
 
-interface Hero32Props {
+export interface Hero32Props {
   heading?: string
   description?: string
   button?: {
@@ -55,7 +35,7 @@ interface Hero32Props {
   integrations?: Integration[][]
 }
 
-const HeroSection = ({
+export const HeroSection = ({
   heading = "It's never been easier to become a fullstack developer",
   description = 'Fully decomposable components, all the images and background patterns are individual images or svgs that can be replaced.',
   button = {
@@ -140,7 +120,7 @@ const HeroSection = ({
       },
       {
         id: 'integration-15',
-        icon: <GraphQLLogoIcon className="h-full w-full" />,
+        icon: <GraphqlLogoIcon className="h-full w-full" />,
         name: 'GraphQL',
       },
     ],
@@ -209,18 +189,5 @@ const HeroSection = ({
         </div>
       </div>
     </section>
-  )
-}
-
-export default function Home() {
-  return (
-    <div>
-      <HomeHeader />
-      <HeroSection />
-      {/* <Feature197 /> */}
-      <ProblemSection />
-      <ValuePropsSection />
-      {/* <Footer7 /> */}
-    </div>
   )
 }

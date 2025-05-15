@@ -26,9 +26,10 @@ interface LoginCardProps {
     error?: string | { code: string; message: string } | undefined
     url?: string
   }>
+  redirectTo?: string
 }
 
-export function LoginCard({ onSubmit }: LoginCardProps) {
+export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -108,9 +109,15 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
         }
         setToastProps(toastData)
         setToastOpen(true)
-        // Persister l'intention de toast pour la page d'arrivée
         sessionStorage.setItem('postLoginToast', JSON.stringify(toastData))
-        // Redirection (sera gérée par onSubmit)
+        // Redirection dynamique
+        setTimeout(() => {
+          if (redirectTo && redirectTo.startsWith('/')) {
+            router.push(redirectTo)
+          } else {
+            router.push('/home')
+          }
+        }, 100)
       }
     } catch (error: any) {
       if (!error.digest?.startsWith('NEXT_REDIRECT')) {

@@ -10,7 +10,13 @@ type LoginAction = (
   rememberMe: boolean,
 ) => Promise<{ success: boolean; error?: string | { code: string; message: string } }>
 
-export function LoginPageClient({ loginAction }: { loginAction: LoginAction }) {
+export function LoginPageClient({
+  loginAction,
+  redirectTo,
+}: {
+  loginAction: LoginAction
+  redirectTo?: string
+}) {
   const [toastOpen, setToastOpen] = useState(false)
   const [toastProps, setToastProps] = useState<{
     type: 'success' | 'error' | 'info'
@@ -45,7 +51,7 @@ export function LoginPageClient({ loginAction }: { loginAction: LoginAction }) {
       />
       <div className="flex w-full flex-col md:flex-row">
         <div className="w-full md:w-1/2 pr-4 md:pr-8 border-r border-border py-8 md:py-12 flex flex-col items-center justify-center">
-          <LoginCard onSubmit={loginAction} />
+          <LoginCard onSubmit={loginAction} redirectTo={redirectTo} />
         </div>
         <div className="hidden md:block md:w-1/2 md:pl-8 relative overflow-hidden">
           <div

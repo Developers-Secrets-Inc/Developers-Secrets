@@ -11,8 +11,22 @@ import {
   InvalidCredentialsError,
   UserNotVerifiedError,
 } from '@/core/user/errors'
+import { checkAndIncrementThrottle } from '@/utils/throttle'
 
 export async function login(email: string, password: string, rememberMe: boolean) {
+  // Throttling : 5 tentatives sur 10 minutes par email
+  const throttleKey = `login:throttle:email:${email}`
+  const { allowed, retryAfter } = await checkAndIncrementThrottle(throttleKey, 5, 600)
+  if (!allowed) {
+    return {
+      success: false,
+      error: {
+        code: 'TOO_MANY_ATTEMPTS',
+        message: `Trop de tentatives. Réessayez dans ${Math.ceil((retryAfter || 0) / 60)} minutes.`,
+      },
+    }
+  }
+
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signInWithPassword({

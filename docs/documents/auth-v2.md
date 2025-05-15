@@ -76,37 +76,19 @@
   - Tests manuels des cas d'erreur courants effectués.
 
 ### 1.4 Redirections
-- **Objectif** : Rendre les redirections post-authentification flexibles et contextuelles.
-- **Comportement** :
-  - Permettre de spécifier une URL de destination (query param, state, etc.).
-  - Par défaut, retourner à la page précédente ou à une page configurable.
-- **Contraintes** :
-  - Sécuriser les redirections (éviter l'open redirect).
-- **Exemple** :
-  ```typescript
-  redirectTo = getRedirectUrl() || '/home';
-  ```
-- **Performance** :
-  - Calcul de la redirection côté serveur pour éviter un double chargement.
-- **Référence** :
-  - [login.tsx](mdc:src/app/(frontend)/auth/login/page.tsx)
+- **[FAIT]** Gestion des redirections dynamiques et sécurisées après login :
+  - Extraction du paramètre `redirect` de la query string côté serveur.
+  - Propagation du paramètre jusqu'à `LoginCard`.
+  - Après login, redirection vers `redirectTo` si défini et interne, sinon `/home`.
+  - Sécurisation contre l'open redirect.
 
 ### 1.5 Accessibilité
-- **Objectif** : Rendre toutes les pages et composants d'auth utilisables par tous.
-- **Comportement** :
-  - Ajouter les attributs ARIA nécessaires.
-  - Gérer le focus automatique sur les champs d'erreur ou de première saisie.
-  - S'assurer de la navigation clavier et de la compatibilité lecteurs d'écran.
-- **Contraintes** :
-  - Respecter les standards WCAG 2.1 AA.
-- **Exemple** :
-  ```jsx
-  <input aria-invalid={!!error} aria-describedby="error-message" />
-  ```
-- **Performance** :
-  - Les attributs ARIA n'impactent pas la performance.
-- **Référence** :
-  - [LoginCard.tsx](mdc:src/app/(frontend)/auth/components/LoginCard.tsx)
+- **[FAIT]** Accessibilité des champs, erreurs, focus et toasts dans `LoginCard` :
+  - Attributs ARIA (`aria-label`, `aria-invalid`, `aria-describedby`) sur les inputs.
+  - Messages d'erreur reliés aux champs.
+  - Focus automatique sur le premier champ ou le champ en erreur.
+  - Toasts avec `role="alert"`.
+  - Navigation clavier vérifiée.
 
 ## 2. Sécurité
 
