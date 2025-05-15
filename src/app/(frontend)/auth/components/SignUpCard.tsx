@@ -96,7 +96,6 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
     getPasswordCriteriaMessage(analyzePassword(''), false),
   )
 
-
   useEffect(() => {
     const analysis = analyzePassword(password)
     setPasswordAnalysis(analysis)

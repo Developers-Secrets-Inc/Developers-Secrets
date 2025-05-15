@@ -5,6 +5,7 @@ import { createInitialUserInformation } from '@/core/user'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { EmailInUseError, InvalidPasswordError, InvalidCredentialsError, UserNotVerifiedError } from '@/core/user/errors'
 
 export async function login(email: string, password: string, rememberMe: boolean) {
   const supabase = await createClient()
@@ -15,14 +16,16 @@ export async function login(email: string, password: string, rememberMe: boolean
   })
 
   if (error) {
-    return { success: false, error: error.message }
+    if (error.message.toLowerCase().includes('invalid login credentials')) {
+      return { success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Email ou mot de passe incorrect.' } }
+    }
+    if (error.message.toLowerCase().includes('email not confirmed')) {
+      return { success: false, error: { code: 'USER_NOT_VERIFIED', message: "L'email de ce compte n'a pas encore été vérifié." } }
+    }
+    return { success: false, error: { code: 'LOGIN_ERROR', message: error.message } }
   }
 
-  // Set session cookie expiration based on rememberMe
   if (rememberMe) {
-    // Set a longer expiration time (e.g., 30 days)
-    // This would typically be handled by the Supabase Auth configuration
-    // or by setting a custom cookie with the desired expiration
   }
 
   revalidatePath('/', 'layout')
@@ -44,14 +47,20 @@ export async function signup(username: string, email: string, password: string) 
   })
 
   if (authError) {
-    return { success: false, error: authError.message }
+    if (authError.message.toLowerCase().includes('user already registered')) {
+      return { success: false, error: { code: 'EMAIL_IN_USE', message: 'Cet email est déjà utilisé.' } }
+    }
+    if (authError.message.toLowerCase().includes('password')) {
+      return { success: false, error: { code: 'INVALID_PASSWORD', message: 'Le mot de passe est invalide ou trop faible.' } }
+    }
+    return { success: false, error: { code: 'SIGNUP_ERROR', message: authError.message } }
   }
 
   if (authData.user?.id) {
     await createInitialUserInformation(authData.user.id, username)
     await initializeUser(authData.user.id)
   } else {
-    return { success: false, error: 'User not found' }
+    return { success: false, error: { code: 'USER_NOT_FOUND', message: 'Utilisateur non trouvé après inscription.' } }
   }
 
   revalidatePath('/', 'layout')

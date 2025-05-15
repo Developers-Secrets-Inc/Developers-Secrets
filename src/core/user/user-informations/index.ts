@@ -1,6 +1,24 @@
 'use server'
 
-import { UserId, UserInformations, UserInformationsFields, validateUserInformationField, validateUserId, validateUserInformations, validateUserInitials, validateUserName, validateUserAvatar, validateUserRole, UserPreferences, validateUserPreferences, UserName, UserAvatar, UserInitials, validateUserCustomerId, UserCustomerId } from './types'
+import {
+  UserId,
+  UserInformations,
+  UserInformationsFields,
+  validateUserInformationField,
+  validateUserId,
+  validateUserInformations,
+  validateUserInitials,
+  validateUserName,
+  validateUserAvatar,
+  validateUserRole,
+  UserPreferences,
+  validateUserPreferences,
+  UserName,
+  UserAvatar,
+  UserInitials,
+  validateUserCustomerId,
+  UserCustomerId,
+} from './types'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { UserNotFoundError } from './errors'
@@ -21,8 +39,11 @@ export const getUserInformations = async (userId: string): Promise<UserInformati
   return validatedUser
 }
 
-
-export const updateUserInformations = async <T extends UserInformationsFields>(userId: UserId, key: T, value: UserInformations[T]): Promise<void> => {
+export const updateUserInformations = async <T extends UserInformationsFields>(
+  userId: UserId,
+  key: T,
+  value: UserInformations[T],
+): Promise<void> => {
   const validatedKey = validateUserInformationField(key)
   const payload = await getPayload({ config })
 
@@ -74,15 +95,20 @@ export const updateUserRole = async (userId: UserId, role: UserRole): Promise<vo
   })
 }
 
-
-export const updateUserPreferences = async (userId: UserId, preferences: UserPreferences): Promise<void> => {
+export const updateUserPreferences = async (
+  userId: UserId,
+  preferences: UserPreferences,
+): Promise<void> => {
   const validatedUserId = validateUserId(userId)
   const validatedPreferences = validateUserPreferences(preferences)
 
   await updateUserInformations(validatedUserId, 'preferences', validatedPreferences)
 }
 
-export const updateUserCustomerId = async (userId: UserId, customerId: UserCustomerId): Promise<void> => {
+export const updateUserCustomerId = async (
+  userId: UserId,
+  customerId: UserCustomerId,
+): Promise<void> => {
   const validatedUserId = validateUserId(userId)
   const validatedCustomerId = validateUserCustomerId(customerId)
 
@@ -98,4 +124,3 @@ export const updateUserCustomerId = async (userId: UserId, customerId: UserCusto
     data: { customerId: validatedCustomerId },
   })
 }
-

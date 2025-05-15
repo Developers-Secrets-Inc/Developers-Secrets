@@ -14,7 +14,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { Loader2, AtSignIcon } from 'lucide-react' // Removed LockIcon as PasswordInput should handle it
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { CustomErrorToast } from './CustomErrorToast'
+import { CustomToast } from './CustomErrorToast'
 
 interface LoginCardProps {
   onSubmit: (
@@ -39,8 +39,12 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
   // const passwordInputId = useId() // No longer needed here if PasswordInput handles its own ID/label
   const { toast } = useToast()
 
-  const [errorToastOpen, setErrorToastOpen] = useState(false)
-  const [errorToastProps, setErrorToastProps] = useState({ title: '', description: '' })
+  const [toastOpen, setToastOpen] = useState(false)
+  const [toastProps, setToastProps] = useState({
+    type: 'error' as 'success' | 'error' | 'info',
+    title: '',
+    description: '',
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -70,20 +74,43 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
     try {
       const result = await onSubmit(email, password, rememberMe)
       if (!result.success) {
-        setErrorToastProps({
-          title: 'Login Failed',
-          description: result.error || 'An unexpected error occurred. Please try again.',
-        })
-        setErrorToastOpen(true)
+        // Gestion des erreurs structurées
+        if (result.error?.code === 'EMAIL_IN_USE' || result.error?.code === 'INVALID_CREDENTIALS') {
+          setErrors({ email: result.error.message })
+        } else if (result.error?.code === 'INVALID_PASSWORD') {
+          setErrors({ password: result.error.message })
+        } else {
+          setToastProps({
+            type: 'error',
+            title: 'Erreur de connexion',
+            description:
+              result.error?.message || 'Une erreur inattendue est survenue. Veuillez réessayer.',
+          })
+          setToastOpen(true)
+        }
+      } else {
+        // Toast de succès avant redirection
+        const userName = email.split('@')[0]
+        const toastData = {
+          type: 'success' as const,
+          title: 'Connexion réussie !',
+          description: `Bienvenue, ${userName} !`,
+        }
+        setToastProps(toastData)
+        setToastOpen(true)
+        // Persister l'intention de toast pour la page d'arrivée
+        sessionStorage.setItem('postLoginToast', JSON.stringify(toastData))
+        // Redirection (sera gérée par onSubmit)
       }
     } catch (error: any) {
       if (!error.digest?.startsWith('NEXT_REDIRECT')) {
         console.error('Login error:', error)
-        setErrorToastProps({
+        setToastProps({
+          type: 'error',
           title: 'Login Error',
           description: 'An unexpected error occurred. Please try again.',
         })
-        setErrorToastOpen(true)
+        setToastOpen(true)
       }
     } finally {
       setIsLoading(false)
@@ -148,11 +175,12 @@ export function LoginCard({ onSubmit }: LoginCardProps) {
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      <CustomErrorToast
-        open={errorToastOpen}
-        onOpenChange={setErrorToastOpen}
-        title={errorToastProps.title}
-        description={errorToastProps.description}
+      <CustomToast
+        open={toastOpen}
+        onOpenChange={setToastOpen}
+        type={toastProps.type}
+        title={toastProps.title}
+        description={toastProps.description}
       />
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Login</h1>
