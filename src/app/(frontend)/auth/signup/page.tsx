@@ -1,7 +1,7 @@
 import { SignUpCard } from '../components/SignUpCard'
 import { signup } from '@/actions/auth'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
-import { DotPattern } from '@/components/DotPattern'
+import { DotPattern } from '@/components/magicui/dot-pattern'
 
 export default function SignUpPage() {
   const handleSignUp = async (
@@ -11,7 +11,12 @@ export default function SignUpPage() {
     rememberMe: boolean,
   ) => {
     'use server'
-    return await signup(username, email, password)
+    const result = await signup(username, email, password)
+    if (result.success) return { success: true }
+    return {
+      success: false,
+      error: typeof result.error === 'string' ? result.error : result.error.message,
+    }
   }
 
   return (
