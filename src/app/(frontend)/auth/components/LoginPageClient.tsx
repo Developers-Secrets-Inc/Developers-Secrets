@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { LoginCard } from './LoginCard'
 import { DotPattern } from '@/components/magicui/dot-pattern'
 import { CustomToast } from './CustomErrorToast'
+import { cn } from '@/lib/utils'
 
 type LoginAction = (
   email: string,
@@ -53,21 +54,16 @@ export function LoginPageClient({
         <div className="w-full md:w-1/2 pr-4 md:pr-8 border-r border-border py-8 md:py-12 flex flex-col items-center justify-center">
           <LoginCard onSubmit={loginAction} redirectTo={redirectTo} />
         </div>
-        <div className="hidden md:block md:w-1/2 md:pl-8 relative overflow-hidden">
-          <div
-            className="absolute top-0 right-0 w-full h-1/2 pointer-events-none"
-            style={{
-              maskImage: 'linear-gradient(to bottom left, white 60%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom left, white 60%, transparent 100%)',
-            }}
-          >
+        <div className="hidden md:block md:w-1/2 relative overflow-hidden">
+          <div className="relative flex size-full items-center justify-center overflow-hidden bg-background">
             <DotPattern
               width={20}
               height={20}
+              glow={true}
               cx={1}
               cy={1}
               cr={1}
-              className="absolute inset-0 h-full w-full"
+              className={cn('[mask-image:linear-gradient(to_bottom_left,white,transparent)] ')}
             />
           </div>
         </div>

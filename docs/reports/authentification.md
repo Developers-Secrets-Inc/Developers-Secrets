@@ -10,7 +10,7 @@ Le système d'authentification de la plateforme combine **Supabase Auth** (gesti
 
 ### a. Inscription (Signup)
 - **UI** : Formulaire interactif (`SignUpCard`) avec validation et feedback.
-- **Action serveur** : `signup` (dans [`src/actions/auth.ts`](mdc:src/actions/auth.ts))
+- **Action serveur** : `signup` (dans [`src/actions/auth.ts`](src/actions/auth.ts))
   - Crée l'utilisateur dans Supabase.
   - Crée le profil enrichi dans Payload CMS (`createInitialUserInformation`).
   - Initialise la gamification.
@@ -37,22 +37,21 @@ Le système d'authentification de la plateforme combine **Supabase Auth** (gesti
 
 ## 3. Gestion des données utilisateur
 
-- **Types** : Validation forte via Zod et TypeScript ([`src/core/user/types.ts`](mdc:src/core/user/types.ts), [`src/types/user.ts`](mdc:src/types/user.ts)).
+- **Types** : Validation forte via Zod et TypeScript
 - **Stockage** :
-  - **Supabase** : Authentification de base (email, password, id).
-  - **Payload CMS** : Profil enrichi (`user-informations`), lié par `userId` Supabase.
+  - **Supabase** : Authentification de base (email, mot de passe, id)
+  - **Payload CMS** : Profil enrichi (`user-informations`), lié par `userId` Supabase
 - **Accès côté client** :
-  - Hook React Query `useSessionUser` ([`src/core/user/hooks/use-user.ts`](mdc:src/core/user/hooks/use-user.ts))
-  - Appelle `getUser` (serveur) pour obtenir l'utilisateur enrichi.
+  - Hook React Query `useSessionUser`
 
 ---
 
 ## 4. Gestion des erreurs et sécurité
 
 - **Erreurs personnalisées** :
-  - Email déjà utilisé, mot de passe faible, identifiants invalides, email non vérifié, etc. ([`src/core/user/errors.ts`](mdc:src/core/user/errors.ts))
+  - Email déjà utilisé, mot de passe faible, identifiants invalides, email non vérifié, etc. ([`src/core/user/errors.ts`](src/core/user/errors.ts))
 - **Pattern Result** :
-  - Toutes les actions serveur retournent `{ success: true, value }` ou `{ success: false, error }` ([`src/core/user/result.ts`](mdc:src/core/user/result.ts))
+  - Toutes les actions serveur retournent `{ success: true, value }` ou `{ success: false, error }` ([`src/core/user/result.ts`](src/core/user/result.ts))
 - **Throttling** :
   - Limite les tentatives de login pour éviter le brute-force.
 - **Validation** :
@@ -71,13 +70,15 @@ Le système d'authentification de la plateforme combine **Supabase Auth** (gesti
 
 ## 6. Références de fichiers clés
 
-- Actions serveur : [`src/actions/auth.ts`](mdc:src/actions/auth.ts)
-- Logique utilisateur : [`src/core/user/index.ts`](mdc:src/core/user/index.ts)
-- Types : [`src/core/user/types.ts`](mdc:src/core/user/types.ts), [`src/types/user.ts`](mdc:src/types/user.ts)
-- Erreurs : [`src/core/user/errors.ts`](mdc:src/core/user/errors.ts)
-- Hooks : [`src/core/user/hooks/use-user.ts`](mdc:src/core/user/hooks/use-user.ts)
-- UI : [`src/app/(frontend)/auth/components/LoginCard.tsx`](mdc:src/app/(frontend)/auth/components/LoginCard.tsx), [`src/app/(frontend)/auth/components/SignUpCard.tsx`](mdc:src/app/(frontend)/auth/components/SignUpCard.tsx)
-- Callback OAuth : [`src/app/(frontend)/auth/callback/route.ts`](mdc:src/app/(frontend)/auth/callback/route.ts)
+| Catégorie           | Fichier(s)                                                                                             |
+|---------------------|--------------------------------------------------------------------------------------------------------|
+| Actions serveur     | [`src/actions/auth.ts`](src/actions/auth.ts)                                                           |
+| Logique utilisateur | [`src/core/user/index.ts`](src/core/user/index.ts)                                                     |
+| Types               | [`src/core/user/types.ts`](src/core/user/types.ts), [`src/types/user.ts`](src/types/user.ts)           |
+| Erreurs             | [`src/core/user/errors.ts`](src/core/user/errors.ts)                                                   |
+| Hooks               | [`src/core/user/hooks/use-user.ts`](src/core/user/hooks/use-user.ts)                                   |
+| UI                  | [`LoginCard.tsx`](src/app/(frontend)/auth/components/LoginCard.tsx), [`SignUpCard.tsx`](src/app/(frontend)/auth/components/SignUpCard.tsx) |
+| Callback OAuth      | [`route.ts`](src/app/(frontend)/auth/callback/route.ts)                                                |
 
 ---
 
@@ -94,12 +95,12 @@ Le système d'authentification de la plateforme combine **Supabase Auth** (gesti
 
 ```mermaid
 flowchart TD
-    A[Formulaire UI] -->|login/signup| B[Action serveur]
-    B -->|Supabase| C[Auth]
-    B -->|Payload| D[Profil enrichi]
-    C -->|Session| E[Redirection]
-    D --> E
-    E --> F[Dashboard/Home]
+  A[Formulaire UI] -->|login/signup| B[Action serveur]
+  B -->|Supabase| C[Auth]
+  B -->|Payload| D[Profil enrichi]
+  C -->|Session| E[Redirection]
+  D --> E
+  E --> F[Dashboard/Home]
 ```
 
 ---

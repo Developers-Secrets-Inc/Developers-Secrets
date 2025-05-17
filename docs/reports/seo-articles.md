@@ -1,3 +1,8 @@
+---
+title: "Rapport approfondi : Système Articles & Tutoriels"
+author: "Équipe Dev"
+date: "2025-05-01"
+---
 # Rapport approfondi : Système Articles & Tutoriels
 
 ## 1. Présentation générale
@@ -51,6 +56,11 @@ Le système "Articles & Tutoriels" permet d'organiser, publier et naviguer dans 
 ---
 
 ## 5. Composants UI principaux
+
+| Type de composant | Nom du composant |
+|-------------------|------------------|
+| Layout            | ArticleLayout, TutorialLayout, ... |
+| Fonctionnel       | ArticleCard, TutorialCard, ... |
 
 - **Navigation latérale** ([article-sidebar.tsx](../../src/app/(frontend)/articles/[tutorial_slug]/components/article-sidebar.tsx))
   - Affiche les sections, articles, feedback, support, switcher de type d'article
@@ -272,6 +282,9 @@ La performance du système "Articles & Tutoriels" est cruciale pour l'expérienc
 
 ## 9. Checklist de performance pour la mise en production
 
+- `next build`
+- `next export`
+- `pnpm lint`
 - [x] Build production (`next build`) et test local (`next start`)
 - [x] Analyse du bundle et suppression des dépendances inutiles
 - [x] Optimisation et audit des images (compression, formats modernes)
@@ -326,3 +339,16 @@ Le Partial Prerendering (PPR) est activé dans la fonctionnalité "Articles & Tu
 - **PPR = performance + personnalisation** : on combine le meilleur du SSG (cache, rapidité) et du SSR (dynamisme, cookies).
 - **HomeHeader** est le principal composant dynamique, justifiant l'activation du PPR sur toutes les pages articles/tutoriels.
 - Cette architecture permet d'avoir une UX premium, un SEO optimal, et une scalabilité maximale.
+
+```jsonld
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Titre de l'article",
+  "author": {
+    "@type": "Person",
+    "name": "Auteur"
+  },
+  "datePublished": "2025-05-01"
+}
+```

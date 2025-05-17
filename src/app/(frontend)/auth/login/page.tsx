@@ -26,7 +26,7 @@ export default async function LoginPage({
   if (searchParams) {
     params = await searchParams
     const val = params.redirect
-    if (val && val.startsWith('/')) {
+    if (val?.startsWith('/')) {
       redirectTo = val
     }
   }

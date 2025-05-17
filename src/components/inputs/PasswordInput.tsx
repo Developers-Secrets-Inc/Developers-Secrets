@@ -36,7 +36,6 @@ export function PasswordInput({ className, label, error, leftIcon, ...props }: P
             error && 'border-destructive focus-visible:ring-destructive/50',
             className,
           )}
-          style={{ paddingLeft: '2.25rem' }}
           {...props}
         />
         <button

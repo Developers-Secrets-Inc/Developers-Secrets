@@ -1,6 +1,7 @@
 import { SignUpCard } from '../components/SignUpCard'
 import { signup } from '@/actions/auth'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
+import { DotPattern } from '@/components/DotPattern'
 
 export default function SignUpPage() {
   const handleSignUp = async (
@@ -22,8 +23,18 @@ export default function SignUpPage() {
           <SignUpCard onSubmit={handleSignUp} />
         </div>
         {/* Right Column (empty or for illustration) */}
-        <div className="w-1/2  hidden md:flex items-center justify-center">
-          {/* Optional: Add an image or illustration here */}
+        <div className="w-1/2 hidden md:flex relative overflow-hidden">
+          <div className="relative flex size-full items-center justify-center overflow-hidden bg-background">
+            <DotPattern
+              width={20}
+              height={20}
+              glow={true}
+              cx={1}
+              cy={1}
+              cr={1}
+              className="[mask-image:linear-gradient(to_bottom_left,white,transparent)]"
+            />
+          </div>
         </div>
       </div>
     </div>
