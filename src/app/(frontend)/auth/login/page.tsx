@@ -10,16 +10,23 @@ if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN
   )
 }
 
+// Type for login page search params
+export type LoginPageSearchParams = {
+  redirect?: string
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string }
+  searchParams?: Promise<LoginPageSearchParams>
 }) {
-  // Defensive: check if searchParams is defined and is an object
   let redirectTo: string | undefined = undefined
-  if (searchParams && typeof searchParams === 'object' && 'redirect' in searchParams) {
-    const val = searchParams.redirect
-    if (typeof val === 'string' && val.startsWith('/')) {
+  let params: LoginPageSearchParams | undefined = undefined
+
+  if (searchParams) {
+    params = await searchParams
+    const val = params.redirect
+    if (val && val.startsWith('/')) {
       redirectTo = val
     }
   }
