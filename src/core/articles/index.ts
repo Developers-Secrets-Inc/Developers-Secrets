@@ -1,4 +1,3 @@
-
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { Article as PayloadArticle, Tutorial as PayloadTutorial } from '@/payload-types'
@@ -40,7 +39,7 @@ const getTutorialBySlugFromCollection = async (slug: string): Promise<PayloadTut
     // Get all tutorials and filter by slug manually
     tutorials = await payload.find({
       collection: 'tutorials',
-      // No where clause - we'll filter manually
+      depth: 1,
     })
   } catch (error) {
     throw new TutorialError(
@@ -76,6 +75,7 @@ export const getTutorials = async (options?: CacheOptions): Promise<Tutorial[]> 
   try {
     const tutorials = await payload.find({
       collection: 'tutorials',
+      depth: 1,
     })
     return tutorials.docs.map(convertPayloadTutorialToTutorial)
   } catch (error) {
