@@ -1,12 +1,10 @@
 import { withPayload } from '@payloadcms/next/withPayload'
-import { withSentryConfig } from '@sentry/nextjs'
 
 const nextConfig = {
   // Your Next.js config here
   experimental: {
     reactCompiler: true,
     ppr: 'incremental', // Enable experimental Partial Prerendering
-    instrumentationHook: true, // Added for Sentry
   },
   eslint: {
     ignoreDuringBuilds: true,
@@ -31,15 +29,4 @@ const nextConfig = {
   },
 }
 
-// Make sure adding Sentry options is the last code to run before exporting
-export default withSentryConfig(withPayload(nextConfig), {
-  org: 'nesalia-inc',
-  project: 'javascript-nextjs',
-
-  // Only print logs for uploading source maps in CI
-  // Set to `true` to suppress logs
-  silent: !process.env.CI,
-
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
-})
+export default withPayload(nextConfig)
