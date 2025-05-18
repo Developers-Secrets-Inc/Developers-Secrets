@@ -89,28 +89,6 @@ export async function generateMetadata(
   }
 }
 
-// Pre-generate static params for all known tutorial/article combinations
-export async function generateStaticParams() {
-  // Get all tutorials
-  const tutorials = await getTutorials()
-
-  // For each tutorial, get all its articles
-  const params = await Promise.all(
-    tutorials.map(async (tutorial) => {
-      const tutorialSlug = tutorial.slug
-      const articles = await getTutorialArticles(tutorialSlug)
-
-      // Map each article to its params
-      return articles.map((article) => ({
-        tutorial_slug: tutorialSlug,
-        article_slug: slugify(article.title),
-      }))
-    }),
-  )
-
-  // Flatten the array of arrays
-  return params.flat()
-}
 
 // Ajout d'un skeleton minimal pour ArticleContent
 function ArticleSkeleton() {
