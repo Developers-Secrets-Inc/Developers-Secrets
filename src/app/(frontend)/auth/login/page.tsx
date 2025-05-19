@@ -24,9 +24,6 @@ export default async function LoginPage({
   const redirectTo = params?.redirect?.startsWith('/') ? params.redirect : undefined
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <HomeHeader />
       <LoginPageClient loginAction={login} redirectTo={redirectTo} />
-    </div>
   )
 }

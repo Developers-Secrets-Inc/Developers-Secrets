@@ -1,16 +1,11 @@
-import { getUser } from '@/core/user'
-import { AuthButtonsClient } from './AuthButtons.client'
+'use client'
 
-export const AuthButtons = async () => {
-  try {
-    const user = await getUser()
+import { useSessionUser } from "@/core/user/hooks/use-user"
+import { AuthButtonsClient } from "./AuthButtons.client"
+import { Skeleton } from "../ui/skeleton"
 
-    console.log('user', user)
-    return <AuthButtonsClient user={user} />
-  } catch (error) {
-    // Log error on server side for debugging
-    console.error('AuthButtons: Failed to get user:', error)
-    // If error occurs, render the client component with null user (not logged in)
-    return <AuthButtonsClient user={null} />
-  }
+export const AuthButtons = () => {
+  const { user, isLoading } = useSessionUser()
+
+  return <AuthButtonsClient user={user} isLoading={isLoading} />
 }

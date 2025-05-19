@@ -137,21 +137,71 @@
 - **Référence** :
   - [auth.ts](mdc:src/actions/auth.ts)
 
-### 2.4 Réinitialisation du mot de passe
-- **Objectif** : Permettre à l'utilisateur de réinitialiser son mot de passe de façon sécurisée.
-- **Comportement** :
-  - Générer un token sécurisé, avec expiration.
-  - Envoyer un email avec un lien unique.
-  - Valider le token lors de la saisie du nouveau mot de passe.
-  - Afficher un feedback clair à chaque étape.
-- **Contraintes** :
-  - Token à usage unique, expiration courte (ex : 30 min).
-- **Exemple** :
-  - Utilisation de Supabase reset password flow.
-- **Performance** :
-  - Traitement rapide, feedback immédiat.
-- **Référence** :
+### 2.4 Réinitialisation du mot de passe (Flow PKCE Supabase)
+- **Objectif** : Permettre à l'utilisateur de réinitialiser son mot de passe de façon sécurisée, en suivant le flow PKCE recommandé par Supabase.
+
+#### 2.4.1 Vue d'ensemble du flow
+- L'utilisateur demande la réinitialisation de son mot de passe via un formulaire ("Mot de passe oublié ?").
+- Un email est envoyé avec un lien contenant un `token_hash` et le type `recovery`.
+- L'utilisateur clique sur le lien, qui le redirige vers `/auth/confirm?token_hash=...&type=recovery&next=/auth/update-password`.
+- L'endpoint `/auth/confirm` échange le token et, en cas de succès, redirige vers la page de saisie du nouveau mot de passe (`/auth/update-password`).
+- L'utilisateur saisit un nouveau mot de passe, qui est mis à jour via Supabase.
+
+#### 2.4.2 Étapes d'implémentation
+
+1. **Mise à jour du template d'email Supabase**
+   - Modifier le template d'email de réinitialisation dans le dashboard Supabase pour inclure :
+     ```html
+     <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/auth/update-password">Reset Password</a>
+     ```
+   - Vérifier que `.SiteURL` pointe vers l'URL publique de l'application.
+
+2. **Endpoint d'échange de token**
+   - Créer le fichier `src/app/(frontend)/auth/confirm/route.ts`.
+   - Handler GET qui :
+     - Récupère `token_hash`, `type` et `next` dans la query string.
+     - Utilise `supabase.auth.verifyOtp({ type, token_hash })` pour valider le token.
+     - Si succès : redirige vers `/auth/update-password` (ou la valeur de `next`).
+     - Si échec : redirige vers `/auth/auth-code-error` (page d'erreur dédiée).
+
+3. **Page de saisie du nouveau mot de passe**
+   - Créer la page `src/app/(frontend)/auth/update-password/page.tsx`.
+   - UI : Formulaire avec champ "Nouveau mot de passe" + validation (force, confirmation, etc.).
+   - À la soumission :
+     - Appeler `supabase.auth.updateUser({ password: '...' })` côté client.
+     - Afficher un toast de succès ou d'erreur.
+     - Rediriger vers `/auth/login` ou `/home` après succès.
+
+4. **Endpoint d'initiation de la réinitialisation**
+   - Ajouter un formulaire "Mot de passe oublié ?" sur `/auth/login` (si pas déjà fait).
+   - Créer une page `/auth/forgot-password` avec un champ email.
+   - À la soumission :
+     - Appeler `supabase.auth.resetPasswordForEmail(email)` côté client.
+     - Afficher un feedback (toast) indiquant que l'email a été envoyé (ou une erreur).
+
+5. **Gestion des erreurs et feedback utilisateur**
+   - Utiliser les composants de toast/erreur existants (`CustomErrorToast`).
+   - Gérer les cas d'erreur : token expiré, email non trouvé, mot de passe trop faible, etc.
+   - Prévoir une page `/auth/auth-code-error` pour expliquer les erreurs de token.
+
+6. **Sécurité & bonnes pratiques**
+   - Toujours vérifier que le paramètre `next` est une URL interne (commence par `/`).
+   - Le token envoyé par email doit expirer rapidement (géré côté Supabase).
+   - S'assurer que tous les formulaires et toasts sont accessibles (ARIA, focus, etc.).
+   - Logger côté serveur les erreurs critiques (optionnel).
+
+7. **Tests**
+   - Demande de reset avec un email existant et inexistant.
+   - Utilisation du lien de reset : cas succès, cas token expiré/invalide.
+   - Saisie d'un nouveau mot de passe (fort/faible).
+   - Connexion après reset.
+
+- **Références** :
   - [reset-password/page.tsx](mdc:src/app/(frontend)/auth/reset-password/page.tsx)
+  - [CustomErrorToast.tsx](mdc:src/app/(frontend)/auth/components/CustomErrorToast.tsx)
+  - [auth.ts](mdc:src/core/user/auth.ts)
+  - [LoginCard.tsx](mdc:src/app/(frontend)/auth/components/LoginCard.tsx)
+  - [SignUpCard.tsx](mdc:src/app/(frontend)/auth/components/SignUpCard.tsx)
 
 ## 3. Fonctionnalités
 
