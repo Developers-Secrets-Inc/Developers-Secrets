@@ -203,7 +203,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
   const handleGoogleLogin = async () => {
     setIsLoading(true)
     try {
-      const result = await loginWithGoogle()
+      const result = await loginWithGoogle('/dashboard')
       if (result.success && result.url) {
         router.push(result.url)
       } else if (!result.success) {
@@ -230,7 +230,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
   const handleGitHubLogin = async () => {
     setIsLoading(true)
     try {
-      const result = await loginWithGitHub()
+      const result = await loginWithGitHub('/dashboard')
       if (result.success && result.url) {
         router.push(result.url)
       } else if (!result.success) {

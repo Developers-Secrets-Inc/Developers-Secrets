@@ -22,7 +22,7 @@ export async function login(email: string, password: string, rememberMe: boolean
       success: false,
       error: {
         code: 'TOO_MANY_ATTEMPTS',
-        message: `Trop de tentatives. Réessayez dans ${Math.ceil((retryAfter || 0) / 60)} minutes.`,
+        message: `Too many attempts. Please try again in ${Math.ceil((retryAfter || 0) / 60)} minutes.`,
       },
     }
   }
@@ -38,7 +38,7 @@ export async function login(email: string, password: string, rememberMe: boolean
     if (error.message.toLowerCase().includes('invalid login credentials')) {
       return {
         success: false,
-        error: { code: 'INVALID_CREDENTIALS', message: 'Email ou mot de passe incorrect.' },
+        error: { code: 'INVALID_CREDENTIALS', message: 'Incorrect email or password.' },
       }
     }
     if (error.message.toLowerCase().includes('email not confirmed')) {
@@ -46,7 +46,7 @@ export async function login(email: string, password: string, rememberMe: boolean
         success: false,
         error: {
           code: 'USER_NOT_VERIFIED',
-          message: "L'email de ce compte n'a pas encore été vérifié.",
+          message: 'The email for this account has not yet been verified.',
         },
       }
     }
@@ -78,7 +78,7 @@ export async function signup(username: string, email: string, password: string) 
     if (authError.message.toLowerCase().includes('user already registered')) {
       return {
         success: false,
-        error: { code: 'EMAIL_IN_USE', message: 'Cet email est déjà utilisé.' },
+        error: { code: 'EMAIL_IN_USE', message: 'This email is already in use.' },
       }
     }
     if (authError.message.toLowerCase().includes('password')) {
@@ -86,7 +86,7 @@ export async function signup(username: string, email: string, password: string) 
         success: false,
         error: {
           code: 'INVALID_PASSWORD',
-          message: 'Le mot de passe est invalide ou trop faible.',
+          message: 'The password is invalid or too weak.',
         },
       }
     }
@@ -99,7 +99,7 @@ export async function signup(username: string, email: string, password: string) 
   } else {
     return {
       success: false,
-      error: { code: 'USER_NOT_FOUND', message: 'Utilisateur non trouvé après inscription.' },
+      error: { code: 'USER_NOT_FOUND', message: 'User not found after signup.' },
     }
   }
 
@@ -107,16 +107,15 @@ export async function signup(username: string, email: string, password: string) 
   redirect('/home')
 }
 
-export async function loginWithGoogle() {
+export async function loginWithGoogle(redirectTo?: string) {
   const supabase = await createClient()
-
+  const callbackUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      redirectTo: callbackUrl,
     },
   })
-
   if (error) {
     return { success: false, error: error.message }
   }
@@ -124,20 +123,18 @@ export async function loginWithGoogle() {
   return { success: true, url: data.url }
 }
 
-export async function loginWithGitHub() {
+export async function loginWithGitHub(redirectTo?: string) {
   const supabase = await createClient()
-
+  const callbackUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      redirectTo: callbackUrl,
     },
   })
-
   if (error) {
     return { success: false, error: error.message }
   }
-
   return { success: true, url: data.url }
 }
 

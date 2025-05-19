@@ -20,16 +20,8 @@ export default async function LoginPage({
 }: {
   searchParams?: Promise<LoginPageSearchParams>
 }) {
-  let redirectTo: string | undefined = undefined
-  let params: LoginPageSearchParams | undefined = undefined
-
-  if (searchParams) {
-    params = await searchParams
-    const val = params.redirect
-    if (val?.startsWith('/')) {
-      redirectTo = val
-    }
-  }
+  const params = await searchParams
+  const redirectTo = params?.redirect?.startsWith('/') ? params.redirect : undefined
 
   return (
     <div className="flex flex-col min-h-screen">

@@ -115,8 +115,8 @@ export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
         const userName = email.split('@')[0]
         const toastData = {
           type: 'success' as const,
-          title: 'Connexion réussie !',
-          description: `Bienvenue, ${userName} !`,
+          title: 'Login successful!',
+          description: `Welcome, ${userName}!`,
         }
         setToastProps(toastData)
         setToastOpen(true)
@@ -283,7 +283,7 @@ export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
             </div>
           </div>
 
-          <OAuth2Buttons onGoogleClick={handleGoogleLogin} onGitHubClick={handleGitHubLogin} />
+          <OAuth2Buttons />
         </form>
       </div>
       <div className="flex justify-center pt-6">

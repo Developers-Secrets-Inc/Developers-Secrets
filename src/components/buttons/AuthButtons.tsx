@@ -4,6 +4,8 @@ import { AuthButtonsClient } from './AuthButtons.client'
 export const AuthButtons = async () => {
   try {
     const user = await getUser()
+
+    console.log('user', user)
     return <AuthButtonsClient user={user} />
   } catch (error) {
     // Log error on server side for debugging

@@ -1,9 +1,6 @@
-'use client'
-
 import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
 import { User } from '@/types/user'
 import Link from 'next/link'
-import { useState } from 'react'
 import { Button } from '../ui/button'
 import { NotificationButton } from '../sidebars/home-sidebar/notification-button'
 interface AuthButtonsClientProps {

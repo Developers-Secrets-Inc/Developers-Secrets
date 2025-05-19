@@ -78,7 +78,7 @@ export function CustomToast({
             <Button
               variant="ghost"
               className="group -my-1.5 -me-1.5 size-8 shrink-0 p-0 hover:bg-transparent data-[state=open]:bg-transparent"
-              aria-label="Fermer la notification"
+              aria-label="Close notification"
             >
               <XIcon
                 size={16}

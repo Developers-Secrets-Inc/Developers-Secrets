@@ -20,8 +20,8 @@ export function GitHubAuthButton({
     <Button
       variant={variant}
       className={cn('flex items-center gap-2 w-full', className)}
-      disabled={true}
       {...props}
+      disabled={true}
     >
       {isLoading ? (
         <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
