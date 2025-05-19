@@ -4,11 +4,6 @@ import Link from 'next/link'
 import { Button } from '../ui/button'
 import { NotificationButton } from '../sidebars/home-sidebar/notification-button'
 import { Skeleton } from '../ui/skeleton'
-interface AuthButtonsClientProps {
-  user: User | null | undefined
-  isLoading: boolean
-}
-
 
 const LoginButton = () => {
   return (
@@ -48,7 +43,6 @@ const AuthButtonsLoggedIn = ({ user }: { user: User }) => {
   )
 }
 
-
 const AuthButtonsLoggedOut = () => {
   return (
     <>
@@ -64,20 +58,30 @@ const AuthButtons = {
   LoggedOut: AuthButtonsLoggedOut,
 }
 
-const IsLoading = ({ children, isLoading, fallback }: { children: React.ReactNode, isLoading: boolean, fallback: React.ReactNode }) => {
+const IsLoading = ({
+  children,
+  isLoading,
+  fallback,
+}: {
+  children: React.ReactNode
+  isLoading: boolean
+  fallback: React.ReactNode
+}) => {
   return isLoading ? fallback : children
 }
 
+type Optional<T> = T | null | undefined
+
+type AuthButtonsClientProps = {
+  user: Optional<User>
+  isLoading: boolean
+}
 
 export const AuthButtonsClient = ({ user, isLoading }: AuthButtonsClientProps) => {
   return (
     <div className="ml-auto flex items-center gap-2">
       <IsLoading isLoading={isLoading} fallback={<AuthButtons.Skeleton />}>
-        {user ? (
-          <AuthButtons.LoggedIn user={user} />
-        ) : (
-          <AuthButtons.LoggedOut />
-        )}
+        {user ? <AuthButtons.LoggedIn user={user} /> : <AuthButtons.LoggedOut />}
       </IsLoading>
     </div>
   )

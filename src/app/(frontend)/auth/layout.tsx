@@ -48,17 +48,17 @@ const AuthLayout = {
 
 export default function AuthLayoutPage({ children }: { children: React.ReactNode }) {
   return (
-    <RedirectIfSignedIn redirectTo="/home">
-      <div className="flex flex-col h-screen">
-        <HomeHeader />
-        <AuthLayout.Container>
-          <AuthLayout.LeftPart>{children}</AuthLayout.LeftPart>
+    // <RedirectIfSignedIn redirectTo="/home">
+    <div className="flex flex-col h-screen">
+      <HomeHeader />
+      <AuthLayout.Container>
+        <AuthLayout.LeftPart>{children}</AuthLayout.LeftPart>
 
-          <AuthLayout.RightPart>
-            <AuthLayout.GridPattern />
-          </AuthLayout.RightPart>
-        </AuthLayout.Container>
-      </div>
-    </RedirectIfSignedIn>
+        <AuthLayout.RightPart>
+          <AuthLayout.GridPattern />
+        </AuthLayout.RightPart>
+      </AuthLayout.Container>
+    </div>
+    // </RedirectIfSignedIn>
   )
 }

@@ -48,13 +48,13 @@ export function CustomToast({
     icon = (
       <CheckCircle2 className="mt-0.5 shrink-0 text-emerald-500" size={20} aria-hidden="true" />
     )
-    colorClass = 'text-emerald-500 border-emerald-500 bg-emerald-50'
+    colorClass = 'text-emerald-500 border-emerald-500'
   } else if (type === 'info') {
     icon = <Info className="mt-0.5 shrink-0 text-sky-500" size={20} aria-hidden="true" />
-    colorClass = 'text-sky-500 border-sky-500 bg-sky-50'
+    colorClass = 'text-sky-500 border-sky-500'
   } else {
     icon = <XCircleIcon className="mt-0.5 shrink-0 text-destructive" size={20} aria-hidden="true" />
-    colorClass = 'text-destructive border-destructive bg-destructive/10'
+    colorClass = 'text-destructive border-destructive'
   }
 
   return (
