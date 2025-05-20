@@ -88,28 +88,6 @@ export async function generateMetadata(
   }
 }
 
-// Pre-generate static params for all known tutorial/reference combinations
-export async function generateStaticParams() {
-  // Get all tutorials
-  const tutorials = await getTutorials()
-
-  // For each tutorial, get all its reference articles
-  const params = await Promise.all(
-    tutorials.map(async (tutorial) => {
-      const tutorialSlug = tutorial.slug
-      const articles = await getTutorialReferenceArticles(tutorialSlug)
-
-      // Map each article to its params
-      return articles.map((article) => ({
-        tutorial_slug: tutorialSlug,
-        reference_slug: slugify(article.title),
-      }))
-    }),
-  )
-
-  // Flatten the array of arrays
-  return params.flat()
-}
 
 export default async function ReferencePage({
   params,

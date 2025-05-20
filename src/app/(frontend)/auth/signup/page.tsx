@@ -1,6 +1,5 @@
 import { SignUpCard } from '../components/SignUpCard'
 import { signup } from '@/actions/auth'
-import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 
 export default function SignUpPage() {
   const handleSignUp = async (
@@ -10,17 +9,13 @@ export default function SignUpPage() {
     rememberMe: boolean,
   ) => {
     'use server'
-    return await signup(username, email, password)
+    const result = await signup(username, email, password)
+    if (result.success) return { success: true }
+    return {
+      success: false,
+      error: typeof result.error === 'string' ? result.error : result.error.message,
+    }
   }
 
-  return (
-    <div>
-      <HomeHeader />
-      <div className="flex items-center justify-center py-12">
-        <div className="w-full max-w-md">
-          <SignUpCard onSubmit={handleSignUp} />
-        </div>
-      </div>
-    </div>
-  )
+  return <SignUpCard onSubmit={handleSignUp} />
 }

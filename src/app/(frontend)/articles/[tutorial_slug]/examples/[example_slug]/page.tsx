@@ -88,29 +88,6 @@ export async function generateMetadata(
   }
 }
 
-// Pre-generate static params for all known tutorial/example combinations
-export async function generateStaticParams() {
-  // Get all tutorials
-  const tutorials = await getTutorials()
-
-  // For each tutorial, get all its example articles
-  const params = await Promise.all(
-    tutorials.map(async (tutorial) => {
-      const tutorialSlug = tutorial.slug
-      const articles = await getTutorialExampleArticles(tutorialSlug)
-
-      // Map each article to its params
-      return articles.map((article) => ({
-        tutorial_slug: tutorialSlug,
-        example_slug: slugify(article.title),
-      }))
-    }),
-  )
-
-  // Flatten the array of arrays
-  return params.flat()
-}
-
 export default async function ExamplePage({
   params,
 }: {

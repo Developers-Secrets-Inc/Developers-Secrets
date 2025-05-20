@@ -65,6 +65,7 @@
     "@tanstack/react-virtual": "^3.13.8",
     "@types/dagre": "^0.7.52",
     "@types/mdx": "^2.0.13",
+    "@upstash/redis": "^1.34.9",
     "ai": "^4.3.0",
     "babel-plugin-react-compiler": "19.0.0-beta-21e868a-20250216",
     "class-variance-authority": "^0.7.1",
@@ -82,6 +83,7 @@
     "graphql": "^16.8.1",
     "hast-util-to-jsx-runtime": "^2.3.5",
     "input-otp": "^1.4.2",
+    "ioredis": "^5.6.1",
     "lucide-react": "^0.475.0",
     "marked": "^15.0.7",
     "mdast": "^3.0.0",
@@ -115,6 +117,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@shadcn/ui": "^0.0.4",
+    "@types/ioredis": "^5.0.0",
     "@types/mdast": "^4.0.4",
     "@types/node": "^22.15.3",
     "@types/react": "19.1.2",

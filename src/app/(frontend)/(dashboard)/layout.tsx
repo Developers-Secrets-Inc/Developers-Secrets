@@ -8,7 +8,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   const user = await getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/auth/login')
   }
 
   if (await areUserDailyQuestsExpired(user.id)) {

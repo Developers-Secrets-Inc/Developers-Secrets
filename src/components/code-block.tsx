@@ -84,7 +84,7 @@ function CodeBlockCode({
         />
       ) : (
         <div className={classNames} {...props}>
-          <pre>
+          <pre className='text-base'>
             <code>{code}</code>
           </pre>
         </div>

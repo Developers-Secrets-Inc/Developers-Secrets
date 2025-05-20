@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/components/theme-provider'
-// import { Toaster } from '@/components/ui/toaster' // Removed shadcn Toaster
+import { Toaster } from '@/components/ui/toaster' // Re-added shadcn Toaster
 import { CompletionToastProvider } from '@/core/courses/components/completion-toast-context' // Added custom provider
 import { useState } from 'react'
 
@@ -27,7 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           {children}
           {/* The actual Toast component is rendered inside CompletionToastProvider */}
         </CompletionToastProvider>
-        {/* <Toaster /> // Removed */}
+        <Toaster /> {/* Re-added */}
       </ThemeProvider>
     </QueryClientProvider>
   )

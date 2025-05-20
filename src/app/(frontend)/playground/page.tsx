@@ -1,25 +1,9 @@
-import { CodeEditor, CodeEditorContent, CodeEditorHeader } from '@/core/compiler/components/code-editor'
+import { Button } from '@/components/updated-ui/button'
 
 export default function Page() {
   return (
-    <div className="h-screen">
-      <CodeEditor
-        header={<CodeEditorHeader />}
-        content={<CodeEditorContent />}
-        language="javascript"
-        theme="vs-dark"
-        code='console.log("Hello, world!");'
-        availableLanguages={[{
-            value: 'javascript',
-            label: 'JavaScript'
-        }, {
-            value: 'typescript',
-            label: 'TypeScript'
-        }, {
-            value: 'python',
-            label: 'Python'
-        }]}
-      />
+    <div className="h-screen p-10">
+      <Button>Primary Button</Button>
     </div>
   )
 }

@@ -3,14 +3,15 @@
 import React, { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Lock } from 'lucide-react'
 
 interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
+  leftIcon?: React.ReactNode
 }
 
-export function PasswordInput({ className, label, error, ...props }: PasswordInputProps) {
+export function PasswordInput({ className, label, error, leftIcon, ...props }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false)
 
   const togglePasswordVisibility = () => {
@@ -25,10 +26,13 @@ export function PasswordInput({ className, label, error, ...props }: PasswordInp
         </label>
       )}
       <div className="relative">
+        <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
+          {leftIcon !== undefined ? leftIcon : <Lock size={16} aria-hidden="true" />}
+        </div>
         <Input
           type={showPassword ? 'text' : 'password'}
           className={cn(
-            'pr-10',
+            'pr-10 ps-9',
             error && 'border-destructive focus-visible:ring-destructive/50',
             className,
           )}
@@ -38,7 +42,7 @@ export function PasswordInput({ className, label, error, ...props }: PasswordInp
           type="button"
           onClick={togglePasswordVisibility}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-          aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>

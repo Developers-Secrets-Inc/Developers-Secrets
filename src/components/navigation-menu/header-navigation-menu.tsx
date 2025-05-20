@@ -97,7 +97,7 @@ export function MainNavigationMenu() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Tutorials</NavigationMenuTrigger>
+          <NavigationMenuTrigger className="text-muted-foreground">Tutorials</NavigationMenuTrigger>
           <NavigationMenuContent className="p-0">
             <div className="flex flex-col bg-muted/20 overflow-hidden">
               <div className="bg-background p-4">
@@ -128,7 +128,7 @@ export function MainNavigationMenu() {
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Courses</NavigationMenuTrigger>
+          <NavigationMenuTrigger className="text-muted-foreground">Courses</NavigationMenuTrigger>
           <NavigationMenuContent className="p-0">
             <div className="flex flex-col bg-muted/20 overflow-hidden">
               <div className="bg-background p-4">
@@ -158,20 +158,12 @@ export function MainNavigationMenu() {
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link
-            href="/pricing"
-            component={NavigationMenuLink as React.ElementType}
-            className={navigationMenuTriggerStyle()}
-          >
+          <Link href="/pricing" className={`${navigationMenuTriggerStyle()} text-muted-foreground`}>
             Pricing
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link
-            href="/blog"
-            component={NavigationMenuLink as React.ElementType}
-            className={navigationMenuTriggerStyle()}
-          >
+          <Link href="/blog" className={`${navigationMenuTriggerStyle()} text-muted-foreground`}>
             Blog
           </Link>
         </NavigationMenuItem>

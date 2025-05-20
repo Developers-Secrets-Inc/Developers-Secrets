@@ -20,6 +20,7 @@ import { Metadata, ResolvingMetadata } from 'next'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { Suspense } from 'react'
 import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
+import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'
 
 // Revalidate content every hour
 export const revalidate = 3600
@@ -88,27 +89,25 @@ export async function generateMetadata(
   }
 }
 
-// Pre-generate static params for all known tutorial/article combinations
-export async function generateStaticParams() {
-  // Get all tutorials
-  const tutorials = await getTutorials()
 
-  // For each tutorial, get all its articles
-  const params = await Promise.all(
-    tutorials.map(async (tutorial) => {
-      const tutorialSlug = tutorial.slug
-      const articles = await getTutorialArticles(tutorialSlug)
-
-      // Map each article to its params
-      return articles.map((article) => ({
-        tutorial_slug: tutorialSlug,
-        article_slug: slugify(article.title),
-      }))
-    }),
+// Ajout d'un skeleton minimal pour ArticleContent
+function ArticleSkeleton() {
+  return (
+    <main className="flex w-full min-w-0 flex-col">
+      <div className="flex w-full flex-1 flex-col gap-6 px-4 pt-8 pb-12 md:px-6 md:pt-12 xl:px-12 xl:mx-auto max-w-[860px]">
+        <div className="prose prose-slate max-w-none animate-pulse">
+          <div className="h-10 w-2/3 bg-muted rounded mb-4" />
+          <div className="h-5 w-1/2 bg-muted rounded mb-6" />
+          <div className="space-y-3">
+            <div className="h-4 w-full bg-muted rounded" />
+            <div className="h-4 w-5/6 bg-muted rounded" />
+            <div className="h-4 w-2/3 bg-muted rounded" />
+            <div className="h-4 w-1/2 bg-muted rounded" />
+          </div>
+        </div>
+      </div>
+    </main>
   )
-
-  // Flatten the array of arrays
-  return params.flat()
 }
 
 export default async function ArticlePage({
@@ -120,17 +119,15 @@ export default async function ArticlePage({
 
   try {
     // Get the tutorial, article, and related data with cache tags
-    const payloadTutorial = await getTutorial(tutorial_slug, {
-      next: { tags: [`tutorial-${tutorial_slug}`] },
-    })
-
-    const payloadArticle = await getArticle(tutorial_slug, article_slug, {
-      next: { tags: [`article-${tutorial_slug}-${article_slug}`] },
-    })
-
-    const payloadArticles = await getTutorialArticles(tutorial_slug, {
-      next: { tags: [`tutorial-articles-${tutorial_slug}`] },
-    })
+    const [payloadTutorial, payloadArticle, payloadArticles] = await Promise.all([
+      getTutorial(tutorial_slug, { next: { tags: [`tutorial-${tutorial_slug}`] } }),
+      getArticle(tutorial_slug, article_slug, {
+        next: { tags: [`article-${tutorial_slug}-${article_slug}`] },
+      }),
+      getTutorialArticles(tutorial_slug, {
+        next: { tags: [`tutorial-articles-${tutorial_slug}`] },
+      }),
+    ])
 
     // Convert to our custom types using the utility functions
     const tutorial = convertPayloadTutorialToTutorial(payloadTutorial)
@@ -140,23 +137,20 @@ export default async function ArticlePage({
     const outline = getArticleOutline(article.content)
 
     // Get recommended articles with cache tags
-    const popularArticles = await getPopularArticles(
-      tutorial_slug,
-      article.id,
-      {
-        next: { tags: [`popular-articles-${tutorial_slug}`] },
-      },
-      1,
-    )
-
-    const personalizedArticles = await getPersonalizedArticleRecommendations(
-      tutorial_slug,
-      article.id,
-      {
-        next: { tags: [`personalized-articles-${tutorial_slug}`] },
-      },
-      3,
-    )
+    const [popularArticles, personalizedArticles] = await Promise.all([
+      getPopularArticles(
+        tutorial_slug,
+        article.id,
+        { next: { tags: [`popular-articles-${tutorial_slug}`] } },
+        1,
+      ),
+      getPersonalizedArticleRecommendations(
+        tutorial_slug,
+        article.id,
+        { next: { tags: [`personalized-articles-${tutorial_slug}`] } },
+        3,
+      ),
+    ])
 
     return (
       <SidebarProvider>
@@ -171,15 +165,24 @@ export default async function ArticlePage({
             <HomeHeader />
           </Suspense>
           <div className="flex flex-1">
-            <ArticleContent
-              article={article}
-              popularArticles={popularArticles.map(convertPayloadArticleToArticle)}
-              personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
-              tutorial_slug={tutorial_slug}
-            />
+            <Suspense fallback={<ArticleSkeleton />}>
+              <ArticleContent
+                article={article}
+                popularArticles={popularArticles.map(convertPayloadArticleToArticle)}
+                personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
+                tutorial_slug={tutorial_slug}
+              />
+            </Suspense>
             <ArticleOutline outline={outline} />
           </div>
         </SidebarInset>
+        <ChatActivationButton
+          tutorialSlug={tutorial_slug}
+          articleSlug={article_slug}
+          tutorialTitle={tutorial.title}
+          articleTitle={article.title}
+          articleFullContent={article.content}
+        />
       </SidebarProvider>
     )
   } catch (error) {

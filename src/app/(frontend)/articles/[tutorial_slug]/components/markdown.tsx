@@ -121,11 +121,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     return <TypographyBlockquote {...props}>{children}</TypographyBlockquote>
   },
   ul: function UlComponent({ children, ...props }) {
-    return <TypographyList {...props}>{children}</TypographyList>
+    return <TypographyList {...props} className='text-muted-foreground'>{children}</TypographyList>
   },
   ol: function OlComponent({ children, ...props }) {
     return (
-      <TypographyList className="list-decimal" {...props}>
+      <TypographyList className="list-decimal text-muted-foreground" {...props}>
         {children}
       </TypographyList>
     )
@@ -149,7 +149,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       props.node?.position?.start.line === props.node?.position?.end.line
 
     if (isInline) {
-      return <TypographyInlineCode {...props}>{children}</TypographyInlineCode>
+      return <TypographyInlineCode {...props} className='text-gray-200'>{children}</TypographyInlineCode>
     }
 
     const language = extractLanguage(className)
