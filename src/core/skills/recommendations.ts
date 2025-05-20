@@ -38,51 +38,63 @@ interface RecommendationsBySkill {
 export async function getRandomUncompletedChallenge(
   userId: string,
   payload?: Payload, // Make payload optional, get it if not provided
+  completedChallengeIdsInput?: Set<number>, // Optional set of completed challenge IDs
 ): Promise<Challenge | null> {
   console.log(`Attempting to find a random uncompleted challenge for user ${userId}...`)
   const currentPayload = payload || (await getPayload({ config })) // Get payload if not passed
+  let completedChallengeIds: Set<number>
 
   try {
-    // 1. Get IDs of completed challenges
-    const completedProgressions = await currentPayload.find({
-      collection: 'userChallengeProgression',
-      where: {
-        userId: { equals: userId },
-        completionStatus: { equals: 'completed' },
-      },
-      limit: 0,
-      depth: 0,
-      select: { challenge: true },
-      pagination: false,
-    })
+    if (completedChallengeIdsInput) {
+      completedChallengeIds = completedChallengeIdsInput
+      console.log(
+        `  Using provided set of ${completedChallengeIds.size} completed challenge IDs.`,
+      )
+    } else {
+      console.log(`  Fetching completed challenge IDs for user ${userId}...`)
+      // 1. Get IDs of completed challenges
+      const completedProgressions = await currentPayload.find({
+        collection: 'userChallengeProgression',
+        where: {
+          userId: { equals: userId },
+          completionStatus: { equals: 'completed' },
+        },
+        limit: 0,
+        depth: 0,
+        select: { challenge: true },
+        pagination: false,
+      })
 
-    const completedChallengeIds = new Set<number>(
-      completedProgressions.docs
-        .map((p: { challenge?: number | { id: number } | null }) => {
-          if (typeof p.challenge === 'number') return p.challenge
-          if (typeof p.challenge === 'object' && p.challenge !== null) return p.challenge.id
-          return null
-        })
-        .filter((id): id is number => id !== null),
-    )
-    console.log(`  User has ${completedChallengeIds.size} completed challenges.`)
+      completedChallengeIds = new Set<number>(
+        completedProgressions.docs
+          .map((p: { challenge?: number | { id: number } | null }) => {
+            if (typeof p.challenge === 'number') return p.challenge
+            if (typeof p.challenge === 'object' && p.challenge !== null) return p.challenge.id
+            return null
+          })
+          .filter((id): id is number => id !== null),
+      )
+      console.log(`  User has ${completedChallengeIds.size} completed challenges (fetched).`)
+    }
 
-    // 2. Fetch a sample of potential challenges (adjust limit as needed)
-    const potentialChallengesResult = await currentPayload.find({
+    // 2. Fetch uncompleted challenges directly
+    console.log(`  Fetching up to 50 random challenges not in the completed list...`)
+    const uncompletedChallengesResult = await currentPayload.find({
       collection: 'challenges',
-      limit: 100, // Fetch a sample
-      depth: 2, // Depth 2 should include concepts, difficulty etc. needed for display
+      where: {
+        id: { not_in: Array.from(completedChallengeIds) }, // Ensure completedChallengeIds is defined and populated
+      },
+      limit: 50, // Reduced limit as the query is more targeted
+      depth: 2,  // Keep depth for necessary challenge details
       pagination: false,
-      // Optionally add where clause to exclude specific types if needed
-    })
+    });
 
-    // 3. Filter out completed challenges
-    const uncompletedChallenges = (potentialChallengesResult.docs as Challenge[]).filter(
-      (challenge) => !completedChallengeIds.has(challenge.id),
-    )
+    const uncompletedChallenges = uncompletedChallengesResult.docs as Challenge[];
+    // The subsequent filtering step `(challenge) => !completedChallengeIds.has(challenge.id)` is no longer needed
+    // as the database query handles this.
 
     console.log(
-      `  Found ${potentialChallengesResult.docs.length} potential, ${uncompletedChallenges.length} uncompleted challenges in the sample.`,
+      `  Found ${uncompletedChallenges.length} uncompleted challenges from the database.`,
     )
 
     // 4. Select randomly if any remain
@@ -227,6 +239,23 @@ export async function getRecommendedChallenges(
       ]),
     )
 
+    // +++ Fetch Challenges Early +++
+    const potentialChallengesResult = await payload.find({
+      collection: 'challenges',
+      limit: 500, // Or a suitable limit
+      depth: 3,   // Keep depth 3 for skillImpacts
+      pagination: false,
+    });
+    const allPotentialChallenges = potentialChallengesResult.docs as Challenge[];
+
+    // +++ Create Pre-Filtered Pool of Uncompleted Challenges +++
+    const uncompletedPotentialChallenges = allPotentialChallenges.filter(
+      (challenge) => !completedChallengeIds.has(challenge.id),
+    );
+    console.log(
+      `  Initial fetch: ${allPotentialChallenges.length} potential, ${uncompletedPotentialChallenges.length} uncompleted challenges.`,
+    );
+
     // --- Boucle principale : Recommandations par Skill Active ---
     for (const [skillId, skillInfo] of activeSkillMap.entries()) {
       console.log(`\nProcessing recommendations for Skill: ${skillInfo.name} (ID: ${skillId})`)
@@ -280,24 +309,9 @@ export async function getRecommendedChallenges(
       console.log(`  Target ImplConcepts for ${skillInfo.name}:`, targetImplConceptIdsForThisSkill)
       console.log(`  Target BaseConcepts for ${skillInfo.name}:`, targetConceptIdsForThisSkill)
 
-      // 5. Récupérer les challenges potentiels
-      const potentialChallengesResult = await payload.find({
-        collection: 'challenges',
-        limit: 500, // Limite pour la performance
-        depth: 3, // Nécessaire pour les impacts
-        pagination: false,
-      })
+      // 5. Récupérer les challenges potentiels - REMOVED, using pre-fetched list
 
-      // --- Filter out already completed challenges ---
-      const uncompletedPotentialChallenges = (potentialChallengesResult.docs as Challenge[]).filter(
-        (challenge) => !completedChallengeIds.has(challenge.id),
-      )
-      console.log(
-        `  Filtered potential challenges: ${potentialChallengesResult.docs.length} -> ${uncompletedPotentialChallenges.length} (uncompleted)`,
-      )
-      // --- End completed filter ---
-
-      // 6. Filtrer les challenges pertinents pour CETTE skill et concepts cibles (using uncompleted list)
+      // 6. Filtrer les challenges pertinents pour CETTE skill et concepts cibles (using uncompletedPotentialChallenges list)
       const relevantChallenges = uncompletedPotentialChallenges.filter((challenge) => {
         if (!challenge.skillImpacts) return false
 
@@ -331,7 +345,7 @@ export async function getRecommendedChallenges(
       })
 
       console.log(
-        `  Found ${relevantChallenges.length} relevant (and uncompleted) challenges for skill ${skillInfo.name}.`,
+        `  Found ${relevantChallenges.length} relevant (and uncompleted) challenges for skill ${skillInfo.name} from the pre-filtered list.`,
       )
 
       // 7. Ordonner (simpliste) et sélectionner
@@ -352,7 +366,7 @@ export async function getRecommendedChallenges(
       console.log(
         `No relevant skill-based recommendations found for user ${userId} across active skills. Attempting fallback...`,
       )
-      const randomChallenge = await getRandomUncompletedChallenge(userId, payload)
+      const randomChallenge = await getRandomUncompletedChallenge(userId, payload, completedChallengeIds)
       if (randomChallenge) {
         recommendations['general_recommendation'] = [randomChallenge]
         console.log(`Fallback successful: Added random challenge ${randomChallenge.id}`)
