@@ -3,7 +3,7 @@ import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/page
 import { notFound } from 'next/navigation'
 import { getMDXComponents } from '@/mdx-components'
 
-export default async function Page({ params }: { params: { slug: string } }) {
+export default async function Page({ params }: { params: { slug?: string[] } }) {
   const page = source.getPage(params.slug)
   if (!page) notFound()
   const MDX = page.data.body
@@ -22,7 +22,7 @@ export async function generateStaticParams() {
   return source.generateParams()
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params }: { params: { slug?: string[] } }) {
   const page = source.getPage(params.slug)
   if (!page) notFound()
   return {
