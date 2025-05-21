@@ -1,0 +1,29 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Using Markdown files in @issues for GitHub bodies
+
+This rule describes the recommended method for writing bodies of issues, comments, or pull requests for GitHub using a dedicated Markdown file in the `docs/issues/` directory (referred to as `@issues`).
+
+-   **Prepare the content**
+    -   For each new issue, **create a new Markdown file** in [`docs/issues/`](mdc:docs/issues/) (e.g., `feature-x.md`, `bug-123.md`).
+    -   Write the desired content (Markdown, Mermaid diagrams, etc.) directly in this file.
+    -   **The content must always be written in English.**
+    -   You may work on several issues in parallel by using a separate file for each.
+
+-   **Use the `gh` command**
+    -   Once your Markdown file is ready, use the appropriate `gh` command with the `--body-file` option pointing to this file.
+    -   Examples:
+        ```bash
+        gh issue comment <id_issue> --body-file docs/issues/feature-x.md
+        gh issue create --body-file docs/issues/bug-123.md
+        gh pr create --body-file docs/issues/feature-x.md
+        ```
+
+-   **Advantages**
+    -   Allows you to use Cursor's editing tools to write complex or long messages.
+    -   Makes it easy to include formatted code, lists, or diagrams.
+    -   **No collision**: You can work on multiple issues at the same time without overwriting content, since each issue has its own file.
+
