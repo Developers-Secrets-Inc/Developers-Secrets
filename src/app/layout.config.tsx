@@ -1,7 +1,5 @@
-import { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
- 
+import { BaseLayoutProps } from 'fumadocs-ui/layouts/shared'
+
 export const baseOptions: BaseLayoutProps = {
-  nav: {
-    title: 'My App',
-  },
-};
+  nav: { title: 'Developers Secrets' }, // TODO: Replace with actual app title
+}

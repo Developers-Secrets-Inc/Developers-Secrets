@@ -1,4 +1,5 @@
 import { withPayload } from '@payloadcms/next/withPayload'
+import { createMDX } from 'fumadocs-mdx/next'
 
 const nextConfig = {
   // Your Next.js config here
@@ -29,4 +30,6 @@ const nextConfig = {
   },
 }
 
-export default withPayload(nextConfig)
+const withMDX = createMDX()
+
+export default withMDX(withPayload(nextConfig))

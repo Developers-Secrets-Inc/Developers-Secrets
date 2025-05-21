@@ -6,6 +6,9 @@ export const Articles: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'articleStatus', 'difficultyLevel', 'updatedAt'],
   },
+  access: {
+    read: () => true,
+  },
   // Enable version system with drafts
   versions: {
     drafts: true,

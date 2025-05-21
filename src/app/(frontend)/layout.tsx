@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import '@/styles/globals.css'
 import { Providers } from '@/components/providers'
 import { Metadata } from 'next'
+import { RootProvider } from 'fumadocs-ui/provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -15,9 +16,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>{/* Pyodide script will be loaded on the client side */}</head>
-      <body className={inter.className}>
+      <body
+        className={inter.className}
+        style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+      >
         <Providers>
-          <main>{children}</main>
+          <RootProvider>
+            <main>{children}</main>
+          </RootProvider>
         </Providers>
 
         {/* Load Pyodide script */}
