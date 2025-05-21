@@ -63,3 +63,5 @@ node_modules/
 tasks.json
 tasks/ 
 *storybook.log
+
+storybook-static

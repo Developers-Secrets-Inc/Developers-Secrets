@@ -1,4 +1,5 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "headers": [
     {
       "source": "/sitemap.xml",
@@ -38,5 +39,18 @@
       "path": "/api/payload-jobs/run?queue=weekly-end",
       "schedule": "58 23 * * 0"
     }
-  ]
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "stories.developerssecrets.com"
+        }
+      ],
+      "destination": "/storybook-static/$1"
+    }
+  ],
+  "buildCommand": "next build && storybook build"
 }
