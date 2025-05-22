@@ -68,7 +68,7 @@ export const CurrentExperienceCard = ({ currentStep }: CurrentExperienceCardProp
   }, [selectedLanguages])
 
   return (
-    <Card className={cn('relative w-md', 'relative')}>
+    <Card className={cn('relative w-md')}>
       {/* X Icon and Tooltip positioned absolutely */}
       <TooltipProvider>
         <Tooltip>

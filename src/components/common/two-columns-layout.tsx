@@ -1,4 +1,5 @@
 import React from 'react'
+import { cn } from '@/lib/utils'
 
 interface TwoColumnLayoutProps {
   children: React.ReactNode
@@ -10,22 +11,22 @@ interface ColumnProps {
   className?: string // Allow custom styling for each column
 }
 
-// Le composant principal qui gère le conteneur flex
+// Main component that manages the flex container
 const TwoColumnLayout = ({ children, className }: TwoColumnLayoutProps) => {
-  return <div className={`flex flex-col md:flex-row gap-4 ${className}`}>{children}</div>
+  return <div className={cn('flex flex-col md:flex-row gap-4', className)}>{children}</div>
 }
 
-// Le sous-composant pour la colonne de gauche
+// Sub-component for the left column
 const LeftColumn = ({ children, className }: ColumnProps) => {
-  return <div className={`flex-1 ${className}`}>{children}</div>
+  return <div className={cn('flex-1', className)}>{children}</div>
 }
 
-// Le sous-composant pour la colonne de droite
+// Sub-component for the right column
 const RightColumn = ({ children, className }: ColumnProps) => {
-  return <div className={`flex-1 ${className}`}>{children}</div>
+  return <div className={cn('flex-1', className)}>{children}</div>
 }
 
-// Attacher les sous-composants au composant principal
+// Attach sub-components to the main component
 TwoColumnLayout.Left = LeftColumn
 TwoColumnLayout.Right = RightColumn
 

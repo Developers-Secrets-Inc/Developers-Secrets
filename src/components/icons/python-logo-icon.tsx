@@ -1,17 +1,17 @@
 import React from 'react'
 
 interface PythonLogoIconProps extends React.SVGProps<SVGSVGElement> {
-  size?: number // Add size prop
+  size?: number
 }
 
-export const PythonLogoIcon: React.FC<PythonLogoIconProps> = (props) => {
+export const PythonLogoIcon: React.FC<PythonLogoIconProps> = ({ size = 16, ...props }) => {
   // Utilisation de viewBox pour la scalabilité, et on peut passer width/height/className via props
   return (
     <svg
       version="1.0"
       id="svg2"
-      width={props.size || '1em'} // Use size or default to 1em
-      height={props.size || '1em'} // Use size or default to 1em
+      width={size}
+      height={size}
       viewBox="0 0 115.0878 126.25135" // Ajuster viewBox aux dimensions originales approx. (92pt x 101pt)
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
