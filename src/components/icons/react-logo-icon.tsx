@@ -1,14 +1,16 @@
 import React from 'react'
 
-interface ReactLogoIconProps extends React.SVGProps<SVGSVGElement> {}
+interface ReactLogoIconProps extends React.SVGProps<SVGSVGElement> {
+  size?: number
+}
 
-export const ReactLogoIcon: React.FC<ReactLogoIconProps> = (props) => {
+export const ReactLogoIcon: React.FC<ReactLogoIconProps> = ({ size = 16, ...props }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="-11.5 -10.23174 23 20.46348"
-      width="1em"
-      height="1em"
+      width={size}
+      height={size}
       {...props}
     >
       <circle cx="0" cy="0" r="2.05" fill="#61dafb" />
