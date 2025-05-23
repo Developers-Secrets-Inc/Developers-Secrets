@@ -124,3 +124,4 @@ const UserOnboarding: CollectionConfig = {
 }
 
 export default UserOnboarding
+ 

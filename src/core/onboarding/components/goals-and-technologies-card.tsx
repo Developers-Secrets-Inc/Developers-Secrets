@@ -1,17 +1,15 @@
 'use client'
 
-import { useId, useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { LinkButton } from '@/components/common/link-button'
-import { XIcon } from 'lucide-react'
-import { Tooltip, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
-import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
-import { cn } from '@/lib/utils'
+import { useId } from 'react'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import MultipleSelector, { Option } from '@/components/ui/multiselect'
-import React from 'react'
+import { cn } from '@/lib/utils'
+import { LinkButton } from '@/components/common/link-button'
 import { useGoals } from '../hooks/use-goals'
 import { useTechnologyToLearn } from '../hooks/use-technology-to-learn'
+import OnboardingCardHeader from './onboarding-card-header'
+import { Target } from 'lucide-react'
 
 interface GoalsAndTechnologiesCardProps {
   currentStep: number
@@ -28,7 +26,6 @@ const goalOptions: Option[] = [
 ]
 
 const pythonTechnology: Option = { value: 'python', label: 'Python' }
-
 const technologyOptions: Option[] = [pythonTechnology]
 
 export const GoalsAndTechnologiesCard = ({
@@ -83,27 +80,15 @@ export const GoalsAndTechnologiesCard = ({
   )
 
   return (
-    <Card className={cn('relative w-md', 'relative')}>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <LinkButton
-              href="/home"
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 size-6 text-muted-foreground"
-            >
-              <XIcon className="size-4" />
-            </LinkButton>
-          </TooltipTrigger>
-          <TooltipContentCustom sideOffset={5}>Skip Onboarding</TooltipContentCustom>
-        </Tooltip>
-      </TooltipProvider>
-
-      <CardHeader className="flex justify-between items-center">
-        <CardTitle>Your Goals and Interests</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+    <Card className={cn('relative w-md pt-0 overflow-hidden')}>
+      <div className="px-6 pt-6">
+        <OnboardingCardHeader
+          icon={<Target className="size-5 text-primary" />}
+          title="Your Goals and Interests"
+          description="Select your learning goals and the technologies you want to learn."
+        />
+      </div>
+      <CardContent className="flex flex-col gap-4 px-6 pb-0 pt-4">
         <div className="*:not-first:mt-2">
           <Label htmlFor={goalsSelectId}>What are your learning goals?</Label>
           <MultipleSelector
@@ -139,15 +124,19 @@ export const GoalsAndTechnologiesCard = ({
         </div>
         {isLoading && <div className="text-xs text-muted-foreground">Loading...</div>}
       </CardContent>
-      <CardFooter className="flex gap-2">
+      <CardFooter className="flex w-full gap-2 border-t pt-4 px-4">
         {currentStep > 1 && (
-          <LinkButton variant="outline" href={`/auth/onboarding?step=${currentStep - 1}`}>
+          <LinkButton
+            variant="outline"
+            href={`/auth/onboarding?step=${currentStep - 1}`}
+            className="flex-1"
+          >
             Previous Step
           </LinkButton>
         )}
         <LinkButton
           href="/home"
-          className="ml-auto"
+          className="flex-1"
           disabled={
             isLoading ||
             isUpdating ||
