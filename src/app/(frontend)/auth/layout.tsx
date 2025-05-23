@@ -9,7 +9,6 @@ const AuthLayoutGridPattern = () => {
       <DotPattern
         width={20}
         height={20}
-        glow={true}
         cx={1}
         cy={1}
         cr={1}

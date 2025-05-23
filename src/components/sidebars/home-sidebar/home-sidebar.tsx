@@ -22,8 +22,6 @@ import { SearchForm } from './search-form'
 import { HomeSidebarFooter } from './sidebar-footer'
 import { SocialGroup } from './social-group'
 import { getActiveEffects, getPassiveXPBoostMultiplier } from '@/core/gamification/effects'
-import { ActiveEffect } from '@/payload-types'
-import { useSidebar } from '@/components/ui/sidebar'
 import { HiddenOnIconSidebar } from '@/components/common/hidden-on-icon-sidebar'
 
 const ComingSoonTooltip = () => {
@@ -74,9 +72,6 @@ const LearningGroup = () => {
   )
 }
 
-const IsVisible = ({ isVisible, children }: { isVisible: boolean; children: React.ReactNode }) => {
-  return isVisible ? children : null
-}
 
 // Skeleton for loading state
 

@@ -185,6 +185,8 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
           description: result.error || 'An unexpected error occurred. Please try again.',
         })
         setErrorToastOpen(true)
+      } else {
+        router.push('/auth/onboarding?step=1')
       }
     } catch (error: any) {
       if (!error.digest?.startsWith('NEXT_REDIRECT')) {

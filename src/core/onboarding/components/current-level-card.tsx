@@ -1,23 +1,15 @@
-import { useId, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { Code, Brush, XIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { Tooltip, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { Tooltip, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
+import { XIcon } from 'lucide-react'
+import Link from 'next/link'
 import { CodingLevelSelect } from './coding-level-select'
-import { TimeCodingSelect } from './time-coding-select'
-import { CodingLevel, TimeCoding } from '@/core/onboarding/types'
+import { CurrentLevelIcon } from './current-level-icon'
 import { SkipOnboardingButton } from './skip-onboarding-button'
+import { TimeCodingSelect } from './time-coding-select'
 
 interface CurrentLevelCardProps {
   currentStep: number
@@ -74,8 +66,8 @@ export const CurrentLevelCard = ({ currentStep, userId }: CurrentLevelCardProps)
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
             <div className="w-52 h-52 rounded-full border border-gray-200/40 opacity-5" />
           </div>
-          <div className="w-[40px] h-[40px] rounded-[8px] border flex items-center justify-center shrink-0 bg-background relative z-10">
-            <Code className="size-5 text-primary" />
+          <div className="w-[40px] h-[40px] rounded-[8px] border flex items-center justify-center shrink-0 bg-background relative z-10 shadow-lg">
+            <CurrentLevelIcon userId={userId} />
           </div>
         </div>
         <CardTitle>Select your current level and experience</CardTitle>
