@@ -18,11 +18,9 @@ import { InfoIcon } from 'lucide-react'
 
 function InfoNote({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-md border px-4 py-3">
-      <p className="text-sm">
-        <InfoIcon className="me-3 -mt-0.5 inline-flex text-blue-500" size={16} aria-hidden="true" />
-        {children}
-      </p>
+    <div className="rounded-md border px-4 py-3 flex items-start gap-2">
+      <InfoIcon className="mt-1 text-blue-500" size={16} aria-hidden="true" />
+      <span className="text-sm">{children}</span>
     </div>
   )
 }
