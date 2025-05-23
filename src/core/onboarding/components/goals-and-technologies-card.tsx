@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useId, useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { LinkButton } from '@/components/common/link-button'
 import { XIcon } from 'lucide-react'
@@ -10,9 +10,12 @@ import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
 import MultipleSelector, { Option } from '@/components/ui/multiselect'
 import React from 'react'
+import { useGoals } from '../hooks/use-goals'
+import { useTechnologyToLearn } from '../hooks/use-technology-to-learn'
 
 interface GoalsAndTechnologiesCardProps {
   currentStep: number
+  userId: string
 }
 
 const goalOptions: Option[] = [
@@ -24,29 +27,60 @@ const goalOptions: Option[] = [
   { value: 'hobby', label: 'Just for fun/hobby' },
 ]
 
-const technologyToLearnOptions: Option[] = [
-  { value: 'python-advanced', label: 'Advanced Python Concepts' },
-  { value: 'react-native', label: 'React Native' },
-  { value: 'django', label: 'Django' },
-  { value: 'flask', label: 'Flask' },
-  { value: 'nextjs', label: 'Next.js' },
-  { value: 'nodejs', label: 'Node.js' },
-  { value: 'typescript', label: 'TypeScript' },
-  { value: 'sql', label: 'SQL' },
-  { value: 'mongodb', label: 'MongoDB' },
-  { value: 'docker', label: 'Docker' },
-  { value: 'kubernetes', label: 'Kubernetes' },
-  { value: 'aws', label: 'AWS' },
-  { value: 'azure', label: 'Azure' },
-  { value: 'google-cloud', label: 'Google Cloud' },
-]
+const pythonTechnology: Option = { value: 'python', label: 'Python' }
 
-export const GoalsAndTechnologiesCard = ({ currentStep }: GoalsAndTechnologiesCardProps) => {
+const technologyOptions: Option[] = [pythonTechnology]
+
+export const GoalsAndTechnologiesCard = ({
+  currentStep,
+  userId,
+}: GoalsAndTechnologiesCardProps) => {
   const goalsSelectId = useId()
-  const technologiesSelectId = useId()
+  const technologySelectId = useId()
 
-  const [selectedGoals, setSelectedGoals] = useState<Option[]>([])
-  const [selectedTechnologies, setSelectedTechnologies] = useState<Option[]>([])
+  // Synchronise les goals avec le backend
+  const {
+    selectedGoals,
+    setGoals,
+    isLoading: isLoadingGoals,
+    isUpdating: isUpdatingGoals,
+    isError: isErrorGoals,
+    error: errorGoals,
+  } = useGoals(userId)
+
+  // Synchronise la technologie à apprendre avec le backend
+  const {
+    selectedTechnology,
+    setTechnology,
+    isLoading: isLoadingTech,
+    isUpdating: isUpdatingTech,
+    isError: isErrorTech,
+    error: errorTech,
+  } = useTechnologyToLearn(userId)
+
+  // Handler pour la sélection de la technologie (Python)
+  const handleTechnologyChange = (techs: Option[]) => {
+    // On ne permet qu'une seule sélection (Python ou rien)
+    if (techs.length > 0 && techs[0].value === 'python') {
+      setTechnology()
+    } else {
+      // Si désélectionné, on envoie un tableau vide côté backend
+      setTechnology([])
+    }
+  }
+
+  const isLoading = isLoadingGoals || isLoadingTech
+  const isUpdating = isUpdatingGoals || isUpdatingTech
+  const isError = isErrorGoals || isErrorTech
+  const error = errorGoals || errorTech
+
+  // Correction du typage pour Option[]
+  const safeSelectedGoals = (selectedGoals ?? []).filter(
+    (g): g is Option => !!g && typeof g.value === 'string' && typeof g.label === 'string',
+  )
+  const safeSelectedTechnology = (selectedTechnology ?? []).filter(
+    (t): t is Option => !!t && typeof t.value === 'string' && typeof t.label === 'string',
+  )
 
   return (
     <Card className={cn('relative w-md', 'relative')}>
@@ -80,26 +114,30 @@ export const GoalsAndTechnologiesCard = ({ currentStep }: GoalsAndTechnologiesCa
             placeholder="Select your goals"
             hideClearAllButton
             emptyIndicator={<p className="text-center text-sm">No results found</p>}
-            onChange={setSelectedGoals}
-            value={selectedGoals}
+            onChange={setGoals}
+            value={safeSelectedGoals}
+            disabled={isLoadingGoals || isUpdatingGoals}
           />
+          {isErrorGoals && (
+            <div className="text-destructive text-xs mt-1">{String(errorGoals)}</div>
+          )}
         </div>
-
         <div className="*:not-first:mt-2">
-          <Label htmlFor={technologiesSelectId}>What technologies do you want to learn?</Label>
+          <Label htmlFor={technologySelectId}>Technology you want to learn</Label>
           <MultipleSelector
-            commandProps={{
-              label: 'Select technologies',
-            }}
-            defaultOptions={technologyToLearnOptions}
-            placeholder="Select technologies you want to learn"
+            commandProps={{ label: 'Select technology' }}
+            defaultOptions={technologyOptions}
+            placeholder="Select technology"
             hideClearAllButton
-            hidePlaceholderWhenSelected
             emptyIndicator={<p className="text-center text-sm">No results found</p>}
-            value={selectedTechnologies}
-            onChange={setSelectedTechnologies}
+            onChange={handleTechnologyChange}
+            value={safeSelectedTechnology}
+            disabled={isLoadingTech || isUpdatingTech}
+            maxSelected={1}
           />
+          {isErrorTech && <div className="text-destructive text-xs mt-1">{String(errorTech)}</div>}
         </div>
+        {isLoading && <div className="text-xs text-muted-foreground">Loading...</div>}
       </CardContent>
       <CardFooter className="flex gap-2">
         {currentStep > 1 && (
@@ -107,7 +145,16 @@ export const GoalsAndTechnologiesCard = ({ currentStep }: GoalsAndTechnologiesCa
             Previous Step
           </LinkButton>
         )}
-        <LinkButton href="/home" className="ml-auto">
+        <LinkButton
+          href="/home"
+          className="ml-auto"
+          disabled={
+            isLoading ||
+            isUpdating ||
+            safeSelectedGoals.length === 0 ||
+            safeSelectedTechnology.length === 0
+          }
+        >
           Finish
         </LinkButton>
       </CardFooter>
