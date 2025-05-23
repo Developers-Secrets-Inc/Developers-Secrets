@@ -8,64 +8,47 @@ import MultipleSelector, { Option } from '@/components/ui/multiselect'
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
 import { XIcon } from 'lucide-react'
-import { useId, useMemo, useState } from 'react'
+import { useId, useMemo } from 'react'
+import { usePythonConcepts } from '../hooks/use-python-concepts'
+import { useTechnology } from '../hooks/use-technology'
+import { useTechnologyConcept } from '../hooks/use-technology-concept'
 
 interface CurrentExperienceCardProps {
   currentStep: number
+  userId: string
 }
 
-const programmingLanguageOptions: Option[] = [
-  { value: 'python', label: 'Python' },
-  { value: 'react', label: 'React' },
-]
+const programmingLanguageOptions: Option[] = [{ value: 'python', label: 'Python' }]
 
-const allConcepts: Record<string, Option[]> = {
-  python: [
-    { value: 'oop', label: 'Object-Oriented Programming' },
-    { value: 'functional', label: 'Functional Programming' },
-    { value: 'data-structures', label: 'Data Structures' },
-    { value: 'algorithms', label: 'Algorithms' },
-    { value: 'web-development', label: 'Web Development (Django, Flask)' },
-    { value: 'data-science', label: 'Data Science (Pandas, NumPy)' },
-    { value: 'machine-learning', label: 'Machine Learning (Scikit-learn, TensorFlow)' },
-    { value: 'networking', label: 'Networking' },
-    { value: 'databases', label: 'Databases' },
-    { value: 'testing', label: 'Testing (pytest, unittest)' },
-  ],
-  react: [
-    { value: 'jsx', label: 'JSX' },
-    { value: 'components', label: 'Components (Functional & Class)' },
-    { value: 'hooks', label: 'Hooks' },
-    {
-      value: 'state-management',
-      label: 'State Management (useState, useReducer, Context API, Redux, Zustand)',
-    },
-    { value: 'routing', label: 'Routing (React Router, Next.js App Router)' },
-    { value: 'api-fetching', label: 'API Data Fetching' },
-    { value: 'styling', label: 'Styling (CSS Modules, Styled Components, Tailwind CSS)' },
-    { value: 'testing', label: 'Testing (Jest, React Testing Library)' },
-    { value: 'typescript', label: 'TypeScript with React' },
-  ],
-}
-
-export const CurrentExperienceCard = ({ currentStep }: CurrentExperienceCardProps) => {
+export const CurrentExperienceCard = ({ currentStep, userId }: CurrentExperienceCardProps) => {
   const programmingLanguagesSelectId = useId()
   const conceptsSelectId = useId()
 
-  const [selectedLanguages, setSelectedLanguages] = useState<Option[]>([])
-  const [selectedConcepts, setSelectedConcepts] = useState<Option[]>([])
+  // Use hooks for data and mutations
+  const {
+    selectedTechnologies,
+    isLoading: isLoadingTechnologies,
+    setTechnologies,
+    isUpdating: isUpdatingTechnologies,
+  } = useTechnology(userId)
+  const {
+    selectedConcepts,
+    isLoading: isLoadingConcepts,
+    setConcepts,
+    isUpdating: isUpdatingConcepts,
+  } = useTechnologyConcept(userId)
 
-  // Filter and combine concepts based on selected languages using useMemo
-  const filteredConcepts = useMemo(() => {
-    return selectedLanguages
-      .flatMap((lang) => allConcepts[lang.value] || [])
-      .reduce((acc, concept) => {
-        if (!acc.find((c) => c.value === concept.value)) {
-          acc.push(concept)
-        }
-        return acc
-      }, [] as Option[])
-  }, [selectedLanguages])
+  // Fetch Python concepts
+  const { data: pythonConcepts, isLoading: isLoadingPythonConcepts } = usePythonConcepts()
+
+  // Format concepts for the selector
+  const conceptOptions: Option[] = useMemo(() => {
+    if (!pythonConcepts) return []
+    return pythonConcepts.map((c) => ({ value: String(c.id), label: c.name }))
+  }, [pythonConcepts])
+
+  // Only show concepts if Python is selected
+  const showConcepts = selectedTechnologies.some((lang) => lang.value === 'python')
 
   return (
     <Card className={cn('relative w-md')}>
@@ -86,39 +69,42 @@ export const CurrentExperienceCard = ({ currentStep }: CurrentExperienceCardProp
         </Tooltip>
       </TooltipProvider>
 
-      <CardHeader className="flex justify-between items-center">
+      <CardHeader className="flex items-center gap-4">
+        <div className="w-[40px] h-[40px] rounded-[8px] border flex items-center justify-center">
+          {/* You can use a Python icon here if you have one */}
+          <span className="font-bold text-lg">Py</span>
+        </div>
         <CardTitle>Current Experience</CardTitle>
-        {/* Removed X icon from here */}
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="*:not-first:mt-2">
-          <Label htmlFor={programmingLanguagesSelectId}>Programming Languages</Label>
+          <Label htmlFor={programmingLanguagesSelectId}>Programming Language</Label>
           <MultipleSelector
-            commandProps={{
-              label: 'Select programming languages',
-            }}
+            commandProps={{ label: 'Select programming language' }}
             defaultOptions={programmingLanguageOptions}
-            placeholder="Select programming languages you are familiar with"
+            placeholder="Select programming language"
             hideClearAllButton
-            emptyIndicator={<p className="text-center text-sm">No results found</p>}
-            onChange={setSelectedLanguages}
-            value={selectedLanguages}
+            value={selectedTechnologies}
+            onChange={setTechnologies}
+            disabled={isLoadingTechnologies || isUpdatingTechnologies}
           />
         </div>
-
         <div className="*:not-first:mt-2">
           <Label htmlFor={conceptsSelectId}>Concepts</Label>
           <MultipleSelector
-            commandProps={{
-              label: 'Select concepts',
-            }}
-            options={filteredConcepts}
-            placeholder="Select concepts you are familiar with"
+            commandProps={{ label: 'Select concepts' }}
+            options={showConcepts ? conceptOptions : []}
+            placeholder={
+              isLoadingConcepts || isLoadingPythonConcepts
+                ? 'Loading concepts...'
+                : 'Select concepts you are familiar with'
+            }
             hideClearAllButton
             hidePlaceholderWhenSelected
             emptyIndicator={<p className="text-center text-sm">No results found</p>}
             value={selectedConcepts}
-            onChange={setSelectedConcepts}
+            onChange={setConcepts}
+            disabled={isLoadingConcepts || isUpdatingConcepts || !showConcepts}
           />
         </div>
       </CardContent>

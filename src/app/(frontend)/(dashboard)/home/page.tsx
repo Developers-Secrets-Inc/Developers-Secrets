@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 
 import { CurrentCourseCard } from '@/components/cards/current-course-card'
-import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { getUser } from '@/core/user'
@@ -12,7 +11,7 @@ import {
 } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/user-profile'
 import { DivisionLeaderboardCard } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/challenges-leaderboard'
 import { RecommendedChallenge } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/recommended-challenge'
-
+import { DashboardHeader } from '@/components/sidebars/home-sidebar/dashboard-header'
 export default async function Home() {
   const user = await getUser()
 
@@ -24,7 +23,7 @@ export default async function Home() {
     <SidebarProvider>
       <HomeSidebar />
       <SidebarInset>
-        <HomeHeader />
+        <DashboardHeader />
         <div className="flex-1 w-full h-[calc(100vh-4rem)] overflow-auto max-w-7xl px-4 mx-auto">
           <div className="flex gap-6 p-6 h-full">
             <div className="flex-1 flex flex-col gap-6 w-[800px]">

@@ -112,6 +112,7 @@ export interface Config {
     coursePartSubmissions: CoursePartSubmission;
     userChapterProgress: UserChapterProgress;
     coursePartFeedback: CoursePartFeedback;
+    'user-onboarding': UserOnboarding;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -164,6 +165,7 @@ export interface Config {
     coursePartSubmissions: CoursePartSubmissionsSelect<false> | CoursePartSubmissionsSelect<true>;
     userChapterProgress: UserChapterProgressSelect<false> | UserChapterProgressSelect<true>;
     coursePartFeedback: CoursePartFeedbackSelect<false> | CoursePartFeedbackSelect<true>;
+    'user-onboarding': UserOnboardingSelect<false> | UserOnboardingSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -2177,6 +2179,47 @@ export interface CoursePartFeedback {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-onboarding".
+ */
+export interface UserOnboarding {
+  id: number;
+  userId: string;
+  skipped: boolean;
+  codingLevel?: ('beginner' | 'intermediate' | 'advanced') | null;
+  timeCoding?: ('less-than-6-months' | 'less-than-1-year' | '1-2-years' | '3-5-years' | '5-plus-years') | null;
+  selectedLanguages?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  selectedConcepts?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  selectedGoals?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  selectedTechnologiesToLearn?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-jobs".
  */
 export interface PayloadJob {
@@ -2453,6 +2496,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'coursePartFeedback';
         value: number | CoursePartFeedback;
+      } | null)
+    | ({
+        relationTo: 'user-onboarding';
+        value: number | UserOnboarding;
       } | null)
     | ({
         relationTo: 'payload-jobs';
@@ -3538,6 +3585,46 @@ export interface CoursePartFeedbackSelect<T extends boolean = true> {
   details?: T;
   status?: T;
   userId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-onboarding_select".
+ */
+export interface UserOnboardingSelect<T extends boolean = true> {
+  userId?: T;
+  skipped?: T;
+  codingLevel?: T;
+  timeCoding?: T;
+  selectedLanguages?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
+  selectedConcepts?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
+  selectedGoals?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
+  selectedTechnologiesToLearn?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

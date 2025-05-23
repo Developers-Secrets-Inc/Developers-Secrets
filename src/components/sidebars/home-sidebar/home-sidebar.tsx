@@ -23,6 +23,8 @@ import { HomeSidebarFooter } from './sidebar-footer'
 import { SocialGroup } from './social-group'
 import { getActiveEffects, getPassiveXPBoostMultiplier } from '@/core/gamification/effects'
 import { ActiveEffect } from '@/payload-types'
+import { useSidebar } from '@/components/ui/sidebar'
+import { HiddenOnIconSidebar } from '@/components/common/hidden-on-icon-sidebar'
 
 const ComingSoonTooltip = () => {
   return (
@@ -72,6 +74,10 @@ const LearningGroup = () => {
   )
 }
 
+const IsVisible = ({ isVisible, children }: { isVisible: boolean; children: React.ReactNode }) => {
+  return isVisible ? children : null
+}
+
 // Skeleton for loading state
 
 export const HomeSidebar = async () => {
@@ -94,10 +100,16 @@ export const HomeSidebar = async () => {
 
   return (
     <TooltipPrimitive.Provider>
-      <Sidebar style={{ '--sidebar-width': '270px' } as React.CSSProperties} className="z-50">
+      <Sidebar
+        collapsible="icon"
+        style={{ '--sidebar-width': '270px' } as React.CSSProperties}
+        className="z-50"
+      >
         <SidebarHeader>
           <LearningPathSwitcher />
-          <SearchForm />
+          <HiddenOnIconSidebar>
+            <SearchForm />
+          </HiddenOnIconSidebar>
         </SidebarHeader>
         <SidebarContent className="gap-0">
           <LearningGroup />
