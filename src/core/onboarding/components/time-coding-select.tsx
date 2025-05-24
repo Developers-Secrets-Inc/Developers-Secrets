@@ -59,7 +59,6 @@ export const TimeCodingSelect = ({ userId }: TimeCodingSelectProps) => {
       <SelectContent className="[&_*[role=option]>span>svg]:text-muted-foreground/80 [&_*[role=option]>span]:flex [&_*[role=option]>span]:gap-2 [&_*[role=option]>span>svg]:shrink-0">
         {availableTimeCoding.map((time) => (
           <SelectItem key={time} value={time}>
-            <Brush size={16} aria-hidden="true" />
             <span className="truncate">
               {time.replace(/-/g, ' ').charAt(0).toUpperCase() + time.replace(/-/g, ' ').slice(1)}
             </span>

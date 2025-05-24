@@ -18,7 +18,6 @@ import { InventorySheet } from '@/core/gamification/inventory/components/sheets/
 
 // Import necessary types
 import { MarketplaceItem, UserItem } from '@/payload-types'
-import { ConditionalSidebar } from '@/components/common/conditional-sidebar'
 
 interface SocialGroupClientLayerProps {
   userId: string | null // Passed from parent Server Component
@@ -76,7 +75,6 @@ export function SocialGroupClientLayer({
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          <ConditionalSidebar onFalse={<></>} onTrue={
             <SidebarMenuItem key="guild">
               <SidebarMenuButton asChild>
               <Link href="#" className="relative text-muted-foreground pr-8">
@@ -91,7 +89,6 @@ export function SocialGroupClientLayer({
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          } />
 
           {/* Profile Link */}
           <SidebarMenuItem key="profile">

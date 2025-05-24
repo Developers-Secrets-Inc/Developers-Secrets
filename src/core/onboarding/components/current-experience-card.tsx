@@ -14,6 +14,8 @@ import { useTechnology } from '../hooks/use-technology'
 import { useTechnologyConcept } from '../hooks/use-technology-concept'
 import OnboardingCardHeader from './onboarding-card-header'
 import { Code } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface CurrentExperienceCardProps {
   currentStep: number
@@ -64,14 +66,29 @@ export const CurrentExperienceCard = ({ currentStep, userId }: CurrentExperience
 
   return (
     <Card className={cn('relative w-md pt-0 overflow-hidden')}>
-      <div className="px-6 pt-6">
-        <OnboardingCardHeader
-          icon={<Code className="size-5 text-primary" />}
-          title="Your Current Experience"
-          description="Tell us about your programming experience and concepts you know."
-        />
-      </div>
-      <CardContent className="flex flex-col gap-4 px-6 pb-0 pt-4">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link href="/home" passHref>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-4 right-4 size-6 text-muted-foreground"
+              >
+                <XIcon className="size-4" />
+              </Button>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContentCustom sideOffset={5}>Skip Onboarding</TooltipContentCustom>
+        </Tooltip>
+      </TooltipProvider>
+
+      <OnboardingCardHeader
+        icon={<Code className="size-5 text-primary" />}
+        title="Your Current Experience"
+        description="Tell us about your programming experience and concepts you know."
+      />
+      <CardContent className="flex flex-col gap-4 pt-2 pb-0">
         <div className="*:not-first:mt-2">
           <Label htmlFor={programmingLanguagesSelectId}>Programming Language</Label>
           <MultipleSelector
@@ -104,20 +121,51 @@ export const CurrentExperienceCard = ({ currentStep, userId }: CurrentExperience
         </div>
         {isLoading && <div className="text-xs text-muted-foreground">Loading...</div>}
       </CardContent>
-      <CardFooter className="flex w-full gap-2 border-t pt-4 px-4">
-        {currentStep > 1 && (
-          <LinkButton
-            variant="outline"
-            href={`/auth/onboarding?step=${currentStep - 1}`}
-            className="flex-1"
-          >
-            Previous Step
-          </LinkButton>
-        )}
-        <LinkButton href={`/auth/onboarding?step=${currentStep + 1}`} className="flex-1">
-          Next Step
-        </LinkButton>
-      </CardFooter>
+
+      <OnboardingCard.Footer>
+        <ConditionalRender condition={currentStep > 1}>
+          <OnboardingCard.PreviousPartButton currentStep={currentStep} />
+        </ConditionalRender>
+        <OnboardingCard.NextPartButton currentStep={currentStep} />
+      </OnboardingCard.Footer>
     </Card>
   )
+}
+
+
+
+const ConditionalRender = ({
+  condition,
+  children,
+}: {
+  condition: boolean
+  children: React.ReactNode
+}) => {
+  return condition ? children : null
+}
+
+const OnboardingCardFooter = ({ children }: { children: React.ReactNode }) => {
+  return <CardFooter className="flex w-full gap-2 border-t pt-4 px-4">{children}</CardFooter>
+}
+
+export const NextPartButton = ({ currentStep }: { currentStep: number }) => {
+  return (
+    <LinkButton href={`/auth/onboarding?step=${currentStep + 1}`} className="flex-1">
+      Next Step
+    </LinkButton>
+  )
+}
+
+export const PreviousPartButton = ({ currentStep }: { currentStep: number }) => {
+  return (
+    <LinkButton href={`/auth/onboarding?step=${currentStep - 1}`} className="flex-1" variant="outline">
+      Previous Step
+    </LinkButton>
+  )
+}
+
+const OnboardingCard = {
+  Footer: OnboardingCardFooter,
+  PreviousPartButton: PreviousPartButton,
+  NextPartButton: NextPartButton,
 }

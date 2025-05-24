@@ -76,7 +76,6 @@ const OnboardingSelectItems = ({
     <>
       {availableCodingLevels.map((level) => (
         <SelectItem key={level} value={level}>
-          <Code size={16} aria-hidden="true" />
           <span className="truncate">{level.charAt(0).toUpperCase() + level.slice(1)}</span>
         </SelectItem>
       ))}

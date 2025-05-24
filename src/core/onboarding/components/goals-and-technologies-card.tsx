@@ -9,7 +9,12 @@ import { LinkButton } from '@/components/common/link-button'
 import { useGoals } from '../hooks/use-goals'
 import { useTechnologyToLearn } from '../hooks/use-technology-to-learn'
 import OnboardingCardHeader from './onboarding-card-header'
-import { Target } from 'lucide-react'
+import { Target, XIcon } from 'lucide-react'
+import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
+import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+
 
 interface GoalsAndTechnologiesCardProps {
   currentStep: number
@@ -60,10 +65,7 @@ export const GoalsAndTechnologiesCard = ({
     // On ne permet qu'une seule sélection (Python ou rien)
     if (techs.length > 0 && techs[0].value === 'python') {
       setTechnology()
-    } else {
-      // Si désélectionné, on envoie un tableau vide côté backend
-      setTechnology([])
-    }
+    } // sinon, on ne fait rien
   }
 
   const isLoading = isLoadingGoals || isLoadingTech
@@ -81,14 +83,29 @@ export const GoalsAndTechnologiesCard = ({
 
   return (
     <Card className={cn('relative w-md pt-0 overflow-hidden')}>
-      <div className="px-6 pt-6">
-        <OnboardingCardHeader
-          icon={<Target className="size-5 text-primary" />}
-          title="Your Goals and Interests"
-          description="Select your learning goals and the technologies you want to learn."
-        />
-      </div>
-      <CardContent className="flex flex-col gap-4 px-6 pb-0 pt-4">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link href="/home" passHref>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-4 right-4 size-6 text-muted-foreground"
+              >
+                <XIcon className="size-4" />
+              </Button>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContentCustom sideOffset={5}>Skip Onboarding</TooltipContentCustom>
+        </Tooltip>
+      </TooltipProvider>
+
+      <OnboardingCardHeader
+        icon={<Target className="size-5 text-primary" />}
+        title="Your Goals and Interests"
+        description="Select your learning goals and the technologies you want to learn."
+      />
+      <CardContent className="flex flex-col gap-4 pt-2 pb-0">
         <div className="*:not-first:mt-2">
           <Label htmlFor={goalsSelectId}>What are your learning goals?</Label>
           <MultipleSelector

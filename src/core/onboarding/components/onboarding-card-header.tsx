@@ -1,5 +1,5 @@
 import React from 'react'
-
+import { CardHeader, CardTitle } from '@/components/ui/card'
 interface OnboardingCardHeaderProps {
   icon: React.ReactNode
   title: string
@@ -12,7 +12,7 @@ export default function OnboardingCardHeader({
   description,
 }: OnboardingCardHeaderProps) {
   return (
-    <div className="relative flex flex-col items-start overflow-hidden">
+    <CardHeader className="relative flex flex-col items-start">
       <div className="relative mb-4">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
           <div className="w-22 h-22 rounded-full border border-gray-200/40 opacity-20" />
@@ -30,8 +30,10 @@ export default function OnboardingCardHeader({
           {icon}
         </div>
       </div>
-      <h2 className="text-lg font-semibold leading-tight">{title}</h2>
-      <p className="text-muted-foreground text-sm mt-1">{description}</p>
-    </div>
+      <CardTitle>{title}</CardTitle>
+      <p className="text-muted-foreground text-sm mt-1">
+        {description}
+      </p>
+    </CardHeader>
   )
 }
