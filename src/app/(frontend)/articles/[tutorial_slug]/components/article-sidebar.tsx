@@ -97,7 +97,9 @@ export const ArticleSidebar = ({
                     <SidebarMenuButton
                       asChild
                       isActive={item.url === currentArticleSlug}
-                      className="text-muted-foreground"
+                      className={`text-muted-foreground ${
+                        item.url === currentArticleSlug ? 'text-primary' : ''
+                      }`}
                     >
                       <Link
                         href={`/articles/${tutorial.slug}/${articleType !== 'tutorial' ? `${articleType}/` : ''}${item.url}`}
