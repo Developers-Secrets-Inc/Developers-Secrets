@@ -61,6 +61,24 @@ export const getTutorialArticles = async (tutorialSlug: string): Promise<Article
   return cached(tutorialSlug)
 }
 
+export const getTutorialExamplesArticles = async (tutorialSlug: string): Promise<Article[]> => {
+  const cached = unstable_cache(
+    async (tutorialSlug: string) => {
+      const tutorial = await getTutorialBySlug(tutorialSlug)
+
+      const examples = tutorial.exampleSections?.flatMap((section) => (section.articles as Article[])) ?? []
+
+      return examples
+    },
+    ['tutorial-examples-articles', tutorialSlug],
+    {
+      tags: [`tutorial-examples-articles-${tutorialSlug}`],
+      revalidate: EVERY_DAY,
+    },
+  )
+  return cached(tutorialSlug)
+}
+
 export const getTutorialReferenceArticles = async (tutorialSlug: string): Promise<Article[]> => {
   const cached = unstable_cache(
     async (tutorialSlug: string) => {
@@ -102,6 +120,38 @@ export const getArticleBySlug = async (tutorialSlug: string, articleSlug: string
     return cached(tutorialSlug, articleSlug)
 }
 
+export const getFirstTutorialArticle = async (tutorialSlug: string): Promise<Article> => {
+  const articles = await getTutorialArticles(tutorialSlug)
+  return articles[0]
+}
+
+export const getExampleArticleBySlug = async (tutorialSlug: string, exampleSlug: string): Promise<Article> => {
+  const cached = unstable_cache(
+    async (tutorialSlug: string, exampleSlug: string) => {
+      const articles = await getTutorialExamplesArticles(tutorialSlug)
+      const article = articles.find((article) => article.slug === exampleSlug)
+
+      if (!article) {
+        throw new Error('Article not found')
+      }
+
+      return article
+    },
+    ['example-article-by-slug', tutorialSlug, exampleSlug],
+    {
+      tags: [`example-article-by-slug-${tutorialSlug}-${exampleSlug}`],
+      revalidate: EVERY_DAY,
+    },
+  )
+  return cached(tutorialSlug, exampleSlug)
+}
+
+export const getFirstExampleArticle = async (tutorialSlug: string): Promise<Article> => {
+  const articles = await getTutorialArticles(tutorialSlug)
+  return articles[0]
+}
+
+
 export const getReferenceArticleBySlug = async (tutorialSlug: string, referenceSlug: string): Promise<Article> => {
   const cached = unstable_cache(
     async (tutorialSlug: string, referenceSlug: string) => {
@@ -123,6 +173,10 @@ export const getReferenceArticleBySlug = async (tutorialSlug: string, referenceS
   return cached(tutorialSlug, referenceSlug)
 }
 
+export const getFirstTutorialReferenceArticle = async (tutorialSlug: string): Promise<Article> => {
+  const referenceArticles = await getTutorialReferenceArticles(tutorialSlug)
+  return referenceArticles[0]
+}
 
 export const getTutorialsArticles = async (): Promise<
   {

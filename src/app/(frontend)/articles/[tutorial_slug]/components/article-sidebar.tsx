@@ -80,7 +80,6 @@ export const ArticleSidebar = ({
       <SidebarHeader>
         <ArticlesSwitcher
           tutorialSlug={tutorial.slug}
-          currentArticleType={articleType}
           tutorialTitle={tutorial.title}
         />
         <SearchForm />

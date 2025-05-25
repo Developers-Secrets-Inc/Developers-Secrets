@@ -47,7 +47,8 @@ export async function generateMetadata(
       `Learn about ${payloadArticle.title} in our ${payloadTutorial.title} tutorial.`
 
     // Prepare keywords
-    const keywords = payloadArticle.seo?.keywords?.map((k) => k.keyword).filter(Boolean) || []
+    const keywords =
+      payloadArticle.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
 
     return {
       title: fullTitle,
