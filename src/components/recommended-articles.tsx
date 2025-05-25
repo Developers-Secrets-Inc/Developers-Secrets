@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react'
-import { Article } from '@/types/article'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Sparkles, BookOpen, LogIn } from 'lucide-react'
+import { Article as PayloadArticle } from '@/payload-types'
 
 interface RecommendedArticlesProps {
-  popularArticles?: Article[]
-  personalizedArticles?: Article[]
+  popularArticles?: PayloadArticle[]
+  personalizedArticles?: PayloadArticle[]
   tutorialSlug: string
 }
 
@@ -31,7 +31,7 @@ const LoginPrompt = React.memo(() => (
 LoginPrompt.displayName = 'LoginPrompt'
 
 interface ArticleCardProps {
-  article: Article
+  article: PayloadArticle
   tutorialSlug: string
   isPopular?: boolean
 }

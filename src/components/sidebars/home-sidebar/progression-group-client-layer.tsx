@@ -17,7 +17,7 @@ import { AchievementsDialog } from '@/core/gamification/achievements/components/
 import { QuestsDialog } from '@/core/gamification/quests/components/quests-dialog' // Assuming path
 import { DivisionLeaderboard } from '@/components/leaderboards/division/division-leaderboard'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
-
+import { useSidebar } from '@/components/ui/sidebar'
 // Import necessary types (adjust paths/definitions as needed)
 import { DisplayAchievement } from '@/core/gamification/achievements/components/achievements-dialog' // Assuming type export
 import { RankedLeaderboardUser } from '@/core/gamification/divisions' // Assuming type export
@@ -51,6 +51,8 @@ export function ProgressionGroupClientLayer({
   const [questsOpen, setQuestsOpen] = useState(false)
   const [achievementsOpen, setAchievementsOpen] = useState(false)
   const [divisionLeaderboardOpen, setDivisionLeaderboardOpen] = useState(false)
+
+  const { open } = useSidebar()
 
   return (
     <>
@@ -105,12 +107,14 @@ export function ProgressionGroupClientLayer({
               <Link href="#" className="relative text-muted-foreground pr-8">
                 <BarChart className="size-4" />
                 <span>Leaderboard</span>
-                <TooltipPrimitive.Root>
-                  <TooltipPrimitive.Trigger asChild>
-                    <Lock className="size-4 absolute right-2" />
+                  {open && (
+                  <TooltipPrimitive.Root>
+                    <TooltipPrimitive.Trigger asChild>
+                      <Lock className="size-4 absolute right-2" />
                   </TooltipPrimitive.Trigger>
                   <TooltipContentCustom>Coming soon</TooltipContentCustom>
                 </TooltipPrimitive.Root>
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

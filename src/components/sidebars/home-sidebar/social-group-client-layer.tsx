@@ -15,6 +15,7 @@ import {
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import { MarketplaceDialog } from '@/core/gamification/marketplace/components/dialogs/marketplace-dialog'
 import { InventorySheet } from '@/core/gamification/inventory/components/sheets/inventory-sheet'
+import { useSidebar } from '@/components/ui/sidebar'
 
 // Import necessary types
 import { MarketplaceItem, UserItem } from '@/payload-types'
@@ -41,6 +42,8 @@ export function SocialGroupClientLayer({
 
   // Combine errors for simplicity, or handle separately if needed
   const commonError = initialMarketplaceError || initialInventoryError
+
+  const { open } = useSidebar()
 
   return (
     <>
@@ -80,12 +83,14 @@ export function SocialGroupClientLayer({
               <Link href="#" className="relative text-muted-foreground pr-8">
                 <Users className="size-4" />
                 <span>Guild</span>
-                <TooltipPrimitive.Root>
-                  <TooltipPrimitive.Trigger asChild>
-                    <Lock className="size-4 absolute right-2" />
+                {open && (
+                  <TooltipPrimitive.Root>
+                    <TooltipPrimitive.Trigger asChild>
+                      <Lock className="size-4 absolute right-2" />
                   </TooltipPrimitive.Trigger>
                   <TooltipContentCustom>Coming soon</TooltipContentCustom>
                 </TooltipPrimitive.Root>
+                )}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

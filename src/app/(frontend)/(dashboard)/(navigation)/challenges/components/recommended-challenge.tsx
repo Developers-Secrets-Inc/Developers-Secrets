@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import * as Tooltip from '@radix-ui/react-tooltip'
+import { Skeleton } from '@/components/ui/skeleton'
 
 // Define a type for the recommended challenge that includes bonusExperience for dummy data
 type RecommendedChallengeType = Challenge & { bonusExperience?: number }
@@ -173,6 +174,7 @@ export const RecommendedChallenge = () => {
                 : 'N/A'}
             </Badge>
           </div>
+          
           <div className="flex items-center gap-4 flex-wrap">
             <CardDescription className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
@@ -285,6 +287,19 @@ export const RecommendedChallenge = () => {
     </Card>
   )
 }
+
+
+export const RecommendedChallengeSkeleton = () => {
+  return (
+    <Card className="w-full py-0 border-dashed border-border">
+      <div className="flex flex-col items-center justify-center p-6 text-center">
+        <Skeleton className="h-12 w-12 text-muted-foreground mb-4 animate-spin" />
+        <Skeleton className="h-12 w-12 text-muted-foreground mb-4 animate-spin" />
+      </div>
+    </Card>
+  )
+}
+
 
 /*  
 

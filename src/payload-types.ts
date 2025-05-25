@@ -399,6 +399,10 @@ export interface Tag {
 export interface Tutorial {
   id: number;
   title: string;
+  /**
+   * URL-friendly identifier for this tutorial. Will be used in the URL.
+   */
+  slug: string;
   description?: string | null;
   /**
    * Tutorial visibility (independent from the draft/publish system)
@@ -2651,6 +2655,7 @@ export interface ArticlesSelect<T extends boolean = true> {
  */
 export interface TutorialsSelect<T extends boolean = true> {
   title?: T;
+  slug?: T;
   description?: T;
   tutorialStatus?: T;
   sections?:
