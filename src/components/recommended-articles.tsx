@@ -36,6 +36,36 @@ interface ArticleCardProps {
   isPopular?: boolean
 }
 
+// Fonction utilitaire pour retirer les balises Markdown du texte
+function stripMarkdown(markdown: string): string {
+  return (
+    markdown
+      // Enlève les titres ##, ###, etc.
+      .replace(/^#{1,6}\s+/gm, '')
+      // Enlève les listes
+      .replace(/^\s*[-*+]\s+/gm, '')
+      // Enlève les liens [texte](url)
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+      // Enlève les images ![alt](url)
+      .replace(/!\[[^\]]*\]\([^\)]+\)/g, '')
+      // Enlève le gras **texte** ou __texte__
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      // Enlève l'italique *texte* ou _texte_
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/_([^_]+)_/g, '$1')
+      // Enlève le code `inline`
+      .replace(/`([^`]+)`/g, '$1')
+      // Enlève les blocs de code ```...```
+      .replace(/```[\s\S]*?```/g, '')
+      // Enlève les blockquotes
+      .replace(/^>\s?/gm, '')
+      // Enlève les retours multiples
+      .replace(/\n{2,}/g, '\n')
+      .trim()
+  )
+}
+
 const ArticleCard = React.memo(function ArticleCard({
   article,
   tutorialSlug,
@@ -48,8 +78,8 @@ const ArticleCard = React.memo(function ArticleCard({
           {isPopular ? <Sparkles className="size-5" /> : <BookOpen className="size-5" />}
         </div>
         <div className="flex flex-col gap-[4px]">
-          <div className="flex items-center justify-between gap-[6px]">
-            <p className="text-sm font-medium line-clamp-1">{article.title}</p>
+          <div className="flex items-center justify-between gap-[6px] min-w-0">
+            <p className="text-sm font-medium truncate max-w-[140px]">{article.title}</p>
             {isPopular ? (
               <div className="rounded-[6px] py-[2px] px-[6px] border bg-primary/10">
                 <p className="text-xs font-medium">Popular</p>
@@ -61,7 +91,7 @@ const ArticleCard = React.memo(function ArticleCard({
             )}
           </div>
           <p className="text-sm text-muted-foreground line-clamp-2">
-            {article.subtitle || article.content.substring(0, 100)}
+            {article.subtitle || stripMarkdown(article.content).substring(0, 100)}
           </p>
         </div>
       </div>

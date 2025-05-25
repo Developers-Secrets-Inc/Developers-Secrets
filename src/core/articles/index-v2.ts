@@ -147,7 +147,7 @@ export const getExampleArticleBySlug = async (tutorialSlug: string, exampleSlug:
 }
 
 export const getFirstExampleArticle = async (tutorialSlug: string): Promise<Article> => {
-  const articles = await getTutorialArticles(tutorialSlug)
+  const articles = await getTutorialExamplesArticles(tutorialSlug)
   return articles[0]
 }
 

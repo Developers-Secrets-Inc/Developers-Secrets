@@ -78,10 +78,7 @@ export const ArticleSidebar = ({
   return (
     <Sidebar style={{ '--sidebar-width': '270px' } as React.CSSProperties} className="z-50">
       <SidebarHeader>
-        <ArticlesSwitcher
-          tutorialSlug={tutorial.slug}
-          tutorialTitle={tutorial.title}
-        />
+        <ArticlesSwitcher tutorialSlug={tutorial.slug} tutorialTitle={tutorial.title} />
         <SearchForm />
       </SidebarHeader>
       <SidebarContent className="gap-4">
@@ -97,13 +94,14 @@ export const ArticleSidebar = ({
                     <SidebarMenuButton
                       asChild
                       isActive={item.url === currentArticleSlug}
-                      className={`text-muted-foreground ${
+                      className={`text-muted-foreground truncate ${
                         item.url === currentArticleSlug ? 'text-primary' : ''
                       }`}
                     >
                       <Link
                         href={`/articles/${tutorial.slug}/${articleType !== 'tutorial' ? `${articleType}/` : ''}${item.url}`}
                         prefetch={true}
+                        
                       >
                         {item.title}
                       </Link>
