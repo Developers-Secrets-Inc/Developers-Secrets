@@ -12,6 +12,7 @@ import type {
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import type { Payload } from 'payload' // Import Payload type
+import { unstable_cache } from 'next/cache'
 
 // --- Constantes de Configuration (Ajuster si nécessaire) ---
 const RECENT_ACTIVITY_THRESHOLD_DAYS = 30 // Considérer une skill active si travaillée dans les X derniers jours
@@ -29,18 +30,12 @@ interface RecommendationsBySkill {
   [skillName: string]: Challenge[] // Utiliser le nom de la skill comme clé pour l'affichage
 }
 
-/**
- * Helper function to retrieve a random challenge not yet completed by the user.
- * @param userId - The ID of the user (Supabase).
- * @param payload - Payload client instance.
- * @returns A random uncompleted Challenge object or null if none found.
- */
-export async function getRandomUncompletedChallenge(
+const _getRandomUncompletedChallenge = async (
   userId: string,
-  payload?: Payload, // Make payload optional, get it if not provided
-): Promise<Challenge | null> {
+  payload?: Payload,
+): Promise<Challenge | null> => {
   console.log(`Attempting to find a random uncompleted challenge for user ${userId}...`)
-  const currentPayload = payload || (await getPayload({ config })) // Get payload if not passed
+  const currentPayload = payload || (await getPayload({ config }))
 
   try {
     // 1. Get IDs of completed challenges
@@ -103,6 +98,15 @@ export async function getRandomUncompletedChallenge(
     return null
   }
 }
+
+export const getRandomUncompletedChallenge = unstable_cache(
+  _getRandomUncompletedChallenge,
+  ['random-uncompleted-challenge'],
+  {
+    revalidate: 600, // 10 minutes
+    tags: ['challenges'],
+  },
+)
 
 /**
  * Récupère les challenges recommandés pour un utilisateur, groupés par skill active.

@@ -1,82 +1,27 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from '@/components/ui/card'
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PlayCircle, BookOpen, ListChecks } from 'lucide-react'
-import { Separator } from '@/components/ui/separator'
-
-// Import necessary items for progress display
-import { getUser } from '@/core/user' // Assuming User type is implicitly handled or we use any
-import { getCourseProgressSummary, CourseProgressSummary } from '@/core/courses' // Adjusted path
-import type { User } from '@/payload-types' // Import User type
+import { useCurrentCourse } from '@/core/courses/hooks/use-current-course'
 
 /**
  * Affiche une carte permettant à l'utilisateur de reprendre le dernier cours visité,
  * en se basant sur les informations stockées dans localStorage, et affiche sa progression.
  */
 export const CurrentCourseCard = () => {
-  const [lastUrl, setLastUrl] = useState<string | null>(null)
-  const [lastCourseSlug, setLastCourseSlug] = useState<string | null>(null)
-  const [isLoadingInitial, setIsLoadingInitial] = useState(true)
-  const [user, setUser] = useState<User | null>(null) // Explicitly type user or use a relevant User type
+  const {
+    lastCourseSlug,
+    lastUrl,
+    courseProgress,
+    isLoading,
+    error: errorProgress,
+  } = useCurrentCourse()
 
-  const [courseProgress, setCourseProgress] = useState<CourseProgressSummary | null>(null)
-  const [isLoadingProgress, setIsLoadingProgress] = useState(false)
-  const [errorProgress, setErrorProgress] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoadingInitial(true) // Start initial loading
-      try {
-        const fetchedUser = await getUser()
-        setUser(fetchedUser as User | null) // Added type assertion for safety
-
-        const storedUrl = localStorage.getItem('lastVisitedPartUrl')
-        const storedSlug = localStorage.getItem('lastVisitedCourseSlug')
-        setLastUrl(storedUrl)
-        setLastCourseSlug(storedSlug)
-      } catch (error) {
-        console.error('Error fetching initial data or user:', error)
-        // Optionally set an error state for user fetching if needed
-      } finally {
-        setIsLoadingInitial(false) // Finish initial loading
-      }
-    }
-    fetchData()
-  }, [])
-
-  useEffect(() => {
-    if (user && user.id && lastCourseSlug && !courseProgress && !isLoadingProgress) {
-      const fetchProgress = async () => {
-        setIsLoadingProgress(true)
-        setErrorProgress(null)
-        try {
-          // Ensure user.id is passed as string if your backend expects it (common for Supabase IDs)
-          const summary = await getCourseProgressSummary(String(user.id), lastCourseSlug)
-          setCourseProgress(summary)
-        } catch (error) {
-          console.error('Error fetching course progress:', error)
-          setErrorProgress('Could not load course progress.')
-        } finally {
-          setIsLoadingProgress(false)
-        }
-      }
-      fetchProgress()
-    }
-    // Dependencies: user, lastCourseSlug. Avoid re-fetching if progress already loaded or is loading.
-  }, [user, lastCourseSlug, courseProgress, isLoadingProgress])
-
-  if (isLoadingInitial) {
+  if (isLoading) {
     return (
       <Card className="w-full">
         <CardContent className="flex flex-col md:flex-row gap-4 items-stretch">
@@ -107,7 +52,7 @@ export const CurrentCourseCard = () => {
   if (!lastUrl) {
     return (
       <Card className="w-full border-dashed border-border">
-        <CardHeader>
+        <CardContent>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-primary" />
             Start Learning
@@ -116,7 +61,7 @@ export const CurrentCourseCard = () => {
             You haven&apos;t started any courses yet. Explore our catalog to find your next
             challenge!
           </CardDescription>
-        </CardHeader>
+        </CardContent>
       </Card>
     )
   }
@@ -150,16 +95,16 @@ export const CurrentCourseCard = () => {
         </div>
         {/* Colonne droite */}
         <div className="flex flex-col justify-center items-center min-w-[140px] md:border-l md:pl-6">
-          {isLoadingProgress && (
+          {isLoading && (
             <div className="flex items-center gap-2 w-full">
               <ListChecks className="h-4 w-4 animate-pulse" />
               <span>Loading progress...</span>
             </div>
           )}
-          {errorProgress && !isLoadingProgress && (
-            <div className="text-red-500 w-full text-sm">Error: {errorProgress}</div>
+          {errorProgress && !isLoading && (
+            <div className="text-red-500 w-full text-sm">Error: {String(errorProgress)}</div>
           )}
-          {!isLoadingProgress && !errorProgress && courseProgress && (
+          {!isLoading && !errorProgress && courseProgress && (
             <>
               <div className="flex flex-col items-center mb-2">
                 <span className="text-xs text-muted-foreground">Chapters</span>
@@ -175,7 +120,7 @@ export const CurrentCourseCard = () => {
               </div>
             </>
           )}
-          {!isLoadingProgress && !errorProgress && !courseProgress && lastUrl && (
+          {!isLoading && !errorProgress && !courseProgress && lastUrl && (
             <div className="flex items-center gap-2 w-full">
               <ListChecks className="h-4 w-4" />
               <span>View progress after continuing.</span>
