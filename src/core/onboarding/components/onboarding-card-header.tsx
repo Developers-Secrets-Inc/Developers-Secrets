@@ -12,7 +12,7 @@ export default function OnboardingCardHeader({
   description,
 }: OnboardingCardHeaderProps) {
   return (
-    <CardHeader className="relative flex flex-col items-start">
+    <CardHeader className="relative flex flex-col items-start pt-4">
       <div className="relative mb-4">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
           <div className="w-22 h-22 rounded-full border border-gray-200/40 opacity-20" />

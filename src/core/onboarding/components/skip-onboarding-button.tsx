@@ -15,24 +15,32 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { updateOnboarding } from '@/core/onboarding'
+// Removed unused import: import { getUser } from '@/core/user'
 
-export const SkipOnboardingButton = () => {
+export const SkipOnboardingDialog = ({
+  children,
+  userId,
+}: {
+  children: React.ReactNode
+  userId: string
+}) => {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const handleConfirm = async () => {
     setLoading(true)
     // Optionally, you could call a server action to mark onboarding as skipped here
+    await updateOnboarding(userId, {
+      skipped: true,
+    })
     router.push('/home')
   }
 
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="outline" className="w-full cursor-pointer">
-          Skip Onboarding
-        </Button>
-      </AlertDialogTrigger>
+      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
+      {/* AlertDialogContent from shadcn/ui includes a close button by default */}
       <AlertDialogContent>
         <div className="flex flex-col gap-2 max-sm:items-center sm:flex-row sm:gap-4">
           <div
@@ -49,20 +57,28 @@ export const SkipOnboardingButton = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
         </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-          <AlertDialogAction asChild>
-            <Button onClick={handleConfirm} disabled={loading} className="w-full">
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="loader border-2 border-t-transparent border-primary rounded-full w-4 h-4 animate-spin" />
-                  Skipping...
-                </span>
-              ) : (
-                'Confirm'
-              )}
-            </Button>
-          </AlertDialogAction>
+        {/* Added pt-2 for top padding and adjusted flex for 50/50 buttons */}
+        <AlertDialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-2">
+          {/* Wrap buttons in a flex container to make them 50/50 */}
+          <div className="flex gap-2 w-full">
+            {/* Use asChild on AlertDialogCancel to wrap the Button */}
+            <AlertDialogCancel asChild disabled={loading}>
+              <Button variant="outline" className="w-full">Cancel</Button>
+            </AlertDialogCancel>
+            {/* Use asChild on AlertDialogAction to wrap the Button */}
+            <AlertDialogAction asChild>
+              <Button onClick={handleConfirm} disabled={loading} className="w-full">
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="loader border-2 border-t-transparent border-primary rounded-full w-4 h-4 animate-spin" />
+                    Skipping...
+                  </span>
+                ) : (
+                  'Confirm'
+                )}
+              </Button>
+            </AlertDialogAction>
+          </div>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

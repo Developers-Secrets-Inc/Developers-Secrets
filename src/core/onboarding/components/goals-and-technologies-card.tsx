@@ -15,7 +15,6 @@ import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/toolti
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
-
 interface GoalsAndTechnologiesCardProps {
   currentStep: number
   userId: string
@@ -83,23 +82,6 @@ export const GoalsAndTechnologiesCard = ({
 
   return (
     <Card className={cn('relative w-md pt-0 overflow-hidden')}>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link href="/home" passHref>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 right-4 size-6 text-muted-foreground"
-              >
-                <XIcon className="size-4" />
-              </Button>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContentCustom sideOffset={5}>Skip Onboarding</TooltipContentCustom>
-        </Tooltip>
-      </TooltipProvider>
-
       <OnboardingCardHeader
         icon={<Target className="size-5 text-primary" />}
         title="Your Goals and Interests"

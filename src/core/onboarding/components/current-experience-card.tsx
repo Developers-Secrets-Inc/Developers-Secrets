@@ -66,23 +66,6 @@ export const CurrentExperienceCard = ({ currentStep, userId }: CurrentExperience
 
   return (
     <Card className={cn('relative w-md pt-0 overflow-hidden')}>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link href="/home" passHref>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 right-4 size-6 text-muted-foreground"
-              >
-                <XIcon className="size-4" />
-              </Button>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContentCustom sideOffset={5}>Skip Onboarding</TooltipContentCustom>
-        </Tooltip>
-      </TooltipProvider>
-
       <OnboardingCardHeader
         icon={<Code className="size-5 text-primary" />}
         title="Your Current Experience"
@@ -90,15 +73,16 @@ export const CurrentExperienceCard = ({ currentStep, userId }: CurrentExperience
       />
       <CardContent className="flex flex-col gap-4 pt-2 pb-0">
         <div className="*:not-first:mt-2">
-          <Label htmlFor={programmingLanguagesSelectId}>Programming Language</Label>
+          <Label htmlFor={programmingLanguagesSelectId}>Technologies</Label>
           <MultipleSelector
-            commandProps={{ label: 'Select programming language' }}
+            commandProps={{ label: 'Select technologies' }}
             defaultOptions={programmingLanguageOptions}
-            placeholder="Select programming language"
+            placeholder="Select technologies"
             hideClearAllButton
             value={safeSelectedTechnologies}
             onChange={setTechnologies}
             disabled={isLoadingTechnologies || isUpdatingTechnologies}
+            emptyIndicator={<p className="text-center text-sm">No results found</p>}
           />
         </div>
         <div className="*:not-first:mt-2">
@@ -119,7 +103,6 @@ export const CurrentExperienceCard = ({ currentStep, userId }: CurrentExperience
             disabled={isLoadingConcepts || isUpdatingConcepts || !showConcepts}
           />
         </div>
-        {isLoading && <div className="text-xs text-muted-foreground">Loading...</div>}
       </CardContent>
 
       <OnboardingCard.Footer>
@@ -131,8 +114,6 @@ export const CurrentExperienceCard = ({ currentStep, userId }: CurrentExperience
     </Card>
   )
 }
-
-
 
 const ConditionalRender = ({
   condition,
@@ -158,7 +139,11 @@ export const NextPartButton = ({ currentStep }: { currentStep: number }) => {
 
 export const PreviousPartButton = ({ currentStep }: { currentStep: number }) => {
   return (
-    <LinkButton href={`/auth/onboarding?step=${currentStep - 1}`} className="flex-1" variant="outline">
+    <LinkButton
+      href={`/auth/onboarding?step=${currentStep - 1}`}
+      className="flex-1"
+      variant="outline"
+    >
       Previous Step
     </LinkButton>
   )

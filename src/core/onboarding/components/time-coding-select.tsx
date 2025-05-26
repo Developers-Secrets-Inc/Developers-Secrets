@@ -25,16 +25,25 @@ type TimeCodingSelectProps = {
   userId: string
 }
 
+function formatTimeCodingLabel(time: TimeCoding) {
+  if (time === '1-2-years' || time === '3-5-years') {
+    return time.replace('-years', ' years')
+  }
+  if (time === '5-plus-years') {
+    return '5 years plus'
+  }
+  // Pour les autres, remplacer tous les tirets par des espaces et capitaliser la première lettre
+  const label = time.replace(/-/g, ' ')
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
 export const TimeCodingSelect = ({ userId }: TimeCodingSelectProps) => {
   const timeCodingSelectId = useId()
   const { timeCoding, setTimeCoding, isLoading } = useTimeCoding(userId)
 
-  // Find the label for the selected timeCoding
-  const selectedTimeCodingLabel =
-    availableTimeCoding
-      .find((t) => t === timeCoding)
-      ?.replace(/-/g, ' ')
-      .replace(/^./, (c) => c.toUpperCase()) || 'Select time since coding'
+  const selectedTimeCodingLabel = timeCoding
+    ? formatTimeCodingLabel(timeCoding)
+    : 'Select time since coding'
 
   return (
     <Select
@@ -59,9 +68,7 @@ export const TimeCodingSelect = ({ userId }: TimeCodingSelectProps) => {
       <SelectContent className="[&_*[role=option]>span>svg]:text-muted-foreground/80 [&_*[role=option]>span]:flex [&_*[role=option]>span]:gap-2 [&_*[role=option]>span>svg]:shrink-0">
         {availableTimeCoding.map((time) => (
           <SelectItem key={time} value={time}>
-            <span className="truncate">
-              {time.replace(/-/g, ' ').charAt(0).toUpperCase() + time.replace(/-/g, ' ').slice(1)}
-            </span>
+            <span className="truncate">{formatTimeCodingLabel(time)}</span>
           </SelectItem>
         ))}
       </SelectContent>

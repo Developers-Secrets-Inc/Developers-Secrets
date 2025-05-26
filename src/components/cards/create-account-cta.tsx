@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export const CreateAccountCTA = () => {
   return (
@@ -47,7 +48,9 @@ export const CreateAccountCTA = () => {
           </p>
         </div>
       </div>
-      <Button className="w-full cursor-pointer">Create Account</Button>
+      <Button className="w-full cursor-pointer" asChild>
+        <Link href="/auth/signup">Create Account</Link>
+      </Button>
     </div>
   )
 }

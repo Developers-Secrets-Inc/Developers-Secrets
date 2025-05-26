@@ -78,10 +78,21 @@ export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
         // Handle structured errors
         const error = result.error as string | { code: string; message: string } | undefined
         if (typeof error === 'object' && error?.code) {
-          if (error.code === 'EMAIL_IN_USE' || error.code === 'INVALID_CREDENTIALS') {
-            setErrors({ email: error.message })
-          } else if (error.code === 'INVALID_PASSWORD') {
-            setErrors({ password: error.message })
+          if (
+            error.code === 'EMAIL_IN_USE' ||
+            error.code === 'INVALID_CREDENTIALS' ||
+            error.code === 'INVALID_PASSWORD'
+          ) {
+            setToastProps({
+              type: 'error',
+              title: 'Login failed',
+              description:
+                error.message ||
+                (error.code === 'EMAIL_IN_USE'
+                  ? 'This email is already in use.'
+                  : 'Incorrect email or password.'),
+            })
+            setToastOpen(true)
           } else if (error.code === 'TOO_MANY_ATTEMPTS') {
             setToastProps({
               type: 'error',

@@ -20,7 +20,7 @@ const AuthLayoutGridPattern = () => {
 
 const AuthLayoutLeftPart = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="w-full md:w-1/2 pr-4 md:pr-8 border-r border-border py-8 md:py-12 flex flex-col items-center justify-center">
+    <div className="w-full md:w-1/2 pr-4 md:pr-8 border-r border-border py-8 md:py-12 flex flex-col items-center justify-center relative">
       {children}
     </div>
   )

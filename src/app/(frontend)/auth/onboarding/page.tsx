@@ -7,6 +7,9 @@ import { notFound } from 'next/navigation'
 import { getUser } from '@/core/user'
 import { setCodingLevel, setTimeCoding } from '@/core/onboarding'
 
+// Import necessary components for the button and tooltip
+import { DialogTooltip } from './components/dialog-tooltip'
+
 export default async function OnboardingPage({
   searchParams,
 }: {
@@ -20,15 +23,15 @@ export default async function OnboardingPage({
   }
 
   const stepCards: Record<number, React.ReactNode> = {
-    1: (
-      <CurrentLevelCard
-        currentStep={Number(step)}
-        userId={user.id}
-      />
-    ),
+    1: <CurrentLevelCard currentStep={Number(step)} userId={user.id} />,
     2: <CurrentExperienceCard currentStep={Number(step)} userId={user.id} />,
     3: <GoalsAndTechnologiesCard currentStep={Number(step)} userId={user.id} />,
   }
 
-  return stepCards[step] || notFound()
+  return (
+    <>
+      <DialogTooltip userId={user.id} />
+      {stepCards[step] || notFound()}
+    </>
+  )
 }

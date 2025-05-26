@@ -8,7 +8,7 @@ import { XIcon } from 'lucide-react'
 import Link from 'next/link'
 import { CodingLevelSelect } from './coding-level-select'
 import { CurrentLevelIcon } from './current-level-icon'
-import { SkipOnboardingButton } from './skip-onboarding-button'
+import { SkipOnboardingDialog } from './skip-onboarding-button'
 import { TimeCodingSelect } from './time-coding-select'
 
 interface CurrentLevelCardProps {
@@ -35,24 +35,7 @@ const CurrentLevelSelects = ({ userId }: { userId: string }) => {
 export const CurrentLevelCard = ({ currentStep, userId }: CurrentLevelCardProps) => {
   return (
     <Card className={cn('relative w-md pt-0 overflow-hidden')}>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link href="/home" passHref>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 right-4 size-6 text-muted-foreground"
-              >
-                <XIcon className="size-4" />
-              </Button>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContentCustom sideOffset={5}>Skip Onboarding</TooltipContentCustom>
-        </Tooltip>
-      </TooltipProvider>
-
-      <CardHeader className="relative flex flex-col items-start">
+      <CardHeader className="relative flex flex-col items-start pt-4">
         <div className="relative mb-4">
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
             <div className="w-22 h-22 rounded-full border border-gray-200/40 opacity-20" />
@@ -82,7 +65,11 @@ export const CurrentLevelCard = ({ currentStep, userId }: CurrentLevelCardProps)
 
       <CardFooter className="flex w-full gap-2 border-t pt-4 px-4">
         <div className="flex-1">
-          <SkipOnboardingButton />
+          <SkipOnboardingDialog userId={userId}>
+            <Button className="w-full" variant="outline">
+              Skip Onboarding
+            </Button>
+          </SkipOnboardingDialog>
         </div>
         <Link href={`/auth/onboarding?step=${currentStep + 1}`} passHref className="flex-1">
           <Button className="w-full">Next Step</Button>
