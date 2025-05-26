@@ -78,7 +78,7 @@ export const CurrentCourseCard = () => {
 
   if (isLoadingInitial) {
     return (
-      <Card className="w-full py-0">
+      <Card className="w-full">
         <CardContent className="flex flex-col md:flex-row gap-4 items-stretch">
           {/* Colonne gauche skeleton */}
           <div className="flex-1 flex flex-col justify-between gap-4 min-w-0">
@@ -128,7 +128,7 @@ export const CurrentCourseCard = () => {
       : 'Last Visited Course')
 
   return (
-    <Card className="w-full hover:shadow-md transition-shadow py-0">
+    <Card className="w-full hover:shadow-md transition-shadow">
       <CardContent className="flex flex-col md:flex-row gap-4 items-stretch">
         {/* Colonne gauche */}
         <div className="flex-1 flex flex-col justify-between gap-4 min-w-0">
