@@ -94,7 +94,9 @@ export const RecommendedChallengeClient = ({
         </RecommendedChallengeCard.Description>
       </RecommendedChallengeCard.LeftSide>
       <RecommendedChallengeCard.RightSide>
-        <LinkButton href={`/challenges/${recommendedChallenge.slug}`}>Start Challenge</LinkButton>
+        <LinkButton href={`/challenges/${recommendedChallenge.slug}/description`}>
+          Start Challenge
+        </LinkButton>
       </RecommendedChallengeCard.RightSide>
     </RecommendedChallengeCard>
   )

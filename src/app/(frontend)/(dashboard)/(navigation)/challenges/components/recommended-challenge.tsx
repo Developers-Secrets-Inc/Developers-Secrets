@@ -215,7 +215,7 @@ export const RecommendedChallenge = () => {
         {/* Right side */}
         <div className="flex flex-col items-end gap-3 flex-shrink-0 mt-4 md:mt-0">
           <Button asChild className="w-full md:w-auto">
-            <Link href={`/challenges/${recommendedChallenge.slug}`}>Start Challenge</Link>
+            <Link href={`/challenges/${recommendedChallenge.slug}/description`}>Start Challenge</Link>
           </Button>
 
           <Tooltip.Provider delayDuration={100}>

@@ -249,3 +249,22 @@ export async function getCourseProgressSummary(
     return null
   }
 }
+
+
+import { unstable_cache } from 'next/cache'
+
+const ONE_HOUR = 60 * 60
+
+export const getRecommendedCourses = unstable_cache(
+  async (): Promise<CourseWithStartUrl[]> => {
+    const courses = await getCoursesWithStartUrl()
+    // Mélanger et prendre 3 cours aléatoires
+    const shuffled = [...courses].sort(() => 0.5 - Math.random())
+    return shuffled.slice(0, 3)
+  },
+  ['recommended-courses'],
+  {
+    revalidate: ONE_HOUR, // 1 heure
+    tags: ['courses'],
+  }
+)

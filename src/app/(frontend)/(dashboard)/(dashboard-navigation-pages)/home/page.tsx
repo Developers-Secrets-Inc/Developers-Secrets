@@ -1,7 +1,10 @@
 import { Suspense } from 'react'
 
 import { DivisionLeaderboardCard } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/challenges-leaderboard'
-import { RecommendedChallenge, RecommendedChallengeSkeleton } from '@/core/challenges/recommended-challenge'
+import {
+  RecommendedChallenge,
+  RecommendedChallengeSkeleton,
+} from '@/core/challenges/recommended-challenge'
 import {
   UserProfile,
   UserProfileCardSkeleton,
@@ -9,6 +12,10 @@ import {
 import { CurrentCourseCard } from '@/components/cards/current-course-card'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
+import {
+  RecommendedCourses,
+  RecommendedCoursesSkeleton,
+} from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/recommended-courses'
 
 export const HomeGrid = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -19,21 +26,12 @@ export const HomeGrid = ({ children }: { children: React.ReactNode }) => {
 }
 
 export const HomeLeftColumn = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="flex-1 flex flex-col gap-6 w-[800px]">
-      {children}
-    </div>
-  )
+  return <div className="flex-1 flex flex-col gap-6 w-[800px]">{children}</div>
 }
 
 export const HomeRightColumn = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="w-[360px] flex flex-col gap-6">
-      {children}
-    </div>
-  )
+  return <div className="w-[360px] flex flex-col gap-6">{children}</div>
 }
-
 
 export default async function Home() {
   const user = await getUser()
@@ -50,6 +48,10 @@ export default async function Home() {
         </Suspense>
 
         <CurrentCourseCard />
+
+        <Suspense fallback={<RecommendedCoursesSkeleton />}>
+          <RecommendedCourses />
+        </Suspense>
       </HomeLeftColumn>
 
       <HomeRightColumn>
