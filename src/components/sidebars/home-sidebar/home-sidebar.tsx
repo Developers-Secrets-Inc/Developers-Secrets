@@ -50,13 +50,7 @@ const SidebarLink = ({
   return (
     <SidebarMenuItem key={text.toLowerCase().replace(' ', '-')}>
       <SidebarMenuButton asChild>
-        <Link
-          href={href}
-          className={cn(
-            'relative pr-8 h-12 flex items-center',
-            isComingSoon && 'text-muted-foreground',
-          )}
-        >
+        <Link href={href} className={cn('relative pr-8', isComingSoon && 'text-muted-foreground')}>
           <HiddenOnIconSidebar>
             {icon}
             <span>{text}</span>
