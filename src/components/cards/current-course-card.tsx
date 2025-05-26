@@ -78,27 +78,28 @@ export const CurrentCourseCard = () => {
 
   if (isLoadingInitial) {
     return (
-      <Card className="w-full max-w-lg">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <Skeleton className="h-6 w-3/4" />
-            <Skeleton className="h-4 w-1/2 mt-1" />
+      <Card className="w-full py-0">
+        <CardContent className="flex flex-col md:flex-row gap-4 items-stretch">
+          {/* Colonne gauche skeleton */}
+          <div className="flex-1 flex flex-col justify-between gap-4 min-w-0">
+            <div>
+              <Skeleton className="h-6 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+            <Skeleton className="h-10 w-32 mt-4" />
           </div>
-          <Skeleton className="h-10 w-28" />
-        </CardHeader>
-        <CardFooter className="pt-4 pb-4 flex flex-col items-start text-sm text-muted-foreground border-t mt-4">
-          <div className="flex items-center justify-around w-full">
-            <div className="flex flex-col items-center">
+          {/* Colonne droite skeleton */}
+          <div className="flex flex-col justify-center items-center min-w-[140px] md:border-l md:pl-6">
+            <div className="flex flex-col items-center mb-2 w-full">
               <Skeleton className="h-3 w-16 mb-1" />
               <Skeleton className="h-4 w-12" />
             </div>
-            <Skeleton className="h-6 w-px bg-border mx-4" />
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center w-full">
               <Skeleton className="h-3 w-12 mb-1" />
               <Skeleton className="h-4 w-10" />
             </div>
           </div>
-        </CardFooter>
+        </CardContent>
       </Card>
     )
   }
@@ -127,56 +128,61 @@ export const CurrentCourseCard = () => {
       : 'Last Visited Course')
 
   return (
-    <Card className="w-full hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            Pick up where you left off
-          </CardTitle>
-          <CardDescription>Continue course: {displayName}</CardDescription>
+    <Card className="w-full hover:shadow-md transition-shadow py-0">
+      <CardContent className="flex flex-col md:flex-row gap-4 items-stretch">
+        {/* Colonne gauche */}
+        <div className="flex-1 flex flex-col justify-between gap-4 min-w-0">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <BookOpen className="h-5 w-5 text-primary" />
+              Pick up where you left off
+            </CardTitle>
+            <CardDescription className="mt-1 truncate">
+              Continue course: {displayName}
+            </CardDescription>
+          </div>
+          <Button asChild className="mt-4 w-fit">
+            <Link href={lastUrl}>
+              <PlayCircle className="h-5 w-5 mr-2" />
+              Continue
+            </Link>
+          </Button>
         </div>
-        <Button asChild className="group">
-          <Link href={lastUrl}>
-            <PlayCircle className="h-5 w-5 mr-2 transition-transform duration-300 group-hover:scale-110" />
-            Continue
-          </Link>
-        </Button>
-      </CardHeader>
-      <CardFooter className="pt-4 pb-4 flex flex-col items-start text-sm text-muted-foreground border-t mt-4">
-        {isLoadingProgress && (
-          <div className="flex items-center gap-2 w-full">
-            <ListChecks className="h-4 w-4 animate-pulse" />
-            <span>Loading progress...</span>
-          </div>
-        )}
-        {errorProgress && !isLoadingProgress && (
-          <div className="text-red-500 w-full">Error: {errorProgress}</div>
-        )}
-        {!isLoadingProgress && !errorProgress && courseProgress && (
-          <div className="flex items-center justify-around w-full">
-            <div className="flex flex-col items-center">
-              <span className="text-xs text-muted-foreground">Chapters</span>
-              <span className="font-semibold text-foreground">
-                {courseProgress.completedChapters} / {courseProgress.totalChapters}
-              </span>
+        {/* Colonne droite */}
+        <div className="flex flex-col justify-center items-center min-w-[140px] md:border-l md:pl-6">
+          {isLoadingProgress && (
+            <div className="flex items-center gap-2 w-full">
+              <ListChecks className="h-4 w-4 animate-pulse" />
+              <span>Loading progress...</span>
             </div>
-            <Separator orientation="vertical" className="h-6 mx-4" />
-            <div className="flex flex-col items-center">
-              <span className="text-xs text-muted-foreground">Parts</span>
-              <span className="font-semibold text-foreground">
-                {courseProgress.completedParts} / {courseProgress.totalParts}
-              </span>
+          )}
+          {errorProgress && !isLoadingProgress && (
+            <div className="text-red-500 w-full text-sm">Error: {errorProgress}</div>
+          )}
+          {!isLoadingProgress && !errorProgress && courseProgress && (
+            <>
+              <div className="flex flex-col items-center mb-2">
+                <span className="text-xs text-muted-foreground">Chapters</span>
+                <span className="font-semibold text-foreground">
+                  {courseProgress.completedChapters} / {courseProgress.totalChapters}
+                </span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-muted-foreground">Parts</span>
+                <span className="font-semibold text-foreground">
+                  {courseProgress.completedParts} / {courseProgress.totalParts}
+                </span>
+              </div>
+            </>
+          )}
+          {!isLoadingProgress && !errorProgress && !courseProgress && lastUrl && (
+            <div className="flex items-center gap-2 w-full">
+              <ListChecks className="h-4 w-4" />
+              <span>View progress after continuing.</span>
             </div>
-          </div>
-        )}
-        {!isLoadingProgress && !errorProgress && !courseProgress && lastUrl && (
-          <div className="flex items-center gap-2 w-full">
-            <ListChecks className="h-4 w-4" />
-            <span>View progress after continuing.</span>
-          </div>
-        )}
-      </CardFooter>
+          )}
+        </div>
+      </CardContent>
     </Card>
   )
 }
