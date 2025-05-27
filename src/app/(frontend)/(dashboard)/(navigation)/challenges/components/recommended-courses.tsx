@@ -8,7 +8,7 @@ import { PythonLogoIcon } from '@/components/icons/python-logo-icon'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { getRecommendedCourses } from '@/core/courses'
+import { CourseWithStartUrl, getRecommendedCourses } from '@/core/courses'
 import { LockIcon } from 'lucide-react'
 
 function getDifficultyBadgeStyle(difficulty?: string) {
@@ -63,7 +63,7 @@ export function RecommendedCourses() {
           </Button>
         </div>
         <div className="grid grid-cols-3 gap-4">
-          {recommendedCourses.map((course: any) => {
+          {recommendedCourses.map((course: CourseWithStartUrl) => {
             const isLocked = !course.orderedChapters || course.orderedChapters.length === 0
             const cardContent = (
               <Card className="relative flex flex-col items-stretch p-0 h-full">

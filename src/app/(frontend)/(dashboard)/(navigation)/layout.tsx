@@ -15,9 +15,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </SidebarInset>
 
-        <AdminComponent>
-          <DashboardSettingsBubble />
-        </AdminComponent>
+        {/* <AdminComponent> */}
+          {/* <DashboardSettingsBubble /> */}
+        {/* </AdminComponent> */}
       </SidebarProvider>
     </RedirectIfNotSignedIn>
   )
