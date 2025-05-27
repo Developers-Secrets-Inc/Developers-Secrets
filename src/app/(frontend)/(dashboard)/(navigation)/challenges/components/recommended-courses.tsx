@@ -1,10 +1,14 @@
+'use client'
+
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { getCoursesWithStartUrl, getRecommendedCourses } from '@/core/courses'
 import { PythonLogoIcon } from '@/components/icons/python-logo-icon'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { getRecommendedCourses } from '@/core/courses'
 
 function getDifficultyBadgeStyle(difficulty?: string) {
   if (!difficulty) return 'bg-gray-500/10 text-gray-500'
@@ -22,8 +26,32 @@ function getDifficultyBadgeStyle(difficulty?: string) {
   }
 }
 
-export async function RecommendedCourses() {
-  const recommendedCourses = await getRecommendedCourses()
+
+export function RecommendedCourses() {
+  const {
+    data: recommendedCourses,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['recommended-courses'],
+    queryFn: getRecommendedCourses,
+  })
+
+  if (isLoading) return <RecommendedCoursesSkeleton />
+  if (isError || !recommendedCourses)
+    return (
+      <Card className="w-full">
+        <CardContent>
+          <div className="flex items-center mb-4">
+            <CardTitle className="text-lg font-semibold">Recommended Courses</CardTitle>
+            <Button asChild variant="outline" size="sm" className="ml-auto">
+              <Link href="/courses">See all</Link>
+            </Button>
+          </div>
+          <div className="text-center text-destructive py-8">Failed to load courses.</div>
+        </CardContent>
+      </Card>
+    )
 
   return (
     <Card className="w-full">
@@ -35,7 +63,7 @@ export async function RecommendedCourses() {
           </Button>
         </div>
         <div className="grid grid-cols-3 gap-4">
-          {recommendedCourses.map((course) => (
+          {recommendedCourses.map((course: any) => (
             <Card key={course.id} className="relative flex flex-col items-stretch p-0 h-full">
               <CardContent className="flex flex-col justify-between h-full p-3 pb-4">
                 <div className="flex items-start justify-between w-full mb-2 relative">

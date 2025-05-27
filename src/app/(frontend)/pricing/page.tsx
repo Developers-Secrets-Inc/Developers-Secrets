@@ -1,6 +1,14 @@
 import React from 'react'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { Polar } from '@polar-sh/sdk'
+
+const api = new Polar({
+  accessToken: process.env.POLAR_ACCESS_TOKEN!,
+  server: process.env.NEXT_PUBLIC_POLAR_SERVER as 'sandbox' | 'production',
+})
 
 const CheckIcon = () => {
   return (
@@ -32,7 +40,7 @@ const Feature = ({ content }: { content: string }) => {
   )
 }
 
-export default function Page() {
+export default async function Page() {
   return (
     <>
       <HomeHeader />
@@ -64,7 +72,7 @@ export default function Page() {
                 {/* Premium Plan Monthly */}
                 <MaxPlanCard
                   price="$35"
-                  subtitle="Per month"  
+                  subtitle="Per month"
                   description="Experience the full power of our platform. Ideal for ambitious individuals and teams aiming for excellence."
                 />
               </div>
@@ -126,12 +134,13 @@ const BasicPlanCard = ({
       </div>
       <div data-slot="card-content" className="px-7">
         <p className="text-sm text-muted-foreground">{description}</p>
-        <button
+        <Button
+          asChild
           data-slot="button"
           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 mt-6 w-full"
         >
-          Start for Free
-        </button>
+          <Link href="/auth/signup">Start for Free</Link>
+        </Button>
         <div className="relative mt-12 mb-4 flex items-center justify-center overflow-hidden">
           <div
             data-orientation="horizontal"
@@ -187,12 +196,13 @@ export const StandardPlanCard = ({
       </div>
       <div data-slot="card-content" className="px-7">
         <p className="text-sm text-muted-foreground">{description}</p>
-        <button
+        <Button
+          asChild
           data-slot="button"
           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 mt-6 w-full"
         >
-          Get Started
-        </button>
+          <Link href="/api/checkout?productId=9ba129a1-7efb-401b-b03c-e6bd94a5323c">Get Started</Link>
+        </Button>
         <div className="relative mt-12 mb-4 flex items-center justify-center overflow-hidden">
           <div
             data-orientation="horizontal"
@@ -270,7 +280,7 @@ export const MaxPlanCard = ({
           ></div>
         </div>
         <ul className="mt-6 space-y-4">
-          <Feature content="Everything in lite plus..." />
+          <Feature content="Everything in premium plus..." />
           <Feature content="Access to AI coding challenge" />
           <Feature content="Access to software engineering courses" />
           <Feature content="Unlimited usage of Pearl" />
@@ -311,12 +321,13 @@ export const PremiumPlanCard = ({
       </div>
       <div data-slot="card-content" className="px-7">
         <p className="text-sm text-muted-foreground">{description}</p>
-        <button
+        <Button
+          asChild
           data-slot="button"
           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 mt-6 w-full"
         >
-          Get Started
-        </button>
+          <Link href="/api/checkout?productId=9ba129a1-7efb-401b-b03c-e6bd94a5323c">Get Started</Link>
+        </Button>
         <div className="relative mt-12 mb-4 flex items-center justify-center overflow-hidden">
           <div
             data-orientation="horizontal"

@@ -16,6 +16,7 @@ import {
   RecommendedCourses,
   RecommendedCoursesSkeleton,
 } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/recommended-courses'
+import { createNotification } from '@/core/notifications'
 
 export const HomeGrid = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -43,21 +44,15 @@ export default async function Home() {
   return (
     <HomeGrid>
       <HomeLeftColumn>
-        <Suspense fallback={<RecommendedChallengeSkeleton />}>
-          <RecommendedChallenge userId={user.id} />
-        </Suspense>
+        <RecommendedChallenge userId={user.id} />
 
         <CurrentCourseCard />
 
-        <Suspense fallback={<RecommendedCoursesSkeleton />}>
-          <RecommendedCourses />
-        </Suspense>
+        <RecommendedCourses />
       </HomeLeftColumn>
 
       <HomeRightColumn>
-        <Suspense fallback={<UserProfileCardSkeleton />}>
-          <UserProfile user={user} />
-        </Suspense>
+        <UserProfile user={user} />
         <DivisionLeaderboardCard />
       </HomeRightColumn>
     </HomeGrid>
