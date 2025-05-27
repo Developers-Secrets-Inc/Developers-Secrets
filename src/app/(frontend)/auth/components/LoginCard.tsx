@@ -15,7 +15,7 @@ import { Loader2, AtSignIcon } from 'lucide-react' // Removed LockIcon as Passwo
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CustomToast } from './CustomErrorToast'
-
+import { useQueryClient } from '@tanstack/react-query'
 interface LoginCardProps {
   onSubmit: (
     email: string,
@@ -39,6 +39,7 @@ export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
   const emailInputId = useId()
   // const passwordInputId = useId() // No longer needed here if PasswordInput handles its own ID/label
   const { toast } = useToast()
+  const queryClient = useQueryClient()
 
   const [toastOpen, setToastOpen] = useState(false)
   const [toastProps, setToastProps] = useState({
@@ -133,6 +134,7 @@ export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
         setToastOpen(true)
         sessionStorage.setItem('postLoginToast', JSON.stringify(toastData))
         // Redirection dynamique
+        await queryClient.invalidateQueries({ queryKey: ['sessionUser'] })
         setTimeout(() => {
           if (redirectTo && redirectTo.startsWith('/')) {
             router.push(redirectTo)

@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { CustomErrorToast } from './CustomErrorToast'
-
+import { useQueryClient } from '@tanstack/react-query'
 interface SignUpCardProps {
   onSubmit: (
     username: string,
@@ -46,6 +46,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
 
   const [errorToastOpen, setErrorToastOpen] = useState(false)
   const [errorToastProps, setErrorToastProps] = useState({ title: '', description: '' })
+  const queryClient = useQueryClient()
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPassword = e.target.value
@@ -122,6 +123,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
         })
         setErrorToastOpen(true)
       } else {
+        await queryClient.invalidateQueries({ queryKey: ['sessionUser'] })
         router.push('/auth/onboarding?step=1')
       }
     } catch (error: any) {
