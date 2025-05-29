@@ -104,11 +104,11 @@ const DynamicFooterWrapper = async ({
   )
   const nextUrl =
     staticData.navigationParts.next.chapterSlug && staticData.navigationParts.next.partSlug
-      ? `/courses/${staticData.course.slug}/${staticData.navigationParts.next.chapterSlug}/${staticData.navigationParts.next.partSlug}`
+      ? `/courses/${staticData.course.slug}/${staticData.navigationParts.next.chapterSlug}/${staticData.navigationParts.next.partSlug}/description`
       : null
   const prevUrl =
     staticData.navigationParts.prev.chapterSlug && staticData.navigationParts.prev.partSlug
-      ? `/courses/${staticData.course.slug}/${staticData.navigationParts.prev.chapterSlug}/${staticData.navigationParts.prev.partSlug}`
+      ? `/courses/${staticData.course.slug}/${staticData.navigationParts.prev.chapterSlug}/${staticData.navigationParts.prev.partSlug}/description`
       : null
   const lockNextButton = await getNextButtonLockState(
     userId,
