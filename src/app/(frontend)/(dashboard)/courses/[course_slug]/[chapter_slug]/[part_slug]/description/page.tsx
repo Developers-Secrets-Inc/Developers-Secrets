@@ -10,6 +10,8 @@ import { notFound } from 'next/navigation'
 import { getCoursesStaticInformation } from '@/core/courses'
 
 
+export const experimental_ppr = true
+
 const HeaderFallback = () => {
   return <Skeleton className="h-10 w-full mb-4" />
 }
