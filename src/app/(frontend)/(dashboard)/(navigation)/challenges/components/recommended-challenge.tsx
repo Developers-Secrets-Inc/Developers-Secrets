@@ -174,7 +174,7 @@ export const RecommendedChallenge = () => {
                 : 'N/A'}
             </Badge>
           </div>
-          
+
           <div className="flex items-center gap-4 flex-wrap">
             <CardDescription className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
@@ -215,7 +215,9 @@ export const RecommendedChallenge = () => {
         {/* Right side */}
         <div className="flex flex-col items-end gap-3 flex-shrink-0 mt-4 md:mt-0">
           <Button asChild className="w-full md:w-auto">
-            <Link href={`/challenges/${recommendedChallenge.slug}/description`}>Start Challenge</Link>
+            <Link href={`/challenges/${recommendedChallenge.slug}/description`}>
+              Start Challenge
+            </Link>
           </Button>
 
           <Tooltip.Provider delayDuration={100}>
@@ -288,7 +290,6 @@ export const RecommendedChallenge = () => {
   )
 }
 
-
 export const RecommendedChallengeSkeleton = () => {
   return (
     <Card className="w-full py-0 border-dashed border-border">
@@ -299,7 +300,6 @@ export const RecommendedChallengeSkeleton = () => {
     </Card>
   )
 }
-
 
 /*  
 

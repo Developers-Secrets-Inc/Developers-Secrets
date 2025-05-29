@@ -57,10 +57,9 @@ const PartTitle = ({ title, difficulty }: { title: string; difficulty?: string |
 
 interface PartHeaderProps {
   part: CoursePart
-  userId: string | null
 }
 
-export const PartHeader = ({ part, userId }: PartHeaderProps) => {
+export const PartHeader = ({ part }: PartHeaderProps) => {
   return (
     <div className="mb-6 border-b pb-4">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
@@ -70,7 +69,7 @@ export const PartHeader = ({ part, userId }: PartHeaderProps) => {
             <Suspense fallback={<PartStatusSkeleton />}>
               <CoursePartStatus partId={part.id} />
             </Suspense>
-            <FeedbackButton partId={part.id} partName={part.name} userId={userId} />
+            <FeedbackButton partId={part.id} partName={part.name} />
           </div>
           <div className="flex items-center gap-2">
             <Suspense fallback={<PartSkillsTagsSkeleton />}>
@@ -82,3 +81,5 @@ export const PartHeader = ({ part, userId }: PartHeaderProps) => {
     </div>
   )
 }
+
+

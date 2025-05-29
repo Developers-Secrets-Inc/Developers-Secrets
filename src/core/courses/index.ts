@@ -2,7 +2,7 @@
 
 import 'server-only'
 
-import { Course } from '@/payload-types'
+import { Chapter, Course, CoursePart } from '@/payload-types'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getFirstChapter } from './chapters'
@@ -268,3 +268,54 @@ export const getRecommendedCourses = unstable_cache(
     tags: ['courses'],
   }
 )
+
+
+export const getCoursesStaticInformation = async (): Promise<{
+  courses: string[]
+  chapters: string[]
+  parts: string[]
+}> => {
+  const payload = await getPayload({ config })
+
+  // Fetch courses with depth 2 to populate orderedChapters and their parts
+  const coursesResult = await payload.find({
+    collection: 'courses',
+    depth: 2, // Depth 1 populates chapters, Depth 2 populates parts within chapters
+  })
+
+  const courses = coursesResult.docs
+
+
+  const params: { course_slug: string; chapter_slug: string; part_slug: string }[] = []
+
+  for (const course of courses) {
+    // Ensure orderedChapters is an array and contains populated chapter objects
+    if (Array.isArray(course.orderedChapters)) {
+      for (const chapterRef of course.orderedChapters) {
+        // Check if chapterRef is a populated object and has a slug
+        if (typeof chapterRef === 'object' && chapterRef !== null && 'slug' in chapterRef) {
+          const chapter = chapterRef as Chapter // Cast to Chapter type
+
+          // Ensure parts is an array and contains populated part objects
+          if (Array.isArray(chapter.parts)) {
+            for (const partRef of chapter.parts) {
+              // Check if partRef is a populated object and has a slug
+              if (typeof partRef === 'object' && partRef !== null && 'slug' in partRef) {
+                const part = partRef as CoursePart // Cast to CoursePart type
+
+                params.push({
+                  course_slug: course.slug,
+                  chapter_slug: chapter.slug,
+                  part_slug: part.slug,
+                })
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return params
+}
+

@@ -132,6 +132,7 @@ export default async function ChallengeLayout({
   const initialStatus = await getUserCompletionStatus(user.id, challenge.id)
   const userRating = await getUserRating(user.id, challenge.id)
 
+
   return (
     <SidebarProvider open={false}>
       <ChallengeProvider challenge={challenge}>
