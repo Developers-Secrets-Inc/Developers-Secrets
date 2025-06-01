@@ -26,18 +26,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </RootProvider>
         </Providers>
 
-
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XRF7M14KH8"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-        
-          gtag('config', 'G-XRF7M14KH8');
-        </script>
-        {/* Load Pyodide script */}
-        <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js" defer />
-
         {/* Initialize Pyodide */}
         <script
           dangerouslySetInnerHTML={{
