@@ -37,6 +37,9 @@ export default async function NewCoursePartContentLayout({
       <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0 py-4">
         <Suspense>
           {children}
+          <Link href={`/new-courses/${course_slug}/${chapter_slug}/${part_slug}/description`}>
+            Description
+          </Link>
         </Suspense>
       </div>
       <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50 rounded-t-lg border-t border-border/50">
