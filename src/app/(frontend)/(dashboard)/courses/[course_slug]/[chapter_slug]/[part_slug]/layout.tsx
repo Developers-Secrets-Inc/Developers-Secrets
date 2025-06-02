@@ -13,19 +13,19 @@ import {
   CoursePartStaticData,
   getCoursePartStaticData,
   getNextButtonLockState,
-  getUserSpecificCourseOutline as getUserSpecificCourseOutline,
-  getUserSpecificFooterData,
   getUserSpecificCourseOutlineWithStatus,
+  getUserSpecificFooterData,
 } from '@/core/courses/parts'
 import { getUserPartCompletionStatus } from '@/core/courses/progression/completion-status'
 import { getSessionUser } from '@/core/user'
+import { AdminComponent } from '@/core/user/components/admin-component'
 import { CoursePart } from '@/payload-types'
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { CoursePartMainHeader } from './components/course-part-main-header'
 import { PartFooter } from './components/part-footer'
-import { AdminComponent } from '@/core/user/components/admin-component'
-import type { CourseOutlineUserData, ChapterPartStatusInfo } from '@/core/courses/parts'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
 
 const DynamicHeaderWrapper = async ({
   userId,
@@ -68,25 +68,6 @@ const DynamicReactionsWrapper = async ({
       partId={partId}
       userId={userId}
       initialUserReaction={initialUserReaction}
-    />
-  )
-}
-
-const DynamicEditorWrapper = async ({
-  userId,
-  part,
-}: {
-  userId: string | null
-  part: CoursePart
-}) => {
-  const initialCompletionStatus = userId
-    ? await getUserPartCompletionStatus(userId, part.id)
-    : 'not_started'
-  return (
-    <CourseCodeEditor
-      coursePart={part}
-      userId={userId}
-      initialCompletionStatus={initialCompletionStatus}
     />
   )
 }
@@ -160,71 +141,104 @@ export default async function CoursePartLayout({
 
   const staticData = await getCoursePartStaticData(course_slug, chapter_slug, part_slug)
   const userResult = await getSessionUser()
-  const userId = userResult.success ? userResult.value.id : null
+
+  if (!userResult.success) {
+    redirect('/auth/login')
+  }
+
+  const userId = userResult.value.id
 
   const baseHref = `/courses/${staticData.course.slug}/${staticData.currentChapter.slug}/${staticData.currentPart.slug}`
 
   const initialLanguage =
     staticData.currentPart?.challenges?.[0]?.languages?.[0]?.name?.toLowerCase() ?? 'javascript'
 
-  return (
-    <CoursePartProvider part={staticData.currentPart}>
-      <div className="flex h-screen">
-        <TrackLastVisitedPart />
-        <div className="flex flex-col h-full w-screen">
-          <DynamicHeaderWrapper userId={userId} staticData={staticData} />
+  const initialCompletionStatus = await getUserPartCompletionStatus(
+    userId,
+    staticData.currentPart.id,
+  )
 
-          <div className="flex-1 overflow-hidden">
-            <EditorStateProvider initialLanguage={initialLanguage}>
-              <ResizablePanelGroup direction="horizontal">
-                <ResizablePanel defaultSize={50} minSize={40}>
-                  <div className="flex flex-col h-full">
-                    <CourseNavigation
-                      baseHref={baseHref}
-                      userId={userId}
-                      partId={staticData.currentPart.id}
-                    />
-                    <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0 py-4">
-                      <Suspense>{children}</Suspense>
-                    </div>
-                    <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50 rounded-t-lg border-t border-border/50">
-                      <div className="flex items-center justify-between gap-3 mb-3">
-                        <Suspense fallback={<Skeleton className="h-8 w-24" />}>
-                          <DynamicReactionsWrapper
+  return (
+    <SidebarProvider open={false}>
+      <CoursePartProvider part={staticData.currentPart}>
+        <div className="flex h-screen min-h-0 min-w-0">
+          <HomeSidebar defaultOpen={false} />
+          <SidebarInset className="flex-1 min-w-0">
+            <TrackLastVisitedPart />
+            <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
+              <DynamicHeaderWrapper userId={userId} staticData={staticData} />
+              <div className="flex-1 overflow-hidden">
+                <EditorStateProvider initialLanguage={initialLanguage}>
+                  <ResizablePanelGroup direction="horizontal">
+                    <ResizablePanel defaultSize={50} minSize={40}>
+                      <Part.content baseHref={baseHref} userId={userId} staticData={staticData}>
+                        {children}
+                      </Part.content>
+                    </ResizablePanel>
+                    <ResizableHandle withHandle />
+                    <ResizablePanel defaultSize={50} minSize={40}>
+                      <div className="flex flex-col h-full bg-muted/40">
+                        <Suspense
+                          fallback={
+                            <div className="p-4">
+                              <Skeleton className="h-full w-full" />
+                            </div>
+                          }
+                        >
+                          <CourseCodeEditor
+                            coursePart={staticData.currentPart}
                             userId={userId}
-                            partId={staticData.currentPart.id}
+                            initialCompletionStatus={initialCompletionStatus}
                           />
                         </Suspense>
                       </div>
-                      <AIAssistantDialog userId={userId} />
-                    </div>
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={50} minSize={40}>
-                  <div className="flex flex-col h-full bg-muted/40">
-                    <Suspense
-                      fallback={
-                        <div className="p-4">
-                          <Skeleton className="h-full w-full" />
-                        </div>
-                      }
-                    >
-                      <DynamicEditorWrapper userId={userId} part={staticData.currentPart} />
-                    </Suspense>
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            </EditorStateProvider>
-          </div>
+                    </ResizablePanel>
+                  </ResizablePanelGroup>
+                </EditorStateProvider>
+              </div>
 
-          <DynamicFooterWrapper userId={userId} staticData={staticData} />
+              <DynamicFooterWrapper userId={userId} staticData={staticData} />
 
-          <Suspense fallback={null}>
-            <DynamicSettingsBubbleWrapper userId={userId} partId={staticData.currentPart.id} />
+              <Suspense fallback={null}>
+                <DynamicSettingsBubbleWrapper userId={userId} partId={staticData.currentPart.id} />
+              </Suspense>
+            </div>
+          </SidebarInset>
+        </div>
+      </CoursePartProvider>
+    </SidebarProvider>
+  )
+}
+
+const PartContent = ({
+  children,
+  baseHref,
+  userId,
+  staticData,
+}: {
+  children: React.ReactNode
+  baseHref: string
+  userId: string | null
+  staticData: CoursePartStaticData
+}) => {
+  return (
+    <div className="flex flex-col h-full">
+      <CourseNavigation baseHref={baseHref} userId={userId} partId={staticData.currentPart.id} />
+      <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0 py-4">
+        <Suspense>{children}</Suspense>
+      </div>
+      <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50 rounded-t-lg border-t border-border/50">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <Suspense fallback={<Skeleton className="h-8 w-24" />}>
+            <DynamicReactionsWrapper userId={userId} partId={staticData.currentPart.id} />
           </Suspense>
         </div>
+        <AIAssistantDialog userId={userId} />
       </div>
-    </CoursePartProvider>
+    </div>
   )
+}
+
+const Part = {
+  content: PartContent,
 }

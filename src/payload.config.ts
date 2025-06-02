@@ -53,6 +53,7 @@ import { CoursePartSubmissions } from './collections/CoursePartSubmissions'
 import { UserChapterProgress } from './collections/UserChapterProgress'
 import { CoursePartFeedback } from './collections/CoursePartFeedback'
 import UserOnboarding from './collections/UserOnboarding'
+import { LearningPath } from './collections/LearningPath'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -104,6 +105,7 @@ export default buildConfig({
     UserImplementationConceptProgressions,
     ConceptGroups,
     Courses,
+    LearningPath,
     Chapters,
     CourseParts,
     CoursePartUserProgression,

@@ -1,23 +1,15 @@
 'use client'
+import { LinkButton } from '@/components/common/link-button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  getCalendarDays,
-  getTotalCompletedChallengesCount,
-} from '@/core/challenges/user-progression'
-import { getGamificationInformations, getUserNextLevelExperience } from '@/core/gamification/level'
-import { cn } from '@/lib/utils'
-import { User } from '@/types/user'
-import { CheckCircle2 } from 'lucide-react'
-import Link from 'next/link'
-import { CalendarDayButton } from './calendar-day-button'
-import { useQuery } from '@tanstack/react-query'
 import { getUserProfileData } from '@/core/user-profile'
-import { LinkButton } from '@/components/common/link-button'
+import { User } from '@/types/user'
+import { useQuery } from '@tanstack/react-query'
+import { CheckCircle2 } from 'lucide-react'
+import { CalendarDayButton } from './calendar-day-button'
 
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 

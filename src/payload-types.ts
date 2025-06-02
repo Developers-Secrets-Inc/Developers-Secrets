@@ -106,6 +106,7 @@ export interface Config {
     userImplementationConceptProgressions: UserImplementationConceptProgression;
     conceptGroups: ConceptGroup;
     courses: Course;
+    'learning-paths': LearningPath;
     chapters: Chapter;
     courseParts: CoursePart;
     coursePartUserProgression: CoursePartUserProgression;
@@ -159,6 +160,7 @@ export interface Config {
     userImplementationConceptProgressions: UserImplementationConceptProgressionsSelect<false> | UserImplementationConceptProgressionsSelect<true>;
     conceptGroups: ConceptGroupsSelect<false> | ConceptGroupsSelect<true>;
     courses: CoursesSelect<false> | CoursesSelect<true>;
+    'learning-paths': LearningPathsSelect<false> | LearningPathsSelect<true>;
     chapters: ChaptersSelect<false> | ChaptersSelect<true>;
     courseParts: CoursePartsSelect<false> | CoursePartsSelect<true>;
     coursePartUserProgression: CoursePartUserProgressionSelect<false> | CoursePartUserProgressionSelect<true>;
@@ -2031,6 +2033,30 @@ export interface CoursePart {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "learning-paths".
+ */
+export interface LearningPath {
+  id: number;
+  name: string;
+  slug: string;
+  icon: 'binary' | 'code' | 'robotic-brain';
+  description: string;
+  sections: {
+    name: string;
+    description?: string | null;
+    courses: {
+      course: number | Course;
+      isChoiceGroup?: boolean | null;
+      choiceGroupId?: string | null;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Tracks user progression and engagement for specific course parts.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2476,6 +2502,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'courses';
         value: number | Course;
+      } | null)
+    | ({
+        relationTo: 'learning-paths';
+        value: number | LearningPath;
       } | null)
     | ({
         relationTo: 'chapters';
@@ -3436,6 +3466,33 @@ export interface CoursesSelect<T extends boolean = true> {
   slug?: T;
   difficulty?: T;
   isProCourse?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "learning-paths_select".
+ */
+export interface LearningPathsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  icon?: T;
+  description?: T;
+  sections?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        courses?:
+          | T
+          | {
+              course?: T;
+              isChoiceGroup?: T;
+              choiceGroupId?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

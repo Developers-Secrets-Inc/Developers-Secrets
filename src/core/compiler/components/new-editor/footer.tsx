@@ -38,6 +38,7 @@ export const Tabs = ({
   )
 }
 
+
 // Sub-component: Tab Trigger (remains simple)
 export const TabTrigger = ({ value, children }: { value: string; children: React.ReactNode }) => {
   return (

@@ -1,27 +1,22 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
 import { CoursePart } from '@/payload-types'
+import { useCallback, useMemo, useState } from 'react'
 // Use the provider and namespace object for components
+import { compileCode } from '@/core/compiler'; // Import compileCode
 import { CodeEditorProvider, GenericCodeEditor } from '@/core/compiler/components/new-editor'
 import { ProgrammingLanguage } from '@/core/compiler/components/new-editor/context'
-import {
-  runCoursePartTests,
-  CoursePartTestResult,
-  CoursePartRuntimeError,
-  CoursePartWrongAnswer,
-  CoursePartTimeLimitExceeded,
-} from '../submissions/testing.client'
-import { createCoursePartSubmission } from '../submissions/client-actions'
-import { updateUserPartCompletionStatus } from '../progression/completion-status'
+import { Beaker, FileOutput } from 'lucide-react'; // Icons for tabs
 import { toast } from 'sonner'
-import { FileOutput, Beaker } from 'lucide-react' // Icons for tabs
-import { cn } from '@/lib/utils' // For styling results
-import { compileCode, CompilationResult } from '@/core/compiler' // Import compileCode
+import { createCoursePartSubmission } from '../submissions/client-actions'
+import {
+  CoursePartTestResult,
+  runCoursePartTests
+} from '../submissions/testing.client'
 // Import the hook and type
 import {
-  useCoursePartCompletionStatus,
   CompletionStatus,
+  useCoursePartCompletionStatus,
 } from '../hooks/use-course-part-completion-status'
 // Import the completion toast hook
 import { useCompletionToast } from '../components/completion-toast-context'

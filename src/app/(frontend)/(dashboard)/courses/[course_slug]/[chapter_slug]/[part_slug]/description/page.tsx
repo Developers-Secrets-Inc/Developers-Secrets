@@ -1,21 +1,17 @@
-import { Suspense } from 'react'
 import { Markdown } from '@/components/markdown'
-import { getPartBySlug } from '@/core/courses/parts'
-import { PartHeader } from '../components/part-header'
-import { CoursePartHints } from '@/core/courses/components/course-part-hints'
-import { getSessionUser } from '@/core/user'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CoursePart } from '@/payload-types'
-import { notFound } from 'next/navigation'
 import { getCoursesStaticInformation } from '@/core/courses'
-
+import { CoursePartHints } from '@/core/courses/components/course-part-hints'
+import { getPartBySlug } from '@/core/courses/parts'
+import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
+import { PartHeader } from '../components/part-header'
 
 export const experimental_ppr = true
 
 const HeaderFallback = () => {
   return <Skeleton className="h-10 w-full mb-4" />
 }
-
 
 export const generateStaticParams = async () => {
   return await getCoursesStaticInformation()
@@ -26,6 +22,7 @@ export default async function CoursePartDescriptionPage({
 }: {
   params: Promise<{ course_slug: string; chapter_slug: string; part_slug: string }>
 }) {
+  console.log('CoursePartDescriptionPage')
   const { course_slug, chapter_slug, part_slug } = await params
 
   const part = await getPartBySlug(course_slug, chapter_slug, part_slug)
