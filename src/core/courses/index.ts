@@ -74,9 +74,7 @@ export const getCourseBySlug = async (slug: string): Promise<Course> => {
   return course.docs[0]
 }
 
-
 export type CompletionStatus = 'not_started' | 'in_progress' | 'completed'
-
 
 export type CourseOutline = {
   chapterId: number
@@ -86,7 +84,6 @@ export type CourseOutline = {
   requiredChapters?: (number | Chapter)[]
   status: CompletionStatus
 }[]
-
 
 export const getCourseOutline = async (courseSlug: string): Promise<CourseOutline> => {
   const course = await getCourseBySlug(courseSlug)
@@ -119,8 +116,6 @@ export const getCourseOutline = async (courseSlug: string): Promise<CourseOutlin
 
   return courseOutlineStatic
 }
-
-
 
 export const getCoursesWithStartUrl = async (): Promise<CourseWithStartUrl[]> => {
   const courses = await getCourses() // Get all base courses

@@ -38,22 +38,23 @@ const statusConfig: Record<CompletionStatus, StatusInformations> = {
 
 interface CoursePartStatusClientProps {
   partId: number
+  initialStatus?: 'not_started' | 'in_progress' | 'completed'
 }
 
-export const CoursePartStatusClient = ({ partId }: CoursePartStatusClientProps) => {
+export const CoursePartStatusClient = ({ partId, initialStatus }: CoursePartStatusClientProps) => {
   const { user, isLoading: isUserLoading } = useSessionUser()
   const userId = user?.id
 
-  // On ne lance le fetch que si userId est présent
+  // Utilisation de initialStatus passé en props, avec 'not_started' par défaut
   const {
-    status = 'not_started',
+    status = initialStatus ?? 'not_started',
     isInitialLoading,
     isLoading,
     error,
   } = useCoursePartCompletionStatus({
     partId,
     userId: userId ?? '',
-    initialStatus: 'not_started',
+    initialStatus: initialStatus ?? 'not_started',
     enabled: !!userId,
   })
 

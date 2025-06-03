@@ -18,7 +18,6 @@ export function FeedbackButton({ partId, partName }: FeedbackButtonProps) {
   const userId = user.user?.id
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false)
 
-  // Don't render the button at all if user is not logged in
   if (!userId) {
     return null
   }

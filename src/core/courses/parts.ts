@@ -334,6 +334,47 @@ export const getCoursePartStaticData = async (
   }
 }
 
+import { unstable_cache } from 'next/cache'
+
+export const getCourseStaticOutline = unstable_cache(
+  async (
+    courseSlug: string,
+  ): Promise<CourseOutlineStaticData> => {
+    const course = await getCourseBySlug(courseSlug)
+    if (!course) {
+      throw new Error(`Course "${courseSlug}" not found.`)
+    }
+    const courseOutlineStatic: CourseOutlineStaticData = await Promise.all(
+      (course.orderedChapters || []).map(async (chapRef: number | Chapter) => {
+        const chapter = typeof chapRef === 'number' ? await getChapterById(chapRef) : chapRef
+        if (!chapter) return null
+
+        const resolvedParts = await Promise.all(
+          (chapter.parts || []).map(async (partRef) => {
+            const part =
+              typeof partRef === 'number' ? await getPartById(partRef) : (partRef as CoursePart)
+            return part ? { id: part.id, name: part.name, slug: part.slug } : null
+          }),
+        ).then((parts) =>
+          parts.filter((p): p is { id: number; name: string; slug: string } => p !== null),
+        )
+
+        return {
+          chapterId: chapter.id,
+          chapterSlug: chapter.slug,
+          chapterName: chapter.name,
+          parts: resolvedParts,
+          requiredChapters: chapter.requiredChapters || [],
+          status: 'not_started' as CompletionStatus,
+        }
+      }),
+    ).then((chapters) => chapters.filter((c): c is Exclude<typeof c, null> => c !== null))
+    return courseOutlineStatic
+  },
+  ['getCourseStaticOutline'],
+  { revalidate: 3600 }
+)
+
 // --- NEW DYNAMIC DATA FETCHING FUNCTIONS ---
 
 // Define ChapterPartStatusInfo here instead of importing from layout

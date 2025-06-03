@@ -159,54 +159,44 @@ export default async function CoursePartLayout({
   )
 
   return (
-    <SidebarProvider open={false}>
-      <CoursePartProvider part={staticData.currentPart}>
-        <div className="flex h-screen min-h-0 min-w-0">
-          <HomeSidebar defaultOpen={false} />
-          <SidebarInset className="flex-1 min-w-0">
-            <TrackLastVisitedPart />
-            <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
-              <DynamicHeaderWrapper userId={userId} staticData={staticData} />
-              <div className="flex-1 overflow-hidden">
-                <EditorStateProvider initialLanguage={initialLanguage}>
-                  <ResizablePanelGroup direction="horizontal">
-                    <ResizablePanel defaultSize={50} minSize={40}>
-                      <Part.content baseHref={baseHref} userId={userId} staticData={staticData}>
-                        {children}
-                      </Part.content>
-                    </ResizablePanel>
-                    <ResizableHandle withHandle />
-                    <ResizablePanel defaultSize={50} minSize={40}>
-                      <div className="flex flex-col h-full bg-muted/40">
-                        <Suspense
-                          fallback={
-                            <div className="p-4">
-                              <Skeleton className="h-full w-full" />
-                            </div>
-                          }
-                        >
-                          <CourseCodeEditor
-                            coursePart={staticData.currentPart}
-                            userId={userId}
-                            initialCompletionStatus={initialCompletionStatus}
-                          />
-                        </Suspense>
-                      </div>
-                    </ResizablePanel>
-                  </ResizablePanelGroup>
-                </EditorStateProvider>
+    <CoursePartProvider part={staticData.currentPart}>
+      <TrackLastVisitedPart />
+      <div className="flex-1 overflow-hidden">
+        <EditorStateProvider initialLanguage={initialLanguage}>
+          <ResizablePanelGroup direction="horizontal">
+            <ResizablePanel defaultSize={50} minSize={40}>
+              <Part.content baseHref={baseHref} userId={userId} staticData={staticData}>
+                {children}
+              </Part.content>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={50} minSize={40}>
+              <div className="flex flex-col h-full bg-muted/40">
+                <Suspense
+                  fallback={
+                    <div className="p-4">
+                      <Skeleton className="h-full w-full" />
+                    </div>
+                  }
+                >
+                  <CourseCodeEditor
+                    coursePart={staticData.currentPart}
+                    userId={userId}
+                    initialCompletionStatus={initialCompletionStatus}
+                  />
+                </Suspense>
               </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </EditorStateProvider>
+      </div>
 
-              <DynamicFooterWrapper userId={userId} staticData={staticData} />
+      <DynamicFooterWrapper userId={userId} staticData={staticData} />
 
-              <Suspense fallback={null}>
-                <DynamicSettingsBubbleWrapper userId={userId} partId={staticData.currentPart.id} />
-              </Suspense>
-            </div>
-          </SidebarInset>
-        </div>
-      </CoursePartProvider>
-    </SidebarProvider>
+      <Suspense fallback={null}>
+        <DynamicSettingsBubbleWrapper userId={userId} partId={staticData.currentPart.id} />
+      </Suspense>
+    </CoursePartProvider>
   )
 }
 

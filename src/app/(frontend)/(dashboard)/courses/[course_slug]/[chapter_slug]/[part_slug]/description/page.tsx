@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { PartHeader } from '../components/part-header'
 
-export const experimental_ppr = true
+export const revalidate = 3600
 
 const HeaderFallback = () => {
   return <Skeleton className="h-10 w-full mb-4" />
@@ -22,7 +22,6 @@ export default async function CoursePartDescriptionPage({
 }: {
   params: Promise<{ course_slug: string; chapter_slug: string; part_slug: string }>
 }) {
-  console.log('CoursePartDescriptionPage')
   const { course_slug, chapter_slug, part_slug } = await params
 
   const part = await getPartBySlug(course_slug, chapter_slug, part_slug)
