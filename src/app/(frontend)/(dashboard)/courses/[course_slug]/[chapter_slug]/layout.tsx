@@ -46,7 +46,7 @@ export default async function CourseChapterLayout({
     <SidebarProvider open={false}>
       <div className="flex h-screen min-h-0 min-w-0">
         <HomeSidebar defaultOpen={false} />
-        <SidebarInset className="flex-1 min-w-0">
+        <SidebarInset className="flex-1 min-w-0 min-h-0">
           <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
             <CoursePartMainHeader courseOutlineData={courseOutline} courseSlug={course_slug} />
             {children}

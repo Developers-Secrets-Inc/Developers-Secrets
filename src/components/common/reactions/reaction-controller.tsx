@@ -1,5 +1,5 @@
 'use client'
-import { useReaction } from '@/hooks/reactions/use-reaction' // Assure-toi que c'est le bon chemin
+import { usePartReaction } from '@/hooks/reactions/use-reaction' // Assure-toi que c'est le bon chemin
 import { GenericReactionButtons } from '@/components/common/reactions/reaction-buttons'
 import { Skeleton } from '@/components/ui/skeleton' // Import Skeleton
 
@@ -8,7 +8,7 @@ type ReactionStatus = 'liked' | 'disliked' | 'none'
 interface ReactionControllerProps {
   itemId: number
   itemType: 'coursePart' | 'challenge' // Gardé pour une éventuelle future généricité de l'action serveur
-  userId: string | null
+  userId: string
   initialUserReaction: ReactionStatus
   // Plus de compteurs initiaux
 }
@@ -21,24 +21,11 @@ export function ReactionController({
   // Plus de compteurs initiaux
 }: ReactionControllerProps) {
   // Call the hook unconditionally at the top
-  const reactionHook = useReaction({
-    itemId,
-    userId: userId ?? '',
+  const reactionHook = usePartReaction({
+    partId: itemId,
+    userId: userId,
     initialUserReaction: initialUserReaction,
   })
-
-  // Handle the case where user is not logged in *after* the hook call
-  if (!userId) {
-    return (
-      <GenericReactionButtons
-        userReaction={'none'} // Set a default state for logged out user
-        isLoading={true} // Disabled state
-        onLikeClick={() => {}}
-        onDislikeClick={() => {}}
-        error="Please log in to react"
-      />
-    )
-  }
 
   // Destructure state and actions after the userId check
   const { state, actions } = reactionHook

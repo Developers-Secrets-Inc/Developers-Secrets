@@ -91,6 +91,11 @@ export default async function ChallengeLayout({
     redirect('/auth/login?redirect=' + encodeURIComponent('/challenges/' + challenge_slug))
   }
 
+  // Restriction d'accès : seuls les admins peuvent accéder aux challenges en draft
+  if (challenge.draft && user.informations?.role !== 'admin') {
+    notFound()
+  }
+
   // Extraire les versions de code disponibles
   const availableLanguages =
     challenge.codeVersions?.map((version) => ({
@@ -131,7 +136,6 @@ export default async function ChallengeLayout({
   // Get user progression
   const initialStatus = await getUserCompletionStatus(user.id, challenge.id)
   const userRating = await getUserRating(user.id, challenge.id)
-
 
   return (
     <SidebarProvider open={false}>

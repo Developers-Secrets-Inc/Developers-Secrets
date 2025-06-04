@@ -69,6 +69,7 @@ import { ChallengeStatusProvider } from '@/core/challenges/components/challenge-
 import { useChallengeStatus } from '@/core/challenges/hooks/use-challenge-status'
 import { CompletionStatus } from '@/core/challenges/user-progression/types'
 import { ChallengeWithProgress } from '@/core/challenges'
+import { useSessionUser } from '@/core/user/hooks/use-user'
 
 const ChallengeStatusCell = () => {
   const { visualStatus } = useChallengeStatus()
@@ -122,6 +123,12 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
   })
 
   const { challenges, isLoading } = useChallenges()
+  const { user } = useSessionUser()
+
+  const filteredChallenges = useMemo(() => {
+    if (user?.informations?.role === 'admin') return challenges || []
+    return (challenges || []).filter((challenge) => !challenge.draft)
+  }, [challenges, user])
 
   const columns = useMemo<ColumnDef<ChallengeWithProgress>[]>(
     () => [
@@ -192,7 +199,7 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
   )
 
   const table = useReactTable({
-    data: challenges ?? [],
+    data: filteredChallenges ?? [],
     columns,
     state: {
       sorting,

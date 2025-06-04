@@ -1191,6 +1191,10 @@ export interface Challenge {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Indique si le challenge est en mode brouillon (draft)
+   */
+  draft?: boolean | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -3064,6 +3068,7 @@ export interface ChallengesSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  draft?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

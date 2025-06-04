@@ -730,6 +730,16 @@ export const Challenges: CollectionConfig = {
         },
       ],
     },
+    {
+      name: 'draft',
+      label: 'Draft',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        description: 'Indique si le challenge est en mode brouillon (draft)',
+        position: 'sidebar',
+      },
+    },
   ],
   timestamps: true, // Ajout automatique des champs createdAt et updatedAt
 }
