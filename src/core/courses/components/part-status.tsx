@@ -16,6 +16,8 @@ export const PartStatus = async ({ partId }: { partId: number }) => {
 
     const initialStatus = await getUserPartCompletionStatus(user.id, partId)
 
+    console.log(initialStatus)
+
     return <CoursePartStatusClient partId={partId} initialStatus={initialStatus} />
 }
 

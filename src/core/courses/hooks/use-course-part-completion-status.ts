@@ -47,8 +47,8 @@ export function useCoursePartCompletionStatus({
       queryFn: () => getUserPartCompletionStatus(userId, partId),
       initialData: defaultStatus,
       enabled: enabled && !!userId,
-      staleTime: 5 * 60 * 1000, // Exemple: 5 minutes
-      refetchOnWindowFocus: true,
+      staleTime: 24 * 60 * 60 * 1000, // 24 heures
+      refetchOnWindowFocus: false,
     })
 
   // Mutation pour mettre à jour le statut

@@ -76,7 +76,12 @@ const LearningGroup = () => {
       <SidebarGroupLabel>Learning</SidebarGroupLabel>
       <SidebarMenu>
         <SidebarLink href="/home" text="Home" icon={<Home className="size-4" />} />
-        <SidebarLink href="/courses" text="Courses" icon={<Book className="size-4" />} />
+        <SidebarLink
+          href="#"
+          text="Courses"
+          icon={<Book className="size-4" />}
+          isComingSoon={true}
+        />
         <SidebarLink href="/challenges" text="Challenges" icon={<Trophy className="size-4" />} />
         <SidebarLink href="/skills" text="Skills" icon={<GitMerge className="size-4" />} />
       </SidebarMenu>

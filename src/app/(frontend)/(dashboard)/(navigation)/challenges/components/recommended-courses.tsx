@@ -28,97 +28,14 @@ function getDifficultyBadgeStyle(difficulty?: string) {
 }
 
 export function RecommendedCourses() {
-  const {
-    data: recommendedCourses,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ['recommended-courses'],
-    queryFn: getRecommendedCourses,
-  })
-
-  if (isLoading) return <RecommendedCoursesSkeleton />
-  if (isError || !recommendedCourses)
-    return (
-      <Card className="w-full">
-        <CardContent>
-          <div className="flex items-center mb-4">
-            <CardTitle className="text-lg font-semibold">Recommended Courses</CardTitle>
-            <Button asChild variant="outline" size="sm" className="ml-auto">
-              <Link href="/courses">See all</Link>
-            </Button>
-          </div>
-          <div className="text-center text-destructive py-8">Failed to load courses.</div>
-        </CardContent>
-      </Card>
-    )
-
   return (
     <Card className="w-full">
       <CardContent>
         <div className="flex items-center mb-4">
           <CardTitle className="text-lg font-semibold">Recommended Courses</CardTitle>
-          <Button asChild variant="outline" size="sm" className="ml-auto">
-            <Link href="/courses">See all</Link>
-          </Button>
         </div>
-        <div className="grid grid-cols-3 gap-4">
-          {recommendedCourses.map((course: CourseWithStartUrl) => {
-            const isLocked = !course.orderedChapters || course.orderedChapters.length === 0
-            const cardContent = (
-              <Card className="relative flex flex-col items-stretch p-0 h-full">
-                <CardContent className="flex flex-col justify-between h-full p-3 pb-4">
-                  <div className="flex items-start justify-between w-full mb-2 relative">
-                    <div className="flex items-center justify-center w-10 h-10">
-                      <PythonLogoIcon className="w-7 h-7" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {isLocked && <LockIcon className="h-4 w-4 text-muted-foreground" />}
-                      {course.difficulty && (
-                        <Badge
-                          className={
-                            getDifficultyBadgeStyle(course.difficulty) +
-                            ' absolute top-0 right-0 mt-1 mr-1'
-                          }
-                          variant="secondary"
-                          style={{ zIndex: 1 }}
-                        >
-                          {course.difficulty.charAt(0).toUpperCase() + course.difficulty.slice(1)}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-start w-full mt-2">
-                    <span
-                      className="font-medium text-base leading-tight truncate w-full"
-                      title={course.name}
-                    >
-                      {course.name}
-                    </span>
-                    <CardDescription
-                      className="truncate text-xs w-full mt-1"
-                      title={course.description || undefined}
-                    >
-                      {course.description || 'No description provided.'}
-                    </CardDescription>
-                  </div>
-                  {isLocked ? (
-                    <Button size="sm" variant="outline" className="mt-3 w-full" disabled>
-                      Locked
-                    </Button>
-                  ) : (
-                    <Button asChild size="sm" variant="outline" className="mt-3 w-full">
-                      <Link href={course.startUrl ?? `/courses/${course.slug}`}>Start</Link>
-                    </Button>
-                  )}
-                </CardContent>
-                {isLocked && (
-                  <div className="absolute inset-0 bg-background/60 rounded-lg z-10 pointer-events-none" />
-                )}
-              </Card>
-            )
-            return cardContent
-          })}
+        <div className="text-center text-muted-foreground py-8">
+          Our training courses will be available very soon. Stay tuned!
         </div>
       </CardContent>
     </Card>
