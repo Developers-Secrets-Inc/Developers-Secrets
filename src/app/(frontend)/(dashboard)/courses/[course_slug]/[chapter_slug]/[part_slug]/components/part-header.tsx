@@ -1,13 +1,15 @@
-import { CoursePart } from '@/payload-types'
-import { CoursePartStatus, PartStatusSkeleton } from '@/core/courses/components/part-status'
-import React, { Suspense } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import { FeedbackButton } from '@/core/courses/components/feedback-button'
 import { PartSkillsTags, PartSkillsTagsSkeleton } from '@/core/courses/components/part-skills-tags'
+import { PartStatus, PartStatusSkeleton } from '@/core/courses/components/part-status'
+import { cn } from '@/lib/utils'
+import { CoursePart } from '@/payload-types'
+import React, { Suspense } from 'react'
+
+type Difficulty = 'easy' | 'medium' | 'hard' | 'horrible'
 
 // Style mapping for difficulty badges
-const difficultyStyles: Record<string, string> = {
+const difficultyStyles: Record<Difficulty, string> = {
   easy: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
   medium: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
   hard: 'bg-red-500/10 text-red-500 border-red-500/20',
@@ -15,70 +17,81 @@ const difficultyStyles: Record<string, string> = {
 }
 
 // XP Multiplier mapping
-const difficultyXpMultiplier: Record<string, number> = {
+const difficultyXpMultiplier: Record<Difficulty, number> = {
   easy: 1,
   medium: 2,
   hard: 3,
   horrible: 4,
 }
 
+const calculateExperience = (difficulty: Difficulty): number => {
+  return 50 * difficultyXpMultiplier[difficulty]
+}
+
 // Style for XP badge
 const xpBadgeStyle = 'bg-teal-500/10 text-teal-400 border-teal-500/20'
 
-const PartTitle = ({ title, difficulty }: { title: string; difficulty?: string | null }) => {
-  const difficultyStyle = difficulty ? difficultyStyles[difficulty] : ''
-  const difficultyLabel = difficulty ? difficulty.charAt(0).toUpperCase() + difficulty.slice(1) : ''
-  const xp = difficulty ? 50 * (difficultyXpMultiplier[difficulty] || 1) : 0 // Calculate XP
+// Ajout de la nouvelle structure de composants dans un objet Part
+export const PartTitle = ({ title }: { title: string }) => (
+  <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+)
 
+export const PartDifficulty = ({ difficulty }: { difficulty: Difficulty }) => {
+  const difficultyStyle = difficultyStyles[difficulty]
+  const difficultyLabel = difficulty.charAt(0).toUpperCase() + difficulty.slice(1)
   return (
-    <div className="flex flex-col items-start gap-2">
-      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-      {(difficulty || xp > 0) && ( // Show badges container if difficulty or XP exists
-        <div className="flex items-center gap-2">
-          {' '}
-          {/* Container for badges */}
-          {difficulty && difficultyLabel && (
-            <Badge variant="outline" className={cn('capitalize', difficultyStyle)}>
-              {difficultyLabel}
-            </Badge>
-          )}
-          {xp > 0 && (
-            <Badge variant="outline" className={cn(xpBadgeStyle)}>
-              {' '}
-              {/* XP Badge with new style and text */}
-              {xp}XP
-            </Badge>
-          )}
-        </div>
-      )}
-    </div>
+    <Badge variant="outline" className={cn('capitalize', difficultyStyle)}>
+      {difficultyLabel}
+    </Badge>
   )
 }
 
-interface PartHeaderProps {
-  part: CoursePart
-  userId: string | null
+export const PartExperience = ({ difficulty }: { difficulty: Difficulty }) => {
+  const xp = calculateExperience(difficulty)
+  return (
+    <Badge variant="outline" className={cn(xpBadgeStyle)}>
+      {xp}XP
+    </Badge>
+  )
 }
 
-export const PartHeader = ({ part, userId }: PartHeaderProps) => {
+export const PartHero = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex flex-col items-start gap-2">{children}</div>
+)
+
+export const PartHeaderContainer = ({ children }: { children: React.ReactNode }) => (
+  <div className="mb-6 border-b pb-4">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+      {children}
+    </div>
+  </div>
+)
+
+// Modification de PartHeader pour utiliser la nouvelle structure
+export const PartHeader = ({ part }: { part: CoursePart }) => {
   return (
-    <div className="mb-6 border-b pb-4">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-        <PartTitle title={part.name} difficulty={part.difficulty} />
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-2">
-            <Suspense fallback={<PartStatusSkeleton />}>
-              <CoursePartStatus partId={part.id} />
-            </Suspense>
-            <FeedbackButton partId={part.id} partName={part.name} userId={userId} />
-          </div>
-          <div className="flex items-center gap-2">
-            <Suspense fallback={<PartSkillsTagsSkeleton />}>
-              <PartSkillsTags part={part} />
-            </Suspense>
-          </div>
+    <PartHeaderContainer>
+      <PartHero>
+        <PartTitle title={part.name} />
+        <div className="flex items-center gap-2">
+          <PartDifficulty difficulty={part.difficulty as Difficulty} />
+          <PartExperience difficulty={part.difficulty as Difficulty} />
+        </div>
+      </PartHero>
+      <div className="flex flex-col items-end gap-1">
+        <div className="flex items-center gap-2">
+          <Suspense fallback={<PartStatusSkeleton />}>
+            <PartStatus partId={part.id} />
+          </Suspense>
+
+          <FeedbackButton partId={part.id} partName={part.name} />
+        </div>
+        <div className="flex items-center gap-2">
+          <Suspense fallback={<PartSkillsTagsSkeleton />}>
+            <PartSkillsTags part={part} />
+          </Suspense>
         </div>
       </div>
-    </div>
+    </PartHeaderContainer>
   )
 }

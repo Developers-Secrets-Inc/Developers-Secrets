@@ -428,6 +428,7 @@ export interface ChallengeWithProgress {
   baseExperience: number
   slug: string
   status: 'not_started' | 'in_progress' | 'completed'
+  draft?: boolean
 }
 
 // Define the pagination structure directly

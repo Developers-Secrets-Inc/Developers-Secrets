@@ -18,6 +18,15 @@ export const Tutorials: CollectionConfig = {
       required: true,
     },
     {
+      name: 'slug',
+      label: 'Slug',
+      type: 'text',
+      required: true,
+      admin: {
+        description: 'URL-friendly identifier for this tutorial. Will be used in the URL.',
+      },
+    },
+    {
       name: 'description',
       label: 'Description',
       type: 'textarea',

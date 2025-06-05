@@ -1,5 +1,3 @@
-'use client'
-
 import {
   BookOpen,
   ChevronsUpDown,
@@ -18,40 +16,50 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
+import {
+  getFirstTutorialArticle,
+  getFirstExampleArticle,
+  getFirstTutorialReferenceArticle,
+} from '@/core/articles/index-v2'
 
 interface ArticlesSwitcherProps {
-  currentArticleType: 'tutorial' | 'examples' | 'references'
   tutorialSlug: string
   tutorialTitle: string
 }
 
-export const ArticlesSwitcher = ({
+export const ArticlesSwitcher = async ({
   tutorialSlug,
-  currentArticleType,
   tutorialTitle,
 }: ArticlesSwitcherProps) => {
+  // Fetch first articles for each section
+  const [firstTutorialArticle, firstExampleArticle, firstReferenceArticle] = await Promise.all([
+    getFirstTutorialArticle(tutorialSlug),
+    getFirstExampleArticle(tutorialSlug),
+    getFirstTutorialReferenceArticle(tutorialSlug),
+  ])
+
   // Define the menu items with their properties
   const menuItems = [
-    {
+    firstTutorialArticle && {
       type: 'tutorial',
       icon: BookOpen,
       title: 'Tutorial',
       description: 'Learn step by step',
-      href: `/articles/${tutorialSlug}`,
+      href: `/articles/${tutorialSlug}/${firstTutorialArticle.slug}`,
     },
-    {
+    firstExampleArticle && {
       type: 'examples',
       icon: Code2,
       title: 'Examples',
       description: 'View example projects',
-      href: `/articles/${tutorialSlug}/examples`,
+      href: `/articles/${tutorialSlug}/examples/${firstExampleArticle.slug}`,
     },
-    {
+    firstReferenceArticle && {
       type: 'references',
       icon: FileText,
       title: 'References',
       description: 'API documentation',
-      href: `/articles/${tutorialSlug}/references`,
+      href: `/articles/${tutorialSlug}/references/${firstReferenceArticle.slug}`,
     },
     {
       type: 'compiler',
@@ -62,13 +70,7 @@ export const ArticlesSwitcher = ({
       href: '#',
       disabled: true,
     },
-  ]
-
-  // Reorder items to put the current type at the top
-  const orderedMenuItems = [
-    ...menuItems.filter((item) => item.type === currentArticleType),
-    ...menuItems.filter((item) => item.type !== currentArticleType),
-  ]
+  ].filter(Boolean)
 
   return (
     <SidebarMenu>
@@ -97,7 +99,7 @@ export const ArticlesSwitcher = ({
             avoidCollisions={false}
             style={{ width: 'var(--radix-dropdown-menu-trigger-width)' }}
           >
-            {orderedMenuItems.map((item) => (
+            {menuItems.map((item) => (
               <DropdownMenuItem
                 key={item.type}
                 className={`flex items-start gap-3 rounded-lg bg-background hover:bg-muted px-3 py-2 ${item.disabled ? 'opacity-70 cursor-not-allowed' : ''}`}

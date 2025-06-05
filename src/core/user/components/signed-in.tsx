@@ -17,3 +17,14 @@ export const RedirectIfSignedIn = async ({children, redirectTo}: RedirectIfSigne
 
     return children
 }
+
+
+export const RedirectIfNotSignedIn = async ({children, redirectTo}: RedirectIfSignedInProps) => {
+    const user = await getUser()
+
+    if (!user) {
+        return redirect(redirectTo || "/")
+    }
+
+    return children
+}

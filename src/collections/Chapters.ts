@@ -9,6 +9,24 @@ export const Chapters: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: () => {
+      if (process.env.NODE_ENV === 'development') {
+        return true
+      }
+      return false
+    },
+    update: () => {
+      if (process.env.NODE_ENV === 'development') {
+        return true
+      }
+      return false
+    },
+    delete: () => {
+      if (process.env.NODE_ENV === 'development') {
+        return true
+      }
+      return false
+    },
   },
   fields: [
     {

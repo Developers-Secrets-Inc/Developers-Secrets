@@ -23,7 +23,7 @@ import { ChallengeNavigation } from '@/core/challenges/components/navigation/cha
 import { User } from '@/types/user'
 import { notFound, redirect } from 'next/navigation'
 import { Challenge as PayloadChallenge } from '@/payload-types'
-
+import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
@@ -42,9 +42,9 @@ const ChallengeLayoutHeader = ({
     <header className="flex-none py-3 px-4 bg-background">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-4">
-          <Link href="/" prefetch={true}>
+          {/* <Link href="/" prefetch={true}>
             <Eclipse size={23} />
-          </Link>
+          </Link> */}
           <div className="inline-flex -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
             <ChallengeNavigationButtons currentChallengeSlug={challengeSlug} />
           </div>
@@ -91,6 +91,11 @@ export default async function ChallengeLayout({
     redirect('/auth/login?redirect=' + encodeURIComponent('/challenges/' + challenge_slug))
   }
 
+  // Restriction d'accès : seuls les admins peuvent accéder aux challenges en draft
+  if (challenge.draft && user.informations?.role !== 'admin') {
+    notFound()
+  }
+
   // Extraire les versions de code disponibles
   const availableLanguages =
     challenge.codeVersions?.map((version) => ({
@@ -133,17 +138,14 @@ export default async function ChallengeLayout({
   const userRating = await getUserRating(user.id, challenge.id)
 
   return (
-    // <SidebarProvider>
     <ChallengeProvider challenge={challenge}>
       <ChallengeStatusProvider
         challengeId={challenge.id}
         userId={user.id}
         initialStatus={initialStatus}
       >
-        <div className="flex h-screen">
-          {/* <IconSidebar /> */}
-          {/* <SidebarInset> */}
-          <div className="flex flex-col h-full w-[calc(100vw)]">
+        <div className="flex h-screen min-h-0">
+          <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
             <ChallengeLayoutHeader
               challengeSlug={challenge_slug}
               challengeId={challenge.id}
@@ -197,10 +199,8 @@ export default async function ChallengeLayout({
               </ChallengeEditorProvider>
             </div>
           </div>
-          {/* </SidebarInset> */}
         </div>
       </ChallengeStatusProvider>
     </ChallengeProvider>
-    // </SidebarProvider>
   )
 }

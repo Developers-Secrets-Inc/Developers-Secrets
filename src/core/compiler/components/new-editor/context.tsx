@@ -25,7 +25,6 @@ export interface GenericCodeEditorContextType {
   availableLanguages: ProgrammingLanguage[]
   readOnly: boolean
   theme: 'vs' | 'vs-dark' | 'hc-black'
-  showLanguageSelector: boolean
   editorRef: React.MutableRefObject<any | null>
 
   // Handlers

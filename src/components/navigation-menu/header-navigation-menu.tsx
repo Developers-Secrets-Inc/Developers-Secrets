@@ -39,7 +39,7 @@ interface CategoryItem {
 const tutorialCategories: CategoryItem[] = [
   {
     title: 'Python',
-    href: '/articles/python',
+    href: '/articles/python/variables',
     description: 'Learn Python programming from basics to advanced concepts.',
     icon: <Terminal className="h-5 w-5" />,
     isNew: true,

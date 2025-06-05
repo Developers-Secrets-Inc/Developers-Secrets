@@ -13,6 +13,7 @@ import {
   getUserChapterCompletionStatus,
   CompletionStatus,
 } from './progression/completion-status'
+import { unstable_cache } from 'next/cache'
 
 export const getPartById = async (partId: number): Promise<CoursePart> => {
   const payload = await getPayload({ config })
@@ -230,109 +231,152 @@ export type CoursePartStaticData = {
  * Fetches all necessary static (non-user-specific) data for the course part layout.
  * Calls notFound() if essential resources are missing.
  */
-export const getCoursePartStaticData = async (
-  courseSlug: string,
-  chapterSlug: string,
-  partSlug: string,
-): Promise<CoursePartStaticData> => {
-  const payload = await getPayload({ config })
-  let course: Course
-  let currentChapter: Chapter
-  let currentPart: CoursePart
+export const getCoursePartStaticData = unstable_cache(
+  async (
+    courseSlug: string,
+    chapterSlug: string,
+    partSlug: string,
+  ): Promise<CoursePartStaticData> => {
+    const payload = await getPayload({ config })
+    let course: Course
+    let currentChapter: Chapter
+    let currentPart: CoursePart
 
-  // 1. Fetch Course, Chapter, Part (handle notFound)
-  try {
-    const courseResult = await payload.find({
-      collection: 'courses',
-      where: { slug: { equals: courseSlug } },
-      limit: 1,
-      depth: 2, // Fetch chapters and potentially their first parts
-    })
-    if (!courseResult.docs[0]) throw new Error('Course not found')
-    course = courseResult.docs[0]
-  } catch (error) {
-    console.error(`Error fetching course ${courseSlug}:`, error)
-    notFound()
-  }
+    // 1. Fetch Course, Chapter, Part (handle notFound)
+    try {
+      const courseResult = await payload.find({
+        collection: 'courses',
+        where: { slug: { equals: courseSlug } },
+        limit: 1,
+        depth: 2, // Fetch chapters and potentially their first parts
+      })
+      if (!courseResult.docs[0]) throw new Error('Course not found')
+      course = courseResult.docs[0]
+    } catch (error) {
+      console.error(`Error fetching course ${courseSlug}:`, error)
+      notFound()
+    }
 
-  try {
-    currentChapter = await getChapterBySlug(courseSlug, chapterSlug)
-  } catch (error) {
-    console.error(`Error fetching chapter ${chapterSlug} in course ${courseSlug}:`, error)
-    notFound()
-  }
+    try {
+      currentChapter = await getChapterBySlug(courseSlug, chapterSlug)
+    } catch (error) {
+      console.error(`Error fetching chapter ${chapterSlug} in course ${courseSlug}:`, error)
+      notFound()
+    }
 
-  try {
-    currentPart = await getPartBySlug(courseSlug, chapterSlug, partSlug)
-  } catch (error) {
-    console.error(`Error fetching part ${partSlug} in chapter ${chapterSlug}:`, error)
-    notFound()
-  }
+    try {
+      currentPart = await getPartBySlug(courseSlug, chapterSlug, partSlug)
+    } catch (error) {
+      console.error(`Error fetching part ${partSlug} in chapter ${chapterSlug}:`, error)
+      notFound()
+    }
 
-  // 2. Fetch Navigation Parts
-  const navigationParts = await getNavigationParts(courseSlug, chapterSlug, partSlug)
+    // 2. Fetch Navigation Parts
+    const navigationParts = await getNavigationParts(courseSlug, chapterSlug, partSlug)
 
-  // 3. Build Static Course Outline
-  const courseOutlineStatic: CourseOutlineStaticData = await Promise.all(
-    (course.orderedChapters || []).map(async (chapRef: number | Chapter) => {
-      const chapter = typeof chapRef === 'number' ? await getChapterById(chapRef) : chapRef
-      if (!chapter) return null
+    // 3. Build Static Course Outline
+    const courseOutlineStatic: CourseOutlineStaticData = await Promise.all(
+      (course.orderedChapters || []).map(async (chapRef: number | Chapter) => {
+        const chapter = typeof chapRef === 'number' ? await getChapterById(chapRef) : chapRef
+        if (!chapter) return null
 
-      const resolvedParts = await Promise.all(
-        (chapter.parts || []).map(async (partRef) => {
-          const part =
-            typeof partRef === 'number' ? await getPartById(partRef) : (partRef as CoursePart)
-          return part ? { id: part.id, name: part.name, slug: part.slug } : null
-        }),
-      ).then((parts) =>
-        parts.filter((p): p is { id: number; name: string; slug: string } => p !== null),
-      )
+        const resolvedParts = await Promise.all(
+          (chapter.parts || []).map(async (partRef) => {
+            const part =
+              typeof partRef === 'number' ? await getPartById(partRef) : (partRef as CoursePart)
+            return part ? { id: part.id, name: part.name, slug: part.slug } : null
+          }),
+        ).then((parts) =>
+          parts.filter((p): p is { id: number; name: string; slug: string } => p !== null),
+        )
 
-      return {
-        chapterId: chapter.id,
-        chapterSlug: chapter.slug,
-        chapterName: chapter.name,
-        parts: resolvedParts,
-        requiredChapters: chapter.requiredChapters || [],
-        status: 'not_started' as CompletionStatus,
-      }
-    }),
-  ).then((chapters) => chapters.filter((c): c is Exclude<typeof c, null> => c !== null))
-
-  // 4. Build Static Footer Parts Data
-  const chapterPartsForFooterStatic: FooterPartStaticData[] = await Promise.all(
-    (currentChapter.parts || []).map(async (partRef) => {
-      if (typeof partRef === 'number') {
-        try {
-          const part = await getPartById(partRef)
-          return { id: part.id, name: part.name, slug: part.slug }
-        } catch {
-          return null
+        return {
+          chapterId: chapter.id,
+          chapterSlug: chapter.slug,
+          chapterName: chapter.name,
+          parts: resolvedParts,
+          requiredChapters: chapter.requiredChapters || [],
+          status: 'not_started' as CompletionStatus,
         }
-      }
-      // Ensure partRef is a CoursePart object before accessing properties
-      if (
-        typeof partRef === 'object' &&
-        partRef !== null &&
-        'id' in partRef &&
-        'name' in partRef &&
-        'slug' in partRef
-      ) {
-        return { id: partRef.id, name: partRef.name, slug: partRef.slug } as FooterPartStaticData
-      }
-      return null
-    }),
-  ).then((parts) => parts.filter((p): p is FooterPartStaticData => p !== null))
+      }),
+    ).then((chapters) => chapters.filter((c): c is Exclude<typeof c, null> => c !== null))
 
-  return {
-    course,
-    currentChapter,
-    currentPart,
-    navigationParts,
-    courseOutlineStatic,
-    chapterPartsForFooterStatic,
-  }
-}
+    // 4. Build Static Footer Parts Data
+    const chapterPartsForFooterStatic: FooterPartStaticData[] = await Promise.all(
+      (currentChapter.parts || []).map(async (partRef) => {
+        if (typeof partRef === 'number') {
+          try {
+            const part = await getPartById(partRef)
+            return { id: part.id, name: part.name, slug: part.slug }
+          } catch {
+            return null
+          }
+        }
+        // Ensure partRef is a CoursePart object before accessing properties
+        if (
+          typeof partRef === 'object' &&
+          partRef !== null &&
+          'id' in partRef &&
+          'name' in partRef &&
+          'slug' in partRef
+        ) {
+          return { id: partRef.id, name: partRef.name, slug: partRef.slug } as FooterPartStaticData
+        }
+        return null
+      }),
+    ).then((parts) => parts.filter((p): p is FooterPartStaticData => p !== null))
+
+    return {
+      course,
+      currentChapter,
+      currentPart,
+      navigationParts,
+      courseOutlineStatic,
+      chapterPartsForFooterStatic,
+    }
+  },
+  ['getCoursePartStaticData'],
+  { revalidate: 3600 }
+)
+
+export const getCourseStaticOutline = unstable_cache(
+  async (
+    courseSlug: string,
+  ): Promise<CourseOutlineStaticData> => {
+    const course = await getCourseBySlug(courseSlug)
+    if (!course) {
+      throw new Error(`Course "${courseSlug}" not found.`)
+    }
+    const courseOutlineStatic: CourseOutlineStaticData = await Promise.all(
+      (course.orderedChapters || []).map(async (chapRef: number | Chapter) => {
+        const chapter = typeof chapRef === 'number' ? await getChapterById(chapRef) : chapRef
+        if (!chapter) return null
+
+        const resolvedParts = await Promise.all(
+          (chapter.parts || []).map(async (partRef) => {
+            const part =
+              typeof partRef === 'number' ? await getPartById(partRef) : (partRef as CoursePart)
+            return part ? { id: part.id, name: part.name, slug: part.slug } : null
+          }),
+        ).then((parts) =>
+          parts.filter((p): p is { id: number; name: string; slug: string } => p !== null),
+        )
+
+        return {
+          chapterId: chapter.id,
+          chapterSlug: chapter.slug,
+          chapterName: chapter.name,
+          parts: resolvedParts,
+          requiredChapters: chapter.requiredChapters || [],
+          status: 'not_started' as CompletionStatus,
+        }
+      }),
+    ).then((chapters) => chapters.filter((c): c is Exclude<typeof c, null> => c !== null))
+    return courseOutlineStatic
+  },
+  ['getCourseStaticOutline'],
+  { revalidate: 3600 }
+)
 
 // --- NEW DYNAMIC DATA FETCHING FUNCTIONS ---
 

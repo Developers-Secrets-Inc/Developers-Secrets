@@ -6,17 +6,18 @@ import { MoreVertical } from 'lucide-react'
 import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import { FeedbackDialog } from './feedback-dialog' // Assuming it's in the same directory
+import { useSessionUser } from '@/core/user/hooks/use-user'
 
 interface FeedbackButtonProps {
   partId: number
   partName: string
-  userId: string | null
 }
 
-export function FeedbackButton({ partId, partName, userId }: FeedbackButtonProps) {
+export function FeedbackButton({ partId, partName }: FeedbackButtonProps) {
+  const user = useSessionUser()
+  const userId = user.user?.id
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false)
 
-  // Don't render the button at all if user is not logged in
   if (!userId) {
     return null
   }
@@ -48,8 +49,10 @@ export function FeedbackButton({ partId, partName, userId }: FeedbackButtonProps
         onOpenChange={setIsFeedbackDialogOpen}
         partId={partId}
         partName={partName}
-        userId={userId} // userId is guaranteed non-null here due to the check above
+        userId={userId}
       />
     </>
   )
 }
+
+

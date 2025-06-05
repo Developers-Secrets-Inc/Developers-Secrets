@@ -1,0 +1,101 @@
+---
+title: Notifications
+---
+
+# Notification System – Developer Documentation
+
+## 1. Overview
+
+The notification system is designed to inform users in real time (or near real time) about important events (achievements, alerts, etc.). It is based on:
+- **Server functions** to create, read, and update notifications (Payload CMS).
+- A **NotificationProvider** (React Context) on the client side to centralize fetching, mutating, and distributing notifications throughout the app.
+- A **hook** (`useNotifications`) to easily access state and actions from any component.
+- One or more **UI components** (e.g., button, badge, history) that consume this context.
+
+---
+
+## 2. Main Server Functions
+
+### a) `createNotification(input)`
+Creates a notification for a given user. Used for important events (level up, message, etc.).
+
+### b) `getNotifications(userId)`
+Fetches all notifications (or only unread ones) for a user. Can be paginated/filtered.
+
+### c) `getReadNotifications({ userId, page, limit })`
+Fetches the paginated history of read notifications for a user.
+
+### d) `setIsRead(notificationId, userId)`
+Marks a notification as read (secured: only modifies notifications belonging to the current user).
+
+### e) `setAllNotificationsAsRead(userId)`
+Marks all notifications for the user as read.
+
+---
+
+## 3. NotificationProvider (React Context)
+
+The `NotificationProvider` centralizes client-side logic:
+- Fetches notifications via React Query (polling or manual refetch).
+- Exposes state (notifications, unread count, loading, error).
+- Exposes actions (markAsRead, markAllAsRead, refetch).
+
+### Provider API
+```typescript
+const { notifications, unreadCount, isLoading, isError, markAsRead, markAllAsRead, refetch } = useNotifications()
+```
+
+- **notifications**: list of notifications for the current user
+- **unreadCount**: number of unread notifications (for the badge)
+- **isLoading / isError**: loading/error states
+- **markAsRead(id)**: marks a notification as read
+- **markAllAsRead()**: marks all notifications as read
+- **refetch()**: forces immediate fetching of notifications
+
+### Integration
+The Provider should be added to the global hierarchy (e.g., in `src/components/providers.tsx`):
+```tsx
+<NotificationProvider>
+  {children}
+</NotificationProvider>
+```
+
+---
+
+## 4. Usage in Components
+
+### a) Accessing the context
+In any component that is a child of the Provider:
+```tsx
+import { useNotifications } from '@/core/notifications/notification-provider'
+
+const { notifications, unreadCount, markAsRead, markAllAsRead, refetch } = useNotifications()
+```
+
+### b) Example integration (notification button)
+- Display the badge: `unreadCount`
+- Display the list: `notifications`
+- Mark as read: `markAsRead(id)`
+- Paginated history: use `getReadNotifications({ userId, ... })` with React Query
+
+### c) Refresh after an action
+After an action that creates a notification on the server (e.g., XP gain), call `refetch()` to display the notification without waiting for polling.
+
+---
+
+## 5. Security & Best Practices
+- Always filter server requests by `userId`.
+- Never expose notifications from other users.
+- Centralize logic in the Provider to avoid duplication.
+- Use polling or manual refetch depending on UX needs.
+
+---
+
+## 6. Future Improvements / Possible Evolutions
+- Add filters by type/importance
+- Support for real-time push (WebSocket/SSE) if needed
+- Pagination in the Provider
+
+---
+
+**For any questions or changes, refer to this document and the roadmap in `docs/documents/notifications.md`.** 

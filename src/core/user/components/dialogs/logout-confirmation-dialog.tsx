@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { logoutSessionUser } from '@/core/user/auth'
 import { redirect } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 
 type LogoutConfirmationDialogProps = {
   showLogoutDialog: boolean
@@ -21,9 +22,12 @@ export const LogoutConfirmationDialog = ({
   showLogoutDialog,
   setShowLogoutDialog,
 }: LogoutConfirmationDialogProps) => {
+  const queryClient = useQueryClient()
+
   const handleLogout = async () => {
     await logoutSessionUser()
     setShowLogoutDialog(false)
+    await queryClient.invalidateQueries({ queryKey: ['sessionUser'] })
     redirect('/')
   }
 

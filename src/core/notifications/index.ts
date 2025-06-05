@@ -48,8 +48,16 @@ export const getNotification = async (id: number): Promise<Notification> => {
   return notification
 }
 
-export const setIsRead = async (id: number): Promise<void> => {
+export const setIsRead = async (id: number, userId: string): Promise<void> => {
   const payload = await getPayload({ config })
+
+  const notification = await payload.findByID({
+    collection: 'notifications',
+    id,
+  })
+  if (!notification || notification.userId !== userId) {
+    throw new Error('Unauthorized: Notification does not belong to this user.')
+  }
 
   await payload.update({
     collection: 'notifications',
@@ -60,7 +68,7 @@ export const setIsRead = async (id: number): Promise<void> => {
   })
 }
 
-export const setAllNotificationsAsRead = async (): Promise<void> => {
+export const setAllNotificationsAsRead = async (userId: string): Promise<void> => {
   const payload = await getPayload({ config })
 
   await payload.update({
@@ -72,19 +80,24 @@ export const setAllNotificationsAsRead = async (): Promise<void> => {
       isRead: {
         equals: false,
       },
+      userId: {
+        equals: userId,
+      },
     },
   })
 }
 
 type PaginationParams = {
+  userId: string
   page?: number
   limit?: number
 }
 
 export const getReadNotifications = async ({
+  userId,
   page = 1,
   limit = 5,
-}: PaginationParams = {}): Promise<{
+}: PaginationParams): Promise<{
   docs: Notification[]
   totalDocs: number
   currentPage: number
@@ -96,6 +109,9 @@ export const getReadNotifications = async ({
     where: {
       isRead: {
         equals: true,
+      },
+      userId: {
+        equals: userId,
       },
     },
     sort: '-createdAt',

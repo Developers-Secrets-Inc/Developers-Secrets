@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge'
 import { HelpCircle } from 'lucide-react'
 import { PassiveBoostDisplay } from '@/core/gamification/effects/components/passive-boost-display'
 import { SupportDialog } from '@/components/support-dialog'
+import { HiddenOnIconSidebar } from '@/components/common/hidden-on-icon-sidebar'
 
 interface HomeSidebarFooterProps {
   activeEffect: ActiveEffectType | null
@@ -59,14 +60,16 @@ export const HomeSidebarFooter = ({
   return (
     <SidebarFooter>
       <SidebarMenu>
-        {shouldShowActive ? (
-          <ActiveEffectDisplay
-            activeEffect={activeEffect!}
-            passiveMultiplier={passiveXPMultiplier}
-          />
-        ) : shouldShowPassive ? (
-          <PassiveBoostDisplay multiplier={passiveXPMultiplier} />
-        ) : null}
+        <HiddenOnIconSidebar>
+          {shouldShowActive ? (
+            <ActiveEffectDisplay
+              activeEffect={activeEffect!}
+              passiveMultiplier={passiveXPMultiplier}
+            />
+          ) : shouldShowPassive ? (
+            <PassiveBoostDisplay multiplier={passiveXPMultiplier} />
+          ) : null}
+        </HiddenOnIconSidebar>
         <SidebarMenuItem>
           <SidebarMenuButton asChild className="cursor-pointer">
             <button onClick={() => setFeedbackOpen(true)} className="flex justify-between w-full">
@@ -121,8 +124,9 @@ export const HomeSidebarFooter = ({
         onOpenChange={setSupportOpen}
         supportStatus={supportStatus}
       />
-
-      <ProCtaCard />
+      <HiddenOnIconSidebar>
+        <ProCtaCard />
+      </HiddenOnIconSidebar>
     </SidebarFooter>
   )
 }
