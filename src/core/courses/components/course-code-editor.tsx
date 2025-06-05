@@ -3,16 +3,13 @@
 import { CoursePart } from '@/payload-types'
 import { useCallback, useMemo, useState } from 'react'
 // Use the provider and namespace object for components
-import { compileCode } from '@/core/compiler'; // Import compileCode
+import { compileCode } from '@/core/compiler' // Import compileCode
 import { CodeEditorProvider, GenericCodeEditor } from '@/core/compiler/components/new-editor'
 import { ProgrammingLanguage } from '@/core/compiler/components/new-editor/context'
-import { Beaker, FileOutput } from 'lucide-react'; // Icons for tabs
+import { Beaker, FileOutput } from 'lucide-react' // Icons for tabs
 import { toast } from 'sonner'
 import { createCoursePartSubmission } from '../submissions/client-actions'
-import {
-  CoursePartTestResult,
-  runCoursePartTests
-} from '../submissions/testing.client'
+import { CoursePartTestResult, runCoursePartTests } from '../submissions/testing.client'
 // Import the hook and type
 import {
   CompletionStatus,
@@ -34,6 +31,66 @@ type CoursePartTest = {
   expectedOutput: string
 }
 
+const PassedTestDisplay = ({ result }: { result: CoursePartTestResult }) => {
+  return <div className="text-green-500 p-4">All {result.testsTotal} tests passed!</div>
+}
+
+const RuntimeErrorDisplay = ({
+  error,
+  failedTestInput,
+}: {
+  result: CoursePartTestResult
+  error: string
+  failedTestInput: string
+}) => {
+  return (
+    <div className="p-4 space-y-2">
+      <div className="text-red-500 font-medium">Runtime Error</div>
+      <pre className="text-xs bg-muted p-2 rounded">{error}</pre>
+      <div className="text-xs text-muted-foreground">Input that caused error:</div>
+      <pre className="text-xs bg-muted p-2 rounded">{failedTestInput}</pre>
+    </div>
+  )
+}
+
+const TimeLimitExceededDisplay = ({
+  failedTestInput,
+}: {
+  result: CoursePartTestResult
+  failedTestInput: string
+}) => {
+  return (
+    <div className="p-4 space-y-2">
+      <div className="text-red-500 font-medium">Time Limit Exceeded</div>
+      <div className="text-xs text-muted-foreground">Input that timed out:</div>
+      <pre className="text-xs bg-muted p-2 rounded">{failedTestInput}</pre>
+    </div>
+  )
+}
+
+const WrongAnswerDisplay = ({
+  input,
+  expectedOutput,
+  output,
+}: {
+  result: CoursePartTestResult
+  input: string
+  expectedOutput: string
+  output: string
+}) => {
+  return (
+    <div className="p-4 space-y-2">
+      <div className="text-orange-500 font-medium">Wrong Answer</div>
+      <div className="text-xs text-muted-foreground">Input:</div>
+      <pre className="text-xs bg-muted p-2 rounded">{input}</pre>
+      <div className="text-xs text-muted-foreground">Expected Output:</div>
+      <pre className="text-xs bg-green-500/10 p-2 rounded">{expectedOutput}</pre>
+      <div className="text-xs text-muted-foreground">Your Output:</div>
+      <pre className="text-xs bg-red-500/10 p-2 rounded">{output}</pre>
+    </div>
+  )
+}
+
 // Simple component to display test results
 const TestResultDisplay = ({ result }: { result: CoursePartTestResult | null }) => {
   if (!result) {
@@ -41,41 +98,31 @@ const TestResultDisplay = ({ result }: { result: CoursePartTestResult | null }) 
   }
 
   if (result.type === 'passed') {
-    return <div className="text-green-500 p-4">All {result.testsTotal} tests passed!</div>
+    return <PassedTestDisplay result={result} />
   }
 
   if (result.type === 'runtimeError') {
     return (
-      <div className="p-4 space-y-2">
-        <div className="text-red-500 font-medium">Runtime Error</div>
-        <pre className="text-xs bg-muted p-2 rounded">{result.error}</pre>
-        <div className="text-xs text-muted-foreground">Input that caused error:</div>
-        <pre className="text-xs bg-muted p-2 rounded">{result.failedTestInput}</pre>
-      </div>
+      <RuntimeErrorDisplay
+        result={result}
+        error={result.error}
+        failedTestInput={result.failedTestInput}
+      />
     )
   }
 
   if (result.type === 'timeLimitExceeded') {
-    return (
-      <div className="p-4 space-y-2">
-        <div className="text-red-500 font-medium">Time Limit Exceeded</div>
-        <div className="text-xs text-muted-foreground">Input that timed out:</div>
-        <pre className="text-xs bg-muted p-2 rounded">{result.failedTestInput}</pre>
-      </div>
-    )
+    return <TimeLimitExceededDisplay result={result} failedTestInput={result.failedTestInput} />
   }
 
   if (result.type === 'wrongAnswer') {
     return (
-      <div className="p-4 space-y-2">
-        <div className="text-orange-500 font-medium">Wrong Answer</div>
-        <div className="text-xs text-muted-foreground">Input:</div>
-        <pre className="text-xs bg-muted p-2 rounded">{result.input}</pre>
-        <div className="text-xs text-muted-foreground">Expected Output:</div>
-        <pre className="text-xs bg-green-500/10 p-2 rounded">{result.expectedOutput}</pre>
-        <div className="text-xs text-muted-foreground">Your Output:</div>
-        <pre className="text-xs bg-red-500/10 p-2 rounded">{result.output}</pre>
-      </div>
+      <WrongAnswerDisplay
+        result={result}
+        input={result.input}
+        expectedOutput={result.expectedOutput}
+        output={result.output}
+      />
     )
   }
 

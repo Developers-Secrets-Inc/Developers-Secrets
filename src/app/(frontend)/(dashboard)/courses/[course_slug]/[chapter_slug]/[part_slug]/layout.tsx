@@ -108,6 +108,8 @@ export default async function CoursePartLayout({
   const initialLanguage =
     staticData.currentPart?.challenges?.[0]?.languages?.[0]?.name?.toLowerCase() ?? 'javascript'
 
+  const initialCompletionStatus = await getUserPartCompletionStatus(userId, staticData.currentPart.id)
+
   return (
     <CoursePartProvider part={staticData.currentPart}>
       <TrackLastVisitedPart />
@@ -121,7 +123,11 @@ export default async function CoursePartLayout({
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={50} minSize={40} className="min-w-0 min-h-0">
-              <ChallengeIDE challenge={staticData.currentPart.challenges?.[0]} />
+              <CourseCodeEditor
+                coursePart={staticData.currentPart}
+                userId={userId}
+                initialCompletionStatus={initialCompletionStatus}
+              />
             </ResizablePanel>
           </ResizablePanelGroup>
         </EditorStateProvider>
