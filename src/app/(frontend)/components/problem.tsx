@@ -1,38 +1,47 @@
 import React from 'react'
+import { BookX, Code2, Users } from 'lucide-react'
 
 interface ProblemCardProps {
   title: string
   description: string
-  // icon?: React.ReactNode; // Optional: if you want to add icons later
+  icon: React.ReactNode
 }
 
-const ProblemCard: React.FC<ProblemCardProps> = ({ title, description }) => {
+const ProblemCard: React.FC<ProblemCardProps> = ({ title, description, icon }) => {
   return (
-    <article className="bg-card border border-muted p-6 rounded-lg shadow-lg flex flex-col items-center text-center">
-      {/* Optional: Icon can be placed here */}
-      <h3 className="text-xl font-semibold text-primary mb-3 mt-2">{title}</h3>
+    <article className="bg-card border border-muted p-6 rounded-lg shadow-lg flex flex-col items-start text-left">
+      <div className="bg-primary/10 p-3 rounded-lg mb-4">
+        {icon}
+      </div>
+      <h3 className="text-xl font-semibold text-primary mb-3">{title}</h3>
       <p className="text-card-foreground text-sm">{description}</p>
     </article>
   )
 }
 
 export const ProblemSection = () => {
-  const problems: ProblemCardProps[] = [
+  const problems: Omit<ProblemCardProps, 'icon'>[] = [
     {
-      title: 'Outdated Resources',
+      title: 'Outdated Learning Materials',
       description:
-        "Struggling with irrelevant or overly theoretical learning materials that don't reflect current industry practices.",
+        "Tired of sifting through obsolete tutorials and theoretical content that doesn't match today's tech landscape? Stay ahead with up-to-date, industry-relevant resources.",
     },
     {
-      title: 'Lack of Hands-On Practice',
+      title: 'Limited Practical Experience',
       description:
-        'Finding it hard to bridge the gap between theory and application without engaging, real-world coding exercises.',
+        'Theoretical knowledge alone won\'t make you job-ready. Build real-world applications and solve actual coding challenges to gain the hands-on experience employers value.',
     },
     {
-      title: 'Learning in Isolation',
+      title: 'Go Beyond Solo Learning',
       description:
-        'Missing the motivation, support, and valuable feedback that comes from being part of an active developer community.',
+        'Break free from isolation. Connect with a community of like-minded developers, exchange knowledge, and get the support you need to accelerate your growth.',
     },
+  ]
+
+  const icons = [
+    <BookX key="book-x" className="w-6 h-6 text-primary" />,
+    <Code2 key="code-2" className="w-6 h-6 text-primary" />,
+    <Users key="users" className="w-6 h-6 text-primary" />
   ]
 
   return (
@@ -48,11 +57,12 @@ export const ProblemSection = () => {
           </p>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {problems.map((problem) => (
+          {problems.map((problem, index) => (
             <ProblemCard
               key={`problem-${problem.title.toLowerCase().replace(/\s+/g, '-')}`}
               title={problem.title}
               description={problem.description}
+              icon={icons[index]}
             />
           ))}
         </div>

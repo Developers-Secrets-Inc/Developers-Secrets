@@ -23,6 +23,7 @@ import { ValuePropsSection } from './components/value-props-section'
 import { Footer7 } from './components/footer'
 import { ProblemSection } from './components/problem'
 import { GraphQLLogoIcon } from '@/components/icons/graphql-logo-icon'
+import CTA from './components/cta'
 
 export const metadata: Metadata = {
   title: 'Developers Secrets',
@@ -57,7 +58,7 @@ interface Hero32Props {
 
 const HeroSection = ({
   heading = "It's never been easier to become a fullstack developer",
-  description = 'Fully decomposable components, all the images and background patterns are individual images or svgs that can be replaced.',
+  description = 'Discover our interactive fullstack development learning platform. Master the most in-demand technologies through practical coding challenges and structured progression.',
   button = {
     text: 'Start Learning',
     url: '/auth/signup',
@@ -220,6 +221,7 @@ export default function Home() {
       {/* <Feature197 /> */}
       <ProblemSection />
       <ValuePropsSection />
+      <CTA />
       {/* <Footer7 /> */}
     </div>
   )
