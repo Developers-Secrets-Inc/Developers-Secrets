@@ -35,6 +35,7 @@ export const getCourses = async (): Promise<Course[]> => {
 
   const courses = await payload.find({
     collection: 'courses',
+    limit: 100,
   })
 
   return courses.docs
@@ -303,8 +304,12 @@ const ONE_HOUR = 60 * 60
 export const getRecommendedCourses = unstable_cache(
   async (): Promise<CourseWithStartUrl[]> => {
     const courses = await getCoursesWithStartUrl()
-    // Mélanger et prendre 3 cours aléatoires
-    const shuffled = [...courses].sort(() => 0.5 - Math.random())
+    // Filter out blocked courses (no orderedChapters or empty orderedChapters array)
+    const unblockedCourses = courses.filter(
+      (course) => course.orderedChapters && course.orderedChapters.length > 0,
+    )
+    // Shuffle and take up to 3 random courses
+    const shuffled = [...unblockedCourses].sort(() => 0.5 - Math.random())
     return shuffled.slice(0, 3)
   },
   ['recommended-courses'],

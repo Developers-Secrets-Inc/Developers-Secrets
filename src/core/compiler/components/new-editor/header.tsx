@@ -1,6 +1,5 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -10,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Loader2, Play, Send } from 'lucide-react'
+import React from 'react'
 import { PyodideLoadingStatus } from '../editor/pyodide-loading-status'
 import { useGenericCodeEditor } from './context'
 
@@ -22,7 +22,7 @@ export const LanguageSelector = ({ showLanguageSelector = true }: { showLanguage
     pyodideStatus,
   } = useGenericCodeEditor()
 
-  if (!showLanguageSelector) {
+  if (!showLanguageSelector || availableLanguages.length === 1) {
     const languageLabel =
       availableLanguages.find((lang) => lang.value === currentLanguage)?.label || currentLanguage
     return <span className="font-medium text-sm">{languageLabel}</span>
