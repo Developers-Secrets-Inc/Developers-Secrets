@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import { ChallengeCategories } from './components/challenge-categories'
 import { DivisionLeaderboardCard } from './components/challenges-leaderboard'
 import { ChallengesTable, TableSkeleton } from './components/challenges-table'
-import { RecommendedChallenge } from './components/recommended-challenge'
+import { RecommendedChallenge } from '@/core/challenges/recommended-challenge'
 import { UserProfile, UserProfileCardSkeleton } from './components/user-profile'
 // Remove Payload imports if no longer needed here
 // import { getPayload } from 'payload'
@@ -23,7 +23,7 @@ export default async function ChallengesPage() {
       <div className="flex-1 w-full h-[calc(100vh-4rem)] overflow-auto max-w-7xl px-4 mx-auto">
         <div className="flex gap-6 p-6 h-full">
           <div className="flex-1 flex flex-col gap-6 max-w-[800px]">
-            <RecommendedChallenge />
+            <RecommendedChallenge userId={user.id} />
             {/* {process.env.NODE_ENV === 'development' && <LearningPathCarousel />} */}
             <ChallengeCategories />
             <Suspense fallback={<TableSkeleton />}>

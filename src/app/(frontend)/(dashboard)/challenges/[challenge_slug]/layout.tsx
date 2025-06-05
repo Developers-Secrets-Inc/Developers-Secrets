@@ -138,74 +138,69 @@ export default async function ChallengeLayout({
   const userRating = await getUserRating(user.id, challenge.id)
 
   return (
-    <SidebarProvider open={false}>
-      <ChallengeProvider challenge={challenge}>
-        <ChallengeStatusProvider
-          challengeId={challenge.id}
-          userId={user.id}
-          initialStatus={initialStatus}
-        >
-          <div className="flex h-screen min-h-0">
-            <HomeSidebar defaultOpen={false} />
-            <SidebarInset>
-              <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
-                <ChallengeLayoutHeader
-                  challengeSlug={challenge_slug}
-                  challengeId={challenge.id}
-                  user={user}
-                />
+    <ChallengeProvider challenge={challenge}>
+      <ChallengeStatusProvider
+        challengeId={challenge.id}
+        userId={user.id}
+        initialStatus={initialStatus}
+      >
+        <div className="flex h-screen min-h-0">
+          <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
+            <ChallengeLayoutHeader
+              challengeSlug={challenge_slug}
+              challengeId={challenge.id}
+              user={user}
+            />
 
-                <div className="flex-1 overflow-hidden">
-                  <ChallengeEditorProvider
-                    initialLanguage={initialLanguage}
-                    initialCodePerLanguage={initialCodeVersions}
-                  >
-                    <ResizablePanelGroup direction="horizontal">
-                      <ResizablePanel defaultSize={50} minSize={40}>
-                        <div className="flex flex-col h-full">
-                          <ChallengeNavigation
-                            challenge={{
-                              id: challenge.id,
-                              slug: challenge_slug,
-                            }}
-                            userId={user.id}
-                          />
-                          <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
-                            <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
-                          </div>
-                          <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50">
-                            <div className="flex items-center justify-between gap-3 mb-3">
-                              <ReactionButtons challengeId={challenge.id} userId={user.id} />
-                              <RatingText
-                                challengeId={challenge.id}
-                                initialRating={userRating ?? undefined}
-                              />
-                            </div>
-                            <AIAssistantDialog challengeSlug={challenge.slug} />
-                          </div>
-                        </div>
-                      </ResizablePanel>
-                      <ResizableHandle withHandle />
-                      <ResizablePanel defaultSize={50} minSize={40}>
-                        <div className="flex flex-col h-full">
-                          <ChallengeEditor
-                            language={initialLanguage}
-                            availableLanguages={availableLanguages}
-                            codeVersions={initialCodeVersions}
-                            tests={testCasesByLanguage}
-                            challenge={challenge}
-                            userId={user.id}
+            <div className="flex-1 overflow-hidden">
+              <ChallengeEditorProvider
+                initialLanguage={initialLanguage}
+                initialCodePerLanguage={initialCodeVersions}
+              >
+                <ResizablePanelGroup direction="horizontal">
+                  <ResizablePanel defaultSize={50} minSize={40}>
+                    <div className="flex flex-col h-full">
+                      <ChallengeNavigation
+                        challenge={{
+                          id: challenge.id,
+                          slug: challenge_slug,
+                        }}
+                        userId={user.id}
+                      />
+                      <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
+                        <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
+                      </div>
+                      <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <ReactionButtons challengeId={challenge.id} userId={user.id} />
+                          <RatingText
+                            challengeId={challenge.id}
+                            initialRating={userRating ?? undefined}
                           />
                         </div>
-                      </ResizablePanel>
-                    </ResizablePanelGroup>
-                  </ChallengeEditorProvider>
-                </div>
-              </div>
-            </SidebarInset>
+                        <AIAssistantDialog challengeSlug={challenge.slug} />
+                      </div>
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={50} minSize={40}>
+                    <div className="flex flex-col h-full">
+                      <ChallengeEditor
+                        language={initialLanguage}
+                        availableLanguages={availableLanguages}
+                        codeVersions={initialCodeVersions}
+                        tests={testCasesByLanguage}
+                        challenge={challenge}
+                        userId={user.id}
+                      />
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </ChallengeEditorProvider>
+            </div>
           </div>
-        </ChallengeStatusProvider>
-      </ChallengeProvider>
-    </SidebarProvider>
+        </div>
+      </ChallengeStatusProvider>
+    </ChallengeProvider>
   )
 }
