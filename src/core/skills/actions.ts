@@ -4,6 +4,8 @@ import { getSkillConceptTreeData } from './tree' // Import the main function
 import { getChallengesForConcept, SimpleChallenge } from '@/core/challenges' // Import new function and type
 import { getSessionUser } from '@/core/user' // Import function to get user session
 import { revalidatePath } from 'next/cache' // Optional: if needed later
+import { getPayload } from 'payload'
+import config from '@payload-config'
 
 // React Flow types might be useful here for return type annotation
 import type { Node, Edge } from 'reactflow'
@@ -70,4 +72,52 @@ export const fetchChallengesForConceptAction = async (
     )
     return { challenges: null, error: 'Failed to fetch challenges for concept' }
   }
+}
+
+/**
+ * Server action to fetch all concepts linked to a given skill (by slug).
+ * For onboarding: fetch all concepts implemented in Python.
+ * Returns: Array<{ id: number, name: string, slug: string }>
+ */
+export const getConceptsForSkill = async (skillSlug: string) => {
+  const payload = await getPayload({ config })
+
+  // 1. Find the skill by slug
+  const skillResult = await payload.find({
+    collection: 'skills',
+    where: { slug: { equals: skillSlug } },
+    limit: 1,
+    depth: 0,
+  })
+  if (!skillResult.docs.length) return []
+  const skillId = skillResult.docs[0].id
+
+  // 2. Find all ImplementationConcepts for this skill
+  const implConceptsResult = await payload.find({
+    collection: 'implementationConcepts',
+    where: { implementationSkill: { equals: skillId } },
+    limit: 0,
+    depth: 1, // Need concept populated
+    pagination: false,
+  })
+  const conceptIds = new Set<number>()
+  for (const implConcept of implConceptsResult.docs) {
+    const concept = implConcept.concept
+    if (typeof concept === 'object' && concept.id) {
+      conceptIds.add(concept.id)
+    } else if (typeof concept === 'number') {
+      conceptIds.add(concept)
+    }
+  }
+  if (!conceptIds.size) return []
+
+  // 3. Fetch all concepts by IDs
+  const conceptsResult = await payload.find({
+    collection: 'concepts',
+    where: { id: { in: Array.from(conceptIds) } },
+    limit: conceptIds.size,
+    depth: 0,
+    pagination: false,
+  })
+  return conceptsResult.docs.map((c) => ({ id: c.id, name: c.name, slug: c.slug }))
 }

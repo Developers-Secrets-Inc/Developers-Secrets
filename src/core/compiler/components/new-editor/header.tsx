@@ -14,22 +14,13 @@ import { PyodideLoadingStatus } from '../editor/pyodide-loading-status'
 import { useGenericCodeEditor } from './context'
 
 // Sub-component: Language Selector
-export const LanguageSelector = () => {
+export const LanguageSelector = ({ showLanguageSelector = true }: { showLanguageSelector?: boolean }) => {
   const {
     currentLanguage,
     availableLanguages,
     handleLanguageChange,
     pyodideStatus,
-    showLanguageSelector,
   } = useGenericCodeEditor()
-
-  // State to track client-side mounting
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    // Set to true only after mounting on the client
-    setIsClient(true)
-  }, [])
 
   if (!showLanguageSelector) {
     const languageLabel =
@@ -43,7 +34,7 @@ export const LanguageSelector = () => {
   return (
     <div className="flex items-center gap-2">
       <Select value={currentLanguage} onValueChange={handleLanguageChange}>
-        <SelectTrigger className="w-[155px] h-8">
+        <SelectTrigger className="w-[140px] h-8">
           <SelectValue placeholder="Select language" />
         </SelectTrigger>
         <SelectContent>
@@ -54,8 +45,7 @@ export const LanguageSelector = () => {
           ))}
         </SelectContent>
       </Select>
-      {/* Only render status if client-side and conditions met */}
-      {isClient && showPythonStatus && <PyodideLoadingStatus pyodideStatus={pyodideStatus} />}
+      {showPythonStatus && <PyodideLoadingStatus pyodideStatus={pyodideStatus} />}
     </div>
   )
 }
@@ -64,19 +54,12 @@ export const LanguageSelector = () => {
 export const RunButton = () => {
   const { isRunning, readOnly, runAction, pyodideStatus, currentLanguage } = useGenericCodeEditor()
 
-  // State to track client-side mounting
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    // Set to true only after mounting on the client
-    setIsClient(true)
-  }, [])
-
   const isPythonSelected = currentLanguage === 'python'
+
   // Initial disabled state only considers running/readonly
   let isDisabled = isRunning || readOnly
-  // After mounting, factor in pyodide status for Python
-  if (isClient && isPythonSelected && pyodideStatus !== 'loaded') {
+
+  if (isPythonSelected && pyodideStatus !== 'loaded') {
     isDisabled = true
   }
 

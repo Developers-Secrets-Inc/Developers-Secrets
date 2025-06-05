@@ -14,50 +14,7 @@ import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { CustomErrorToast } from './CustomErrorToast'
-
-// Helper function to calculate password strength and criteria
-const analyzePassword = (password: string) => {
-  let strength = 0
-  const hasLength = password.length >= 8
-  const hasLowercase = /[a-z]/.test(password)
-  const hasUppercase = /[A-Z]/.test(password)
-  const hasNumber = /[0-9]/.test(password)
-  const hasSpecialChar = /[^a-zA-Z0-9]/.test(password)
-
-  if (hasLength) strength++
-  if (hasLowercase) strength++
-  if (hasUppercase) strength++
-  if (hasNumber) strength++
-  if (hasSpecialChar) strength++
-
-  return {
-    strength, // Max strength is 5
-    hasLength,
-    hasUppercase,
-    hasNumber,
-    hasSpecialChar,
-  }
-}
-
-// Generates a concise message about missing password criteria
-const getPasswordCriteriaMessage = (
-  analysis: ReturnType<typeof analyzePassword>,
-  passwordEntered: boolean,
-): string => {
-  if (!passwordEntered) return 'Use 8+ chars, uppercase, number, special.' // Initial guidance
-  if (analysis.strength >= 5) return '' // All criteria met, strong enough
-
-  const missing = []
-  if (!analysis.hasLength) missing.push('8+ chars')
-  if (!analysis.hasUppercase) missing.push('uppercase')
-  if (!analysis.hasNumber) missing.push('number')
-  if (!analysis.hasSpecialChar) missing.push('special char')
-
-  if (missing.length === 0) return ''
-  if (missing.length > 2) return `Needs ${missing.slice(0, 2).join(', ')}, and more.`
-  return `Needs ${missing.join(' & ')}.`
-}
-
+import { useQueryClient } from '@tanstack/react-query'
 interface SignUpCardProps {
   onSubmit: (
     username: string,
@@ -89,24 +46,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
 
   const [errorToastOpen, setErrorToastOpen] = useState(false)
   const [errorToastProps, setErrorToastProps] = useState({ title: '', description: '' })
-
-  const [passwordAnalysis, setPasswordAnalysis] = useState(analyzePassword(''))
-  const [passwordsMatch, setPasswordsMatch] = useState<boolean | null>(null)
-  const [passwordCriteriaMessage, setPasswordCriteriaMessage] = useState(
-    getPasswordCriteriaMessage(analyzePassword(''), false),
-  )
-
-  useEffect(() => {
-    const analysis = analyzePassword(password)
-    setPasswordAnalysis(analysis)
-    setPasswordCriteriaMessage(getPasswordCriteriaMessage(analysis, password.length > 0))
-
-    if (confirmPassword || password) {
-      setPasswordsMatch(password === confirmPassword)
-    } else {
-      setPasswordsMatch(null)
-    }
-  }, [password, confirmPassword])
+  const queryClient = useQueryClient()
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPassword = e.target.value
@@ -129,7 +69,6 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const currentPasswordAnalysis = analyzePassword(password)
     const newErrors: {
       username?: string
       email?: string
@@ -151,16 +90,14 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
 
     if (!password) {
       newErrors.password = 'Password is required'
-    } else if (!currentPasswordAnalysis.hasLength) {
+    } else if (password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters'
-    } else if (
-      !currentPasswordAnalysis.hasUppercase ||
-      !currentPasswordAnalysis.hasNumber ||
-      !currentPasswordAnalysis.hasSpecialChar
-    ) {
-      newErrors.password = 'Password must include uppercase, number, and special character.'
-    } else if (currentPasswordAnalysis.strength < 4) {
-      newErrors.password = 'Password is too weak. Aim for a stronger combination.'
+    } else if (!/[A-Z]/.test(password)) {
+      newErrors.password = 'Password must include at least one uppercase letter'
+    } else if (!/[0-9]/.test(password)) {
+      newErrors.password = 'Password must include at least one number'
+    } else if (!/[^a-zA-Z0-9]/.test(password)) {
+      newErrors.password = 'Password must include at least one special character'
     }
 
     if (!confirmPassword) {
@@ -185,6 +122,9 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
           description: result.error || 'An unexpected error occurred. Please try again.',
         })
         setErrorToastOpen(true)
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ['sessionUser'] })
+        router.push('/auth/onboarding?step=1')
       }
     } catch (error: any) {
       if (!error.digest?.startsWith('NEXT_REDIRECT')) {
@@ -254,26 +194,6 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
     }
   }
 
-  const strengthBarColors = [
-    'text-muted-foreground', // Strength 0 - Should not appear if password entered
-    'text-red-500', // Strength 1 (Weak)
-    'text-orange-500', // Strength 2 (Fair)
-    'text-amber-500', // Strength 3 (Medium)
-    'text-sky-500', // Strength 4 (Strong)
-    'text-emerald-500', // Strength 5 (Very Strong)
-  ]
-
-  const strengthTextColors = [
-    'text-muted-foreground', // Strength 0 - Should not appear if password entered
-    'text-red-500', // Strength 1 (Weak)
-    'text-orange-500', // Strength 2 (Fair)
-    'text-amber-500', // Strength 3 (Medium)
-    'text-sky-500', // Strength 4 (Strong)
-    'text-emerald-500', // Strength 5 (Very Strong)
-  ]
-
-  const strengthLabels = ['', 'Weak', 'Fair', 'Medium', 'Strong', 'Very Strong']
-
   return (
     <div className="w-full max-w-sm mx-auto">
       <CustomErrorToast
@@ -314,38 +234,6 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
             error={errors.password}
             required
           />
-          <div className="mt-1 space-y-1">
-            <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-full transition-colors duration-300 ease-in-out w-1/5 ${
-                    password.length === 0
-                      ? 'bg-slate-100'
-                      : passwordAnalysis.strength > i
-                        ? strengthBarColors[passwordAnalysis.strength]
-                        : 'bg-slate-100'
-                  }`}
-                />
-              ))}
-            </div>
-            <div className="flex items-center justify-between min-w-0 pt-0.5">
-              {password.length > 0 && strengthLabels[passwordAnalysis.strength] ? (
-                <p
-                  className={`text-xs font-medium shrink-0 ${strengthTextColors[passwordAnalysis.strength]}`}
-                >
-                  {strengthLabels[passwordAnalysis.strength]}
-                </p>
-              ) : (
-                <div />
-              )}
-              {passwordCriteriaMessage && (
-                <p className="text-xs text-muted-foreground truncate text-right">
-                  {passwordCriteriaMessage}
-                </p>
-              )}
-            </div>
-          </div>
 
           <div className="relative">
             <PasswordInput
@@ -356,17 +244,6 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
               error={errors.confirmPassword}
               required
             />
-            {(confirmPassword.length > 0 ||
-              (password.length > 0 && confirmPassword.length === 0 && errors.confirmPassword)) &&
-              passwordsMatch !== null && (
-                <div className="absolute inset-y-0 right-10 pr-3 flex items-center pointer-events-none top-1/2 -translate-y-1/2 h-full">
-                  {passwordsMatch ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-red-500" />
-                  )}
-                </div>
-              )}
           </div>
 
           <div className="flex items-center space-x-2">

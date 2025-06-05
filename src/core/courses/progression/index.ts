@@ -5,6 +5,7 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CoursePartUserProgression, UserChapterProgress } from '@/payload-types'
+import { getCourseParts, getCoursePartsIds } from '..'
 
 export const createCoursePartUserProgression = async (
   userId: string,
@@ -63,3 +64,49 @@ export const getUserChapterProgress = async (
   })
   return result.docs[0] || null
 }
+
+export const getUserPartCompletionStatus = async (userId: string, partId: number) => {
+  const payload = await getPayload({ config })
+  const result = await payload.find({
+    collection: 'coursePartUserProgression',
+    where: { userId: { equals: userId }, part: { equals: partId } },
+    select: {
+      completionStatus: true,
+    },
+  })
+  return result.docs[0]
+}
+
+
+
+export const getUserCourseProgression = async (userId: string, courseId: number): Promise<number> => {
+  const courseParts = await getCoursePartsIds(courseId)
+
+  console.log(courseParts)
+
+  const userPartProgress = await Promise.all(
+    courseParts.map((partId) => getUserPartCompletionStatus(userId, partId)),
+  )
+
+  console.log(userPartProgress)
+
+  const completedParts = userPartProgress.filter(
+    (progress) => progress?.completionStatus === 'completed',
+  )
+
+  return Math.round((completedParts.length / courseParts.length) * 100)
+}
+
+
+
+
+export const hasUserStartedCourse = async (userId: string, courseId: number) => {
+  const courseParts = await getCoursePartsIds(courseId)
+
+  const userPartProgress = await Promise.all(
+    courseParts.map((partId) => getUserPartCompletionStatus(userId, partId)),
+  )
+
+  return userPartProgress.some((progress) => progress?.completionStatus === 'completed' || progress?.completionStatus === 'in_progress')
+}
+

@@ -74,7 +74,16 @@ export const useChallenges = () => {
 
       // Map challenges and add status from the map
       return challenges.map(
-        (challenge: { id: any; title: any; difficulty: any; baseExperience: any; slug: any }) => {
+        (
+          challenge: Partial<{
+            id: any
+            title: any
+            difficulty: any
+            baseExperience: any
+            slug: any
+            draft?: boolean | null
+          }>,
+        ) => {
           const status = progressionMap.get(challenge.id as number) ?? 'not_started'
           return {
             id: challenge.id as number,
@@ -83,6 +92,7 @@ export const useChallenges = () => {
             baseExperience: challenge.baseExperience ?? 50,
             slug: challenge.slug,
             status,
+            draft: !!challenge.draft, // Force à false si null/undefined
           }
         },
       )

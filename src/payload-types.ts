@@ -106,12 +106,14 @@ export interface Config {
     userImplementationConceptProgressions: UserImplementationConceptProgression;
     conceptGroups: ConceptGroup;
     courses: Course;
+    'learning-paths': LearningPath;
     chapters: Chapter;
     courseParts: CoursePart;
     coursePartUserProgression: CoursePartUserProgression;
     coursePartSubmissions: CoursePartSubmission;
     userChapterProgress: UserChapterProgress;
     coursePartFeedback: CoursePartFeedback;
+    'user-onboarding': UserOnboarding;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -158,12 +160,14 @@ export interface Config {
     userImplementationConceptProgressions: UserImplementationConceptProgressionsSelect<false> | UserImplementationConceptProgressionsSelect<true>;
     conceptGroups: ConceptGroupsSelect<false> | ConceptGroupsSelect<true>;
     courses: CoursesSelect<false> | CoursesSelect<true>;
+    'learning-paths': LearningPathsSelect<false> | LearningPathsSelect<true>;
     chapters: ChaptersSelect<false> | ChaptersSelect<true>;
     courseParts: CoursePartsSelect<false> | CoursePartsSelect<true>;
     coursePartUserProgression: CoursePartUserProgressionSelect<false> | CoursePartUserProgressionSelect<true>;
     coursePartSubmissions: CoursePartSubmissionsSelect<false> | CoursePartSubmissionsSelect<true>;
     userChapterProgress: UserChapterProgressSelect<false> | UserChapterProgressSelect<true>;
     coursePartFeedback: CoursePartFeedbackSelect<false> | CoursePartFeedbackSelect<true>;
+    'user-onboarding': UserOnboardingSelect<false> | UserOnboardingSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -397,6 +401,10 @@ export interface Tag {
 export interface Tutorial {
   id: number;
   title: string;
+  /**
+   * URL-friendly identifier for this tutorial. Will be used in the URL.
+   */
+  slug: string;
   description?: string | null;
   /**
    * Tutorial visibility (independent from the draft/publish system)
@@ -1183,6 +1191,10 @@ export interface Challenge {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Indique si le challenge est en mode brouillon (draft)
+   */
+  draft?: boolean | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -2025,6 +2037,30 @@ export interface CoursePart {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "learning-paths".
+ */
+export interface LearningPath {
+  id: number;
+  name: string;
+  slug: string;
+  icon: 'binary' | 'code' | 'robotic-brain';
+  description: string;
+  sections: {
+    name: string;
+    description?: string | null;
+    courses: {
+      course: number | Course;
+      isChoiceGroup?: boolean | null;
+      choiceGroupId?: string | null;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Tracks user progression and engagement for specific course parts.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2172,6 +2208,47 @@ export interface CoursePartFeedback {
    * The UUID of the user who submitted the feedback.
    */
   userId: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-onboarding".
+ */
+export interface UserOnboarding {
+  id: number;
+  userId: string;
+  skipped: boolean;
+  codingLevel?: ('beginner' | 'intermediate' | 'advanced') | null;
+  timeCoding?: ('less-than-6-months' | 'less-than-1-year' | '1-2-years' | '3-5-years' | '5-plus-years') | null;
+  selectedLanguages?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  selectedConcepts?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  selectedGoals?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  selectedTechnologiesToLearn?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2431,6 +2508,10 @@ export interface PayloadLockedDocument {
         value: number | Course;
       } | null)
     | ({
+        relationTo: 'learning-paths';
+        value: number | LearningPath;
+      } | null)
+    | ({
         relationTo: 'chapters';
         value: number | Chapter;
       } | null)
@@ -2453,6 +2534,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'coursePartFeedback';
         value: number | CoursePartFeedback;
+      } | null)
+    | ({
+        relationTo: 'user-onboarding';
+        value: number | UserOnboarding;
       } | null)
     | ({
         relationTo: 'payload-jobs';
@@ -2604,6 +2689,7 @@ export interface ArticlesSelect<T extends boolean = true> {
  */
 export interface TutorialsSelect<T extends boolean = true> {
   title?: T;
+  slug?: T;
   description?: T;
   tutorialStatus?: T;
   sections?:
@@ -2982,6 +3068,7 @@ export interface ChallengesSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  draft?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -3389,6 +3476,33 @@ export interface CoursesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "learning-paths_select".
+ */
+export interface LearningPathsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  icon?: T;
+  description?: T;
+  sections?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        courses?:
+          | T
+          | {
+              course?: T;
+              isChoiceGroup?: T;
+              choiceGroupId?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "chapters_select".
  */
 export interface ChaptersSelect<T extends boolean = true> {
@@ -3538,6 +3652,46 @@ export interface CoursePartFeedbackSelect<T extends boolean = true> {
   details?: T;
   status?: T;
   userId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-onboarding_select".
+ */
+export interface UserOnboardingSelect<T extends boolean = true> {
+  userId?: T;
+  skipped?: T;
+  codingLevel?: T;
+  timeCoding?: T;
+  selectedLanguages?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
+  selectedConcepts?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
+  selectedGoals?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
+  selectedTechnologiesToLearn?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

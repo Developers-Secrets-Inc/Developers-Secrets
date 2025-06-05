@@ -38,7 +38,7 @@ export const ProCtaCard = () => {
           </p>
         </div>
       </div>
-      <Link href="/pricing" passHref legacyBehavior>
+      <Link href="/pricing" passHref>
         <Button className="w-full" asChild={false}>
           Upgrade to Pro
         </Button>

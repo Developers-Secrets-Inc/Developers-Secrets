@@ -1,24 +1,31 @@
-import { ReactionController } from '@/components/common/reactions/reaction-controller'
+import { getUserPartReaction } from '../engagement/reactions'
+import { Skeleton } from '@/components/ui/skeleton'
+import { CoursePartReactionsClient } from './course-part-reactions.client'
 
-type ReactionStatus = 'liked' | 'disliked' | 'none'
-
-interface CoursePartReactionsProps {
-  partId: number
-  userId: string | null
-  initialUserReaction: ReactionStatus
-}
-
-export function CoursePartReactions({
+export const PartReactions = async ({
   partId,
   userId,
-  initialUserReaction,
-}: CoursePartReactionsProps) {
+}: {
+  partId: number
+  userId: string
+}) => {
+  const initialUserReaction = await getUserPartReaction(userId, partId)
+
   return (
-    <ReactionController
-      itemId={partId}
-      itemType="coursePart"
+    <CoursePartReactionsClient
+      partId={partId}
       userId={userId}
       initialUserReaction={initialUserReaction}
     />
+  )
+}
+
+
+export const PartReactionsSkeleton = () => {
+  return (
+    <div className="flex items-center gap-2 h-9">
+      <Skeleton className="h-full w-16" />
+      <Skeleton className="h-full w-16" />
+    </div>
   )
 }

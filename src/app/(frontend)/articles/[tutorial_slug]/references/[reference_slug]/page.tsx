@@ -1,26 +1,27 @@
 export const experimental_ppr = true
-import { ArticleOutline } from '@/components/article-outline'
+import { ArticleOutline } from '../../[article_slug]/components/article-outline'
+import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import {
   convertPayloadArticleToArticle,
   convertPayloadTutorialToTutorial,
   getArticleOutline,
   getReferenceArticle,
-  getPersonalizedArticleRecommendations,
-  getPopularArticles,
   getTutorial,
-  getTutorialReferenceArticles,
-  getTutorials,
 } from '@/core/articles'
-import { ArticleNotFoundError, TutorialNotFoundError } from '@/core/articles/errors'
-import { slugify } from '@/core/format'
-import { notFound } from 'next/navigation'
-import { ArticleContent } from '../../components/article-content'
-import { ArticleSidebar } from '../../components/article-sidebar'
-import { ArticleHeader } from '../../components/article-header'
+import {
+  getReferenceArticleBySlug,
+  getTutorialBySlug,
+  getTutorialReferenceArticles,
+  getTutorialsReferenceArticles,
+} from '@/core/articles/index-v2'
 import { Metadata, ResolvingMetadata } from 'next'
 import { Suspense } from 'react'
-import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
+import { ArticleContent, ArticleSkeleton } from '../../components/article-content'
+import { ArticleHeader } from '../../components/article-header'
+import { ArticleSidebar } from '../../components/article-sidebar'
+import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'
+import { getPopularArticles, getPersonalizedArticles } from '@/core/articles/recommandations-v2'
 
 // Revalidate content every hour
 export const revalidate = 3600
@@ -88,6 +89,18 @@ export async function generateMetadata(
   }
 }
 
+export const generateStaticParams = async (): Promise<
+  { tutorial_slug: string; reference_slug: string }[]
+> => {
+  const tutorialsReferenceArticles = await getTutorialsReferenceArticles()
+
+  return tutorialsReferenceArticles.flatMap(({ tutorial, referenceArticles }) =>
+    referenceArticles.map((article) => ({
+      tutorial_slug: tutorial.slug,
+      reference_slug: article.slug,
+    })),
+  )
+}
 
 export default async function ReferencePage({
   params,
@@ -96,75 +109,53 @@ export default async function ReferencePage({
 }) {
   const { tutorial_slug, reference_slug } = await params
 
-  try {
-    // Get the tutorial, article, and related data with cache tags
-    const payloadTutorial = await getTutorial(tutorial_slug, {
-      next: { tags: [`tutorial-${tutorial_slug}`] },
-    })
+  const [tutorial, article, articles] = await Promise.all([
+    getTutorialBySlug(tutorial_slug),
+    getReferenceArticleBySlug(tutorial_slug, reference_slug),
+    getTutorialReferenceArticles(tutorial_slug),
+  ])
 
-    const payloadArticle = await getReferenceArticle(tutorial_slug, reference_slug, {
-      next: { tags: [`reference-article-${tutorial_slug}-${reference_slug}`] },
-    })
+  // Get the article outline
+  const outline = getArticleOutline(article.content)
 
-    const payloadArticles = await getTutorialReferenceArticles(tutorial_slug, {
-      next: { tags: [`tutorial-references-${tutorial_slug}`] },
-    })
+  // Get recommended articles with cache tags
 
-    // Convert to our custom types using the utility functions
-    const tutorial = convertPayloadTutorialToTutorial(payloadTutorial)
-    const article = convertPayloadArticleToArticle(payloadArticle)
-    const articles = payloadArticles.map(convertPayloadArticleToArticle)
+  const [popularArticles, personalizedArticles] = await Promise.all([
+    getPopularArticles(tutorial_slug, article.id, 1),
+    getPersonalizedArticles(tutorial_slug, article.id, 3),
+  ])
 
-    // Get the article outline
-    const outline = getArticleOutline(article.content)
-
-    // Get recommended articles with cache tags
-    const popularArticles = await getPopularArticles(
-      tutorial_slug,
-      article.id,
-      {
-        next: { tags: [`popular-articles-${tutorial_slug}`] },
-      },
-      2,
-    )
-
-    const personalizedArticles = await getPersonalizedArticleRecommendations(
-      tutorial_slug,
-      article.id,
-      {
-        next: { tags: [`personalized-articles-${tutorial_slug}`] },
-      },
-      2,
-    )
-
-    return (
-      <SidebarProvider>
-        <ArticleSidebar
-          tutorial={tutorial}
-          articles={payloadArticles}
-          currentArticleSlug={reference_slug}
-          articleType="references"
-        />
-        <SidebarInset>
-          <Suspense fallback={<HeaderPlaceholder />}>
-            <ArticleHeader />
-          </Suspense>
-          <div className="flex flex-1">
+  return (
+    <SidebarProvider>
+      <ArticleSidebar
+        tutorial={tutorial}
+        articles={articles}
+        currentArticleSlug={reference_slug}
+        articleType="references"
+      />
+      <SidebarInset>
+        <Suspense fallback={<HeaderPlaceholder />}>
+          <ArticleHeader />
+        </Suspense>
+        <div className="flex flex-1">
+          <Suspense fallback={<ArticleSkeleton />}>
             <ArticleContent
               article={article}
-              popularArticles={popularArticles.map(convertPayloadArticleToArticle)}
-              personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
+              popularArticles={popularArticles}
+              personalizedArticles={personalizedArticles}
               tutorial_slug={tutorial_slug}
             />
-            <ArticleOutline outline={outline} />
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    )
-  } catch (error) {
-    if (error instanceof ArticleNotFoundError || error instanceof TutorialNotFoundError) {
-      notFound()
-    }
-    throw error
-  }
+          </Suspense>
+          <ArticleOutline outline={outline} />
+        </div>
+      </SidebarInset>
+      <ChatActivationButton
+        tutorialSlug={tutorial_slug}
+        articleSlug={reference_slug}
+        tutorialTitle={tutorial.title}
+        articleTitle={article.title}
+        articleFullContent={article.content}
+      />
+    </SidebarProvider>
+  )
 }

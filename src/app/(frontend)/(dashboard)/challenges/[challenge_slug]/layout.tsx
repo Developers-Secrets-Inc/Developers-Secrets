@@ -23,7 +23,7 @@ import { ChallengeNavigation } from '@/core/challenges/components/navigation/cha
 import { User } from '@/types/user'
 import { notFound, redirect } from 'next/navigation'
 import { Challenge as PayloadChallenge } from '@/payload-types'
-
+import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
@@ -42,9 +42,9 @@ const ChallengeLayoutHeader = ({
     <header className="flex-none py-3 px-4 bg-background">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-4">
-          <Link href="/" prefetch={true}>
+          {/* <Link href="/" prefetch={true}>
             <Eclipse size={23} />
-          </Link>
+          </Link> */}
           <div className="inline-flex -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
             <ChallengeNavigationButtons currentChallengeSlug={challengeSlug} />
           </div>
@@ -91,6 +91,11 @@ export default async function ChallengeLayout({
     redirect('/auth/login?redirect=' + encodeURIComponent('/challenges/' + challenge_slug))
   }
 
+  // Restriction d'accès : seuls les admins peuvent accéder aux challenges en draft
+  if (challenge.draft && user.informations?.role !== 'admin') {
+    notFound()
+  }
+
   // Extraire les versions de code disponibles
   const availableLanguages =
     challenge.codeVersions?.map((version) => ({
@@ -133,74 +138,74 @@ export default async function ChallengeLayout({
   const userRating = await getUserRating(user.id, challenge.id)
 
   return (
-    // <SidebarProvider>
-    <ChallengeProvider challenge={challenge}>
-      <ChallengeStatusProvider
-        challengeId={challenge.id}
-        userId={user.id}
-        initialStatus={initialStatus}
-      >
-        <div className="flex h-screen">
-          {/* <IconSidebar /> */}
-          {/* <SidebarInset> */}
-          <div className="flex flex-col h-full w-[calc(100vw)]">
-            <ChallengeLayoutHeader
-              challengeSlug={challenge_slug}
-              challengeId={challenge.id}
-              user={user}
-            />
+    <SidebarProvider open={false}>
+      <ChallengeProvider challenge={challenge}>
+        <ChallengeStatusProvider
+          challengeId={challenge.id}
+          userId={user.id}
+          initialStatus={initialStatus}
+        >
+          <div className="flex h-screen min-h-0">
+            <HomeSidebar defaultOpen={false} />
+            <SidebarInset>
+              <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
+                <ChallengeLayoutHeader
+                  challengeSlug={challenge_slug}
+                  challengeId={challenge.id}
+                  user={user}
+                />
 
-            <div className="flex-1 overflow-hidden">
-              <ChallengeEditorProvider
-                initialLanguage={initialLanguage}
-                initialCodePerLanguage={initialCodeVersions}
-              >
-                <ResizablePanelGroup direction="horizontal">
-                  <ResizablePanel defaultSize={50} minSize={40}>
-                    <div className="flex flex-col h-full">
-                      <ChallengeNavigation
-                        challenge={{
-                          id: challenge.id,
-                          slug: challenge_slug,
-                        }}
-                        userId={user.id}
-                      />
-                      <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
-                        <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
-                      </div>
-                      <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50">
-                        <div className="flex items-center justify-between gap-3 mb-3">
-                          <ReactionButtons challengeId={challenge.id} userId={user.id} />
-                          <RatingText
-                            challengeId={challenge.id}
-                            initialRating={userRating ?? undefined}
+                <div className="flex-1 overflow-hidden">
+                  <ChallengeEditorProvider
+                    initialLanguage={initialLanguage}
+                    initialCodePerLanguage={initialCodeVersions}
+                  >
+                    <ResizablePanelGroup direction="horizontal">
+                      <ResizablePanel defaultSize={50} minSize={40}>
+                        <div className="flex flex-col h-full">
+                          <ChallengeNavigation
+                            challenge={{
+                              id: challenge.id,
+                              slug: challenge_slug,
+                            }}
+                            userId={user.id}
+                          />
+                          <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
+                            <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
+                          </div>
+                          <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50">
+                            <div className="flex items-center justify-between gap-3 mb-3">
+                              <ReactionButtons challengeId={challenge.id} userId={user.id} />
+                              <RatingText
+                                challengeId={challenge.id}
+                                initialRating={userRating ?? undefined}
+                              />
+                            </div>
+                            <AIAssistantDialog challengeSlug={challenge.slug} />
+                          </div>
+                        </div>
+                      </ResizablePanel>
+                      <ResizableHandle withHandle />
+                      <ResizablePanel defaultSize={50} minSize={40}>
+                        <div className="flex flex-col h-full">
+                          <ChallengeEditor
+                            language={initialLanguage}
+                            availableLanguages={availableLanguages}
+                            codeVersions={initialCodeVersions}
+                            tests={testCasesByLanguage}
+                            challenge={challenge}
+                            userId={user.id}
                           />
                         </div>
-                        <AIAssistantDialog challengeSlug={challenge.slug} />
-                      </div>
-                    </div>
-                  </ResizablePanel>
-                  <ResizableHandle withHandle />
-                  <ResizablePanel defaultSize={50} minSize={40}>
-                    <div className="flex flex-col h-full">
-                      <ChallengeEditor
-                        language={initialLanguage}
-                        availableLanguages={availableLanguages}
-                        codeVersions={initialCodeVersions}
-                        tests={testCasesByLanguage}
-                        challenge={challenge}
-                        userId={user.id}
-                      />
-                    </div>
-                  </ResizablePanel>
-                </ResizablePanelGroup>
-              </ChallengeEditorProvider>
-            </div>
+                      </ResizablePanel>
+                    </ResizablePanelGroup>
+                  </ChallengeEditorProvider>
+                </div>
+              </div>
+            </SidebarInset>
           </div>
-          {/* </SidebarInset> */}
-        </div>
-      </ChallengeStatusProvider>
-    </ChallengeProvider>
-    // </SidebarProvider>
+        </ChallengeStatusProvider>
+      </ChallengeProvider>
+    </SidebarProvider>
   )
 }

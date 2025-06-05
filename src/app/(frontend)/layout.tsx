@@ -4,7 +4,8 @@ import '@/styles/globals.css'
 import { Providers } from '@/components/providers'
 import { Metadata } from 'next'
 import { RootProvider } from 'fumadocs-ui/provider'
-
+import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Analytics } from '@vercel/analytics/next'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
@@ -25,6 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main>{children}</main>
           </RootProvider>
         </Providers>
+        <SpeedInsights />
+        <Analytics mode="production" />
 
         {/* Initialize Pyodide */}
         <script

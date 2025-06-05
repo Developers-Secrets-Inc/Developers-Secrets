@@ -15,6 +15,9 @@ import {
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import { MarketplaceDialog } from '@/core/gamification/marketplace/components/dialogs/marketplace-dialog'
 import { InventorySheet } from '@/core/gamification/inventory/components/sheets/inventory-sheet'
+import { useSidebar } from '@/components/ui/sidebar'
+import { HiddenOnIconSidebar } from '@/components/common/hidden-on-icon-sidebar'
+import { ShowOnlyOnIconSidebar } from '@/components/common/show-only-on-icon-sidebar'
 
 // Import necessary types
 import { MarketplaceItem, UserItem } from '@/payload-types'
@@ -42,6 +45,8 @@ export function SocialGroupClientLayer({
   // Combine errors for simplicity, or handle separately if needed
   const commonError = initialMarketplaceError || initialInventoryError
 
+  const { open } = useSidebar()
+
   return (
     <>
       <SidebarGroup>
@@ -55,8 +60,18 @@ export function SocialGroupClientLayer({
                 className="flex w-full items-center gap-2 cursor-pointer"
                 aria-label="Open Marketplace Dialog"
               >
-                <Store className="size-4" />
-                <span>Marketplace</span>
+                <HiddenOnIconSidebar>
+                  <Store className="size-4" />
+                  <span>Marketplace</span>
+                </HiddenOnIconSidebar>
+                <ShowOnlyOnIconSidebar>
+                  <TooltipPrimitive.Root delayDuration={200}>
+                    <TooltipPrimitive.Trigger asChild>
+                      <span><Store className="size-4" /></span>
+                    </TooltipPrimitive.Trigger>
+                    <TooltipContentCustom side="right">Marketplace</TooltipContentCustom>
+                  </TooltipPrimitive.Root>
+                </ShowOnlyOnIconSidebar>
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -69,24 +84,46 @@ export function SocialGroupClientLayer({
                 className="flex w-full items-center gap-2 cursor-pointer"
                 aria-label="Open Inventory Sheet"
               >
-                <Package className="size-4" />
-                <span>Inventory</span>
+                <HiddenOnIconSidebar>
+                  <Package className="size-4" />
+                  <span>Inventory</span>
+                </HiddenOnIconSidebar>
+                <ShowOnlyOnIconSidebar>
+                  <TooltipPrimitive.Root delayDuration={200}>
+                    <TooltipPrimitive.Trigger asChild>
+                      <span><Package className="size-4" /></span>
+                    </TooltipPrimitive.Trigger>
+                    <TooltipContentCustom side="right">Inventory</TooltipContentCustom>
+                  </TooltipPrimitive.Root>
+                </ShowOnlyOnIconSidebar>
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          {/* Guild (Coming Soon) */}
+          {/* Guild Button (Coming Soon) */}
           <SidebarMenuItem key="guild">
             <SidebarMenuButton asChild>
               <Link href="#" className="relative text-muted-foreground pr-8">
-                <Users className="size-4" />
-                <span>Guild</span>
-                <TooltipPrimitive.Root>
-                  <TooltipPrimitive.Trigger asChild>
-                    <Lock className="size-4 absolute right-2" />
-                  </TooltipPrimitive.Trigger>
-                  <TooltipContentCustom>Coming soon</TooltipContentCustom>
-                </TooltipPrimitive.Root>
+                <HiddenOnIconSidebar>
+                  <Users className="size-4" />
+                  <span>Guild</span>
+                </HiddenOnIconSidebar>
+                <ShowOnlyOnIconSidebar>
+                  <TooltipPrimitive.Root delayDuration={200}>
+                    <TooltipPrimitive.Trigger asChild>
+                      <span><Users className="size-4" /></span>
+                    </TooltipPrimitive.Trigger>
+                    <TooltipContentCustom side="right">Guild</TooltipContentCustom>
+                  </TooltipPrimitive.Root>
+                </ShowOnlyOnIconSidebar>
+                {open && (
+                  <TooltipPrimitive.Root>
+                    <TooltipPrimitive.Trigger asChild>
+                      <Lock className="size-4 absolute right-2" />
+                    </TooltipPrimitive.Trigger>
+                    <TooltipContentCustom>Coming soon</TooltipContentCustom>
+                  </TooltipPrimitive.Root>
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -95,8 +132,18 @@ export function SocialGroupClientLayer({
           <SidebarMenuItem key="profile">
             <SidebarMenuButton asChild>
               <Link href="/profile/me" className="flex w-full items-center gap-2 cursor-pointer">
-                <User className="size-4" />
-                <span>Profile</span>
+                <HiddenOnIconSidebar>
+                  <User className="size-4" />
+                  <span>Profile</span>
+                </HiddenOnIconSidebar>
+                <ShowOnlyOnIconSidebar>
+                  <TooltipPrimitive.Root delayDuration={200}>
+                    <TooltipPrimitive.Trigger asChild>
+                      <span><User className="size-4" /></span>
+                    </TooltipPrimitive.Trigger>
+                    <TooltipContentCustom side="right">Profile</TooltipContentCustom>
+                  </TooltipPrimitive.Root>
+                </ShowOnlyOnIconSidebar>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

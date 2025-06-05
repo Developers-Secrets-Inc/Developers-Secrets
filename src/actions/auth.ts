@@ -104,7 +104,7 @@ export async function signup(username: string, email: string, password: string) 
   }
 
   revalidatePath('/', 'layout')
-  redirect('/home')
+  redirect('/auth/onboarding?step=1')
 }
 
 export async function loginWithGoogle(redirectTo?: string) {

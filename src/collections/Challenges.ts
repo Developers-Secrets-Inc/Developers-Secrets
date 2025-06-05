@@ -26,6 +26,12 @@ export const Challenges: CollectionConfig = {
   },
   access: {
     read: () => true, // Tous les utilisateurs peuvent lire les challenges
+    create: () => {
+      if (process.env.NODE_ENV === 'development') {
+        return true
+      }
+      return false
+    }, // Tous les utilisateurs peuvent créer des challenges
   },
   fields: [
     {
@@ -723,6 +729,16 @@ export const Challenges: CollectionConfig = {
           ],
         },
       ],
+    },
+    {
+      name: 'draft',
+      label: 'Draft',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        description: 'Indique si le challenge est en mode brouillon (draft)',
+        position: 'sidebar',
+      },
     },
   ],
   timestamps: true, // Ajout automatique des champs createdAt et updatedAt

@@ -8,38 +8,32 @@ import { updateUserPartReaction } from '@/core/courses/engagement/reactions' // 
 import { getUserPartReaction } from '@/core/courses/engagement/reactions' // Ajuste le chemin
 import { toast } from 'sonner'
 
+// Ce hook gère UNIQUEMENT les réactions sur les parties de cours (partId)
 type ReactionStatus = 'liked' | 'disliked' | 'none'
 
-interface UseReactionProps {
-  // L'ID de l'élément (partie de cours ou challenge)
-  // Renommé en 'itemId' pour la généricité, mais correspondra à 'partId' pour les fonctions serveur actuelles
-  itemId: number
+interface UsePartReactionProps {
+  partId: number // L'ID de la partie de cours
   userId: string
-  // Les props initiales sont utiles mais react-query peut aussi gérer le fetch initial
-  // On les garde pour l'instant pour initialiser l'affichage avant le premier fetch de react-query
   initialUserReaction: ReactionStatus
 }
 
-// Définir des clés de query uniques pour react-query
-const getReactionStatusQueryKey = (userId: string, itemId: number) => [
+// Clé de query unique pour react-query (par utilisateur et partId)
+const getPartReactionStatusQueryKey = (userId: string, partId: number) => [
   'reactionStatus',
   userId,
-  itemId,
+  partId,
 ]
 
-export function useReaction({ itemId, userId, initialUserReaction }: UseReactionProps) {
+export function usePartReaction({ partId, userId, initialUserReaction }: UsePartReactionProps) {
   const queryClient = useQueryClient()
 
   // 1. Utiliser useQuery pour récupérer et s'abonner au statut
   const { data: currentUserReaction = initialUserReaction, isLoading: isInitialLoading } =
     useQuery<ReactionStatus>({
-      queryKey: getReactionStatusQueryKey(userId, itemId),
-      // La fonction pour fetch la donnée si elle n'est pas dans le cache ou est invalidée
-      queryFn: () => getUserPartReaction(userId, itemId),
-      // Donnée initiale à afficher avant le premier fetch réussi
+      queryKey: getPartReactionStatusQueryKey(userId, partId),
+      queryFn: () => getUserPartReaction(userId, partId),
       initialData: initialUserReaction,
-      // Options pour éviter des refetch inutiles juste pour le statut
-      staleTime: Infinity, // Considère la donnée comme fraîche indéfiniment côté client
+      staleTime: Infinity,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
     })
@@ -47,21 +41,18 @@ export function useReaction({ itemId, userId, initialUserReaction }: UseReaction
   // 2. La mutation reste similaire
   const mutation = useMutation({
     mutationFn: async (newStatus: ReactionStatus) => {
-      const result = await updateUserPartReaction(userId, itemId, newStatus)
+      const result = await updateUserPartReaction(userId, partId, newStatus)
       if (!result.success) {
         throw new Error(result.error || 'Server update failed')
       }
-      // No need to return status if invalidating
-      // return result.newUserStatus;
     },
 
     onMutate: async (newStatus: ReactionStatus) => {
-      await queryClient.cancelQueries({ queryKey: getReactionStatusQueryKey(userId, itemId) })
+      await queryClient.cancelQueries({ queryKey: getPartReactionStatusQueryKey(userId, partId) })
       const previousStatus = queryClient.getQueryData<ReactionStatus>(
-        getReactionStatusQueryKey(userId, itemId),
+        getPartReactionStatusQueryKey(userId, partId),
       )
-      // Mise à jour optimiste via setQueryData
-      queryClient.setQueryData(getReactionStatusQueryKey(userId, itemId), newStatus)
+      queryClient.setQueryData(getPartReactionStatusQueryKey(userId, partId), newStatus)
       return { previousStatus }
     },
 
@@ -69,22 +60,22 @@ export function useReaction({ itemId, userId, initialUserReaction }: UseReaction
       const errorMsg = error.message
       console.error('Reaction update failed:', errorMsg)
       toast.error(`Error: ${errorMsg}`)
-      // Rollback
       if (context?.previousStatus !== undefined) {
-        queryClient.setQueryData(getReactionStatusQueryKey(userId, itemId), context.previousStatus)
+        queryClient.setQueryData(
+          getPartReactionStatusQueryKey(userId, partId),
+          context.previousStatus,
+        )
       }
     },
 
-    // Always invalidate in onSettled to get the source of truth after mutation attempt
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: getReactionStatusQueryKey(userId, itemId) })
+      queryClient.invalidateQueries({ queryKey: getPartReactionStatusQueryKey(userId, partId) })
     },
   })
 
   // 3. handleEngagement utilise maintenant directement currentUserReaction (venant de useQuery)
   const handleEngagement = useCallback(
     (requestedAction: 'like' | 'dislike') => {
-      // currentUserReaction est l'état actuel venant de useQuery (ou initialData)
       let finalNewStatus: ReactionStatus = 'none'
       if (requestedAction === 'like') {
         finalNewStatus = currentUserReaction === 'liked' ? 'none' : 'liked'
@@ -93,7 +84,7 @@ export function useReaction({ itemId, userId, initialUserReaction }: UseReaction
       }
       mutation.mutate(finalNewStatus)
     },
-    [mutation, currentUserReaction], // Dépendance à currentUserReaction (l'état actuel)
+    [mutation, currentUserReaction],
   )
 
   const handleLikeClick = useCallback(() => {
@@ -106,7 +97,7 @@ export function useReaction({ itemId, userId, initialUserReaction }: UseReaction
   // 4. L'état retourné utilise directement currentUserReaction de useQuery
   return {
     state: {
-      userReaction: currentUserReaction, // Directement depuis useQuery
+      userReaction: currentUserReaction,
       isLoadingMutation: mutation.isPending,
       isInitialLoading: isInitialLoading,
       error: mutation.isError

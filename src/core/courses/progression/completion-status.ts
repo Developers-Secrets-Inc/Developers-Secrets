@@ -10,12 +10,24 @@ import { CoursePartUserProgression, UserChapterProgress, Chapter } from '@/paylo
 
 export type CompletionStatus = 'not_started' | 'in_progress' | 'completed'
 
+
 export const getUserPartCompletionStatus = async (
   userId: string,
   partId: number,
 ): Promise<CompletionStatus> => {
-  const userPartProgress = await getUserPartProgress(userId, partId)
-  return userPartProgress ? userPartProgress.completionStatus : 'not_started'
+  const payload = await getPayload({ config }) 
+
+  const userPartProgress = await payload.find({
+    collection: 'coursePartUserProgression',
+    where: { userId: { equals: userId }, part: { equals: partId } },
+    select: { completionStatus: true },
+  })
+
+  if (!userPartProgress.docs[0]) {
+    return 'not_started'
+  }
+
+  return userPartProgress.docs[0].completionStatus
 }
 
 export const updateUserPartCompletionStatus = async (

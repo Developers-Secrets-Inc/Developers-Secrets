@@ -17,12 +17,14 @@ import { AchievementsDialog } from '@/core/gamification/achievements/components/
 import { QuestsDialog } from '@/core/gamification/quests/components/quests-dialog' // Assuming path
 import { DivisionLeaderboard } from '@/components/leaderboards/division/division-leaderboard'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
-
+import { useSidebar } from '@/components/ui/sidebar'
 // Import necessary types (adjust paths/definitions as needed)
 import { DisplayAchievement } from '@/core/gamification/achievements/components/achievements-dialog' // Assuming type export
 import { RankedLeaderboardUser } from '@/core/gamification/divisions' // Assuming type export
 // Define or import Quest data type
 // import { Quest } from '@/core/gamification/quests/types'
+import { HiddenOnIconSidebar } from '@/components/common/hidden-on-icon-sidebar'
+import { ShowOnlyOnIconSidebar } from '@/components/common/show-only-on-icon-sidebar'
 
 // Placeholder for Quest type if not readily available
 type Quest = any
@@ -52,6 +54,8 @@ export function ProgressionGroupClientLayer({
   const [achievementsOpen, setAchievementsOpen] = useState(false)
   const [divisionLeaderboardOpen, setDivisionLeaderboardOpen] = useState(false)
 
+  const { open } = useSidebar()
+
   return (
     <>
       <SidebarGroup>
@@ -65,8 +69,20 @@ export function ProgressionGroupClientLayer({
                 className="flex w-full items-center gap-2 cursor-pointer"
                 aria-label="Open Quests Dialog"
               >
-                <CheckCircle className="size-4" />
-                <span>Quests</span>
+                <HiddenOnIconSidebar>
+                  <CheckCircle className="size-4" />
+                  <span>Quests</span>
+                </HiddenOnIconSidebar>
+                <ShowOnlyOnIconSidebar>
+                  <TooltipPrimitive.Root delayDuration={200}>
+                    <TooltipPrimitive.Trigger asChild>
+                      <span>
+                        <CheckCircle className="size-4" />
+                      </span>
+                    </TooltipPrimitive.Trigger>
+                    <TooltipContentCustom side="right">Quests</TooltipContentCustom>
+                  </TooltipPrimitive.Root>
+                </ShowOnlyOnIconSidebar>
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -79,8 +95,20 @@ export function ProgressionGroupClientLayer({
                 className="flex w-full items-center gap-2 cursor-pointer"
                 aria-label="Open Achievements Dialog"
               >
-                <Star className="size-4" />
-                <span>Achievements</span>
+                <HiddenOnIconSidebar>
+                  <Star className="size-4" />
+                  <span>Achievements</span>
+                </HiddenOnIconSidebar>
+                <ShowOnlyOnIconSidebar>
+                  <TooltipPrimitive.Root delayDuration={200}>
+                    <TooltipPrimitive.Trigger asChild>
+                      <span>
+                        <Star className="size-4" />
+                      </span>
+                    </TooltipPrimitive.Trigger>
+                    <TooltipContentCustom side="right">Achievements</TooltipContentCustom>
+                  </TooltipPrimitive.Root>
+                </ShowOnlyOnIconSidebar>
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -93,24 +121,50 @@ export function ProgressionGroupClientLayer({
                 className="flex w-full items-center gap-2 cursor-pointer"
                 aria-label="Open Division Leaderboard Dialog"
               >
-                <Shield className="size-4" />
-                <span>Division</span>
+                <HiddenOnIconSidebar>
+                  <Shield className="size-4" />
+                  <span>Division</span>
+                </HiddenOnIconSidebar>
+                <ShowOnlyOnIconSidebar>
+                  <TooltipPrimitive.Root delayDuration={200}>
+                    <TooltipPrimitive.Trigger asChild>
+                      <span>
+                        <Shield className="size-4" />
+                      </span>
+                    </TooltipPrimitive.Trigger>
+                    <TooltipContentCustom side="right">Division</TooltipContentCustom>
+                  </TooltipPrimitive.Root>
+                </ShowOnlyOnIconSidebar>
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          {/* Leaderboard (Coming Soon) - No changes needed here */}
+          {/* Leaderboard (Coming Soon) */}
           <SidebarMenuItem key="leaderboard">
             <SidebarMenuButton asChild>
               <Link href="#" className="relative text-muted-foreground pr-8">
-                <BarChart className="size-4" />
-                <span>Leaderboard</span>
-                <TooltipPrimitive.Root>
-                  <TooltipPrimitive.Trigger asChild>
-                    <Lock className="size-4 absolute right-2" />
-                  </TooltipPrimitive.Trigger>
-                  <TooltipContentCustom>Coming soon</TooltipContentCustom>
-                </TooltipPrimitive.Root>
+                <HiddenOnIconSidebar>
+                  <BarChart className="size-4" />
+                  <span>Leaderboard</span>
+                </HiddenOnIconSidebar>
+                <ShowOnlyOnIconSidebar>
+                  <TooltipPrimitive.Root delayDuration={200}>
+                    <TooltipPrimitive.Trigger asChild>
+                      <span>
+                        <BarChart className="size-4" />
+                      </span>
+                    </TooltipPrimitive.Trigger>
+                    <TooltipContentCustom side="right">Leaderboard</TooltipContentCustom>
+                  </TooltipPrimitive.Root>
+                </ShowOnlyOnIconSidebar>
+                {open && (
+                  <TooltipPrimitive.Root>
+                    <TooltipPrimitive.Trigger asChild>
+                      <Lock className="size-4 absolute right-2" />
+                    </TooltipPrimitive.Trigger>
+                    <TooltipContentCustom>Coming soon</TooltipContentCustom>
+                  </TooltipPrimitive.Root>
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
