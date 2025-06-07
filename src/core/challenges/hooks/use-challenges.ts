@@ -1,20 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   // Import the action that fetches ALL challenges with progress
-  // We need a modified version or a new action for this
-  // Let's assume we create/modify getChallengesWithProgress to accept NO args
-  // and return all challenges. For now, let's simulate this.
-  // We'll revert to the original logic pattern for simplicity here:
   getAllChallenges, // Assuming this fetches all challenges (needs pagination: false)
   getUserChallengeProgressions, // Import the action to fetch all progressions for a user
-} from '..'
+} from '../index'
 import { getUser } from '@/core/user'
-// import { getUserCompletionStatus } from '../user-progression' // No longer needed here
 import { ChallengeWithProgress } from '@/core/challenges' // Keep this type
 import { UserChallengeProgression } from '@/payload-types' // Import the progression type
 import { CompletionStatus } from '../user-progression/types'
-
-// Remove UseChallengesParams interface and defaultParams
 
 export const useChallenges = () => {
   // Re-introduce the query for the user object
