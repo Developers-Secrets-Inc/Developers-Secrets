@@ -48,6 +48,24 @@ export const UserChallengeProgression: CollectionConfig = {
       },
     },
     {
+      name: 'userCode',
+      type: 'text',
+      admin: {
+        description: 'The user\'s code for this challenge',
+      },
+    },
+    {
+      name: 'lastSavedAt',
+      type: 'date',
+      admin: {
+        description: 'Timestamp of the last code save',
+      },
+      // You might want to automatically set this on update
+      hooks: {
+        beforeChange: [({ data }) => { if (data) { data.lastSavedAt = new Date(); } return data; }],
+      },
+    },
+    {
       name: 'rating',
       type: 'number',
       min: 1,

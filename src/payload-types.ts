@@ -1454,6 +1454,14 @@ export interface UserChallengeProgression {
    */
   hasDisliked?: boolean | null;
   /**
+   * The user's code for this challenge
+   */
+  userCode?: string | null;
+  /**
+   * Timestamp of the last code save
+   */
+  lastSavedAt?: string | null;
+  /**
    * User rating for this challenge (1-5)
    */
   rating?: number | null;
@@ -3082,6 +3090,8 @@ export interface UserChallengeProgressionSelect<T extends boolean = true> {
   challenge?: T;
   hasLiked?: T;
   hasDisliked?: T;
+  userCode?: T;
+  lastSavedAt?: T;
   rating?: T;
   completionStatus?: T;
   isSolutionUnlocked?: T;

@@ -18,6 +18,8 @@ import {
   setUserRating,
   getUserIsSolutionUnlocked,
   getUserCompletionStatus,
+  setUserCode,
+  getSavedUserCode,
 } from '@/core/challenges/user-progression'
 
 /**
