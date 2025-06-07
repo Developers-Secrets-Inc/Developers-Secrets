@@ -19,22 +19,17 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
+  useReactTable
 } from '@tanstack/react-table'
 import {
   CheckCircle2Icon,
   ChevronDownIcon,
-  ChevronFirstIcon,
-  ChevronLastIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   ChevronUpIcon,
   CircleDotIcon,
   CircleXIcon,
   FilterIcon,
-  ListFilterIcon,
+  ListFilterIcon
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
