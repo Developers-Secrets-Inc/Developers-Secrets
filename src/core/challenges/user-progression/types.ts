@@ -46,6 +46,7 @@ const UserProgressionSchema = z.object({
   completionStatus: CompletionStatusSchema,
   isSolutionUnlocked: IsSolutionUnlockedSchema,
   code: CodeSchema,
+  userCode: z.string().nullable().optional().default(null),
 })
 export type UserProgression = z.infer<typeof UserProgressionSchema>
 

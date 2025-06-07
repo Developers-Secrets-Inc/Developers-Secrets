@@ -56,6 +56,7 @@ const getUserProgression = async (
     completionStatus: doc.completionStatus ?? 'not_started',
     isSolutionUnlocked: doc.isSolutionUnlocked ?? null,
     rating: doc.rating ?? null,
+    userCode: doc.userCode ?? null,
   } as UserProgression
 }
 
@@ -85,6 +86,7 @@ const createUserProgression = async (
     completionStatus: 'not_started',
     isSolutionUnlocked: null,
     rating: null,
+    userCode: null,
   } as UserProgression
 }
 
@@ -255,8 +257,57 @@ export const getUserCode = async (
   const codeBlock = userProgression?.code?.find((code) => code.language === validatedLanguage)
   if (!codeBlock) {
     throw new Error('Code block not found')
-  }
+}
   return codeBlock
+}
+
+
+
+
+export const setUserCode = async (
+  userId: string,
+  challengeId: number,
+  userCode: string,
+): Promise<void> => {
+  const validatedUserId = validateUserId(userId)
+  const validatedChallengeId = validateChallengeId(challengeId)
+  // No validation for userCode content itself, as it's free-form text.
+  // A future step might involve adding a validateUserCode function if specific constraints are needed.
+
+  const userProgression = await getUserProgression(validatedUserId, validatedChallengeId)
+
+  if (!userProgression) {
+    await createUserProgression(validatedUserId, validatedChallengeId)
+  }
+
+  const payload = await getPayload({ config })
+
+  await payload.update({
+    collection: 'userChallengeProgression',
+    where: {
+      userId: {
+        equals: validatedUserId,
+      },
+      challenge: {
+        equals: validatedChallengeId,
+      },
+    },
+    data: {
+      userCode: userCode,
+    },
+  })
+}
+
+export const getUserSavedCode = async (
+  userId: string,
+  challengeId: number,
+): Promise<string | null> => {
+  const validatedUserId = validateUserId(userId)
+  const validatedChallengeId = validateChallengeId(challengeId)
+
+  const userProgression = await getUserProgression(validatedUserId, validatedChallengeId)
+
+  return userProgression?.userCode ?? null
 }
 
 export const setUserLike = async (

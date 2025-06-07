@@ -29,6 +29,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SpeedInsights />
         <Analytics mode="production" />
 
+        <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js" defer />
+
         {/* Initialize Pyodide */}
         <script
           dangerouslySetInnerHTML={{

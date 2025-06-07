@@ -121,6 +121,7 @@ export const getChallengeBySlug = async (slug: string): Promise<PayloadChallenge
         equals: slug,
       },
     },
+    depth: 2, // Populate nested relationships like skillImpacts.skill
   })
   if (!challenge.docs.length) {
     throw new ChallengeNotFoundError()

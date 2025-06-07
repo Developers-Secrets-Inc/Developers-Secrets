@@ -39,10 +39,10 @@ export const CompletionDialog = ({
           <DialogTitle>Challenge Completed! 🎉</DialogTitle>
           <DialogDescription className="flex flex-col items-center gap-4 py-4">
             {hasUnlockedSolution ? (
-              <p>
+              <div>
                 You&apos;ve unlocked the solution for this challenge, so no experience points were
                 awarded this time.
-              </p>
+              </div>
             ) : (
               <div className="w-full space-y-4">
                 <div className="text-center">

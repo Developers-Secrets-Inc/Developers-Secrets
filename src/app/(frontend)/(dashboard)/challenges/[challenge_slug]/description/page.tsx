@@ -32,13 +32,11 @@ export default async function ChallengeDescriptionPage({
       redirect('/auth/login')
     }
 
-    // Get the completion status for this challenge
-    const status = await getUserCompletionStatus(user.id, challenge.id)
 
     return (
       <div className="p-6">
         <Suspense fallback={<ChallengeDescriptionSkeleton />}>
-          <ChallengeHeader challenge={challenge} status={status} />
+          <ChallengeHeader challenge={challenge} />
           <ChallengeDescriptionContent
             descriptionStatement={challenge.description?.statement || 'No description available.'}
           />
