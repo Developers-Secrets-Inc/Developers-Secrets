@@ -197,11 +197,13 @@ export const StandardPlanCard = ({
       <div data-slot="card-content" className="px-7">
         <p className="text-sm text-muted-foreground">{description}</p>
         <Button
-          asChild
+          // asChild
+          disabled
           data-slot="button"
           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 mt-6 w-full"
         >
-          <Link href="/api/checkout?productId=9ba129a1-7efb-401b-b03c-e6bd94a5323c">Get Started</Link>
+          {/* <Link href="/api/checkout?productId=9ba129a1-7efb-401b-b03c-e6bd94a5323c">Get Started</Link> */}
+          Unavailable
         </Button>
         <div className="relative mt-12 mb-4 flex items-center justify-center overflow-hidden">
           <div
@@ -258,12 +260,14 @@ export const MaxPlanCard = ({
       </div>
       <div data-slot="card-content" className="px-7">
         <p className="text-sm text-muted-foreground">{description}</p>
-        <button
+        <Button
+          disabled
           data-slot="button"
           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 mt-6 w-full"
         >
-          Get Started
-        </button>
+          {/* Get Started */}
+          Unavailable
+        </Button>
         <div className="relative mt-12 mb-4 flex items-center justify-center overflow-hidden">
           <div
             data-orientation="horizontal"
@@ -322,11 +326,13 @@ export const PremiumPlanCard = ({
       <div data-slot="card-content" className="px-7">
         <p className="text-sm text-muted-foreground">{description}</p>
         <Button
-          asChild
+          // asChild
+          disabled
           data-slot="button"
           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 mt-6 w-full"
         >
-          <Link href="/api/checkout?productId=9ba129a1-7efb-401b-b03c-e6bd94a5323c">Get Started</Link>
+          {/* <Link href="/api/checkout?productId=9ba129a1-7efb-401b-b03c-e6bd94a5323c">Get Started</Link> */}
+          Unavailable
         </Button>
         <div className="relative mt-12 mb-4 flex items-center justify-center overflow-hidden">
           <div

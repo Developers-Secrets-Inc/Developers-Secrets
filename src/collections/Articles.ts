@@ -7,7 +7,13 @@ export const Articles: CollectionConfig = {
     defaultColumns: ['title', 'articleStatus', 'difficultyLevel', 'updatedAt'],
   },
   access: {
-    read: () => true,
+    read: () => true, // Tous les utilisateurs peuvent lire les challenges
+    create: () => {
+      if (process.env.NODE_ENV === 'development') {
+        return true
+      }
+      return false
+    }, // Tous les utilisateurs peuvent créer des challenges
   },
   // Enable version system with drafts
   versions: {

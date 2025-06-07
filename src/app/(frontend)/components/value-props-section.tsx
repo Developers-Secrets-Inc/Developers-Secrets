@@ -3,6 +3,36 @@ import { Ripple } from '@/components/magicui/ripple'
 import { Safari } from '@/components/magicui/safari'
 import { FlickeringGrid } from '@/components/magicui/flickering-grid'
 
+interface ValueCardProps {
+  title: string
+  description: string
+  imageSrc: string
+  className?: string
+  children?: React.ReactNode
+}
+
+const ValueCard: React.FC<ValueCardProps> = ({ 
+  title, 
+  description, 
+  imageSrc, 
+  className = '',
+  children 
+}) => (
+  <div className={`group relative items-start overflow-hidden bg-background p-6 rounded-2xl border border-muted transition-all duration-500 ease-out ${className}`}>
+    <div>
+      <h3 className="font-semibold mb-2 text-primary">{title}</h3>
+      <p className="text-foreground">{description}</p>
+    </div>
+    {children}
+    <Safari
+      imageSrc={imageSrc}
+      url="/"
+      className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
+    />
+    <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
+  </div>
+)
+
 export const ValuePropsSection = () => {
   return (
     <section className="py-16 md:py-24">
@@ -11,47 +41,26 @@ export const ValuePropsSection = () => {
           Discover Our Platform's Strengths
         </h2>
         <div className="mx-auto grid max-w-sm grid-cols-1 gap-6 md:max-w-3xl md:grid-cols-2 xl:grid-rows-2 md:grid-rows-3 xl:max-w-6xl xl:auto-rows-fr xl:grid-cols-3">
-          {/* Card 1: Advanced AI Algorithms */}
-          <div className="group relative items-start overflow-hidden bg-background p-6 rounded-2xl border border-muted transition-all duration-500 ease-out">
-            <div>
-              <h3 className="font-semibold mb-2 text-primary">Advanced AI Algorithms</h3>
-              <p className="text-foreground">
-                Our platform utilizes cutting-edge AI algorithms to provide accurate and efficient
-                solutions for your business needs.
-              </p>
-            </div>
-            <Safari
-              imageSrc="/challenge-page.png"
-              url="/"
-              className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
-            />
-            <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
-          </div>
+          {/* Card 1: Coding Challenges */}
+          <ValueCard
+            title="Master Coding Challenges"
+            description="Sharpen your skills with real-world coding problems that test your problem-solving abilities and help you prepare for technical interviews."
+            imageSrc="/challenge-page.png"
+          />
 
-          {/* Card 2: Secure Data Handling */}
-          <div className="group relative items-start overflow-hidden bg-background p-6 rounded-2xl border border-muted transition-all duration-500 ease-out">
-            <div>
-              <h3 className="font-semibold mb-2 text-primary">Secure Data Handling</h3>
-              <p className="text-foreground">
-                We prioritize your data security with state-of-the-art encryption and strict privacy
-                protocols, ensuring your information remains confidential.
-              </p>
-            </div>
-            <Safari
-              imageSrc="/course-page.png"
-              url="/"
-              className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
-            />
-            <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
-          </div>
+          {/* Card 2: Interactive Courses */}
+          <ValueCard
+            title="Interactive Learning (Coming Soon)"
+            description="Dive into our structured courses designed by industry experts to build your skills progressively with hands-on projects and real-world applications."
+            imageSrc="/course-page.png"
+          />
 
-          {/* Card 3: Seamless Integration */}
+          {/* Card 3: Progress Tracking */}
           <div className="group relative items-start overflow-hidden bg-background border border-muted p-6 rounded-2xl md:row-span-2 transition-all duration-500 ease-out">
             <div className="relative z-10">
-              <h3 className="font-semibold mb-2 text-primary">Seamless Integration</h3>
+              <h3 className="font-semibold mb-2 text-primary">Track Your Learning Journey</h3>
               <p className="text-foreground">
-                Easily integrate our AI solutions into your existing workflows and systems for a
-                smooth and efficient operation.
+                Visualize your progress with detailed analytics and personalized insights. Identify your strengths, track improvements, and stay motivated as you advance through your coding journey.
               </p>
             </div>
             <FlickeringGrid
@@ -70,16 +79,16 @@ export const ValuePropsSection = () => {
             <div className="absolute bottom-0 left-0 h-32 w-full bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
           </div>
 
-          {/* Card 4: Customizable Solutions */}
+          {/* Card 4: Gamification */}
           <div className="group relative items-start overflow-hidden bg-background border border-muted p-6 rounded-2xl flex-row order-4 md:col-span-2 md:flex-row xl:order-none transition-all duration-500 ease-out">
             <div>
               <h3 className="font-semibold mb-2 text-primary">Advanced Gamification</h3>
               <p className="text-foreground">
-                Engage users with our advanced gamification features that make learning and
-                participation rewarding and enjoyable.
+              Stay motivated with our gamified learning experience. Complete challenges, earn badges, and climb the leaderboard as you master new concepts and solve problems.
+
               </p>
+              <Ripple className="translate-y-1/2" />
             </div>
-            <Ripple className="translate-y-1/2" />
             <Safari
               imageSrc="/quests-page.png"
               url="/"
