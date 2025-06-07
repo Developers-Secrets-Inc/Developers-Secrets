@@ -32,7 +32,7 @@ export default async function ChallengeDescriptionPage({
       redirect('/auth/login')
     }
 
-
+    
     return (
       <div className="p-6">
         <Suspense fallback={<ChallengeDescriptionSkeleton />}>
