@@ -1,11 +1,19 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandSeparator
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import * as Tooltip from '@radix-ui/react-tooltip'
 import type {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
-  PaginationState,
 } from '@tanstack/react-table'
 import {
   flexRender,
@@ -16,32 +24,25 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  CircleDotIcon,
   CheckCircle2Icon,
+  ChevronDownIcon,
   ChevronFirstIcon,
   ChevronLastIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ListFilterIcon,
+  ChevronUpIcon,
+  CircleDotIcon,
   CircleXIcon,
   FilterIcon,
+  ListFilterIcon,
 } from 'lucide-react'
-import * as Tooltip from '@radix-ui/react-tooltip'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from '@/components/ui/command'
+import { useMemo, useState } from 'react'
 
-import { cn } from '@/lib/utils'
+import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -50,26 +51,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import Link from 'next/link'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useChallenges } from '@/core/challenges/hooks/use-challenges'
+import { ChallengeWithProgress } from '@/core/challenges'
 import { ChallengeStatusProvider } from '@/core/challenges/components/challenge-status-provider'
 import { useChallengeStatus } from '@/core/challenges/hooks/use-challenge-status'
+import { useChallenges } from '@/core/challenges/hooks/use-challenges'
 import { CompletionStatus } from '@/core/challenges/user-progression/types'
-import { ChallengeWithProgress } from '@/core/challenges'
 import { useSessionUser } from '@/core/user/hooks/use-user'
+import { cn } from '@/lib/utils'
+import Link from 'next/link'
 
 const ChallengeStatusCell = () => {
   const { visualStatus } = useChallengeStatus()
@@ -117,10 +106,6 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
       desc: true,
     },
   ])
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 25,
-  })
 
   const { challenges, isLoading } = useChallenges()
   const { user } = useSessionUser()
@@ -204,25 +189,12 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
     state: {
       sorting,
       columnFilters,
-      pagination,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFacetedUniqueValues: (table, columnId) => () => {
-      const uniqueValues = new Map<any, number>()
-      table.getCoreRowModel().rows.forEach((row) => {
-        const value = row.getValue(columnId)
-        const count = uniqueValues.get(value) ?? 0
-        uniqueValues.set(value, count + 1)
-      })
-      return uniqueValues
-    },
-    enableSortingRemoval: false,
   })
 
   if (isLoading) {
@@ -435,76 +407,6 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
             </TableBody>
           </Table>
         </Tooltip.Provider>
-      </div>
-
-      <div className="flex items-center justify-between gap-8">
-        <div className="text-muted-foreground flex grow justify-end text-sm whitespace-nowrap">
-          <p className="text-muted-foreground text-sm whitespace-nowrap" aria-live="polite">
-            <span className="text-foreground">
-              {table.getRowModel().rows.length === 0
-                ? 0
-                : table.getState().pagination.pageIndex * table.getState().pagination.pageSize +
-                  1}{' '}
-              -
-              {Math.min(
-                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-                table.getFilteredRowModel().rows.length,
-              )}
-            </span>{' '}
-            of <span className="text-foreground">{table.getFilteredRowModel().rows.length}</span>
-            {columnFilters.length > 0 && ` (filtered from ${table.getCoreRowModel().rows.length})`}
-          </p>
-        </div>
-        <div>
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => table.firstPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  aria-label="Go to first page"
-                >
-                  <ChevronFirstIcon size={16} aria-hidden="true" />
-                </Button>
-              </PaginationItem>
-              <PaginationItem>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  aria-label="Go to previous page"
-                >
-                  <ChevronLeftIcon size={16} aria-hidden="true" />
-                </Button>
-              </PaginationItem>
-              <PaginationItem>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  aria-label="Go to next page"
-                >
-                  <ChevronRightIcon size={16} aria-hidden="true" />
-                </Button>
-              </PaginationItem>
-              <PaginationItem>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => table.lastPage()}
-                  disabled={!table.getCanNextPage()}
-                  aria-label="Go to last page"
-                >
-                  <ChevronLastIcon size={16} aria-hidden="true" />
-                </Button>
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
       </div>
     </div>
   )
