@@ -15,7 +15,7 @@ export const CTA = () => {
             Ready to Elevate Your Coding Journey?
           </h2>
           <p className="text-card-foreground text-lg mb-8 max-w-2xl mx-auto">
-            Join use today to elevate your career with our hands-on platform. 
+            Join us today to elevate your career with our hands-on platform. 
             Build real projects, master in-demand skills, and join a thriving community of passionate coders.
           </p>
           <Button size="lg" className="text-lg h-12 px-8 group" asChild>
