@@ -77,11 +77,7 @@ function buildChallengeSystemPrompt(context: {
   return prompt
 }
 
-interface AIAssistantDialogProps {
-  challengeSlug: string
-}
-
-export function AIAssistantDialog({ challengeSlug }: AIAssistantDialogProps) {
+export const AIAssistantDialog = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
 

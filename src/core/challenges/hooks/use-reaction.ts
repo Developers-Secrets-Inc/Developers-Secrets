@@ -1,83 +1,98 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   toggleChallengeLike,
   toggleChallengeDislike,
 } from '@/core/challenges/user-progression/actions'
 import { hasUserLikedChallenge, hasUserDislikedChallenge } from '@/core/challenges/user-progression'
+import { useChallengeStore } from '@/core/challenges/store'
 
-type ToggleAction = (
-  state: boolean,
-  challengeId: number,
-) => Promise<{ success: boolean; error?: string }>
+export const useChallengeReaction = () => {
+  const { challenge, user } = useChallengeStore()
+  const challengeId = challenge?.id
+  const userId = user?.id
+  const queryClient = useQueryClient()
 
-export const useReaction = (challengeId: number, userId: string) => {
-  const [liked, setLiked] = useState(false)
-  const [disliked, setDisliked] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const queryKey = ['challengeReaction', challengeId, userId]
 
-  useEffect(() => {
-    const fetchInitialStates = async () => {
-      try {
-        const [isLiked, isDisliked] = await Promise.all([
-          hasUserLikedChallenge(userId, challengeId),
-          hasUserDislikedChallenge(userId, challengeId),
-        ])
-        setLiked(isLiked)
-        setDisliked(isDisliked)
-      } catch (error) {
-        console.error('Error fetching reaction states:', error)
-        // In case of error, we set both states to false and don't show error to user
-        setLiked(false)
-        setDisliked(false)
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: queryKey,
+    queryFn: async () => {
+      if (!challengeId || !userId) {
+        // Return default state if IDs are not available
+        return { liked: false, disliked: false }
       }
-    }
-    fetchInitialStates()
-  }, [challengeId, userId])
+      const [liked, disliked] = await Promise.all([
+        hasUserLikedChallenge(userId, challengeId),
+        hasUserDislikedChallenge(userId, challengeId),
+      ])
+      return { liked, disliked }
+    },
+    // Only enable the query if both challengeId and userId are available
+    enabled: !!challengeId && !!userId,
+    staleTime: Infinity, // Reactions don't change often
+  })
 
-  const toggleReaction = async (
-    reactionType: 'like' | 'dislike',
-    newState: boolean,
-    setState: (value: boolean) => void,
-    toggleAction: ToggleAction,
-  ) => {
-    setState(newState)
+  const likeMutation = useMutation({
+    mutationFn: async (newLikedState: boolean) => {
+      if (!challengeId) throw new Error('Challenge ID is missing.')
+      return toggleChallengeLike(newLikedState, challengeId)
+    },
+    onMutate: async (newLikedState) => {
+      await queryClient.cancelQueries({ queryKey: queryKey })
+      const previousData = queryClient.getQueryData(queryKey)
+      queryClient.setQueryData(queryKey, (old: any) => ({
+        ...old,
+        liked: newLikedState,
+        disliked: newLikedState ? false : old?.disliked, // If liking, cannot be disliked
+      }))
+      return { previousData }
+    },
+    onError: (err, newLikedState, context) => {
+      queryClient.setQueryData(queryKey, context?.previousData)
+      console.error('Error toggling like:', err)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKey })
+    },
+  })
 
-    try {
-      await toggleAction(newState, challengeId)
-    } catch (error) {
-      console.error(`Error with ${reactionType} action:`, error)
-      setError(`Error with ${reactionType} action: ${error}`)
-      setState(!newState)
-    }
+  const dislikeMutation = useMutation({
+    mutationFn: async (newDislikedState: boolean) => {
+      if (!challengeId) throw new Error('Challenge ID is missing.')
+      return toggleChallengeDislike(newDislikedState, challengeId)
+    },
+    onMutate: async (newDislikedState) => {
+      await queryClient.cancelQueries({ queryKey: queryKey })
+      const previousData = queryClient.getQueryData(queryKey)
+      queryClient.setQueryData(queryKey, (old: any) => ({
+        ...old,
+        disliked: newDislikedState,
+        liked: newDislikedState ? false : old?.liked, // If disliking, cannot be liked
+      }))
+      return { previousData }
+    },
+    onError: (err, newDislikedState, context) => {
+      queryClient.setQueryData(queryKey, context?.previousData)
+      console.error('Error toggling dislike:', err)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKey })
+    },
+  })
+
+  const handleLikeClick = () => {
+    likeMutation.mutate(!data?.liked)
   }
 
-  const handleLikeClick = async () => {
-    const newLiked = !liked
-    const newDisliked = newLiked ? false : disliked
-
-    setDisliked(newDisliked)
-    await toggleReaction('like', newLiked, setLiked, toggleChallengeLike)
-  }
-
-  const handleDislikeClick = async () => {
-    const newDisliked = !disliked
-    const newLiked = newDisliked ? false : liked
-
-    setLiked(newLiked)
-    await toggleReaction('dislike', newDisliked, setDisliked, toggleChallengeDislike)
+  const handleDislikeClick = () => {
+    dislikeMutation.mutate(!data?.disliked)
   }
 
   return {
-    state: {
-      liked,
-      disliked,
-    },
-    actions: {
-      handleLikeClick,
-      handleDislikeClick,
-    },
-    error,
+    state: { liked: data?.liked ?? false, disliked: data?.disliked ?? false, isLoading },
+    actions: { handleLikeClick, handleDislikeClick },
+    error: isError ? error?.message : null,
   }
 }

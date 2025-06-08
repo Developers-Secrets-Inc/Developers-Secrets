@@ -7,14 +7,16 @@ import { cn } from '@/lib/utils'
 interface DislikeButtonProps {
   disliked: boolean
   onClick: () => void
+  disabled?: boolean
 }
 
-export function DislikeButton({ disliked, onClick }: DislikeButtonProps) {
+export function DislikeButton({ disliked, onClick, disabled }: DislikeButtonProps) {
   return (
     <Button
       variant={disliked ? 'default' : 'ghost'}
       size="sm"
       onClick={onClick}
+      disabled={disabled}
       className={cn(
         'flex items-center gap-2 transition-colors duration-200',
         disliked

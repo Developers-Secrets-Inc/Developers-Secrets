@@ -1,4 +1,4 @@
-import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges'
+import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { ChallengeHeader } from '../components/challenge-header'
 import { ChallengeDescriptionContent } from './components/challenge-description-content'
 import { ChallengeDescriptionFooter } from './components/challenge-description-footer'

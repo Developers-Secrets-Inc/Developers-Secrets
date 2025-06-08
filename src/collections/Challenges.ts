@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { revalidateTag } from 'next/cache'
 
 // Fonction pour calculer l'expérience basée sur la difficulté
 const calculateExperience = (difficulty: string): number => {
@@ -32,6 +33,32 @@ export const Challenges: CollectionConfig = {
       }
       return false
     }, // Tous les utilisateurs peuvent créer des challenges
+  },
+  hooks: {
+    afterChange: [({ doc }) => {
+      revalidateTag(`challenges`)
+      revalidateTag(`all-challenges`)
+      revalidateTag(`all-challenges-slugs`)
+      if (doc.id) {
+        revalidateTag(`challenge-${doc.id}`)
+      }
+      if (doc.slug) {
+        revalidateTag(`challenge-${doc.slug}`)
+      }
+      return
+    }],
+    afterDelete: [({ doc }) => {
+      revalidateTag(`challenges`)
+      revalidateTag(`all-challenges`)
+      revalidateTag(`all-challenges-slugs`)
+      if (doc.id) {
+        revalidateTag(`challenge-${doc.id}`)
+      }
+      if (doc.slug) {
+        revalidateTag(`challenge-${doc.slug}`)
+      }
+      return
+    }]
   },
   fields: [
     {

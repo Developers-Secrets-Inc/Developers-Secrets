@@ -6,7 +6,7 @@ import { getUser } from '@/core/user'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { SolutionDetail } from '../../components/solution-detail'
-import { getAllChallenges } from '@/core/challenges'
+import { getAllChallenges } from '@/core/challenges/challenge-queries'
 
 // This function enables ISR with a 10-minute revalidation period
 export const revalidate = 600 // 10 minutes in seconds

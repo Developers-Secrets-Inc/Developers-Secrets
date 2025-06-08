@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 import { Editor, OnMount } from '@monaco-editor/react'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useEditorStore } from './store'
 import { EditorHeader } from './header'
 import { TerminalContent, TerminalTabs, TestResult } from './terminal'
 
@@ -136,6 +137,12 @@ export function CodeEditor({
   // ==============================
   // State
   // ==============================
+  const { initializeEditor, isTerminalOpen, toggleTerminalOpen, activeTab, setActiveTab } = useEditorStore()
+
+  useEffect(() => {
+    initializeEditor(initialCode, language, codeVersions)
+  }, [initialCode, language, codeVersions, initializeEditor])
+
   const [codeByLanguage, setCodeByLanguage] = useState<Record<string, string>>(() => {
     // Initialiser avec les versions de code fournies
     const initialState = { ...codeVersions }
@@ -148,8 +155,6 @@ export function CodeEditor({
   const [currentLanguage, setCurrentLanguage] = useState(language)
   const [testOutput, setTestOutput] = useState<string>('')
   const [executionOutput, setExecutionOutput] = useState<string>('')
-  const [isTerminalOpen, setIsTerminalOpen] = useState(true)
-  const [activeTab, setActiveTab] = useState<TerminalTab>('tests')
   const [isRunning, setIsRunning] = useState(false)
   const [pyodideStatus, setPyodideStatus] = useState<
     'loading' | 'loaded' | 'error' | 'uninitialized'
@@ -264,43 +269,8 @@ export function CodeEditor({
     onLanguageChange?.(value)
   }
 
-  /**
-   * Toggles terminal visibility
-   */
-  const toggleTerminal = () => {
-    setIsTerminalOpen(!isTerminalOpen)
-  }
 
-  /**
-   * Handles double-click on tab bar
-   */
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    if (!(e.target as HTMLElement).closest('.tabs-list-container')) {
-      toggleTerminal()
-    }
-  }
 
-  /**
-   * Handles chevron click to toggle terminal
-   */
-  const handleChevronClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    toggleTerminal()
-  }
-
-  /**
-   * Handles tab selection changes
-   */
-  const handleTabChange = (value: string) => {
-    setActiveTab(value as TerminalTab)
-    if (!isTerminalOpen) {
-      setIsTerminalOpen(true)
-    }
-  }
-
-  /**
-   * Handles code execution
-   */
   const handleRunCode = async () => {
     setIsRunning(true)
 
@@ -310,7 +280,7 @@ export function CodeEditor({
 
     // Open terminal if closed
     if (!isTerminalOpen) {
-      setIsTerminalOpen(true)
+      toggleTerminalOpen()
     }
 
     try {
@@ -413,7 +383,6 @@ export function CodeEditor({
     <div className="h-full flex flex-col border-t overflow-hidden">
       {/* Editor header */}
       <EditorHeader
-        currentLanguage={currentLanguage}
         showLanguageSelector={showLanguageSelector}
         availableLanguages={availableLanguages}
         isRunning={isRunning}
@@ -457,21 +426,12 @@ export function CodeEditor({
       </div>
 
       {/* Terminal tabs */}
-      <TerminalTabs
-        activeTab={activeTab}
-        isTerminalOpen={isTerminalOpen}
-        onTabChange={handleTabChange}
-        onChevronClick={handleChevronClick}
-        onDoubleClick={handleDoubleClick}
-      />
+      <TerminalTabs />
 
       {/* Terminal content */}
       <TerminalContent
-        activeTab={activeTab}
         testResults={testResults}
         executionOutput={executionOutput}
-        onTabChange={handleTabChange}
-        isTerminalOpen={isTerminalOpen}
       />
     </div>
   )

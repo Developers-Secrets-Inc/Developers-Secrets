@@ -7,14 +7,16 @@ import { cn } from '@/lib/utils'
 interface LikeButtonProps {
   liked: boolean
   onClick: () => void
+  disabled?: boolean
 }
 
-export function LikeButton({ liked, onClick }: LikeButtonProps) {
+export function LikeButton({ liked, onClick, disabled }: LikeButtonProps) {
   return (
     <Button
       variant={liked ? 'default' : 'ghost'}
       size="sm"
       onClick={onClick}
+      disabled={disabled}
       className={cn(
         'flex items-center gap-2 transition-colors duration-200',
         liked

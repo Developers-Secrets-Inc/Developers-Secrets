@@ -1,6 +1,6 @@
 import { getUser } from '@/core/user'
 import { SubmissionsList } from '../components/submissions-list'
-import { getChallengeBySlug } from '@/core/challenges/'
+import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { getSubmissions } from '@/core/challenges/submissions'
 
 export default async function SubmissionsPage({

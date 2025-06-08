@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -8,6 +10,7 @@ import {
 } from '@/components/ui/select'
 import { Loader2, Play, Send } from 'lucide-react'
 import { PyodideLoadingStatus } from './pyodide-loading-status'
+import { useEditorStore } from './store'
 
 type ProgrammingLanguage = {
   value: string
@@ -18,7 +21,6 @@ type ProgrammingLanguage = {
  * Header component with language selector and run button
  */
 type EditorHeaderProps = {
-  currentLanguage: string
   showLanguageSelector: boolean
   availableLanguages: ProgrammingLanguage[]
   isRunning: boolean
@@ -30,18 +32,19 @@ type EditorHeaderProps = {
 }
 
 const LanguageSelector = ({
-  currentLanguage,
   availableLanguages,
   onLanguageChange,
   pyodideStatus,
 }: {
-  currentLanguage: string
   availableLanguages: ProgrammingLanguage[]
   onLanguageChange: (value: string) => void
   pyodideStatus: 'loading' | 'loaded' | 'error' | 'uninitialized'
 }) => {
+  const { currentLanguage } = useEditorStore()
+
   const isPythonSelected = currentLanguage === 'python'
   const showPythonStatus = isPythonSelected && pyodideStatus !== 'loaded'
+
 
   return (
     <div className="flex items-center gap-2">
@@ -118,7 +121,6 @@ export const SubmitButton = ({
 }
 
 export const EditorHeader = ({
-  currentLanguage,
   showLanguageSelector,
   availableLanguages,
   isRunning,
@@ -128,6 +130,8 @@ export const EditorHeader = ({
   onSubmitCode,
   pyodideStatus,
 }: EditorHeaderProps) => {
+  const { currentLanguage } = useEditorStore()
+
   const languageLabel = currentLanguage.charAt(0).toUpperCase() + currentLanguage.slice(1)
   const isPythonSelected = currentLanguage === 'python'
 
@@ -136,7 +140,6 @@ export const EditorHeader = ({
       <div className="flex items-center">
         {showLanguageSelector ? (
           <LanguageSelector
-            currentLanguage={currentLanguage}
             availableLanguages={availableLanguages}
             onLanguageChange={onLanguageChange}
             pyodideStatus={pyodideStatus}

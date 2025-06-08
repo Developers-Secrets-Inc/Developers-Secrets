@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { CompletionDialog } from '@/core/challenges/components/completion-dialog'
-import { getChallengeCompletionData } from '@/core/challenges'
+import { getChallengeCompletionData } from '@/core/challenges/actions'
 import { useEffect, useState } from 'react'
 import { Trophy } from 'lucide-react'
 import { Loader2 } from 'lucide-react'

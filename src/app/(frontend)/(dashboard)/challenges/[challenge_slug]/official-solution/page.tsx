@@ -1,9 +1,10 @@
-import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges'
+import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { ChallengeHeader } from '../components/challenge-header'
 import { OfficialSolutionComments } from '../components/comments/official-solution-comments'
 import { Markdown } from '@/components/markdown'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { getUser } from '@/core/user'
+import { redirect } from 'next/navigation'
 
 export const revalidate = 600 // 10 minutes in seconds
 
@@ -23,6 +24,11 @@ export default async function OfficialSolutionPage({
 
   const challenge = await getChallengeBySlug(challenge_slug)
   const user = await getUser()
+
+  if (!user) {
+    redirect('/auth/login')
+  }
+
   const status = await getUserCompletionStatus(user.id, challenge.id)
 
   return (

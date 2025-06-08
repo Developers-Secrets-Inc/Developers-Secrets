@@ -2,7 +2,7 @@ import { CommunitySolutions } from '@/core/challenges/users-solutions/components
 import { NoSolutionsAvailable } from '@/core/challenges/users-solutions/components/no-solutions-available'
 import { CreateSolutionBanner } from '@/core/challenges/users-solutions/components/create-solution-banner'
 import { getChallengeSolutions } from '@/core/challenges/users-solutions'
-import { getChallengeBySlug } from '@/core/challenges'
+import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { Suspense } from 'react'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'

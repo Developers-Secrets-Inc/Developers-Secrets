@@ -1,6 +1,6 @@
 'use client'
 
-import { getChallengeCompletionData } from '@/core/challenges'
+import { getChallengeCompletionData } from '@/core/challenges/actions'
 import { useQuery } from '@tanstack/react-query'
 
 export function useCompletionQuery(challengeId: number, userId: string, challengeSlug: string) {
@@ -8,7 +8,6 @@ export function useCompletionQuery(challengeId: number, userId: string, challeng
     queryKey: ['completion', challengeId, userId],
     queryFn: () => getChallengeCompletionData(userId, challengeId, challengeSlug),
     staleTime: Infinity,
-    cacheTime: Infinity,
     // On ne veut pas recharger automatiquement
     refetchOnWindowFocus: false,
     refetchOnMount: false,
