@@ -23,7 +23,6 @@ import { ValuePropsSection } from './components/value-props-section'
 import { Footer7 } from './components/footer'
 import { ProblemSection } from './components/problem'
 import { GraphQLLogoIcon } from '@/components/icons/graphql-logo-icon'
-import CTA from './components/cta'
 
 export const metadata: Metadata = {
   title: 'Developers Secrets',
@@ -221,7 +220,6 @@ export default function Home() {
       {/* <Feature197 /> */}
       <ProblemSection />
       <ValuePropsSection />
-      <CTA />
       {/* <Footer7 /> */}
     </div>
   )

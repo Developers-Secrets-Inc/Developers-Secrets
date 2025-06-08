@@ -38,8 +38,8 @@ export default async function ChallengeDescriptionPage({
         <Suspense fallback={<ChallengeDescriptionSkeleton />}>
           <ChallengeHeader challenge={challenge} />
           <ChallengeDescriptionContent
-            descriptionStatement={challenge.description?.statement || 'No description available.'}
-          />
+            slug={challenge_slug}
+            initialDescription={challenge.description?.statement || 'No description available.'}          />
         </Suspense>
         <Suspense fallback={<ChallengeDescriptionFooterSkeleton />}>
           <ChallengeDescriptionFooter challenge={challenge} />

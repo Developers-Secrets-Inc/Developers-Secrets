@@ -18,6 +18,8 @@ import { User } from '@/types/user'
 import { ChallengeStoreHydrator } from '@/core/challenges/components/challenge-store-hydrator'
 import { DraftRedirect } from './components/draft-redirect'
 import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
+import { AdminComponent } from '@/core/user/components/admin-component'
+import { ChallengeSettingsBubble } from '@/core/challenges/components/admin/challenge-settings-bubble'
 
 // Composant de chargement minimaliste pour éviter les flashs UI
 function LoadingPlaceholder() {
@@ -142,6 +144,9 @@ export default async function ChallengeLayout({
                       </ResizablePanel>
                     </ResizablePanelGroup>
                   </ChallengeEditorProvider>
+                  <AdminComponent>
+                    <ChallengeSettingsBubble challenge={challenge} />
+                  </AdminComponent>
                 </div>
               </div>
             </div>

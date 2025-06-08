@@ -8,7 +8,7 @@ import config from '@payload-config'
 import { ChallengeNotFoundError } from './errors'
 import { Challenge } from '@/payload-types'
 
-import { unstable_cache } from 'next/cache'
+import { revalidateTag, unstable_cache } from 'next/cache'
 
 const CHALLENGE_COLLECTION_NAME = 'challenges'
 
@@ -100,3 +100,55 @@ export const getChallengeBySlug = async (slug: string, depth: number = 2) => {
   return await getCachedChallengeBySlug(slug, depth)()
 }
   
+
+
+export const updateChallengeDescription = async (slug: string, newDescription: string): Promise<Challenge> => {
+  const payload = await getPayload({ config })
+  const challenge = await payload.update({
+    collection: CHALLENGE_COLLECTION_NAME,
+    where: {
+      slug: {
+        equals: slug,
+      },
+    },
+    data: {
+      description: {
+        statement: newDescription,
+      },
+    },
+  })
+
+  const challengeResult = challenge.docs[0]
+
+  revalidateTag(`challenge-${slug}`)
+  revalidateTag(`challenge-${challengeResult.id}`)
+  revalidateTag('all-challenges')
+
+  return challengeResult
+}
+
+
+export const updateChallengeOfficialSolution = async (slug: string, newOfficialSolution: string): Promise<Challenge> => {
+  const payload = await getPayload({ config })
+  const challenge = await payload.update({
+    collection: CHALLENGE_COLLECTION_NAME,
+    where: {
+      slug: {
+        equals: slug,
+      },
+    },
+    data: {
+      officialSolution: {
+        statement: newOfficialSolution,
+      },
+    },
+  })
+
+  const challengeResult = challenge.docs[0]
+
+  revalidateTag(`challenge-${slug}`)
+  revalidateTag(`challenge-${challengeResult.id}`)
+  revalidateTag('all-challenges')
+
+  return challengeResult
+}

@@ -1,7 +1,7 @@
 import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { ChallengeHeader } from '../components/challenge-header'
 import { OfficialSolutionComments } from '../components/comments/official-solution-comments'
-import { Markdown } from '@/components/markdown'
+import { SolutionContent } from './components/solution-content'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
@@ -29,17 +29,16 @@ export default async function OfficialSolutionPage({
     redirect('/auth/login')
   }
 
-  const status = await getUserCompletionStatus(user.id, challenge.id)
 
   return (
     <div className="p-6">
       <ChallengeHeader
         challenge={challenge}
-        status={status}
       />
-      <div>
-        <Markdown>{challenge.officialSolution.statement || 'No official solution available.'}</Markdown>
-      </div>
+      <SolutionContent
+        slug={challenge_slug}
+        initialSolution={challenge.officialSolution?.statement || 'No official solution available.'}
+      />
 
       <div className="mt-8 border-t pt-6">
         <h3 className="text-lg font-semibold mb-4">Comments</h3>
