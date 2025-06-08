@@ -4,6 +4,7 @@ import { Experience } from '@/components/challenges/challenge-experience'
 import { Challenge as PayloadChallenge } from '@/payload-types'
 import { ChallengeStatus } from './challenge-status'
 import { ChallengeSkillImpacts } from '@/components/challenges/challenge-skill-impacts'
+import { Badge } from '@/components/ui/badge'
 
 type ChallengeHeaderProps = {
   challenge: PayloadChallenge
@@ -14,7 +15,14 @@ export const ChallengeHeader = ({ challenge }: ChallengeHeaderProps) => {
     <div className="mb-6 border-b pb-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">{challenge.title}</h2>
-        <ChallengeStatus />
+        <div className="flex items-center gap-2">
+          {challenge.draft && (
+            <Badge variant="secondary">
+              Draft
+            </Badge>
+          )}
+          <ChallengeStatus />
+        </div>
       </div>
       <ChallengeHeaderTags challenge={challenge} />
     </div>
