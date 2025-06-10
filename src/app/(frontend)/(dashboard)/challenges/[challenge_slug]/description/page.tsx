@@ -8,14 +8,6 @@ import { getUser } from '@/core/user'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { redirect } from 'next/navigation'
 
-export const revalidate = 600 // 10 minutes in seconds
-
-export async function generateStaticParams() {
-  const slugs = await getAllChallengesSlugs()
-  return slugs.map((slug: string) => ({
-    challenge_slug: slug,
-  }))
-}
 
 export default async function ChallengeDescriptionPage({
   params,
@@ -36,7 +28,7 @@ export default async function ChallengeDescriptionPage({
     return (
       <div className="p-6">
         <Suspense fallback={<ChallengeDescriptionSkeleton />}>
-          <ChallengeHeader challenge={challenge} />
+          <ChallengeHeader challenge={challenge} userId={user.id} />
           <ChallengeDescriptionContent
             slug={challenge_slug}
             initialDescription={challenge.description?.statement || 'No description available.'}          />

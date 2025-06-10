@@ -54,6 +54,7 @@ import { UserChapterProgress } from './collections/UserChapterProgress'
 import { CoursePartFeedback } from './collections/CoursePartFeedback'
 import UserOnboarding from './collections/UserOnboarding'
 import { LearningPath } from './collections/LearningPath'
+import { BlogArticles } from './collections/BlogArticles'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -113,6 +114,7 @@ export default buildConfig({
     UserChapterProgress,
     CoursePartFeedback,
     UserOnboarding,
+    BlogArticles,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

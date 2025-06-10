@@ -6,15 +6,6 @@ import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
 
-export const revalidate = 600 // 10 minutes in seconds
-
-export async function generateStaticParams() {
-  const slugs = await getAllChallengesSlugs()
-  return slugs.map((slug: string) => ({
-    challenge_slug: slug,
-  }))
-}
-
 export default async function OfficialSolutionPage({
   params,
 }: {

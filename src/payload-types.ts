@@ -114,6 +114,7 @@ export interface Config {
     userChapterProgress: UserChapterProgress;
     coursePartFeedback: CoursePartFeedback;
     'user-onboarding': UserOnboarding;
+    'blog-articles': BlogArticle;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -168,6 +169,7 @@ export interface Config {
     userChapterProgress: UserChapterProgressSelect<false> | UserChapterProgressSelect<true>;
     coursePartFeedback: CoursePartFeedbackSelect<false> | CoursePartFeedbackSelect<true>;
     'user-onboarding': UserOnboardingSelect<false> | UserOnboardingSelect<true>;
+    'blog-articles': BlogArticlesSelect<false> | BlogArticlesSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -2262,6 +2264,37 @@ export interface UserOnboarding {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-articles".
+ */
+export interface BlogArticle {
+  id: number;
+  title: string;
+  /**
+   * URL-friendly identifier for this blog article. Will be used in the URL.
+   */
+  slug: string;
+  /**
+   * The main content of the blog article, written in Markdown.
+   */
+  content: string;
+  /**
+   * A brief description or summary of the blog article.
+   */
+  description: string;
+  /**
+   * The category this blog article belongs to.
+   */
+  category: 'engineering' | 'changelog';
+  author: number | User;
+  /**
+   * The date and time when the article was published.
+   */
+  publishedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-jobs".
  */
 export interface PayloadJob {
@@ -2546,6 +2579,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'user-onboarding';
         value: number | UserOnboarding;
+      } | null)
+    | ({
+        relationTo: 'blog-articles';
+        value: number | BlogArticle;
       } | null)
     | ({
         relationTo: 'payload-jobs';
@@ -3702,6 +3739,21 @@ export interface UserOnboardingSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-articles_select".
+ */
+export interface BlogArticlesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  content?: T;
+  description?: T;
+  category?: T;
+  author?: T;
+  publishedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

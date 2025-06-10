@@ -5,7 +5,7 @@ import { streamText } from 'ai'
 export const maxDuration = 30
 
 const openRouter = createOpenRouter({
-  apiKey: process.env.OPEN_ROUTER_API_KEY,
+  apiKey: process.env.OPENROUTER_API_KEY,
 })
 
 // System prompt building logic is now handled client-side

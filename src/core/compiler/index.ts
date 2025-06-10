@@ -10,24 +10,6 @@ export type CompilationResult = {
 // Check if we're in a browser environment before using workers
 export const isBrowser = typeof window !== 'undefined'
 
-// Helper function to check if Pyodide is loaded
-export const isPyodideLoaded = (): boolean => {
-  if (!isBrowser) return false
-  return !!(window as any).isPyodideLoaded && !!(window as any).pyodide
-}
-
-// Helper function to check if Pyodide is currently loading
-export const isPyodideLoading = (): boolean => {
-  if (!isBrowser) return false
-  return !!(window as any).isPyodideLoading
-}
-
-// Helper function to get any Pyodide load error
-export const getPyodideLoadError = (): string | null => {
-  if (!isBrowser) return null
-  return (window as any).pyodideLoadError || null
-}
-
 // JavaScript Worker
 const createJavaScriptWorker = (code: string): Promise<CompilationResult> => {
   if (!isBrowser) {
@@ -110,49 +92,32 @@ const compilePython = async (code: string): Promise<CompilationResult> => {
   }
 
   try {
-    if (isPyodideLoading()) {
-      return {
-        success: false,
-        output: '',
-        error: 'Python interpreter (Pyodide) is still loading. Please wait a moment and try again.',
-      }
-    }
-
-    const loadError = getPyodideLoadError()
-    if (loadError) {
-      return {
-        success: false,
-        output: '',
-        error: `Python interpreter (Pyodide) failed to load: ${loadError}. Please refresh the page.`,
-      }
-    }
-
-    const pyodide = (window as any).pyodide
-    if (!pyodide) {
-      return {
-        success: false,
-        output: '',
-        error:
-          'Python interpreter (Pyodide) is not initialized yet. Please wait a moment and try again.',
-      }
-    }
+    // Load a new Pyodide instance for each run to ensure a clean state
+    // @ts-expect-error - loadPyodide is not defined on globalThis in TS context, but it will be at runtime
+    const pyodide = await globalThis.loadPyodide({
+      indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/',
+    })
 
     // Redirect stdout to capture print statements
-    await pyodide.runPythonAsync(`
-      import sys
-      import io
-      sys.stdout = io.StringIO()
-    `)
+    pyodide.setStdout({
+      batched: (output: string) => {
+        // In this simplified version, we just capture the final output as a string.
+        // If we needed rich output (like images), this is where the logic would go.
+        ;(pyodide as any)._capturedOutput = (pyodide as any)._capturedOutput
+          ? (pyodide as any)._capturedOutput + output + '\n'
+          : output + '\n'
+      },
+    })
 
     // Run the Python code
     await pyodide.runPythonAsync(code)
 
     // Get the captured stdout
-    let output: string = await pyodide.runPythonAsync(`sys.stdout.getvalue()`)
+    let output: string = (pyodide as any)._capturedOutput || ''
     output = output.trim()
 
-    // Reset stdout
-    await pyodide.runPythonAsync(`sys.stdout = sys.__stdout__`)
+    // Terminate Pyodide instance (optional, but good for memory if not reusing)
+    // pyodide.destroy(); // Uncomment if you want to explicitly destroy the worker
 
     return {
       success: true,
@@ -205,7 +170,6 @@ export async function compileCode(code: string, language: string): Promise<Compi
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    toast.error(`Compilation error: ${errorMessage}`)
     return {
       success: false,
       output: '',
