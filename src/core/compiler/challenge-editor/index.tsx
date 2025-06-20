@@ -1,19 +1,20 @@
 'use client'
 
 import { Challenge } from '@/payload-types'
-import { ChallengeEditorContainer, ChallengeEditor } from './editor'
-import { TerminalTabs, TerminalContent } from './footer'
+import { useEffect } from 'react'
+import { useRunCode } from '../hooks/use-run-code'
+import { ChallengeEditor, ChallengeEditorContainer } from './editor'
+import { TerminalContent, TerminalTabs } from './footer'
 import {
   ChallengeIDEHeader,
   ChallengeIDEHeaderLeftPart,
   ChallengeIDEHeaderRightPart,
   LanguageSelector,
   RunButton,
-  SubmitButton,
 } from './header'
 import { useChallengeEditorStore } from './store'
-import { useEffect } from 'react'
-  
+import { SubmitButton } from './header/submit-button'
+
 const ChallengeIDEContainer = ({ children }: { children: React.ReactNode }) => {
   return <div className="h-full flex flex-col border-t overflow-hidden">{children}</div>
 }
@@ -37,13 +38,42 @@ type ChallengeIDEProps = {
 }
 
 export const ChallengeIDE = (props: ChallengeIDEProps) => {
-  const initialize = useChallengeEditorStore((state) => state.initialize)
+  const {
+    initialize,
+    setActiveTerminalTab,
+    isTerminalOpen,
+    toggleTerminal,
+    codeByLanguage,
+    currentLanguage,
+    availableLanguages,
+    setIsLoadingRun,
+    setExecutionOutput,
+  } = useChallengeEditorStore()
 
   useEffect(() => {
     if (props.codeVersions) {
       initialize(props.codeVersions)
     }
   }, [props.codeVersions, initialize])
+
+
+
+  const { isLoadingRun, executionOutput, runCode: runCodeHook } = useRunCode()
+
+  const handleRun = async () => {
+    // if (onRun) onRun()
+
+    setActiveTerminalTab('output')
+    if (!isTerminalOpen) {
+      toggleTerminal()
+    }
+
+    const code = codeByLanguage[currentLanguage]
+    setIsLoadingRun(true)
+    await runCodeHook({ code, language: currentLanguage })
+    setExecutionOutput(executionOutput)
+    setIsLoadingRun(false)
+  }
 
   return (
     <ChallengeIDEContainer>
@@ -52,8 +82,8 @@ export const ChallengeIDE = (props: ChallengeIDEProps) => {
           <LanguageSelector />
         </ChallengeIDEHeaderLeftPart>
         <ChallengeIDEHeaderRightPart>
-          <RunButton onRun={props.onRun} />
-          <SubmitButton challenge={props.challenge} onSubmit={props.onSubmit} userId={props.userId} />
+          <RunButton onRun={handleRun} isRunning={isLoadingRun} isDisabled={false} />
+          <SubmitButton challenge={props.challenge} userId={props.userId} />
         </ChallengeIDEHeaderRightPart>
       </ChallengeIDEHeader>
 

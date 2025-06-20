@@ -10,12 +10,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useChallengeEditorStore } from './store'
-import { useRunCode } from '../hooks/use-run-code'
-import { useSubmitCode } from '../hooks/use-submit-code'
-import { useChallengeUserStatus } from '@/core/challenges/hooks/use-challenge-user-status'
-import { useChallengeSubmissions } from '@/core/challenges/submissions/hooks/use-challenge-submissions'
-import { handleChallengeCompletion } from '@/core/challenges/actions'
-import { Challenge } from '@/payload-types'
 
 type CodeFunction = () => void
 
@@ -46,132 +40,61 @@ export const LanguageSelector = () => {
   )
 }
 
-export const RunButton = ({ onRun }: { onRun?: CodeFunction }) => {
-  const {
-    currentLanguage,
-    codeByLanguage,
-    setActiveTerminalTab,
-    toggleTerminal,
-    setExecutionOutput,
-    setIsLoadingRun,
-    isTerminalOpen,
-  } = useChallengeEditorStore()
-  const { isLoadingRun, executionOutput, runCode: runCodeHook } = useRunCode()
+const LoadingIcon = ({
+  isLoading,
+  children,
+}: {
+  isLoading: boolean
+  children: React.ReactNode
+}) => {
+  return isLoading ? <Loader2 size={14} className="mr-1 animate-spin" /> : children
+}
 
-  const handleRun = async () => {
-    if (onRun) onRun()
-
-    setActiveTerminalTab('output')
-    if (!isTerminalOpen) {
-      toggleTerminal()
-    }
-
-    const code = codeByLanguage[currentLanguage]
-    setIsLoadingRun(true)
-    await runCodeHook({ code, language: currentLanguage })
-    setExecutionOutput(executionOutput)
-    setIsLoadingRun(false)
-  }
-
+export const RunButton = ({
+  onRun,
+  isRunning,
+  isDisabled,
+}: {
+  onRun?: CodeFunction
+  isRunning: boolean
+  isDisabled: boolean
+}) => {
   return (
     <Button
       variant="secondary"
       size="sm"
       className="h-8"
-      onClick={handleRun}
-      disabled={isLoadingRun}
+      onClick={onRun}
+      disabled={isRunning || isDisabled}
     >
-      {isLoadingRun ? (
-        <Loader2 size={14} className="mr-1 animate-spin" />
-      ) : (
+      <LoadingIcon isLoading={isRunning}>
         <Play size={14} className="mr-1" />
-      )}
+      </LoadingIcon>
       Run
     </Button>
   )
 }
 
 export const SubmitButton = ({
-  challenge,
-  userId,
   onSubmit,
+  isSubmitting,
+  isDisabled,
 }: {
-  challenge: Challenge
-  userId: string
-  onSubmit?: CodeFunction
+  onSubmit: () => void
+  isSubmitting: boolean
+  isDisabled: boolean
 }) => {
-  const {
-    currentLanguage,
-    codeByLanguage,
-    availableLanguages,
-    setTestResults,
-    setActiveTerminalTab,
-    toggleTerminal,
-    isTerminalOpen,
-    openCompletionDialog,
-  } = useChallengeEditorStore()
-  const { submitCode: submitCodeHook, isLoadingSubmit } = useSubmitCode()
-  const { setInProgress, setCompleted, status } = useChallengeUserStatus(challenge.id)
-  const { createSubmission } = useChallengeSubmissions(challenge.id)
-
-  const handleSubmit = async () => {
-    if (onSubmit) onSubmit()
-
-    setActiveTerminalTab('tests')
-    if (!isTerminalOpen) {
-      toggleTerminal()
-    }
-
-    const code = codeByLanguage[currentLanguage]
-    const languageConfig = availableLanguages.find((lang) => lang.value === currentLanguage)
-
-    if (!languageConfig) {
-      setTestResults([
-        {
-          success: false,
-          input: '',
-          expectedOutput: '',
-          actualOutput: 'Error: No test cases found for this language',
-        },
-      ])
-      return
-    }
-
-    const testCases = languageConfig.testCases.map((tc) => ({
-      input: { content: tc.input, language: currentLanguage },
-      expectedOutput: { content: tc.expectedOutput, language: currentLanguage },
-    }))
-
-    const { submission, testResults } = await submitCodeHook({
-      code: { content: code, language: currentLanguage },
-      testCases,
-    })
-    setTestResults(testResults)
-    createSubmission(submission)
-
-    if (submission.testsPassed === testCases.length) {
-      setCompleted()
-    } else if (status === 'not_started' && submission.testsPassed < testCases.length) {
-      setInProgress()
-    }
-
-    openCompletionDialog()
-    await handleChallengeCompletion(challenge, userId)
-  }
-
   return (
     <Button
       variant="default"
       size="sm"
       className="h-8"
-      onClick={handleSubmit}
-      disabled={isLoadingSubmit}
+      onClick={onSubmit}
+      disabled={isSubmitting || isDisabled}
     >
-      {isLoadingSubmit ? (
-        <Loader2 size={14} className="mr-1 animate-spin" />
-      ) : (
+      <LoadingIcon isLoading={isSubmitting}>
         <Send size={14} className="mr-1" />
-      )}
+      </LoadingIcon>
       Submit
     </Button>
   )

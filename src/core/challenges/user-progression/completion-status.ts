@@ -14,7 +14,6 @@ export const createCompletionStatus = async (
 ): Promise<void> => {
   const payload = await getPayload({ config })
 
-  console.log("Creating completion status")
 
   await payload.create({
     collection: 'userChallengeCompletionStatus',
@@ -71,10 +70,8 @@ export const setCompletionStatus = async (
 
   if (!userProgression || userProgression === 'not_started') {
     await createCompletionStatus(userId, challengeId)
-    console.log("Created completion status")
   }
 
-  console.log("Updating completion status")
 
   await payload.update({
     collection: 'userChallengeCompletionStatus',
@@ -91,5 +88,57 @@ export const setCompletionStatus = async (
     },
   })
 
-  console.log("Updated completion status")
+}
+
+
+export const isSolutionUnlocked = async (
+  userId: string,
+  challengeId: number,
+): Promise<boolean> => {
+  const payload = await getPayload({ config })
+
+  const userProgression = await payload.find({
+    collection: 'userChallengeCompletionStatus',
+    where: {
+      userId: {
+        equals: userId,
+      },
+      challenge: {
+        equals: challengeId,
+      },
+    },
+    select: {
+      isSolutionUnlocked: true,
+    },
+  })
+
+  const doc = userProgression.docs[0]
+
+  if (!doc) {
+    return false
+  }
+
+  return doc.isSolutionUnlocked ?? false
+}
+
+export const setSolutionUnlocked = async (
+  userId: string,
+  challengeId: number,
+): Promise<void> => {
+  const payload = await getPayload({ config })
+
+  await payload.update({
+    collection: 'userChallengeCompletionStatus',
+    where: {
+      userId: {
+        equals: userId,
+      },
+      challenge: {
+        equals: challengeId,
+      },
+    },
+    data: {
+      isSolutionUnlocked: true,
+    },
+  })
 }

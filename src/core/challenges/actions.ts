@@ -13,6 +13,7 @@ import { trackAchievementProgress } from '@/core/gamification/achievements/actio
 import { recordChallengeCompletion } from '../skills/progression'
 import { getChallengeById } from './challenge-queries'
 import { getNextChallenge } from './navigation'
+import { isSolutionUnlocked } from './user-progression/completion-status'
 
 
 /**
@@ -80,7 +81,7 @@ export const getChallengeCompletionData = async (
   const [challenge, nextChallenge, wasUnlocked, gamificationInfo] = await Promise.all([
     getChallengeById(challengeId),
     getNextChallenge(challengeSlug),
-    getUserIsSolutionUnlocked(userId, challengeId),
+    isSolutionUnlocked(userId, challengeId),
     getGamificationInformations(userId),
   ])
 
