@@ -91,7 +91,7 @@ const LearningGroup = () => {
 
 // Skeleton for loading state
 
-export const HomeSidebar = async ({ defaultOpen = true }: { defaultOpen?: boolean }) => {
+export const HomeSidebar = async () => {
   const user = await getSessionUser()
 
   if (isError(user)) {

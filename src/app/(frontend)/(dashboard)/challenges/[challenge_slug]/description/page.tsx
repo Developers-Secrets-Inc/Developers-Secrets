@@ -1,4 +1,4 @@
-import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges'
+import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { ChallengeHeader } from '../components/challenge-header'
 import { ChallengeDescriptionContent } from './components/challenge-description-content'
 import { ChallengeDescriptionFooter } from './components/challenge-description-footer'
@@ -7,15 +7,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { getUser } from '@/core/user'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { redirect } from 'next/navigation'
-
-export const revalidate = 600 // 10 minutes in seconds
-
-export async function generateStaticParams() {
-  const slugs = await getAllChallengesSlugs()
-  return slugs.map((slug: string) => ({
-    challenge_slug: slug,
-  }))
-}
 
 export default async function ChallengeDescriptionPage({
   params,
@@ -32,13 +23,13 @@ export default async function ChallengeDescriptionPage({
       redirect('/auth/login')
     }
 
-
     return (
       <div className="p-6">
         <Suspense fallback={<ChallengeDescriptionSkeleton />}>
           <ChallengeHeader challenge={challenge} />
           <ChallengeDescriptionContent
-            descriptionStatement={challenge.description?.statement || 'No description available.'}
+            slug={challenge_slug}
+            initialDescription={challenge.description?.statement || 'No description available.'}
           />
         </Suspense>
         <Suspense fallback={<ChallengeDescriptionFooterSkeleton />}>

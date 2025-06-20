@@ -16,14 +16,18 @@ import { LockIcon, LogOutIcon, PinIcon, UserPenIcon } from 'lucide-react'
 import { useState } from 'react'
 import { LogoutConfirmationDialog } from './dialogs/logout-confirmation-dialog'
 import { SettingsDialog } from './dialogs/settings-dialog'
+import { useSessionUser } from '../hooks/use-user'
 
-type UserDropdownMenuProps = {
-  user: User
-}
-
-export const UserDropdownMenu = ({ user }: UserDropdownMenuProps) => {
+// ! This component should not ask for the user
+export const UserDropdownMenu = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [showSettingsDialog, setShowSettingsDialog] = useState(false)
+
+  const { user } = useSessionUser()
+
+  if (!user) {
+    return null
+  }
 
   return (
     <>

@@ -1,8 +1,8 @@
 'use client'
 
-import { CompletionDialog } from '@/core/challenges/components/completion-dialog'
+import { CompletionDialog } from '@/core/challenges/components/completion-dialog.client'
 import { handleChallengeCompletion } from '@/core/challenges/actions'
-import { getChallengeCompletionData } from '@/core/challenges'
+import { getChallengeCompletionData } from '@/core/challenges/actions'
 import { getUserIsSolutionUnlocked } from '@/core/challenges/user-progression'
 import { ChallengeStatusContext } from '@/core/challenges/components/challenge-status-provider'
 import { handleSubmission } from '@/core/challenges/submissions/client-actions'

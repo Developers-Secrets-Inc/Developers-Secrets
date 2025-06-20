@@ -1,8 +1,6 @@
 'use client'
 
-import { useId, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,39 +8,25 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { rateChallenge } from '@/core/challenges/user-progression/actions'
-import { toast } from 'sonner'
+} from '@/components/ui/dialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useChallengeRating } from '@/core/challenges/hooks/use-challenge-rating'; // Import the new hook
+import { useEffect, useId, useState } from 'react'; // Added useEffect
 
-interface RatingTextProps {
-  text?: string
-  className?: string
-  challengeId: number
-  initialRating?: number
-}
 
-export function RatingText({
-  text = 'Rate this challenge',
-  className = 'text-xs text-muted-foreground',
-  challengeId,
-  initialRating,
-}: RatingTextProps) {
+export const RatingText = () => {
   const [open, setOpen] = useState(false)
 
   return (
     <>
-      <div
-        className={`${className} cursor-pointer hover:text-primary transition-colors`}
+      <Button
+        variant="link"
+        className="text-xs text-muted-foreground cursor-pointer hover:text-primary transition-colors"
         onClick={() => setOpen(true)}
       >
-        {text}
-      </div>
-      <RatingDialog
-        open={open}
-        setOpen={setOpen}
-        challengeId={challengeId}
-        initialRating={initialRating?.toString()}
-      />
+        Rate this challenge
+      </Button>
+      <RatingDialog open={open} setOpen={setOpen} />
     </>
   )
 }
@@ -50,35 +34,27 @@ export function RatingText({
 interface RatingDialogProps {
   open: boolean
   setOpen: (open: boolean) => void
-  challengeId: number
-  initialRating?: string
 }
 
-function RatingDialog({ open, setOpen, challengeId, initialRating }: RatingDialogProps) {
+function RatingDialog({ open, setOpen }: RatingDialogProps) {
   const id = useId()
-  const [rating, setRating] = useState<string | undefined>(initialRating)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { rating, rate, isSubmitting } = useChallengeRating(() => setOpen(false))
+  const [localRating, setLocalRating] = useState<string>(rating?.toString() || '')
+
+  useEffect(() => {
+    if (rating != null) {
+      // Check for both null and undefined
+      setLocalRating(rating.toString())
+    } else {
+      setLocalRating('') // Ensure RadioGroup value is always a string
+    }
+  }, [rating])
 
   const handleSubmit = async () => {
-    if (!rating) return
+    if (localRating === undefined || localRating === null) return // Ensure localRating is not undefined or null
 
-    setIsSubmitting(true)
-    try {
-      const numericRating = parseInt(rating, 10)
-      const result = await rateChallenge(challengeId, numericRating)
-
-      if (result.success) {
-        toast.success('Thank you for rating this challenge!')
-        setOpen(false)
-      } else {
-        toast.error(result.error || 'Failed to submit rating')
-      }
-    } catch (error) {
-      console.error('Error submitting rating:', error)
-      toast.error('Something went wrong while submitting your rating')
-    } finally {
-      setIsSubmitting(false)
-    }
+    const numericRating = parseInt(localRating, 10)
+    await rate({ newRating: numericRating })
   }
 
   return (
@@ -96,8 +72,8 @@ function RatingDialog({ open, setOpen, challengeId, initialRating }: RatingDialo
             </legend>
             <RadioGroup
               className="flex gap-0 -space-x-px rounded-md shadow-xs"
-              value={rating}
-              onValueChange={setRating}
+              value={localRating}
+              onValueChange={setLocalRating}
             >
               {['0', '1', '2', '3', '4', '5'].map((value) => (
                 <label
@@ -125,10 +101,7 @@ function RatingDialog({ open, setOpen, challengeId, initialRating }: RatingDialo
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={!rating || isSubmitting}>
+          <Button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? 'Submitting...' : 'Submit Rating'}
           </Button>
         </DialogFooter>

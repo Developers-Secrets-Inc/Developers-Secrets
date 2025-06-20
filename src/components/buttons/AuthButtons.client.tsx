@@ -33,12 +33,12 @@ const AuthButtonsSkeleton = () => {
   return <Skeleton className="w-10 h-10 rounded-full" />
 }
 
-const AuthButtonsLoggedIn = ({ user }: { user: User }) => {
+const AuthButtonsLoggedIn = () => {
   return (
     <>
       <NotificationButton />
       <DashboardButton />
-      <UserDropdownMenu user={user} />
+      <UserDropdownMenu />
     </>
   )
 }
@@ -81,7 +81,7 @@ export const AuthButtonsClient = ({ user, isLoading }: AuthButtonsClientProps) =
   return (
     <div className="ml-auto flex items-center gap-2">
       <IsLoading isLoading={isLoading} fallback={<AuthButtons.Skeleton />}>
-        {user ? <AuthButtons.LoggedIn user={user} /> : <AuthButtons.LoggedOut />}
+        {user ? <AuthButtons.LoggedIn /> : <AuthButtons.LoggedOut />}
       </IsLoading>
     </div>
   )

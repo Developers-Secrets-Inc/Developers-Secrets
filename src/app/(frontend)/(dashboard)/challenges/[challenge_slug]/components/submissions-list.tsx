@@ -7,9 +7,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useState, useRef, useEffect } from 'react'
 import { NoSubmissions } from '@/core/challenges/submissions/components/no-submissions'
+import { useChallengeSubmissions } from '@/core/challenges/submissions/hooks/use-challenge-submissions'
 
 type Submission = {
-  id: string
+  id: number
   submissionType: 'accepted' | 'runtimeError' | 'wrongAnswer' | 'timeLimitExceeded'
   testsPassed: number
   testsTotal: number
@@ -21,38 +22,20 @@ type Submission = {
 }
 
 type SubmissionsListProps = {
-  challengeId: number
+  challenge: {
+    id: number
+    slug: string
+  }
   userId: string
-  initialSubmissions: Submission[]
 }
 
-export function SubmissionsList({ challengeId, userId, initialSubmissions }: SubmissionsListProps) {
-  const params = useParams()
-  const challenge_slug = params.challenge_slug as string
-  const [submissions, setSubmissions] = useState<Submission[]>(initialSubmissions)
-  const tempSubmissionRef = useRef<{ id: string; submission: Submission } | null>(null)
-
-  // Initialize window functions in useEffect to ensure they're set after mount
-  useEffect(() => {
-    window.addTempSubmission = (submission: Submission) => {
-      tempSubmissionRef.current = { id: submission.id, submission }
-      setSubmissions((prev) => [submission, ...prev])
-    }
-
-    window.updateSubmission = (tempId: string, serverSubmission: Submission) => {
-      if (tempSubmissionRef.current?.id === tempId) {
-        tempSubmissionRef.current = null
-        setSubmissions((prev) => prev.map((sub) => (sub.id === tempId ? serverSubmission : sub)))
-      }
-    }
-
-    // Cleanup function to remove window functions when component unmounts
-    return () => {
-      window.addTempSubmission = null as unknown as undefined
-      window.updateSubmission = null as unknown as undefined
-    }
-  }, []) // Empty dependency array since these functions don't depend on any props/state
-
+const SubmissionCard = ({
+  submission,
+  challengeSlug,
+}: {
+  submission: Submission
+  challengeSlug: string
+}) => {
   const getStatusBadgeClass = (submission: Submission) => {
     if (submission.testsPassed === submission.testsTotal) {
       return 'bg-green-500/10 text-green-500 border-green-500/20'
@@ -75,6 +58,64 @@ export function SubmissionsList({ challengeId, userId, initialSubmissions }: Sub
   }
 
   return (
+    <motion.div
+      key={submission.id}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.3 }}
+      layout
+    >
+      <Link
+        href={`/challenges/${challengeSlug}/submissions/${submission.id}`}
+        className="block border rounded-md p-3 cursor-pointer hover:bg-muted/30 transition-colors"
+      >
+        <div className="flex items-center justify-between mb-1">
+          <motion.span
+            className="text-sm font-medium"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.1 }}
+          >
+            {formatStatus(submission.submissionType)}
+          </motion.span>
+          <Badge variant="outline" className={`rounded-sm ${getStatusBadgeClass(submission)}`}>
+            {submission.testsPassed}/{submission.testsTotal} tests
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Submitted on{' '}
+          {new Date(submission.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </p>
+      </Link>
+    </motion.div>
+  )
+}
+
+export function SubmissionsList({ challenge }: SubmissionsListProps) {
+  const { submissions, isLoading } = useChallengeSubmissions(challenge.id)
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, index) => (
+          <Skeleton key={index} className="h-24 w-full" />
+        ))}
+      </div>
+    )
+  }
+
+  if (!submissions) {
+    return <NoSubmissions />
+  }
+
+  return (
     <div className="space-y-3">
       <AnimatePresence initial={false} mode="popLayout">
         {submissions.length === 0 ? (
@@ -88,56 +129,10 @@ export function SubmissionsList({ challengeId, userId, initialSubmissions }: Sub
           </motion.div>
         ) : (
           submissions.map((submission) => (
-            <motion.div
-              key={submission.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.3 }}
-              layout
-            >
-              <Link
-                href={`/challenges/${challenge_slug}/submissions/${submission.id}`}
-                className="block border rounded-md p-3 cursor-pointer hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <motion.span
-                    className="text-sm font-medium"
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    {formatStatus(submission.submissionType)}
-                  </motion.span>
-                  <Badge
-                    variant="outline"
-                    className={`rounded-sm ${getStatusBadgeClass(submission)}`}
-                  >
-                    {submission.testsPassed}/{submission.testsTotal} tests
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Submitted on{' '}
-                  {new Date(submission.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </p>
-              </Link>
-            </motion.div>
+            <SubmissionCard key={submission.id} submission={submission} challengeSlug={challenge.slug}/>
           ))
         )}
       </AnimatePresence>
     </div>
   )
-}
-
-declare global {
-  interface Window {
-    addTempSubmission?: (submission: Submission) => void
-    updateSubmission?: (tempId: string, serverSubmission: Submission) => void
-  }
 }

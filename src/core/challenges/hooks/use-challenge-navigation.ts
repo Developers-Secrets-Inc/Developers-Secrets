@@ -5,17 +5,13 @@ import { useEffect } from 'react'
 import { useNavigationState } from './use-navigation-state'
 import { useTabsConfiguration } from './use-tabs-configuration'
 
-type UseChallengeNavigationProps = {
-  challengeSlug: string
-  challengeId: number
-  userId: string
-}
+import { useChallengeStore } from '@/core/challenges/store'
 
-export function useChallengeNavigation({
-  challengeSlug,
-  challengeId,
-  userId,
-}: UseChallengeNavigationProps) {
+export function useChallengeNavigation() {
+  const { challenge, user } = useChallengeStore()
+  const challengeSlug = challenge?.slug || ''
+  const challengeId = challenge?.id || 0
+  const userId = user?.id || ''
   const pathname = usePathname()
   const router = useRouter()
 

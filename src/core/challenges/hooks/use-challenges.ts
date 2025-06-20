@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   // Import the action that fetches ALL challenges with progress
-  getAllChallenges, // Assuming this fetches all challenges (needs pagination: false)
   getUserChallengeProgressions, // Import the action to fetch all progressions for a user
 } from '../index'
+import { getAllChallenges } from '../challenge-queries'
 import { getUser } from '@/core/user'
 import { ChallengeWithProgress } from '@/core/challenges' // Keep this type
 import { UserChallengeProgression } from '@/payload-types' // Import the progression type
@@ -20,7 +20,7 @@ export const useChallenges = () => {
   // Query to fetch ALL challenges (ensure getAllChallenges has pagination: false)
   const { data: challenges, isLoading: isChallengesLoading } = useQuery({
     queryKey: ['challenges'],
-    queryFn: getAllChallenges, // Use the function that gets all challenges
+    queryFn: () => getAllChallenges(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 

@@ -2,8 +2,9 @@ import { Button, ButtonProps } from '@/components/ui/button'
 import { Tooltip, TooltipTrigger } from '@/components/ui/tooltip'
 import { ArrowLeft, ArrowRight, Shuffle, List } from 'lucide-react'
 import Link from 'next/link'
-import { ReactNode } from 'react'
-import { getNextChallenge, getPreviousChallenge, getRandomChallenge } from '..'
+import { ReactNode, Suspense } from 'react'
+
+import { getNextChallenge, getPreviousChallenge, getRandomChallenge } from '../navigation'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 
 interface NavigationButtonProps extends ButtonProps {
@@ -21,6 +22,43 @@ const NavigationButton = ({ tooltipText, children, ...props }: NavigationButtonP
     </Tooltip>
   )
 }
+
+const PreviousChallengeButtonSkeleton = () => (
+  <NavigationButton
+    variant="outline"
+    className="rounded-none border-x-0 px-3"
+    aria-label="Previous challenge loading"
+    tooltipText="Previous challenge loading"
+    disabled
+  >
+    <ArrowLeft size={16} className="animate-pulse" />
+  </NavigationButton>
+)
+
+const NextChallengeButtonSkeleton = () => (
+  <NavigationButton
+    variant="outline"
+    className="rounded-l-none border-l-0 px-3"
+    aria-label="Next challenge loading"
+    tooltipText="Next challenge loading"
+    disabled
+  >
+    <ArrowRight size={16} className="animate-pulse" />
+  </NavigationButton>
+)
+
+const RandomChallengeButtonSkeleton = () => (
+  <NavigationButton
+    variant="outline"
+    className="rounded-none border-x-0 px-3"
+    aria-label="Random challenge loading"
+    tooltipText="Random challenge loading"
+    disabled
+  >
+    <Shuffle size={16} className="animate-pulse" />
+  </NavigationButton>
+)
+
 
 const ListChallengesButton = () => {
   return (
@@ -104,9 +142,15 @@ export const ChallengeNavigationButtons = ({
   return (
     <>
       <ListChallengesButton />
-      <PreviousChallengeButton currentChallengeSlug={currentChallengeSlug} />
-      <RandomChallengeButton />
-      <NextChallengeButton currentChallengeSlug={currentChallengeSlug} />
+      <Suspense fallback={<PreviousChallengeButtonSkeleton />}>
+        <PreviousChallengeButton currentChallengeSlug={currentChallengeSlug} />
+      </Suspense>
+      <Suspense fallback={<RandomChallengeButtonSkeleton />}>
+        <RandomChallengeButton />
+      </Suspense>
+      <Suspense fallback={<NextChallengeButtonSkeleton />}>
+        <NextChallengeButton currentChallengeSlug={currentChallengeSlug} />
+      </Suspense>
     </>
   )
 }

@@ -3,7 +3,8 @@
 import type { Concept } from '@/payload-types' // Assurez-vous que les types Payload sont à jour
 import config from '@payload-config'
 import { getPayload } from 'payload'
-import { getChallengeWithDepth, getSkillBySlug } from './index'
+import { getSkillBySlug } from './index'
+import { getChallengeById } from '../challenges/challenge-queries'
 
 const PROPAGATION_FACTOR = 0.5 // Facteur de propagation (ajuster si nécessaire)
 
@@ -39,7 +40,7 @@ export const recordChallengeCompletion = async (
     // 2. Récupérer le document Challenge avec ses impacts
     // Note: La depth nécessaire peut varier selon votre configuration et si les relations sont stockées comme ID ou objets.
     // depth: 3 pourrait être nécessaire pour peupler skill -> impacts -> implementationConcept/concept
-    const challenge = await getChallengeWithDepth(challengeId)
+    const challenge = await getChallengeById(challengeId, 3)
 
     if (!challenge) {
       console.error(`Challenge with ID ${challengeId} not found.`)

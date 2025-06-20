@@ -1,4 +1,7 @@
+'use client'
+
 import { Markdown } from '@/components/markdown'
+import { useUpdateDescriptionAdmin } from '@/core/challenges/hooks/use-update-description-admin'
 
 /**
  * ChallengeDescriptionContent component
@@ -9,13 +12,17 @@ import { Markdown } from '@/components/markdown'
  *
  */
 export const ChallengeDescriptionContent = ({
-  descriptionStatement,
+  slug,
+  initialDescription,
 }: {
-  descriptionStatement: string
+  slug: string
+  initialDescription: string
 }) => {
+  const { description } = useUpdateDescriptionAdmin({ slug, initialDescription })
+
   return (
     <Markdown className="prose prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-h5:text-sm prose-h6:text-xs">
-      {descriptionStatement}
+      {description}
     </Markdown>
   )
 }
