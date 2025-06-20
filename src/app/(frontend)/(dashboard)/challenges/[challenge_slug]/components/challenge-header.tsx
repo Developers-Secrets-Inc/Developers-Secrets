@@ -8,10 +8,9 @@ import { Badge } from '@/components/ui/badge'
 
 type ChallengeHeaderProps = {
   challenge: PayloadChallenge
-  userId: string
 }
 
-export const ChallengeHeader = ({ challenge, userId }: ChallengeHeaderProps) => {
+export const ChallengeHeader = ({ challenge }: ChallengeHeaderProps) => {
   return (
     <div className="mb-6 border-b pb-4">
       <div className="flex justify-between items-center mb-4">
@@ -22,7 +21,7 @@ export const ChallengeHeader = ({ challenge, userId }: ChallengeHeaderProps) => 
               Draft
             </Badge>
           )}
-          <ChallengeStatus challengeId={challenge.id} userId={userId} />
+          <ChallengeStatus challengeId={challenge.id} />
         </div>
       </div>
       <ChallengeHeaderTags challenge={challenge} />

@@ -7,7 +7,7 @@ import { ChallengeNavigation } from '@/core/challenges/components/navigation/cha
 import { ChallengeReactionButtons } from '@/core/challenges/components/reaction-buttons'
 import { ChallengeProvider } from '@/core/challenges/contexts/challenge-context'
 import { ChallengeEditorProvider } from '@/core/challenges/contexts/challenge-editor-context'
-import { getUserCompletionStatus } from '@/core/challenges/user-progression'
+import { getUserCompletionStatus, setUserCompletionStatus } from '@/core/challenges/user-progression'
 import { getUser } from '@/core/user'
 import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
@@ -18,6 +18,7 @@ import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { AdminComponent } from '@/core/user/components/admin-component'
 import { ChallengeSettingsBubble } from '@/core/challenges/components/admin/challenge-settings-bubble'
 import { ChallengeIDE } from '@/core/compiler/challenge-editor'
+import { CompletionDialog } from '@/core/challenges/components/completion-dialog'
 
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
@@ -90,6 +91,8 @@ export default async function ChallengeLayout({
 
                       <ResizablePanel defaultSize={50} minSize={40} className="flex flex-col h-full">
                         <ChallengeIDE 
+                          challenge={challenge}
+                          userId={user.id}
                           codeVersions={challenge.codeVersions?.map(v => ({
                             language: v.language,
                             initialCode: v.initialCode,
@@ -108,6 +111,7 @@ export default async function ChallengeLayout({
                 </div>
               </div>
             </div>
+            <CompletionDialog userId={user.id} challenge={challenge} />
           </ChallengeStatusProvider>
         </ChallengeProvider>
       </ChallengeStoreHydrator>

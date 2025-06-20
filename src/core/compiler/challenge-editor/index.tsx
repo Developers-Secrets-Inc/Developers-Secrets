@@ -1,5 +1,6 @@
 'use client'
 
+import { Challenge } from '@/payload-types'
 import { ChallengeEditorContainer, ChallengeEditor } from './editor'
 import { TerminalTabs, TerminalContent } from './footer'
 import {
@@ -12,7 +13,7 @@ import {
 } from './header'
 import { useChallengeEditorStore } from './store'
 import { useEffect } from 'react'
-
+  
 const ChallengeIDEContainer = ({ children }: { children: React.ReactNode }) => {
   return <div className="h-full flex flex-col border-t overflow-hidden">{children}</div>
 }
@@ -31,6 +32,8 @@ type ChallengeIDEProps = {
   onSubmit?: () => void
   onChange?: (code: string) => void
   codeVersions?: CodeVersion[]
+  challenge: Challenge
+  userId: string
 }
 
 export const ChallengeIDE = (props: ChallengeIDEProps) => {
@@ -50,7 +53,7 @@ export const ChallengeIDE = (props: ChallengeIDEProps) => {
         </ChallengeIDEHeaderLeftPart>
         <ChallengeIDEHeaderRightPart>
           <RunButton onRun={props.onRun} />
-          <SubmitButton onSubmit={props.onSubmit} />
+          <SubmitButton challenge={props.challenge} onSubmit={props.onSubmit} userId={props.userId} />
         </ChallengeIDEHeaderRightPart>
       </ChallengeIDEHeader>
 

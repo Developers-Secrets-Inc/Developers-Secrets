@@ -8,7 +8,6 @@ import { getUser } from '@/core/user'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { redirect } from 'next/navigation'
 
-
 export default async function ChallengeDescriptionPage({
   params,
 }: {
@@ -24,14 +23,14 @@ export default async function ChallengeDescriptionPage({
       redirect('/auth/login')
     }
 
-    
     return (
       <div className="p-6">
         <Suspense fallback={<ChallengeDescriptionSkeleton />}>
-          <ChallengeHeader challenge={challenge} userId={user.id} />
+          <ChallengeHeader challenge={challenge} />
           <ChallengeDescriptionContent
             slug={challenge_slug}
-            initialDescription={challenge.description?.statement || 'No description available.'}          />
+            initialDescription={challenge.description?.statement || 'No description available.'}
+          />
         </Suspense>
         <Suspense fallback={<ChallengeDescriptionFooterSkeleton />}>
           <ChallengeDescriptionFooter challenge={challenge} />

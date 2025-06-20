@@ -35,8 +35,6 @@ type CodeVersion = {
 }
 
 interface ChallengeEditorStore {
-  submit: () => Promise<void>
-  run: () => void
   availableLanguages: ProgrammingLanguage[]
   changeLanguage: (language: SupportedLanguage) => void
   currentLanguage: SupportedLanguage
@@ -55,6 +53,9 @@ interface ChallengeEditorStore {
   isLoadingSubmit: boolean
   setIsLoadingRun: (isLoading: boolean) => void
   setIsLoadingSubmit: (isLoading: boolean) => void
+  showCompletionDialog: boolean
+  openCompletionDialog: () => void
+  closeCompletionDialog: () => void
 }
 
 export const useChallengeEditorStore = create<ChallengeEditorStore>()(
@@ -71,6 +72,9 @@ export const useChallengeEditorStore = create<ChallengeEditorStore>()(
       isLoadingSubmit: false,
       setIsLoadingRun: (isLoading) => set({ isLoadingRun: isLoading }),
       setIsLoadingSubmit: (isLoading) => set({ isLoadingSubmit: isLoading }),
+      showCompletionDialog: false,
+      openCompletionDialog: () => set({ showCompletionDialog: true }),
+      closeCompletionDialog: () => set({ showCompletionDialog: false }),
       initialize: (codeVersions: CodeVersion[]) => {
         if (!codeVersions || codeVersions.length === 0) return
 
@@ -94,120 +98,6 @@ export const useChallengeEditorStore = create<ChallengeEditorStore>()(
           availableLanguages,
           currentLanguage: codeVersions[0].language as SupportedLanguage,
         })
-      },
-      run: async () => {
-        const {
-          currentLanguage,
-          codeByLanguage,
-          setExecutionOutput,
-          setActiveTerminalTab,
-          toggleTerminal,
-          setIsLoadingRun,
-        } = get()
-        const code = codeByLanguage[currentLanguage]
-
-        setIsLoadingRun(true)
-        setExecutionOutput(`Running ${currentLanguage} code...`)
-        setActiveTerminalTab('output')
-        if (!get().isTerminalOpen) {
-          toggleTerminal()
-        }
-
-        try {
-          const { success, output, error } = await compileCode(code, currentLanguage)
-          if (success) {
-            setExecutionOutput(output)
-          } else {
-            setExecutionOutput(`Error:\n${error}`)
-          }
-        } catch (err) {
-          setExecutionOutput(
-            `Compilation failed:\n${err instanceof Error ? err.message : String(err)}`,
-          )
-        } finally {
-          setIsLoadingRun(false)
-        }
-      },
-      submit: async () => {
-        const {
-          currentLanguage,
-          codeByLanguage,
-          setTestResults,
-          setActiveTerminalTab,
-          toggleTerminal,
-          availableLanguages,
-          setIsLoadingSubmit,
-        } = get()
-
-        setIsLoadingSubmit(true)
-        const code = codeByLanguage[currentLanguage]
-        setActiveTerminalTab('tests')
-        if (!get().isTerminalOpen) {
-          toggleTerminal()
-        }
-
-        const languageConfig = availableLanguages.find((lang) => lang.value === currentLanguage)
-        if (!languageConfig) {
-          setTestResults([
-            {
-              success: false,
-              input: '',
-              expectedOutput: '',
-              actualOutput: 'Error: No test cases found for this language',
-            },
-          ])
-          setIsLoadingSubmit(false)
-          return
-        }
-
-        try {
-          console.log(code)
-          const submission = await submitCode(
-            { content: code, language: currentLanguage },
-            languageConfig.testCases.map((tc) => ({
-              input: { content: tc.input, language: currentLanguage },
-              expectedOutput: { content: tc.expectedOutput, language: currentLanguage },
-            })),
-          )
-
-          console.log('submission', submission)
-
-          console.log('config tests', languageConfig.testCases)
-          const testResults = await Promise.all(
-            languageConfig.testCases.map(async (tc, index) => {
-              const testCode = `${code}\n${tc.input}`
-
-              console.log('test code', testCode)
-
-              const result = await compileCode(testCode, currentLanguage)
-
-              console.log('Result', result)
-
-              let cleanOutput = result.success ? result.output : result.error || 'No output'
-              cleanOutput = cleanOutput.replace(new RegExp(`^${tc.input}[\n\r]*`), '').trim()
-
-              return {
-                success: index < submission.testsPassed,
-                input: tc.input,
-                expectedOutput: tc.expectedOutput,
-                actualOutput: cleanOutput,
-              }
-            }),
-          )
-
-          setTestResults(testResults)
-        } catch (error) {
-          setTestResults([
-            {
-              success: false,
-              input: '',
-              expectedOutput: '',
-              actualOutput: `Submission failed: ${error instanceof Error ? error.message : String(error)}`,
-            },
-          ])
-        } finally {
-          setIsLoadingSubmit(false)
-        }
       },
       changeLanguage: (language) => {
         set({ currentLanguage: language })

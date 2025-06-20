@@ -23,7 +23,7 @@ import { getNextChallenge } from './navigation'
 export const handleChallengeCompletion = async (
   challenge: Challenge,
   userId: string,
-  skillSlug: string,
+  // skillSlug: string,
 ) => {
   try {
     // Check if the challenge is already completed
@@ -42,7 +42,7 @@ export const handleChallengeCompletion = async (
 
     await trackAchievementProgress(userId, 'challenges_completed', 1)
 
-    await recordChallengeCompletion(userId, challenge.id, skillSlug)
+    // await recordChallengeCompletion(userId, challenge.id, skillSlug)
 
     revalidatePath(`/challenges/${challenge.slug}`)
 

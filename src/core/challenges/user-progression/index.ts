@@ -21,7 +21,7 @@ import { unstable_cache } from 'next/cache'
 import { Challenge as PayloadChallenge, UserChallengeProgression } from '@/payload-types'
 import { CalendarDay, CompletedChallengeInfo } from './types'
 
-const getUserProgression = async (
+export const getUserProgression = async (
   userId: string,
   challengeId: number,
 ): Promise<UserProgression | null> => {
@@ -60,34 +60,20 @@ const getUserProgression = async (
   } as UserProgression
 }
 
-const createUserProgression = async (
+export const createUserProgression = async (
   userId: string,
   challengeId: number,
-): Promise<UserProgression> => {
-  const validatedUserId = validateUserId(userId)
-  const validatedChallengeId = validateChallengeId(challengeId)
-
+): Promise<void> => {
   const payload = await getPayload({ config })
 
-  const userProgression = await payload.create({
+  await payload.create({
     collection: 'userChallengeProgression',
     data: {
-      userId: validatedUserId,
-      challenge: validatedChallengeId,
+      userId,
+      challenge: challengeId,
       completionStatus: 'not_started',
     },
   })
-
-  return {
-    ...userProgression,
-    code: null,
-    hasLiked: null,
-    hasDisliked: null,
-    completionStatus: 'not_started',
-    isSolutionUnlocked: null,
-    rating: null,
-    userCode: null,
-  } as UserProgression
 }
 
 export const hasUserLikedChallenge = async (
@@ -171,15 +157,15 @@ export const setUserCompletionStatus = async (
   challengeId: number,
   completionStatus: 'not_started' | 'in_progress' | 'completed',
 ): Promise<void> => {
-  const validatedUserId = validateUserId(userId)
-  const validatedChallengeId = validateChallengeId(challengeId)
-  const validatedCompletionStatus = validateCompletionStatus(completionStatus)
 
-  const userProgression = await getUserProgression(validatedUserId, validatedChallengeId)
+  const userProgression = await getUserProgression(userId, challengeId)
+  console.log(userProgression)
 
   if (!userProgression) {
-    await createUserProgression(validatedUserId, validatedChallengeId)
+    await createUserProgression(userId, challengeId)
   }
+
+  console.log("Created user progression for user")
 
   const payload = await getPayload({ config })
 
@@ -187,16 +173,18 @@ export const setUserCompletionStatus = async (
     collection: 'userChallengeProgression',
     where: {
       userId: {
-        equals: validatedUserId,
+        equals: userId,
       },
       challenge: {
-        equals: validatedChallengeId,
+        equals: challengeId,
       },
     },
     data: {
-      completionStatus: validatedCompletionStatus,
+      completionStatus,
     },
   })
+
+  console.log("Set user completion status to", completionStatus)
 }
 
 export const getUserIsSolutionUnlocked = async (

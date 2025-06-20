@@ -55,6 +55,9 @@ import { CoursePartFeedback } from './collections/CoursePartFeedback'
 import UserOnboarding from './collections/UserOnboarding'
 import { LearningPath } from './collections/LearningPath'
 import { BlogArticles } from './collections/BlogArticles'
+import { UserChallengeEngagement } from './collections/UserChallengeEngagement'
+import { UserChallengeCompletionStatus } from './collections/UserChallengeCompletionStatus'
+import { UserChallengeCode } from './collections/UserChallengeCode'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -115,6 +118,9 @@ export default buildConfig({
     CoursePartFeedback,
     UserOnboarding,
     BlogArticles,
+    UserChallengeEngagement,
+    UserChallengeCompletionStatus,
+    UserChallengeCode,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
@@ -149,28 +155,28 @@ export default buildConfig({
         return false
       },
     },
-    tasks: [
-      {
-        slug: 'createWeeklyDivisionLeaderboards',
-        handler: async (...args) => {
-          const { createWeeklyLeaderboardsHandler } = await import(
-            './jobs/createWeeklyLeaderboards'
-          )
-          return createWeeklyLeaderboardsHandler(...args)
-        },
-        // Add other config like retries, queue if needed
-        // queue: 'weekly-start',
-        // retries: 2,
-      },
-      {
-        slug: 'processWeeklyLeaderboardResults',
-        handler: async (...args) => {
-          const { processWeeklyResultsHandler } = await import('./jobs/processWeeklyResults')
-          return processWeeklyResultsHandler(...args)
-        },
-        // queue: 'weekly-end',
-        // retries: 2,
-      },
-    ],
+    // tasks: [
+    //   {
+    //     slug: 'createWeeklyDivisionLeaderboards',
+    //     handler: async (...args) => {
+    //       const { createWeeklyLeaderboardsHandler } = await import(
+    //         './jobs/createWeeklyLeaderboards'
+    //       )
+    //       return createWeeklyLeaderboardsHandler(...args)
+    //     },
+    //     // Add other config like retries, queue if needed
+    //     // queue: 'weekly-start',
+    //     // retries: 2,
+    //   },
+    //   {
+    //     slug: 'processWeeklyLeaderboardResults',
+    //     handler: async (...args) => {
+    //       const { processWeeklyResultsHandler } = await import('./jobs/processWeeklyResults')
+    //       return processWeeklyResultsHandler(...args)
+    //     },
+    //     // queue: 'weekly-end',
+    //     // retries: 2,
+    //   },
+    // ],
   },
 })

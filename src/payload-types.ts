@@ -115,7 +115,9 @@ export interface Config {
     coursePartFeedback: CoursePartFeedback;
     'user-onboarding': UserOnboarding;
     'blog-articles': BlogArticle;
-    'payload-jobs': PayloadJob;
+    userChallengeEngagement: UserChallengeEngagement;
+    userChallengeCompletionStatus: UserChallengeCompletionStatus;
+    userChallengeCode: UserChallengeCode;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -170,7 +172,9 @@ export interface Config {
     coursePartFeedback: CoursePartFeedbackSelect<false> | CoursePartFeedbackSelect<true>;
     'user-onboarding': UserOnboardingSelect<false> | UserOnboardingSelect<true>;
     'blog-articles': BlogArticlesSelect<false> | BlogArticlesSelect<true>;
-    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
+    userChallengeEngagement: UserChallengeEngagementSelect<false> | UserChallengeEngagementSelect<true>;
+    userChallengeCompletionStatus: UserChallengeCompletionStatusSelect<false> | UserChallengeCompletionStatusSelect<true>;
+    userChallengeCode: UserChallengeCodeSelect<false> | UserChallengeCodeSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -185,14 +189,7 @@ export interface Config {
     collection: 'users';
   };
   jobs: {
-    tasks: {
-      createWeeklyDivisionLeaderboards: TaskCreateWeeklyDivisionLeaderboards;
-      processWeeklyLeaderboardResults: TaskProcessWeeklyLeaderboardResults;
-      inline: {
-        input: unknown;
-        output: unknown;
-      };
-    };
+    tasks: unknown;
     workflows: unknown;
   };
 }
@@ -1456,14 +1453,6 @@ export interface UserChallengeProgression {
    */
   hasDisliked?: boolean | null;
   /**
-   * The user's code for this challenge
-   */
-  userCode?: string | null;
-  /**
-   * Timestamp of the last code save
-   */
-  lastSavedAt?: string | null;
-  /**
    * User rating for this challenge (1-5)
    */
   rating?: number | null;
@@ -1475,22 +1464,6 @@ export interface UserChallengeProgression {
    * Whether the solution has been unlocked by the user
    */
   isSolutionUnlocked?: boolean | null;
-  /**
-   * Code submissions for this challenge
-   */
-  code?:
-    | {
-        /**
-         * Programming language of the code
-         */
-        language: string;
-        /**
-         * The actual code content
-         */
-        content: string;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2295,93 +2268,88 @@ export interface BlogArticle {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-jobs".
+ * via the `definition` "userChallengeEngagement".
  */
-export interface PayloadJob {
+export interface UserChallengeEngagement {
   id: number;
   /**
-   * Input data provided to the job
+   * ID of the user
    */
-  input?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  taskStatus?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  completedAt?: string | null;
-  totalTried?: number | null;
+  userId: string;
   /**
-   * If hasError is true this job will not be retried
+   * Related challenge
    */
-  hasError?: boolean | null;
+  challenge: number | Challenge;
   /**
-   * If hasError is true, this is the error that caused it
+   * Whether the user has liked this challenge
    */
-  error?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  hasLiked?: boolean | null;
   /**
-   * Task execution log
+   * Whether the user has disliked this challenge
    */
-  log?:
+  hasDisliked?: boolean | null;
+  /**
+   * User rating for this challenge (1-5)
+   */
+  rating?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeCompletionStatus".
+ */
+export interface UserChallengeCompletionStatus {
+  id: number;
+  /**
+   * ID of the user
+   */
+  userId: string;
+  /**
+   * Related challenge
+   */
+  challenge: number | Challenge;
+  /**
+   * Current completion status of the challenge
+   */
+  completionStatus: 'not_started' | 'in_progress' | 'completed';
+  /**
+   * Whether the solution has been unlocked by the user
+   */
+  isSolutionUnlocked?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeCode".
+ */
+export interface UserChallengeCode {
+  id: number;
+  /**
+   * ID of the user
+   */
+  userId: string;
+  /**
+   * Related challenge
+   */
+  challenge: number | Challenge;
+  /**
+   * Code submissions for this challenge
+   */
+  code?:
     | {
-        executedAt: string;
-        completedAt: string;
-        taskSlug: 'inline' | 'createWeeklyDivisionLeaderboards' | 'processWeeklyLeaderboardResults';
-        taskID: string;
-        input?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        output?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        state: 'failed' | 'succeeded';
-        error?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
+        /**
+         * Programming language of the code
+         */
+        language: string;
+        /**
+         * The actual code content
+         */
+        content: string;
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'createWeeklyDivisionLeaderboards' | 'processWeeklyLeaderboardResults') | null;
-  queue?: string | null;
-  waitUntil?: string | null;
-  processing?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2585,8 +2553,16 @@ export interface PayloadLockedDocument {
         value: number | BlogArticle;
       } | null)
     | ({
-        relationTo: 'payload-jobs';
-        value: number | PayloadJob;
+        relationTo: 'userChallengeEngagement';
+        value: number | UserChallengeEngagement;
+      } | null)
+    | ({
+        relationTo: 'userChallengeCompletionStatus';
+        value: number | UserChallengeCompletionStatus;
+      } | null)
+    | ({
+        relationTo: 'userChallengeCode';
+        value: number | UserChallengeCode;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -3127,18 +3103,9 @@ export interface UserChallengeProgressionSelect<T extends boolean = true> {
   challenge?: T;
   hasLiked?: T;
   hasDisliked?: T;
-  userCode?: T;
-  lastSavedAt?: T;
   rating?: T;
   completionStatus?: T;
   isSolutionUnlocked?: T;
-  code?:
-    | T
-    | {
-        language?: T;
-        content?: T;
-        id?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3759,32 +3726,43 @@ export interface BlogArticlesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-jobs_select".
+ * via the `definition` "userChallengeEngagement_select".
  */
-export interface PayloadJobsSelect<T extends boolean = true> {
-  input?: T;
-  taskStatus?: T;
-  completedAt?: T;
-  totalTried?: T;
-  hasError?: T;
-  error?: T;
-  log?:
+export interface UserChallengeEngagementSelect<T extends boolean = true> {
+  userId?: T;
+  challenge?: T;
+  hasLiked?: T;
+  hasDisliked?: T;
+  rating?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeCompletionStatus_select".
+ */
+export interface UserChallengeCompletionStatusSelect<T extends boolean = true> {
+  userId?: T;
+  challenge?: T;
+  completionStatus?: T;
+  isSolutionUnlocked?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeCode_select".
+ */
+export interface UserChallengeCodeSelect<T extends boolean = true> {
+  userId?: T;
+  challenge?: T;
+  code?:
     | T
     | {
-        executedAt?: T;
-        completedAt?: T;
-        taskSlug?: T;
-        taskID?: T;
-        input?: T;
-        output?: T;
-        state?: T;
-        error?: T;
+        language?: T;
+        content?: T;
         id?: T;
       };
-  taskSlug?: T;
-  queue?: T;
-  waitUntil?: T;
-  processing?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3819,22 +3797,6 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskCreateWeeklyDivisionLeaderboards".
- */
-export interface TaskCreateWeeklyDivisionLeaderboards {
-  input?: unknown;
-  output?: unknown;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskProcessWeeklyLeaderboardResults".
- */
-export interface TaskProcessWeeklyLeaderboardResults {
-  input?: unknown;
-  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

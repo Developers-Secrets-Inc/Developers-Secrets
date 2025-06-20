@@ -23,25 +23,6 @@ function SolutionsLoading() {
   )
 }
 
-// Cette fonction sera exécutée au moment de la génération de la page
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ challenge_slug: string }>
-}) {
-  // Attendre les paramètres avant de les utiliser
-  const { challenge_slug } = await params
-
-  // Préchargement des solutions pendant la génération des métadonnées
-  const challenge = await getChallengeBySlug(challenge_slug)
-  await getChallengeSolutions(challenge.id)
-
-  return {
-    title: `Community Solutions | Challenge`,
-    description: `View community solutions for the challenge`,
-  }
-}
-
 export default async function SolutionsPage({
   params,
 }: {
