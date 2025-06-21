@@ -79,8 +79,8 @@ export default async function SubmissionPage({
           </Link>
         </Button>
       </div>
-      <div className="container max-w-5xl py-8">
-        <div className="p-6">{renderSubmission()}</div>
+      <div className="container max-w-5xl p-6">
+        <div>{renderSubmission()}</div>
       </div>
     </div>
   )
