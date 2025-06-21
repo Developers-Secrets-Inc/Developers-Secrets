@@ -12,11 +12,11 @@ import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
 
 export const ChallengeLayoutHeader = ({
   challengeSlug,
-  userId,
+  user,
   challengeId,
 }: {
   challengeSlug: string
-  userId: string
+  user: User
   challengeId: number
 }) => {
   return (
@@ -33,7 +33,7 @@ export const ChallengeLayoutHeader = ({
         <div className="flex items-center gap-4">
           <OpenChallengeCompletionDialogInDevelopment
             challengeId={challengeId}
-            userId={userId}
+            userId={user.id}
             challengeSlug={challengeSlug}
           />
           <NotificationButton />
@@ -41,7 +41,7 @@ export const ChallengeLayoutHeader = ({
           <Button variant="outline" size="sm" asChild>
             <Link href="/home">Dashboard</Link>
           </Button>
-          <UserDropdownMenu />
+          <UserDropdownMenu user={user} />
         </div>
       </div>
     </header>

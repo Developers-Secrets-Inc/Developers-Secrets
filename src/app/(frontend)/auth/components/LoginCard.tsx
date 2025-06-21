@@ -135,13 +135,11 @@ export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
         sessionStorage.setItem('postLoginToast', JSON.stringify(toastData))
         // Redirection dynamique
         await queryClient.invalidateQueries({ queryKey: ['sessionUser'] })
-        setTimeout(() => {
-          if (redirectTo && redirectTo.startsWith('/')) {
-            router.push(redirectTo)
-          } else {
-            router.push('/home')
-          }
-        }, 100)
+        if (redirectTo && redirectTo.startsWith('/')) {
+          router.push(redirectTo)
+        } else {
+          router.push('/home')
+        }
       }
     } catch (error: any) {
       if (!error.digest?.startsWith('NEXT_REDIRECT')) {

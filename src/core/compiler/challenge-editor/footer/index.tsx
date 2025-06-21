@@ -3,7 +3,7 @@
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import { Beaker, ChevronDown, ChevronUp, FileOutput, CheckCircle, XCircle } from 'lucide-react'
+import { Beaker, ChevronDown, ChevronUp, FileOutput, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { useChallengeEditorStore, TerminalTab } from '../store'
 
 const TERMINAL_STYLE = {
@@ -131,7 +131,8 @@ export const TerminalContent = () => {
     setActiveTerminalTab: setActiveTab, 
     toggleTerminal: toggleTerminalOpen,
     testResults,
-    executionOutput
+    executionOutput,
+    isLoadingSubmit,
   } = useChallengeEditorStore()
 
   const handleTabChange = (value: string) => {
@@ -150,7 +151,11 @@ export const TerminalContent = () => {
     >
       <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full">
         <TabsContent value="tests" className="h-full p-0 m-0">
-          {testResults.length > 0 ? (
+          {isLoadingSubmit && activeTab === 'tests' ? (
+            <div style={TERMINAL_STYLE} className="flex items-center justify-center">
+              <Loader2 size={24} className="animate-spin mr-2" /> Loading test results...
+            </div>
+          ) : testResults.length > 0 ? (
             <div className="h-full overflow-auto">
               <Tabs defaultValue="0" className="h-full border-t">
                 <div className="border-b">

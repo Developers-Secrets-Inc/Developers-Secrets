@@ -8,7 +8,6 @@ import { NotificationProvider } from '@/core/notifications/notification-provider
 import { useState } from 'react'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 
-
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>

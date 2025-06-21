@@ -1,13 +1,21 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { buttonVariants } from '@/components/ui/button'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+} from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useState, useRef, useEffect } from 'react'
 import { NoSubmissions } from '@/core/challenges/submissions/components/no-submissions'
 import { useChallengeSubmissions } from '@/core/challenges/submissions/hooks/use-challenge-submissions'
+import { cn } from '@/lib/utils'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import Link from 'next/link'
+import { useQueryState } from 'nuqs'
 
 type Submission = {
   id: number
@@ -99,7 +107,13 @@ const SubmissionCard = ({
 }
 
 export function SubmissionsList({ challenge }: SubmissionsListProps) {
-  const { submissions, isLoading } = useChallengeSubmissions(challenge.id)
+  const [currentPage, setCurrentPage] = useQueryState('page', {
+    defaultValue: 1,
+    parse: Number,
+    serialize: String,
+  })
+
+  const { paginationData, isLoading } = useChallengeSubmissions(challenge.id, currentPage)
 
   if (isLoading) {
     return (
@@ -111,9 +125,11 @@ export function SubmissionsList({ challenge }: SubmissionsListProps) {
     )
   }
 
-  if (!submissions) {
+  if (!paginationData || paginationData.docs.length === 0) {
     return <NoSubmissions />
   }
+
+  const { docs: submissions, totalPages, page } = paginationData
 
   return (
     <div className="space-y-3">
@@ -129,10 +145,57 @@ export function SubmissionsList({ challenge }: SubmissionsListProps) {
           </motion.div>
         ) : (
           submissions.map((submission) => (
-            <SubmissionCard key={submission.id} submission={submission} challengeSlug={challenge.slug}/>
+            <SubmissionCard
+              key={submission.id}
+              submission={submission}
+              challengeSlug={challenge.slug}
+            />
           ))
         )}
       </AnimatePresence>
+
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent className="w-full justify-between">
+            <PaginationItem>
+              <PaginationLink
+                className={cn(
+                  'aria-disabled:pointer-events-none aria-disabled:opacity-50',
+                  buttonVariants({
+                    variant: 'outline',
+                  }),
+                )}
+                onClick={() => setCurrentPage(currentPage - 1)}
+                aria-label="Go to previous page"
+                aria-disabled={currentPage === 1}
+              >
+                <ChevronLeftIcon size={16} aria-hidden="true" />
+              </PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <p className="text-muted-foreground text-sm" aria-live="polite">
+                Page <span className="text-foreground">{page}</span> of{' '}
+                <span className="text-foreground">{totalPages}</span>
+              </p>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink
+                className={cn(
+                  'aria-disabled:pointer-events-none aria-disabled:opacity-50',
+                  buttonVariants({
+                    variant: 'outline',
+                  }),
+                )}
+                onClick={() => setCurrentPage(currentPage + 1)}
+                aria-label="Go to next page"
+                aria-disabled={currentPage === totalPages}
+              >
+                <ChevronRightIcon size={16} aria-hidden="true" />
+              </PaginationLink>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   )
 }

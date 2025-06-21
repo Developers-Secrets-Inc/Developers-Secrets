@@ -14,6 +14,8 @@ import { useChallengeUserStatus } from '@/core/challenges/hooks/use-challenge-us
 import { useChallengeSubmissions } from '@/core/challenges/submissions/hooks/use-challenge-submissions'
 import { useChallengeEditorStore } from '../store'
 import { useSubmitCode } from '../../hooks/use-submit-code'
+import { useQueryClient } from '@tanstack/react-query'
+import { solutionQueryKeys } from '@/core/challenges/hooks/use-solution-queries'
 
 const LoadingIcon = ({
   isLoading,
@@ -69,12 +71,15 @@ export const SubmitButton = ({
     availableLanguages,
     setTestResults,
     openCompletionDialog,
+    setIsLoadingSubmit,
   } = useChallengeEditorStore()
   const { submitCode: submitCodeHook, isLoadingSubmit } = useSubmitCode()
   const { setInProgress, setCompleted, status } = useChallengeUserStatus(challenge.id)
   const { createSubmission } = useChallengeSubmissions(challenge.id)
+  const queryClient = useQueryClient()
 
   const handleSubmit = async () => {
+    setIsLoadingSubmit(true)
     setActiveTerminalTab('tests')
     if (!isTerminalOpen) {
       toggleTerminal()
@@ -104,6 +109,7 @@ export const SubmitButton = ({
       code: { content: code, language: currentLanguage },
       testCases,
     })
+    setIsLoadingSubmit(false)
     setTestResults(testResults)
     createSubmission(submission)
 
@@ -121,6 +127,9 @@ export const SubmitButton = ({
       }
 
       setCompleted()
+      queryClient.invalidateQueries({
+        queryKey: solutionQueryKeys.solutionUnlock(userId, challenge.id),
+      })
     } else if (status === 'not_started' && submission.testsPassed < testCases.length) {
       setInProgress()
     }
