@@ -13,6 +13,8 @@ type NavigationTabProps = TabProps & {
   onClick: () => void
   /** Whether the tab's content is locked and requires confirmation to access */
   isLocked: boolean
+  /** Whether the tab is in the process of loading */
+  isLoading: boolean
 }
 
 /**
@@ -28,19 +30,22 @@ type NavigationTabProps = TabProps & {
  *   href="/challenges/my-challenge/solutions"
  *   onClick={handleTabClick}
  *   isLocked={true}
+ *   isLoading={false}
  * />
  * ```
  */
-export function NavigationTab({ onClick, isLocked, ...props }: NavigationTabProps) {
+export function NavigationTab({ onClick, isLocked, isLoading, ...props }: NavigationTabProps) {
   return (
     <button
       onClick={onClick}
+      disabled={isLoading}
       className={cn(
         'relative overflow-hidden rounded-none border border-r h-12 min-h-[48px] flex-1 cursor-pointer',
         props.current
           ? 'bg-muted after:bg-primary after:absolute after:pointer-events-none after:inset-x-0 after:bottom-0 after:h-0.5'
           : '',
         isLocked ? 'text-muted-foreground' : '',
+        isLoading ? 'opacity-50 cursor-not-allowed' : '',
         props.className,
       )}
     >

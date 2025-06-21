@@ -14,7 +14,6 @@ export const createCompletionStatus = async (
 ): Promise<void> => {
   const payload = await getPayload({ config })
 
-
   await payload.create({
     collection: 'userChallengeCompletionStatus',
     data: {
@@ -24,7 +23,6 @@ export const createCompletionStatus = async (
     },
   })
 }
-
 
 export const getCompletionStatus = async (
   userId: string,
@@ -63,15 +61,14 @@ export const setCompletionStatus = async (
 ): Promise<void> => {
   const payload = await getPayload({ config })
 
-  console.log("Getting current completion status")
+  console.log('Getting current completion status')
   const userProgression = await getCompletionStatus(userId, challengeId)
 
-  console.log("Current completion status", userProgression)
+  console.log('Current completion status', userProgression)
 
   if (!userProgression || userProgression === 'not_started') {
     await createCompletionStatus(userId, challengeId)
   }
-
 
   await payload.update({
     collection: 'userChallengeCompletionStatus',
@@ -87,14 +84,9 @@ export const setCompletionStatus = async (
       completionStatus,
     },
   })
-
 }
 
-
-export const isSolutionUnlocked = async (
-  userId: string,
-  challengeId: number,
-): Promise<boolean> => {
+export const isSolutionUnlocked = async (userId: string, challengeId: number): Promise<boolean> => {
   const payload = await getPayload({ config })
 
   const userProgression = await payload.find({
@@ -121,10 +113,7 @@ export const isSolutionUnlocked = async (
   return doc.isSolutionUnlocked ?? false
 }
 
-export const setSolutionUnlocked = async (
-  userId: string,
-  challengeId: number,
-): Promise<void> => {
+export const setSolutionUnlocked = async (userId: string, challengeId: number): Promise<void> => {
   const payload = await getPayload({ config })
 
   await payload.update({
@@ -141,4 +130,24 @@ export const setSolutionUnlocked = async (
       isSolutionUnlocked: true,
     },
   })
+}
+
+
+
+
+const COMPLETED_CHALLENGE_STATUS: CompletionStatus = 'completed'
+
+export const isChallengeCompleted = async (
+  userId: string,
+  challengeId: number,
+): Promise<boolean> => {
+  const COMPLETION_STATUS = await getCompletionStatus(userId, challengeId)
+  return COMPLETION_STATUS === COMPLETED_CHALLENGE_STATUS
+}
+
+export const canAccessSolution = async (userId: string, challengeId: number): Promise<boolean> => {
+  return (
+    (await isSolutionUnlocked(userId, challengeId)) ||
+    (await isChallengeCompleted(userId, challengeId))
+  )
 }

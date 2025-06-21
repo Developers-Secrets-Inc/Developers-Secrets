@@ -6,6 +6,7 @@ import { useNavigationState } from './use-navigation-state'
 import { useTabsConfiguration } from './use-tabs-configuration'
 
 import { useChallengeStore } from '@/core/challenges/store'
+import { useSolutionUnlockStatus } from '@/core/challenges/hooks/use-solution-queries'
 
 export function useChallengeNavigation() {
   const { challenge, user } = useChallengeStore()
@@ -15,6 +16,9 @@ export function useChallengeNavigation() {
   const pathname = usePathname()
   const router = useRouter()
 
+  const { data: isSolutionAccessibleByServer, isLoading: isLoadingSolutionStatus } =
+    useSolutionUnlockStatus(userId, challengeId)
+
   const {
     state: { showConfirmDialog, pendingPath, unlockedPaths },
     setShowConfirmDialog,
@@ -23,7 +27,12 @@ export function useChallengeNavigation() {
     isPathUnlocked,
   } = useNavigationState({}, challengeId, userId, challengeSlug)
 
-  const tabs = useTabsConfiguration(challengeSlug, pathname, unlockedPaths)
+  const tabs = useTabsConfiguration(
+    challengeSlug,
+    pathname,
+    isSolutionAccessibleByServer ?? false,
+    isLoadingSolutionStatus,
+  )
 
   // Prefetch logic
   useEffect(() => {
@@ -34,8 +43,13 @@ export function useChallengeNavigation() {
     })
   }, [tabs, router])
 
-  const handleTabClick = (href: string, requiresConfirmation: boolean) => {
-    if (requiresConfirmation && !isPathUnlocked(href)) {
+  const handleTabClick = (href: string, requiresConfirmation: boolean, isLoadingTab: boolean) => {
+    // Empêche toute interaction si l'onglet est en cours de chargement
+    if (isLoadingTab) {
+      return
+    }
+
+    if (requiresConfirmation) {
       setShowConfirmDialog(true)
       setPendingPath(href)
       return
@@ -61,8 +75,8 @@ export function useChallengeNavigation() {
     // Computed values
     getTabProps: (tab: (typeof tabs)[0]) => ({
       ...tab,
-      onClick: () => handleTabClick(tab.href, tab.requiresConfirmation),
-      isLocked: tab.requiresConfirmation && !isPathUnlocked(tab.href),
+      onClick: () => handleTabClick(tab.href, tab.requiresConfirmation, tab.isLoading),
+      isLocked: tab.requiresConfirmation,
     }),
 
     // Dialog handlers
