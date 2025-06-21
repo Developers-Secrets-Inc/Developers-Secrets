@@ -69,12 +69,14 @@ export const SubmitButton = ({
     availableLanguages,
     setTestResults,
     openCompletionDialog,
+    setIsLoadingSubmit
   } = useChallengeEditorStore()
   const { submitCode: submitCodeHook, isLoadingSubmit } = useSubmitCode()
   const { setInProgress, setCompleted, status } = useChallengeUserStatus(challenge.id)
   const { createSubmission } = useChallengeSubmissions(challenge.id)
 
   const handleSubmit = async () => {
+    setIsLoadingSubmit(true)
     setActiveTerminalTab('tests')
     if (!isTerminalOpen) {
       toggleTerminal()
@@ -104,6 +106,7 @@ export const SubmitButton = ({
       code: { content: code, language: currentLanguage },
       testCases,
     })
+    setIsLoadingSubmit(false)
     setTestResults(testResults)
     createSubmission(submission)
 

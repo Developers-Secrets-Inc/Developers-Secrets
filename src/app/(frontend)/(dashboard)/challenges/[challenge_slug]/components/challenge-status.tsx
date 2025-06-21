@@ -33,7 +33,7 @@ export const ChallengeStatus = ({ challengeId }: { challengeId: number }) => {
   }
 
   const { icon, color, label } = statusConfig[visualStatus]
-  
+
   return (
     <div className={`flex items-center gap-1.5 text-${color}-500`}>
       {icon}
