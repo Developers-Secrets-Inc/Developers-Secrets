@@ -104,11 +104,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const markAsRead = (id: number) => markAsReadMutation.mutate(id)
   const markAllAsRead = () => markAllAsReadMutation.mutate()
 
-  // Fournir le context seulement si userId est dispo
-  if (!userId && !isUserLoading) {
-    return <>{children}</>
-  }
-
   return (
     <NotificationContext.Provider
       value={{

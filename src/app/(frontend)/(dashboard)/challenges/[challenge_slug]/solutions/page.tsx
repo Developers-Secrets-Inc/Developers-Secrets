@@ -6,6 +6,7 @@ import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { Suspense } from 'react'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
+import { canAccessSolution } from '@/core/challenges/user-progression/completion-status'
 // Ajoutons la configuration ISR pour cette page
 export const revalidate = 600 // 10 minutes en secondes
 
@@ -36,6 +37,12 @@ export default async function SolutionsPage({
 
   if (!user) {
     redirect('/login')
+  }
+
+  const isSolutionUnlocked = await canAccessSolution(user.id, challenge.id)
+
+  if (!isSolutionUnlocked) {
+    redirect(`/challenges/${challenge_slug}/description`)
   }
 
   if (!hasSolutions) {

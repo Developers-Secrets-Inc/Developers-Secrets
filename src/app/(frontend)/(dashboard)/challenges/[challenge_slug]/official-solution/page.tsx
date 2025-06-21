@@ -5,6 +5,7 @@ import { SolutionContent } from './components/solution-content'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
+import { canAccessSolution } from '@/core/challenges/user-progression/completion-status'
 
 export default async function OfficialSolutionPage({
   params,
@@ -20,6 +21,11 @@ export default async function OfficialSolutionPage({
     redirect('/auth/login')
   }
 
+  const isSolutionUnlocked = await canAccessSolution(user.id, challenge.id)
+
+  if (!isSolutionUnlocked) {
+    redirect(`/challenges/${challenge_slug}/description`)
+  }
 
   return (
     <div className="p-6">

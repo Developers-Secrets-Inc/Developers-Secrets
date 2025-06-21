@@ -62,7 +62,7 @@ export default async function ChallengeLayout({
                 <ChallengeLayoutHeader
                   challengeSlug={challenge_slug}
                   challengeId={challenge.id}
-                  userId={user.id}
+                  user={user}
                 />
 
                 <div className="flex-1 overflow-hidden">
