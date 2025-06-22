@@ -25,6 +25,9 @@ export const Challenges: CollectionConfig = {
   versions: {
     drafts: true,
   },
+  access: {
+    create: () => { return true }
+  },
   hooks: {
     afterChange: [({ doc }) => {
       revalidateTag(`challenges`)

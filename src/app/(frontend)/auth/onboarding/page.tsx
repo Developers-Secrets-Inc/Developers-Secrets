@@ -1,11 +1,10 @@
 import {
-  CurrentLevelCard,
   CurrentExperienceCard,
+  CurrentLevelCard,
   GoalsAndTechnologiesCard,
 } from '@/core/onboarding/components'
-import { notFound } from 'next/navigation'
 import { getUser } from '@/core/user'
-import { setCodingLevel, setTimeCoding } from '@/core/onboarding'
+import { notFound } from 'next/navigation'
 
 // Import necessary components for the button and tooltip
 import { DialogTooltip } from './components/dialog-tooltip'
