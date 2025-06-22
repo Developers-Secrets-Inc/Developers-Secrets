@@ -126,7 +126,7 @@ export const SubmitButton = ({
         await trackAchievementProgress(userId, 'challenges_completed', 1)
       }
 
-      setCompleted()
+      await setCompleted()
       queryClient.invalidateQueries({
         queryKey: solutionQueryKeys.solutionUnlock(userId, challenge.id),
       })
