@@ -25,8 +25,7 @@ export const useChallengeUserStatus = (challengeId: number) => {
       }
       return getCompletionStatus(userId, challengeId)
     },
-    // enabled: !!userId && !!challengeId,
-    initialData: 'not_started' as CompletionStatus,
+    enabled: !!userId && !!challengeId,
   })
 
   const { mutateAsync: updateStatus } = useMutation({

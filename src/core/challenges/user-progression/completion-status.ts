@@ -113,7 +113,11 @@ export const isSolutionUnlocked = async (userId: string, challengeId: number): P
   return doc.isSolutionUnlocked ?? false
 }
 
-export const setSolutionUnlocked = async (userId: string, challengeId: number): Promise<void> => {
+export const setSolutionUnlocked = async (
+  userId: string,
+  challengeId: number,
+  unlocked: boolean = true,
+): Promise<void> => {
   const payload = await getPayload({ config })
 
   await payload.update({
@@ -127,13 +131,10 @@ export const setSolutionUnlocked = async (userId: string, challengeId: number): 
       },
     },
     data: {
-      isSolutionUnlocked: true,
+      isSolutionUnlocked: unlocked,
     },
   })
 }
-
-
-
 
 const COMPLETED_CHALLENGE_STATUS: CompletionStatus = 'completed'
 

@@ -26,7 +26,7 @@ export function ChallengeSettingsBubble({ challenge }: ChallengeSettingsBubblePr
   return (
     <DropdownMenu open={isMenuOpen} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
-      <motion.div
+        <motion.div
           drag
           dragMomentum={false}
           onDragStart={() => {

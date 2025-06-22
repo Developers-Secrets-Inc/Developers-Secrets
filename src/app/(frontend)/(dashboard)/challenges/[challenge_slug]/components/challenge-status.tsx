@@ -26,11 +26,15 @@ const statusConfig: Record<
   },
 }
 export const ChallengeStatus = ({ challengeId }: { challengeId: number }) => {
-  const { status: visualStatus, isLoading: isLoadingStatus } = useChallengeUserStatus(challengeId)
+  const { status: visualStatusFromHook, isLoading: isLoadingStatus } =
+    useChallengeUserStatus(challengeId)
 
   if (isLoadingStatus) {
     return <Skeleton className="h-5 w-24" />
   }
+
+  // Provide a fallback if visualStatusFromHook is undefined
+  const visualStatus = visualStatusFromHook || 'not_started'
 
   const { icon, color, label } = statusConfig[visualStatus]
 

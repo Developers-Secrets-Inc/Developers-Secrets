@@ -10,7 +10,6 @@ export const useSolutionUnlockStatus = (userId: string, challengeId: number) => 
   return useQuery({
     queryKey: solutionQueryKeys.solutionUnlock(userId, challengeId),
     queryFn: () => canAccessSolution(userId, challengeId),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   })
 }
 
@@ -18,8 +17,15 @@ export const useUnlockSolution = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ userId, challengeId }: { userId: string; challengeId: number }) =>
-      setSolutionUnlocked(userId, challengeId),
+    mutationFn: ({
+      userId,
+      challengeId,
+      unlocked,
+    }: {
+      userId: string
+      challengeId: number
+      unlocked?: boolean
+    }) => setSolutionUnlocked(userId, challengeId, unlocked),
     onSuccess: (_, { userId, challengeId }) => {
       queryClient.invalidateQueries({
         queryKey: solutionQueryKeys.solutionUnlock(userId, challengeId),
