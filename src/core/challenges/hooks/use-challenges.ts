@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   // Import the action that fetches ALL challenges with progress
-  getUserChallengeProgressions, // Import the action to fetch all progressions for a user
-} from '../index'
+  // getUserChallengeProgressions, // Import the action to fetch all progressions for a user
+  getAllUserCompletionStatuses,
+} from '../user-progression/completion-status'
 import { getAllChallenges } from '../challenge-queries'
 import { getUser } from '@/core/user'
 import { ChallengeWithProgress } from '@/core/challenges' // Keep this type
@@ -33,7 +34,7 @@ export const useChallenges = () => {
     queryFn: async () => {
       if (!user?.id) return []
       // Assuming getUserChallengeProgressions fetches all progressions for the user
-      return getUserChallengeProgressions(user.id)
+      return getAllUserCompletionStatuses(user.id)
     },
     enabled: !!user?.id, // Enable only when user is available
     staleTime: 5 * 60 * 1000, // 5 minutes

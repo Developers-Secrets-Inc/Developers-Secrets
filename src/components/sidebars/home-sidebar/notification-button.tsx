@@ -93,19 +93,19 @@ export const NotificationButton = () => {
 
   const importanceColor = {
     high: {
-      background: 'bg-red-500/10',
+      background: 'bg-red-500/40',
       text: 'text-red-500',
       border: 'border-red-500/20',
       hover: 'hover:bg-red-500/20',
     },
     medium: {
-      background: 'bg-orange-500/10',
+      background: 'bg-orange-500/40',
       text: 'text-orange-500',
       border: 'border-orange-500/20',
       hover: 'hover:bg-orange-500/20',
     },
     low: {
-      background: 'bg-blue-500/10',
+      background: 'bg-blue-500/40',
       text: 'text-blue-500',
       border: 'border-blue-500/20',
       hover: 'hover:bg-blue-500/20',

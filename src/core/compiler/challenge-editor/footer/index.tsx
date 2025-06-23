@@ -3,8 +3,35 @@
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import { Beaker, ChevronDown, ChevronUp, FileOutput, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import {
+  Beaker,
+  ChevronDown,
+  ChevronUp,
+  FileOutput,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  HeartIcon,
+  DiamondIcon,
+  SpadeIcon,
+  ClubIcon,
+  Bot,
+  LucideIcon,
+} from 'lucide-react'
 import { useChallengeEditorStore, TerminalTab } from '../store'
+import { useChallengeTour } from '@/core/challenges/components/challenge-tour-context'
+import { useEffect, useRef, useState } from 'react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+
+// Map icon names to actual LucideIcon components
+const IconMap: Record<string, LucideIcon> = {
+  HeartIcon,
+  DiamondIcon,
+  SpadeIcon,
+  ClubIcon,
+  Beaker,
+  Bot,
+}
 
 const TERMINAL_STYLE = {
   backgroundColor: '#1a1b26',
@@ -24,11 +51,11 @@ export type TestResult = {
 }
 
 export const TerminalTabs = () => {
-  const { 
-    activeTerminalTab: activeTab, 
-    isTerminalOpen, 
-    toggleTerminal: toggleTerminalOpen, 
-    setActiveTerminalTab: setActiveTab 
+  const {
+    activeTerminalTab: activeTab,
+    isTerminalOpen,
+    toggleTerminal: toggleTerminalOpen,
+    setActiveTerminalTab: setActiveTab,
   } = useChallengeEditorStore()
 
   const handleTabChange = (value: string) => {
@@ -125,15 +152,31 @@ const TestCaseDisplay = ({ testResult, index }: TestCaseDisplayProps) => (
 )
 
 export const TerminalContent = () => {
-  const { 
-    activeTerminalTab: activeTab, 
-    isTerminalOpen, 
-    setActiveTerminalTab: setActiveTab, 
+  const {
+    activeTerminalTab: activeTab,
+    isTerminalOpen,
+    setActiveTerminalTab: setActiveTab,
     toggleTerminal: toggleTerminalOpen,
     testResults,
     executionOutput,
     isLoadingSubmit,
   } = useChallengeEditorStore()
+
+  const { currentStep, showTour, nextStep, tourSteps } = useChallengeTour()
+  const terminalRef = useRef<HTMLDivElement>(null)
+
+  const isCurrentTourTarget =
+    showTour && tourSteps[currentStep]?.targetElementId === 'challenge-terminal-footer'
+  const currentTourStepContent = tourSteps[currentStep]
+  const IconComponent = currentTourStepContent?.iconName
+    ? IconMap[currentTourStepContent.iconName]
+    : undefined
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
+
+  useEffect(() => {
+    setIsPopoverOpen(isCurrentTourTarget)
+  }, [isCurrentTourTarget])
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as TerminalTab)
@@ -143,54 +186,85 @@ export const TerminalContent = () => {
   }
 
   return (
-    <div
-      className={cn(
-        'transition-all duration-300 ease-in-out overflow-hidden',
-        isTerminalOpen ? 'h-[30%] opacity-100' : 'h-0 opacity-0',
-      )}
-    >
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full">
-        <TabsContent value="tests" className="h-full p-0 m-0">
-          {isLoadingSubmit && activeTab === 'tests' ? (
-            <div style={TERMINAL_STYLE} className="flex items-center justify-center">
-              <Loader2 size={24} className="animate-spin mr-2" /> Loading test results...
-            </div>
-          ) : testResults.length > 0 ? (
-            <div className="h-full overflow-auto">
-              <Tabs defaultValue="0" className="h-full border-t">
-                <div className="border-b">
-                  <TabsList className="bg-background h-auto -space-x-px p-0 shadow-xs rtl:space-x-reverse">
-                    {testResults.map((_, index) => (
-                      <TabsTrigger
-                        key={index}
-                        value={index.toString()}
-                        className="data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
-                      >
-                        Test {index + 1}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </div>
-                {testResults.map((result, index) => (
-                  <TabsContent key={index} value={index.toString()}>
-                    <TestCaseDisplay testResult={result} index={index} />
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </div>
-          ) : (
-            <div style={TERMINAL_STYLE}>
-              {'> No test results available. Run your code to see test results.'}
-            </div>
+    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+      <PopoverTrigger asChild>
+        <div
+          ref={terminalRef}
+          id="challenge-terminal-footer"
+          className={cn(
+            'transition-all duration-300 ease-in-out overflow-hidden',
+            isTerminalOpen ? 'h-[30%] opacity-100' : 'h-0 opacity-0',
           )}
-        </TabsContent>
+        >
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full">
+            <TabsContent value="tests" className="h-full p-0 m-0">
+              {isLoadingSubmit && activeTab === 'tests' ? (
+                <div style={TERMINAL_STYLE} className="flex items-center justify-center">
+                  <Loader2 size={24} className="animate-spin mr-2" /> Loading test results...
+                </div>
+              ) : testResults.length > 0 ? (
+                <div className="h-full overflow-auto">
+                  <Tabs defaultValue="0" className="h-full border-t">
+                    <div className="border-b">
+                      <TabsList className="bg-background h-auto -space-x-px p-0 shadow-xs rtl:space-x-reverse">
+                        {testResults.map((_, index) => (
+                          <TabsTrigger
+                            key={index}
+                            value={index.toString()}
+                            className="data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
+                          >
+                            Test {index + 1}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </div>
+                    {testResults.map((result, index) => (
+                      <TabsContent key={index} value={index.toString()}>
+                        <TestCaseDisplay testResult={result} index={index} />
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </div>
+              ) : (
+                <div style={TERMINAL_STYLE}>
+                  {'> No test results available. Run your code to see test results.'}
+                </div>
+              )}
+            </TabsContent>
 
-        <TabsContent value="output" className="h-full p-0 m-0">
-          <div style={TERMINAL_STYLE}>
-            {executionOutput || '> No output available. Run your code to see results.'}
+            <TabsContent value="output" className="h-full p-0 m-0">
+              <div style={TERMINAL_STYLE}>
+                {executionOutput || '> No output available. Run your code to see results.'}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </PopoverTrigger>
+      {isCurrentTourTarget && (
+        <PopoverContent
+          className={cn('max-w-[280px] py-3 shadow-lg z-[101]', {
+            top: currentStep % 2 === 0,
+            bottom: currentStep % 2 !== 0,
+          })}
+          align="start"
+        >
+          <div className="space-y-3">
+            <div className="space-y-1">
+              {IconComponent && <IconComponent className="size-5 text-primary mb-2" />}
+              <p className="text-[13px] font-medium">{currentTourStepContent?.title}</p>
+              <p className="text-muted-foreground text-xs">{currentTourStepContent?.description}</p>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground text-xs">
+                {currentStep + 1}/{tourSteps.length}
+              </span>
+              <button className="text-xs font-medium hover:underline" onClick={nextStep}>
+                {currentStep === tourSteps.length - 1 ? 'Finish Tour' : 'Next'}
+              </button>
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+        </PopoverContent>
+      )}
+    </Popover>
   )
 }

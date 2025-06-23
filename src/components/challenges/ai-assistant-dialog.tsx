@@ -1,9 +1,19 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { Button } from '@/components/ui/button'
-import { MessageSquareText, Bot, X } from 'lucide-react'
+import {
+  MessageSquareText,
+  Bot,
+  X,
+  HeartIcon,
+  DiamondIcon,
+  SpadeIcon,
+  ClubIcon,
+  Beaker,
+  LucideIcon,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -14,6 +24,19 @@ import { useChallengeEditor } from '@/core/challenges/contexts/challenge-editor-
 import { useSolutionUnlockStatus } from '@/core/challenges/hooks/use-solution-queries'
 import type { Challenge } from '@/payload-types'
 import { getUser } from '@/core/user'
+import { useChallengeTour } from '@/core/challenges/components/challenge-tour-context'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+
+// Map icon names to actual LucideIcon components
+const IconMap: Record<string, LucideIcon> = {
+  HeartIcon,
+  DiamondIcon,
+  SpadeIcon,
+  ClubIcon,
+  Beaker,
+  Bot,
+  // Add other icons as needed
+}
 
 function buildChallengeSystemPrompt(context: {
   challenge: Challenge | null
@@ -114,17 +137,66 @@ export const AIAssistantDialog = () => {
     },
   })
 
+  const { currentStep, showTour, nextStep, tourSteps } = useChallengeTour()
+  const aiButtonRef = useRef<HTMLButtonElement>(null)
+
+  const isCurrentTourTarget =
+    showTour && tourSteps[currentStep]?.targetElementId === 'challenge-ai-assistant-button'
+  const currentTourStepContent = tourSteps[currentStep]
+  const IconComponent = currentTourStepContent?.iconName
+    ? IconMap[currentTourStepContent.iconName]
+    : undefined
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
+
+  useEffect(() => {
+    setIsPopoverOpen(isCurrentTourTarget)
+  }, [isCurrentTourTarget])
+
   return (
     <div className="relative">
-      <Button
-        variant="outline"
-        className="w-full flex items-center gap-2 h-10"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <Bot size={18} />
-        <span>Ask Pearl for help</span>
-        <MessageSquareText className="ml-auto" size={16} />
-      </Button>
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full flex items-center gap-2 h-10"
+            onClick={() => setIsOpen(!isOpen)}
+            ref={aiButtonRef}
+            id="challenge-ai-assistant-button"
+          >
+            <Bot size={18} />
+            <span>Ask Pearl for help</span>
+            <MessageSquareText className="ml-auto" size={16} />
+          </Button>
+        </PopoverTrigger>
+        {isCurrentTourTarget && (
+          <PopoverContent
+            className={cn('max-w-[280px] py-3 shadow-lg z-[101]', {
+              left: currentStep % 2 === 0,
+              right: currentStep % 2 !== 0,
+            })}
+            align="end"
+          >
+            <div className="space-y-3">
+              <div className="space-y-1">
+                {IconComponent && <IconComponent className="size-5 text-primary mb-2" />}
+                <p className="text-[13px] font-medium">{currentTourStepContent?.title}</p>
+                <p className="text-muted-foreground text-xs">
+                  {currentTourStepContent?.description}
+                </p>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-muted-foreground text-xs">
+                  {currentStep + 1}/{tourSteps.length}
+                </span>
+                <button className="text-xs font-medium hover:underline" onClick={nextStep}>
+                  {currentStep === tourSteps.length - 1 ? 'Finish Tour' : 'Next'}
+                </button>
+              </div>
+            </div>
+          </PopoverContent>
+        )}
+      </Popover>
 
       <AnimatePresence>
         {isOpen && (

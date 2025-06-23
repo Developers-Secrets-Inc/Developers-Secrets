@@ -132,9 +132,6 @@ export const setSolutionUnlocked = async (userId: string, challengeId: number): 
   })
 }
 
-
-
-
 const COMPLETED_CHALLENGE_STATUS: CompletionStatus = 'completed'
 
 export const isChallengeCompleted = async (
@@ -150,4 +147,39 @@ export const canAccessSolution = async (userId: string, challengeId: number): Pr
     (await isSolutionUnlocked(userId, challengeId)) ||
     (await isChallengeCompleted(userId, challengeId))
   )
+}
+
+export const getTotalCompletedChallengesCount = async (userId: string): Promise<number> => {
+  const payload = await getPayload({ config })
+
+  const countResult = await payload.count({
+    collection: 'userChallengeCompletionStatus',
+    where: {
+      userId: {
+        equals: userId,
+      },
+      completionStatus: {
+        equals: 'completed',
+      },
+    },
+  })
+
+  return countResult.totalDocs ?? 0
+}
+
+export const getAllUserCompletionStatuses = async (userId: string) => {
+  const payload = await getPayload({ config })
+
+  const userProgressions = await payload.find({
+    collection: 'userChallengeCompletionStatus',
+    where: {
+      userId: {
+        equals: userId,
+      },
+    },
+    limit: 0,
+    pagination: false,
+  })
+
+  return userProgressions.docs
 }

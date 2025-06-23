@@ -23,6 +23,7 @@ import { ChallengeSettingsBubble } from '@/core/challenges/components/admin/chal
 import { ChallengeIDE } from '@/core/compiler/challenge-editor'
 import { CompletionDialog } from '@/core/challenges/components/completion-dialog'
 import { ClubIcon, DiamondIcon, HeartIcon, LucideIcon, SpadeIcon, Beaker, Bot } from 'lucide-react'
+import { ChallengeDescriptionTourAnchor } from '@/core/challenges/components/challenge-description-tour-anchor'
 import { ChallengeTourProvider } from '@/core/challenges/components/challenge-tour-context'
 
 function LoadingPlaceholder() {
@@ -139,12 +140,9 @@ export default async function ChallengeLayout({
                         <ResizablePanel defaultSize={50} minSize={40}>
                           <div className="flex flex-col h-full">
                             <ChallengeNavigation />
-                            <div
-                              id="challenge-description-area"
-                              className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0"
-                            >
+                            <ChallengeDescriptionTourAnchor>
                               <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
-                            </div>
+                            </ChallengeDescriptionTourAnchor>
                             <ChallengeFooterContainer>
                               <ChallengeFooterLeftPart>
                                 <ChallengeReactionButtons />
