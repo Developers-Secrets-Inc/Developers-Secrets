@@ -21,7 +21,7 @@ export const ChallengeHeader = ({ challenge }: ChallengeHeaderProps) => {
               Draft
             </Badge>
           )}
-          <ChallengeStatus challengeId={challenge.id} />
+          {/* <ChallengeStatus challengeId={challenge.id} /> */}
         </div>
       </div>
       <ChallengeHeaderTags challenge={challenge} />
