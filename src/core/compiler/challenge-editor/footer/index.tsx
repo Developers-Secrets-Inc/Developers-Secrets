@@ -5,23 +5,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import {
   Beaker,
+  Bot,
+  CheckCircle,
   ChevronDown,
   ChevronUp,
-  FileOutput,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  HeartIcon,
-  DiamondIcon,
-  SpadeIcon,
   ClubIcon,
-  Bot,
+  DiamondIcon,
+  FileOutput,
+  HeartIcon,
+  Loader2,
   LucideIcon,
+  SpadeIcon,
+  XCircle,
 } from 'lucide-react'
-import { useChallengeEditorStore, TerminalTab } from '../store'
-import { useChallengeTour } from '@/core/challenges/components/challenge-tour-context'
-import { useEffect, useRef, useState } from 'react'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { TerminalTab, useChallengeEditorStore } from '../store'
 
 // Map icon names to actual LucideIcon components
 const IconMap: Record<string, LucideIcon> = {
@@ -162,22 +159,6 @@ export const TerminalContent = () => {
     isLoadingSubmit,
   } = useChallengeEditorStore()
 
-  const { currentStep, showTour, nextStep, tourSteps } = useChallengeTour()
-  const terminalRef = useRef<HTMLDivElement>(null)
-
-  const isCurrentTourTarget =
-    showTour && tourSteps[currentStep]?.targetElementId === 'challenge-terminal-footer'
-  const currentTourStepContent = tourSteps[currentStep]
-  const IconComponent = currentTourStepContent?.iconName
-    ? IconMap[currentTourStepContent.iconName]
-    : undefined
-
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
-
-  useEffect(() => {
-    setIsPopoverOpen(isCurrentTourTarget)
-  }, [isCurrentTourTarget])
-
   const handleTabChange = (value: string) => {
     setActiveTab(value as TerminalTab)
     if (!isTerminalOpen) {
@@ -186,11 +167,7 @@ export const TerminalContent = () => {
   }
 
   return (
-    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-      <PopoverTrigger asChild>
         <div
-          ref={terminalRef}
-          id="challenge-terminal-footer"
           className={cn(
             'transition-all duration-300 ease-in-out overflow-hidden',
             isTerminalOpen ? 'h-[30%] opacity-100' : 'h-0 opacity-0',
@@ -239,32 +216,5 @@ export const TerminalContent = () => {
             </TabsContent>
           </Tabs>
         </div>
-      </PopoverTrigger>
-      {isCurrentTourTarget && (
-        <PopoverContent
-          className={cn('max-w-[280px] py-3 shadow-lg z-[101]', {
-            top: currentStep % 2 === 0,
-            bottom: currentStep % 2 !== 0,
-          })}
-          align="start"
-        >
-          <div className="space-y-3">
-            <div className="space-y-1">
-              {IconComponent && <IconComponent className="size-5 text-primary mb-2" />}
-              <p className="text-[13px] font-medium">{currentTourStepContent?.title}</p>
-              <p className="text-muted-foreground text-xs">{currentTourStepContent?.description}</p>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-muted-foreground text-xs">
-                {currentStep + 1}/{tourSteps.length}
-              </span>
-              <button className="text-xs font-medium hover:underline" onClick={nextStep}>
-                {currentStep === tourSteps.length - 1 ? 'Finish Tour' : 'Next'}
-              </button>
-            </div>
-          </div>
-        </PopoverContent>
-      )}
-    </Popover>
   )
 }

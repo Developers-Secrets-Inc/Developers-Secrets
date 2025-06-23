@@ -22,67 +22,11 @@ import { AdminComponent } from '@/core/user/components/admin-component'
 import { ChallengeSettingsBubble } from '@/core/challenges/components/admin/challenge-settings-bubble'
 import { ChallengeIDE } from '@/core/compiler/challenge-editor'
 import { CompletionDialog } from '@/core/challenges/components/completion-dialog'
-import { ClubIcon, DiamondIcon, HeartIcon, LucideIcon, SpadeIcon, Beaker, Bot } from 'lucide-react'
-import { ChallengeDescriptionTourAnchor } from '@/core/challenges/components/challenge-description-tour-anchor'
-import { ChallengeTourProvider } from '@/core/challenges/components/challenge-tour-context'
 
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
 }
 
-// Define the TourStep interface
-interface TourStep {
-  iconName: string
-  title: string
-  description: string
-  targetElementId?: string
-}
-
-// Define the tourSteps data
-const tourSteps: TourStep[] = [
-  {
-    iconName: 'HeartIcon',
-    title: 'Welcome to the Challenge!',
-    description:
-      "This is your new challenge workspace. Here you'll find the challenge description, instructions, and tests.",
-    targetElementId: 'challenge-description-area',
-  },
-  {
-    iconName: 'DiamondIcon',
-    title: 'Code Editor',
-    description:
-      "This is the code editor where you'll write your solution. You can select different languages here.",
-    targetElementId: 'challenge-code-editor',
-  },
-  {
-    iconName: 'SpadeIcon',
-    title: 'Run Your Code',
-    description:
-      'Click this button to run your code against custom inputs or see immediate output.',
-    targetElementId: 'challenge-run-button',
-  },
-  {
-    iconName: 'ClubIcon',
-    title: 'Submit Your Solution',
-    description:
-      "Once you're confident in your solution, click this button to submit it and complete the challenge!",
-    targetElementId: 'challenge-submit-button',
-  },
-  {
-    iconName: 'Beaker',
-    title: 'Test Results & Output',
-    description:
-      'This panel will show you the results of your tests and any output from your code execution.',
-    targetElementId: 'challenge-terminal-footer',
-  },
-  {
-    iconName: 'Bot',
-    title: 'AI Assistant (Pearl)',
-    description:
-      "Need a hint? Ask Pearl for help! She's here to guide you without giving away the full solution.",
-    targetElementId: 'challenge-ai-assistant-button',
-  },
-]
 
 export default async function ChallengeLayout({
   children,
@@ -122,7 +66,6 @@ export default async function ChallengeLayout({
             userId={user.id}
             initialStatus={initialStatus}
           >
-            <ChallengeTourProvider tourSteps={tourSteps}>
               <div className="flex h-screen min-h-0">
                 <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
                   <ChallengeLayoutHeader
@@ -140,9 +83,7 @@ export default async function ChallengeLayout({
                         <ResizablePanel defaultSize={50} minSize={40}>
                           <div className="flex flex-col h-full">
                             <ChallengeNavigation />
-                            <ChallengeDescriptionTourAnchor>
                               <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
-                            </ChallengeDescriptionTourAnchor>
                             <ChallengeFooterContainer>
                               <ChallengeFooterLeftPart>
                                 <ChallengeReactionButtons />
@@ -186,7 +127,6 @@ export default async function ChallengeLayout({
                 </div>
               </div>
               <CompletionDialog userId={user.id} challenge={challenge} />
-            </ChallengeTourProvider>
           </ChallengeStatusProvider>
         </ChallengeProvider>
       </ChallengeStoreHydrator>

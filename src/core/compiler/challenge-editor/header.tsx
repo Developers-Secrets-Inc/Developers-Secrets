@@ -83,66 +83,19 @@ export const RunButton = ({
   isRunning: boolean
   isDisabled: boolean
 }) => {
-  const { currentStep, showTour, nextStep, tourSteps } = useChallengeTour()
-  const buttonRef = useRef<HTMLButtonElement>(null)
-
-  const isCurrentTourTarget =
-    showTour && tourSteps[currentStep]?.targetElementId === 'challenge-run-button'
-  const currentTourStepContent = tourSteps[currentStep]
-  const IconComponent = currentTourStepContent?.iconName
-    ? IconMap[currentTourStepContent.iconName]
-    : undefined
-
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
-
-  useEffect(() => {
-    setIsPopoverOpen(isCurrentTourTarget)
-  }, [isCurrentTourTarget])
-
   return (
-    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-      <PopoverTrigger asChild>
         <Button
           variant="secondary"
           size="sm"
           className="h-8"
           onClick={onRun}
           disabled={isRunning || isDisabled}
-          ref={buttonRef}
-          id="challenge-run-button"
         >
           <LoadingIcon isLoading={isRunning}>
             <Play size={14} className="mr-1" />
           </LoadingIcon>
           Run
         </Button>
-      </PopoverTrigger>
-      {isCurrentTourTarget && (
-        <PopoverContent
-          className={cn('max-w-[280px] py-3 shadow-lg z-[101]', {
-            left: currentStep % 2 === 0,
-            right: currentStep % 2 !== 0,
-          })}
-          align="center"
-        >
-          <div className="space-y-3">
-            <div className="space-y-1">
-              {IconComponent && <IconComponent className="size-5 text-primary mb-2" />}
-              <p className="text-[13px] font-medium">{currentTourStepContent?.title}</p>
-              <p className="text-muted-foreground text-xs">{currentTourStepContent?.description}</p>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-muted-foreground text-xs">
-                {currentStep + 1}/{tourSteps.length}
-              </span>
-              <button className="text-xs font-medium hover:underline" onClick={nextStep}>
-                {currentStep === tourSteps.length - 1 ? 'Finish Tour' : 'Next'}
-              </button>
-            </div>
-          </div>
-        </PopoverContent>
-      )}
-    </Popover>
   )
 }
 
