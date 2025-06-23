@@ -54,6 +54,7 @@ const SidebarLink = ({
           <HiddenOnIconSidebar>
             {icon}
             <span>{text}</span>
+            {isComingSoon && <ComingSoonTooltip />}
           </HiddenOnIconSidebar>
           <ShowOnlyOnIconSidebar>
             <TooltipPrimitive.Root delayDuration={200}>
@@ -63,7 +64,6 @@ const SidebarLink = ({
               <TooltipContentCustom side="right">{text}</TooltipContentCustom>
             </TooltipPrimitive.Root>
           </ShowOnlyOnIconSidebar>
-          {isComingSoon && <ComingSoonTooltip />}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>

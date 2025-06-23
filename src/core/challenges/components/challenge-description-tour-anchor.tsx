@@ -53,12 +53,7 @@ export function ChallengeDescriptionTourAnchor({ children }: ChallengeDescriptio
         </PopoverTrigger>
         {isCurrentTourTarget && (
           <PopoverContent
-            // Tailwind: absolute, right-0, top-1/2, -translate-y-1/2, z-[101], max-w-[280px], shadow-lg, py-3, px-4
-            className={cn(
-              'absolute right-0 top-1/2 -translate-y-1/2 z-[101] max-w-[280px] shadow-lg py-3 px-4',
-            )}
-            align="end"
-            side="right"
+            className={cn('absolute top-4 z-[101] max-w-[280px] shadow-lg py-3 px-4')}
           >
             <div className="space-y-3">
               <div className="space-y-1">
