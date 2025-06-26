@@ -4,11 +4,11 @@ title: AchievementsDialog (React Component)
 
 # AchievementsDialog
 
-## Description
+## Overview
 
-Le composant `AchievementsDialog` affiche la liste des succès (achievements) d'un utilisateur dans une boîte de dialogue (modal). Il permet de visualiser la progression, les niveaux atteints, les récompenses à venir et l'état de complétion de chaque succès.
+The `AchievementsDialog` component displays a user's achievements in a modal dialog. It allows users to view their progress, current and maximum levels, upcoming rewards, and completion status for each achievement.
 
-## Utilisation
+## Usage
 
 ```tsx
 <AchievementsDialog
@@ -19,24 +19,23 @@ Le composant `AchievementsDialog` affiche la liste des succès (achievements) d'
 />
 ```
 
-- `open` : booléen contrôlant l'ouverture de la modal.
-- `onOpenChange` : callback pour changer l'état d'ouverture.
-- `initialAchievements` : liste des achievements à afficher (voir type `DisplayAchievement`).
-- `initialError` : message d'erreur à afficher en cas d'échec du chargement.
+## Props
 
-## Fonctionnalités
+- `open` (boolean): Controls whether the dialog is open.
+- `onOpenChange` (function): Callback to change the open state.
+- `initialAchievements` (DisplayAchievement[] | null): List of achievements to display (see `DisplayAchievement` type).
+- `initialError` (string | null): Error message to display if loading fails.
 
-- Affiche chaque achievement avec :
-  - Icône selon le type (XP, challenges, streak, etc.)
-  - Titre, description, niveau actuel/max, progression vers le prochain palier
-  - Badge de complétion ou de niveau
-  - Barre de progression
-- Gestion des états :
-  - Chargement (squelettes)
-  - Erreur
-  - Aucun succès disponible
-- Animation d'apparition (Framer Motion)
-- Accessibilité : navigation clavier, responsive
+## Features
+
+- Displays each achievement with:
+  - Icon based on type (XP, challenges, streak, etc.)
+  - Title, description, current/max level, progress toward next tier
+  - Completion or level badge
+  - Progress bar
+- Handles loading (skeletons), error, and empty states
+- Animated appearance (Framer Motion)
+- Accessible: keyboard navigation, responsive layout
 
 ## Types
 
@@ -53,18 +52,18 @@ interface DisplayAchievement extends Omit<PayloadAchievement, 'type'> {
 }
 ```
 
-## Exemples d'UI
+## UI Examples
 
-- Succès complété : badge vert, icône colorée, barre pleine
-- Succès en cours : badge neutre, barre de progression partielle
-- Succès verrouillé : grisé
+- Completed achievement: green badge, colored icon, full progress bar
+- In-progress achievement: neutral badge, partial progress bar
+- Locked achievement: grayed out
 
-## Bonnes pratiques
+## Best Practices
 
-- Utiliser ce composant dans une modal/dialog contrôlée par le parent
-- Précharger les données côté serveur ou via React Query
-- Gérer les erreurs et loading states pour une UX fluide
+- Use this component inside a controlled modal/dialog
+- Preload data server-side or with React Query
+- Handle errors and loading states for smooth UX
 
-## Références
+## References
 - [Payload Achievement Type](../../../../src/payload-types.ts)
 - [UserAchievementProgress](../../../../src/payload-types.ts)

@@ -4,26 +4,26 @@ title: Achievements - Getters
 
 # Achievements – Getters
 
-## Description
+## Overview
 
-Ce module expose les fonctions de récupération des succès (achievements) depuis la base de données Payload CMS.
+This module exposes functions to fetch achievements from the Payload CMS database.
 
-## Fonctions principales
+## Main Functions
 
 ### `getAchievements()`
-- Retourne la liste de tous les achievements actifs.
-- Utilise le champ `isActive` pour filtrer.
+- Returns a list of all active achievements.
+- Uses the `isActive` field to filter.
 
 ### `getAchievementById(achievementId)`
-- Retourne un achievement précis par son ID (string ou number).
-- Retourne `null` si non trouvé.
+- Returns a specific achievement by its ID (string or number).
+- Returns `null` if not found.
 
 ### `getAchievementsByType(achievementType)`
-- Retourne tous les achievements actifs d'un type donné (ex : 'challenges_completed').
+- Returns all active achievements of a given type (e.g., 'challenges_completed').
 
-## Bonnes pratiques
-- Utiliser ces getters côté serveur pour charger les données d'achievements.
-- Toujours vérifier la présence de l'achievement (null possible).
+## Best Practices
+- Use these getters on the server side to load achievement data.
+- Always check for the presence of an achievement (may return null).
 
-## Références
+## References
 - [Payload Achievement Type](../../../payload-types.ts)
