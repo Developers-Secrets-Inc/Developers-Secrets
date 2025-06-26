@@ -10,6 +10,7 @@ import { User } from '@/types/user'
 import { useQuery } from '@tanstack/react-query'
 import { CheckCircle2 } from 'lucide-react'
 import { CalendarDayButton } from './calendar-day-button'
+import { DailyEntriesBadge } from '@/core/gamification/streaks/login-entries/components/daily-entries-badge'
 
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -38,7 +39,7 @@ const getRoleBadgeClass = (role: string | undefined): string => {
       return 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-500'
     case 'basic':
     default:
-      return ''
+      return 'bg-background border border-border'
   }
 }
 
@@ -116,10 +117,8 @@ export const UserProfile = ({ user }: UserProfileProps) => {
             <div className="flex-1">
               <h3 className="text-lg font-semibold">{user.informations.name}</h3>
               <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-sm text-muted-foreground mt-1">
-                <span>Level {userGamificationsInformation.currentLevel}</span>
                 {role && (
                   <>
-                    <span className="hidden sm:inline">•</span>
                     <Badge
                       variant={getRoleBadgeVariant(role)}
                       className={
@@ -131,16 +130,14 @@ export const UserProfile = ({ user }: UserProfileProps) => {
                     </Badge>
                   </>
                 )}
+                <DailyEntriesBadge userId={user.id} />
               </div>
               <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-sm text-muted-foreground mt-2">
                 <span>
                   {userGamificationsInformation.currentExperience} / {nextLevelExperience} XP
                 </span>
                 <span className="hidden sm:inline">•</span>
-                <span className="flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  {totalCompletedCount} Completed
-                </span>
+                <span>Level {userGamificationsInformation.currentLevel}</span>
               </div>
               <Progress value={experiencePercentage} className="h-2 mt-1.5" />
             </div>

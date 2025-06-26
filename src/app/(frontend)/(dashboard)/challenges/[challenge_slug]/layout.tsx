@@ -22,11 +22,12 @@ import { AdminComponent } from '@/core/user/components/admin-component'
 import { ChallengeSettingsBubble } from '@/core/challenges/components/admin/challenge-settings-bubble'
 import { ChallengeIDE } from '@/core/compiler/challenge-editor'
 import { CompletionDialog } from '@/core/challenges/components/completion-dialog'
+import { OnboardingDialog } from '@/core/challenges/components/onboarding-dialog'
+import { NewCompletionDialog } from '@/core/challenges/components/completion/new-completion-dialog'
 
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
 }
-
 
 export default async function ChallengeLayout({
   children,
@@ -66,67 +67,70 @@ export default async function ChallengeLayout({
             userId={user.id}
             initialStatus={initialStatus}
           >
-              <div className="flex h-screen min-h-0">
-                <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
-                  <ChallengeLayoutHeader
-                    challengeSlug={challenge_slug}
-                    challengeId={challenge.id}
-                    user={user}
-                  />
+            <div className="flex h-screen min-h-0">
+              <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
+                <ChallengeLayoutHeader
+                  challengeSlug={challenge_slug}
+                  challengeId={challenge.id}
+                  user={user}
+                />
 
-                  <div className="flex-1 overflow-hidden">
-                    <ChallengeEditorProvider
-                      initialLanguage={initialLanguage}
-                      initialCodePerLanguage={initialCodeVersions}
-                    >
-                      <ResizablePanelGroup direction="horizontal">
-                        <ResizablePanel defaultSize={50} minSize={40}>
-                          <div className="flex flex-col h-full">
-                            <ChallengeNavigation />
-                              <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
-                            <ChallengeFooterContainer>
-                              <ChallengeFooterLeftPart>
-                                <ChallengeReactionButtons />
-                                <RatingText />
-                              </ChallengeFooterLeftPart>
-                              <AIAssistantDialog />
-                            </ChallengeFooterContainer>
+                <div className="flex-1 overflow-hidden">
+                  <ChallengeEditorProvider
+                    initialLanguage={initialLanguage}
+                    initialCodePerLanguage={initialCodeVersions}
+                  >
+                    <ResizablePanelGroup direction="horizontal">
+                      <ResizablePanel defaultSize={50} minSize={40}>
+                        <div className="flex flex-col h-full">
+                          <ChallengeNavigation />
+                          <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
+                            <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
                           </div>
-                        </ResizablePanel>
+                          <ChallengeFooterContainer>
+                            <ChallengeFooterLeftPart>
+                              <ChallengeReactionButtons />
+                              <RatingText />
+                            </ChallengeFooterLeftPart>
+                            <AIAssistantDialog />
+                          </ChallengeFooterContainer>
+                        </div>
+                      </ResizablePanel>
 
-                        <ResizableHandle withHandle />
+                      <ResizableHandle withHandle />
 
-                        <ResizablePanel
-                          defaultSize={50}
-                          minSize={40}
-                          className="flex flex-col h-full"
-                        >
-                          <ChallengeIDE
-                            challenge={challenge}
-                            userId={user.id}
-                            codeVersions={
-                              challenge.codeVersions?.map((v) => ({
-                                language: v.language,
-                                initialCode: v.initialCode,
-                                testCases:
-                                  v.testCases?.map((t) => ({
-                                    input: t.input,
-                                    expectedOutput: t.expectedOutput,
-                                  })) || [],
-                              })) || []
-                            }
-                            htmlId="challenge-code-editor"
-                          />
-                        </ResizablePanel>
-                      </ResizablePanelGroup>
-                    </ChallengeEditorProvider>
-                    <AdminComponent>
-                      <ChallengeSettingsBubble challenge={challenge} />
-                    </AdminComponent>
-                  </div>
+                      <ResizablePanel
+                        defaultSize={50}
+                        minSize={40}
+                        className="flex flex-col h-full"
+                      >
+                        <ChallengeIDE
+                          challenge={challenge}
+                          userId={user.id}
+                          codeVersions={
+                            challenge.codeVersions?.map((v) => ({
+                              language: v.language,
+                              initialCode: v.initialCode,
+                              testCases:
+                                v.testCases?.map((t) => ({
+                                  input: t.input,
+                                  expectedOutput: t.expectedOutput,
+                                })) || [],
+                            })) || []
+                          }
+                        />
+                      </ResizablePanel>
+                    </ResizablePanelGroup>
+                  </ChallengeEditorProvider>
+                  <AdminComponent>
+                    <ChallengeSettingsBubble challenge={challenge} />
+                  </AdminComponent>
                 </div>
               </div>
-              <CompletionDialog userId={user.id} challenge={challenge} />
+            </div>
+            {/* <CompletionDialog userId={user.id} challenge={challenge} /> */}
+            <NewCompletionDialog userId={user.id} challengeId={challenge.id} />
+            {/* <OnboardingDialog /> */}
           </ChallengeStatusProvider>
         </ChallengeProvider>
       </ChallengeStoreHydrator>

@@ -57,9 +57,15 @@ const QuestChestIcon = ({ difficulty }: { difficulty: QuestDifficulty }) => {
 const QuestRewardDisplay = ({
   experience,
   difficulty,
+  onReplaceQuest,
+  canReplace,
+  isReplacing,
 }: {
   experience: number
   difficulty: QuestDifficulty
+  onReplaceQuest?: () => void
+  canReplace?: boolean
+  isReplacing?: boolean
 }) => {
   return (
     <div className="flex items-center gap-2 text-muted-foreground text-xs leading-[inherit] font-normal">
@@ -70,6 +76,16 @@ const QuestRewardDisplay = ({
       <span className="flex items-center gap-1">
         <QuestChestIcon difficulty={difficulty} />
       </span>
+      {onReplaceQuest && (
+        <button
+          onClick={onReplaceQuest}
+          disabled={!canReplace}
+          className="p-1 rounded-full text-slate-400/80 hover:text-blue-400 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors"
+          aria-label="Replace quest"
+        >
+          {isReplacing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+        </button>
+      )}
     </div>
   )
 }
@@ -94,41 +110,24 @@ const QuestDescription = ({
 }
 
 const QuestProgress = ({ current, total }: { current: number; total: number }) => {
+  const percent = (current / total) * 100;
+  const textColor = percent >= 40 ? "text-white" : "text-muted-foreground";
   return (
-    <div className="flex items-center gap-2">
-      <div className="h-1.5 flex-1 bg-slate-200 rounded-full overflow-hidden">
+    <div className="relative">
+      <div className="h-4 bg-muted rounded-full overflow-hidden">
         <div
           className="h-full bg-primary rounded-full transition-all"
           style={{
-            width: `${(current / total) * 100}%`,
+            width: `${percent}%`,
           }}
         />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className={`text-xs font-medium ${textColor}`}>
+            {current}/{total}
+          </span>
+        </div>
       </div>
-      <span className="text-xs text-muted-foreground">
-        {current}/{total}
-      </span>
     </div>
-  )
-}
-
-const ReplaceQuestButton = ({
-  onReplaceQuest,
-  disabled,
-  isLoading,
-}: {
-  onReplaceQuest: () => void
-  disabled: boolean
-  isLoading: boolean
-}) => {
-  return (
-    <button
-      onClick={onReplaceQuest}
-      disabled={disabled || isLoading}
-      className="absolute top-2 right-2 p-1 rounded-full text-slate-400/80 hover:text-blue-400 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors z-10"
-      aria-label="Replace quest"
-    >
-      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-    </button>
   )
 }
 
@@ -178,8 +177,8 @@ export const QuestCard = ({
   userQuest: UserQuest
   onReplaceQuest?: () => void
   onCompleteQuest?: () => void
-  canReplace: boolean
-  isReplacing: boolean
+  canReplace?: boolean
+  isReplacing?: boolean
 }) => {
   const { quest, currentProgression, isCompleted } = userQuest
   const { title, difficulty, experience: xp, value: total } = quest
@@ -187,27 +186,26 @@ export const QuestCard = ({
   return (
     <div
       className={cn(
-        'border-input relative flex w-full items-start gap-4 rounded-md border p-4 shadow-xs outline-none',
+        'border-input relative flex w-full items-start gap-4 rounded-md border p-4 py-5 shadow-xs outline-none',
         isCompleted && 'bg-emerald-950/40 border-emerald-800/40',
       )}
     >
-      {onReplaceQuest && !isCompleted && (
-        <ReplaceQuestButton
-          onReplaceQuest={onReplaceQuest}
-          disabled={!canReplace}
-          isLoading={isReplacing}
-        />
-      )}
-
       <QuestIcon Icon={CheckCircle} difficulty={difficulty} isCompleted={isCompleted} />
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1.5">
-          <QuestDifficultyBadge difficulty={difficulty} isCompleted={isCompleted} />
-          <QuestRewardDisplay experience={xp} difficulty={difficulty} />
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-2">
+            <QuestDescription description={title} isCompleted={isCompleted} />
+            {/* <QuestDifficultyBadge difficulty={difficulty} isCompleted={isCompleted} /> */}
+          </div>
+          <QuestRewardDisplay 
+            experience={xp} 
+            difficulty={difficulty} 
+            onReplaceQuest={!isCompleted ? onReplaceQuest : undefined}
+            canReplace={canReplace}
+            isReplacing={isReplacing}
+          />
         </div>
-
-        <QuestDescription description={title} isCompleted={isCompleted} />
 
         {!isCompleted && total > 0 && (
           <div className="mt-2">
@@ -215,7 +213,7 @@ export const QuestCard = ({
           </div>
         )}
 
-        {!isCompleted && onCompleteQuest && process.env.NODE_ENV === 'development' && (
+        {/* {!isCompleted && onCompleteQuest && process.env.NODE_ENV === 'development' && (
           <button
             onClick={onCompleteQuest}
             className="mt-3 text-xs font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1.5"
@@ -223,7 +221,7 @@ export const QuestCard = ({
             <CheckCircle className="h-3.5 w-3.5" />
             Mark as completed
           </button>
-        )}
+        )} */}
       </div>
     </div>
   )

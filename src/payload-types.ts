@@ -118,6 +118,7 @@ export interface Config {
     userChallengeEngagement: UserChallengeEngagement;
     userChallengeCompletionStatus: UserChallengeCompletionStatus;
     userChallengeCode: UserChallengeCode;
+    'daily-login-entries': DailyLoginEntry;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -175,6 +176,7 @@ export interface Config {
     userChallengeEngagement: UserChallengeEngagementSelect<false> | UserChallengeEngagementSelect<true>;
     userChallengeCompletionStatus: UserChallengeCompletionStatusSelect<false> | UserChallengeCompletionStatusSelect<true>;
     userChallengeCode: UserChallengeCodeSelect<false> | UserChallengeCodeSelect<true>;
+    'daily-login-entries': DailyLoginEntriesSelect<false> | DailyLoginEntriesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -2355,6 +2357,21 @@ export interface UserChallengeCode {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "daily-login-entries".
+ */
+export interface DailyLoginEntry {
+  id: number;
+  /**
+   * The Supabase user ID
+   */
+  userId: string;
+  /**
+   * The date when the user logged in
+   */
+  date: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -2563,6 +2580,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'userChallengeCode';
         value: number | UserChallengeCode;
+      } | null)
+    | ({
+        relationTo: 'daily-login-entries';
+        value: number | DailyLoginEntry;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -3765,6 +3786,14 @@ export interface UserChallengeCodeSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "daily-login-entries_select".
+ */
+export interface DailyLoginEntriesSelect<T extends boolean = true> {
+  userId?: T;
+  date?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

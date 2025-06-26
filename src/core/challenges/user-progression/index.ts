@@ -750,7 +750,7 @@ export const getCalendarDays = async (userId: string): Promise<(CalendarDay | nu
       const dateString = `${utcYear}-${utcMonth}-${utcDay}`
 
       const challenge = progression.challenge as PayloadChallenge
-      const difficulty = ['easy', 'medium', 'hard', 'horrible'].includes(challenge.difficulty)
+      const difficulty = ['very_easy', 'easy', 'medium', 'hard', 'horrible'].includes(challenge.difficulty)
         ? (challenge.difficulty as CompletedChallengeInfo['difficulty'])
         : 'medium'
 

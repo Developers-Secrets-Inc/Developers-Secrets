@@ -10,6 +10,7 @@ import { UserProfile, UserProfileCardSkeleton } from './components/user-profile'
 // import { getPayload } from 'payload'
 // import config from '@payload-config'
 import { DevSettingsBubble } from '@/core/dev/components/settings'
+import { QuestCompletionSonner } from '@/core/gamification/quests/components/question-completion-sonner'
 
 export default async function ChallengesPage() {
   const user = await getUser()
@@ -36,6 +37,8 @@ export default async function ChallengesPage() {
             </Suspense>
             <DivisionLeaderboardCard />
           </div>
+      {/* <QuestCompletionSonner /> */}
+
         </div>
       </div>
       <DevSettingsBubble />

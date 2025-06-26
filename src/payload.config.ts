@@ -58,6 +58,7 @@ import { BlogArticles } from './collections/BlogArticles'
 import { UserChallengeEngagement } from './collections/UserChallengeEngagement'
 import { UserChallengeCompletionStatus } from './collections/UserChallengeCompletionStatus'
 import { UserChallengeCode } from './collections/UserChallengeCode'
+import { DailyLoginEntry } from './collections/DailyLoginEntry'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -121,6 +122,7 @@ export default buildConfig({
     UserChallengeEngagement,
     UserChallengeCompletionStatus,
     UserChallengeCode,
+    DailyLoginEntry,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
