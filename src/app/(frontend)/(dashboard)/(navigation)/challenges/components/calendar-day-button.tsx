@@ -81,7 +81,7 @@ function DialogChallengeList({
               </Badge>
             </div>
             <Button asChild variant="outline" size="sm" className="whitespace-nowrap">
-              <Link href={`/challenges/${challenge.slug}`}>View</Link>
+              <Link href={`/challenges/${challenge.slug}/description`}>View</Link>
             </Button>
           </div>
         ))
