@@ -31,6 +31,8 @@ interface CalendarDayButtonProps {
 // Fonction helper pour le style du badge de difficulté (peut être partagée/importée)
 const getDifficultyBadgeClass = (difficulty: CompletedChallengeInfo['difficulty']): string => {
   switch (difficulty) {
+    case 'very_easy':
+      return 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20'
     case 'easy':
       return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
     case 'medium':
@@ -75,7 +77,7 @@ function DialogChallengeList({
                   getDifficultyBadgeClass(challenge.difficulty),
                 )}
               >
-                {challenge.difficulty}
+                {challenge.difficulty.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
               </Badge>
             </div>
             <Button asChild variant="outline" size="sm" className="whitespace-nowrap">

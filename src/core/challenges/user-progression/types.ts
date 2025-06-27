@@ -137,7 +137,7 @@ export interface CompletedChallengeInfo {
   id: number
   title: string
   slug: string
-  difficulty: 'easy' | 'medium' | 'hard' | 'horrible'
+  difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible'
 }
 
 // Structure for calendar day data, including prefetched challenges
