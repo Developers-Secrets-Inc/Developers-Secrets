@@ -2,7 +2,7 @@
 
 import 'server-only'
 
-import { getPayload } from 'payload'
+import { CollectionSlug, DataFromCollectionSlug, getPayload } from 'payload'
 import config from '@payload-config'
 import { Achievement } from '@/payload-types'
 
@@ -64,3 +64,7 @@ export const getAchievementsByType = async (
 
   return achievements.docs
 }
+
+
+
+

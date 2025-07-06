@@ -1,4 +1,3 @@
-import { AIAssistantDialog } from '@/components/challenges/ai-assistant-dialog'
 import { RatingText } from '@/components/rating-dialog'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { getNextChallenge, getPreviousChallenge } from '@/core/challenges/navigation'
@@ -21,9 +20,10 @@ import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { AdminComponent } from '@/core/user/components/admin-component'
 import { ChallengeSettingsBubble } from '@/core/challenges/components/admin/challenge-settings-bubble'
 import { ChallengeIDE } from '@/core/compiler/challenge-editor'
-import { CompletionDialog } from '@/core/challenges/components/completion-dialog'
-import { OnboardingDialog } from '@/core/challenges/components/onboarding-dialog'
 import { NewCompletionDialog } from '@/core/challenges/components/completion/new-completion-dialog'
+import { ChallengeTimerStarter } from '@/core/challenges/components/challenge-timer-starter'
+import { ChallengeViewManager } from '@/core/challenges/components/challenge-view-manager'
+import { getOrCreateChat } from '@/core/challenges/ai-chat'
 
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
@@ -58,6 +58,8 @@ export default async function ChallengeLayout({
 
   const initialStatus = await getUserCompletionStatus(user.id, challenge.id)
 
+  const challengeAIChat = await getOrCreateChat({ userId: user.id, challenge: challenge.id })
+
   return (
     <DraftRedirect challenge={challenge} user={user}>
       <ChallengeStoreHydrator challenge={challenge} user={user}>
@@ -85,15 +87,14 @@ export default async function ChallengeLayout({
                         <div className="flex flex-col h-full">
                           <ChallengeNavigation />
                           <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
-                            <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
+                            <ChallengeViewManager
+                              challenge={challenge}
+                              user={user}
+                              challengeAIChat={challengeAIChat}
+                            >
+                              <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
+                            </ChallengeViewManager>
                           </div>
-                          <ChallengeFooterContainer>
-                            <ChallengeFooterLeftPart>
-                              <ChallengeReactionButtons />
-                              <RatingText />
-                            </ChallengeFooterLeftPart>
-                            <AIAssistantDialog />
-                          </ChallengeFooterContainer>
                         </div>
                       </ResizablePanel>
 
@@ -129,6 +130,7 @@ export default async function ChallengeLayout({
               </div>
             </div>
             {/* <CompletionDialog userId={user.id} challenge={challenge} /> */}
+            <ChallengeTimerStarter challengeId={challenge.id} />
             <NewCompletionDialog userId={user.id} challengeId={challenge.id} />
             {/* <OnboardingDialog /> */}
           </ChallengeStatusProvider>
@@ -136,16 +138,4 @@ export default async function ChallengeLayout({
       </ChallengeStoreHydrator>
     </DraftRedirect>
   )
-}
-
-const ChallengeFooterContainer = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] relative z-50">
-      {children}
-    </div>
-  )
-}
-
-const ChallengeFooterLeftPart = ({ children }: { children: React.ReactNode }) => {
-  return <div className="flex items-center justify-between gap-3 mb-3">{children}</div>
 }

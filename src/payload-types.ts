@@ -119,6 +119,8 @@ export interface Config {
     userChallengeCompletionStatus: UserChallengeCompletionStatus;
     userChallengeCode: UserChallengeCode;
     'daily-login-entries': DailyLoginEntry;
+    'challenge-streaks': ChallengeStreak;
+    'challenge-ai-chats': ChallengeAiChat;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -177,6 +179,8 @@ export interface Config {
     userChallengeCompletionStatus: UserChallengeCompletionStatusSelect<false> | UserChallengeCompletionStatusSelect<true>;
     userChallengeCode: UserChallengeCodeSelect<false> | UserChallengeCodeSelect<true>;
     'daily-login-entries': DailyLoginEntriesSelect<false> | DailyLoginEntriesSelect<true>;
+    'challenge-streaks': ChallengeStreaksSelect<false> | ChallengeStreaksSelect<true>;
+    'challenge-ai-chats': ChallengeAiChatsSelect<false> | ChallengeAiChatsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -2372,6 +2376,49 @@ export interface DailyLoginEntry {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-streaks".
+ */
+export interface ChallengeStreak {
+  id: number;
+  /**
+   * The Supabase user ID
+   */
+  userId: string;
+  /**
+   * The date of the challenge completion streak.
+   */
+  date: string;
+  /**
+   * The number of challenges completed on this date.
+   */
+  challengesCompleted: number;
+  /**
+   * The status of the streak for this day.
+   */
+  status: 'active' | 'frozen';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-ai-chats".
+ */
+export interface ChallengeAiChat {
+  id: number;
+  userId: string;
+  challenge: number | Challenge;
+  messages:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -2584,6 +2631,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'daily-login-entries';
         value: number | DailyLoginEntry;
+      } | null)
+    | ({
+        relationTo: 'challenge-streaks';
+        value: number | ChallengeStreak;
+      } | null)
+    | ({
+        relationTo: 'challenge-ai-chats';
+        value: number | ChallengeAiChat;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -3794,6 +3849,27 @@ export interface UserChallengeCodeSelect<T extends boolean = true> {
 export interface DailyLoginEntriesSelect<T extends boolean = true> {
   userId?: T;
   date?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-streaks_select".
+ */
+export interface ChallengeStreaksSelect<T extends boolean = true> {
+  userId?: T;
+  date?: T;
+  challengesCompleted?: T;
+  status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-ai-chats_select".
+ */
+export interface ChallengeAiChatsSelect<T extends boolean = true> {
+  userId?: T;
+  challenge?: T;
+  messages?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

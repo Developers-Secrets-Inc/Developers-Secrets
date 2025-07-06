@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { compileCode } from '../index'
 import { submitCode } from '@/core/challenges/submissions/index.client'
+import { ChallengeStreakUpdateInfo } from '@/core/gamification/streaks/challenges'
 
 // Define supported languages
 export const SUPPORTED_LANGUAGES = ['python', 'javascript', 'typescript'] as const
@@ -56,6 +57,8 @@ interface ChallengeEditorStore {
   showCompletionDialog: boolean
   openCompletionDialog: () => void
   closeCompletionDialog: () => void
+  streakUpdateInfo: ChallengeStreakUpdateInfo | null
+  setStreakUpdateInfo: (info: ChallengeStreakUpdateInfo | null) => void
 }
 
 export const useChallengeEditorStore = create<ChallengeEditorStore>()(
@@ -73,8 +76,12 @@ export const useChallengeEditorStore = create<ChallengeEditorStore>()(
       setIsLoadingRun: (isLoading) => set({ isLoadingRun: isLoading }),
       setIsLoadingSubmit: (isLoading) => set({ isLoadingSubmit: isLoading }),
       showCompletionDialog: false,
+      streakUpdateInfo: null,
+      setStreakUpdateInfo: (info) => set({ streakUpdateInfo: info }),
       openCompletionDialog: () => set({ showCompletionDialog: true }),
-      closeCompletionDialog: () => set({ showCompletionDialog: false }),
+      closeCompletionDialog: () => {
+        set({ showCompletionDialog: false, streakUpdateInfo: null })
+      },
       initialize: (codeVersions: CodeVersion[]) => {
         if (!codeVersions || codeVersions.length === 0) return
 

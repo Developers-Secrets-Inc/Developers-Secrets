@@ -33,8 +33,9 @@ export const CompletionDialog = ({
 }: CompletionDialogProps) => {
   const { showCompletionDialog, closeCompletionDialog } = useChallengeEditorStore()
 
+
   return (
-    <Dialog open={showCompletionDialog} onOpenChange={closeCompletionDialog}>
+    <Dialog open={false} onOpenChange={closeCompletionDialog}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Challenge Completed!</DialogTitle>

@@ -10,7 +10,7 @@ import { User } from '@/types/user'
 import { useQuery } from '@tanstack/react-query'
 import { CheckCircle2 } from 'lucide-react'
 import { CalendarDayButton } from './calendar-day-button'
-import { DailyEntriesBadge } from '@/core/gamification/streaks/login-entries/components/daily-entries-badge'
+import { ChallengeStreakBadge } from '@/core/gamification/streaks/challenges/components/challenge-streak-badge'
 
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -130,7 +130,7 @@ export const UserProfile = ({ user }: UserProfileProps) => {
                     </Badge>
                   </>
                 )}
-                <DailyEntriesBadge userId={user.id} />
+                <ChallengeStreakBadge userId={user.id} />
               </div>
               <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-sm text-muted-foreground mt-2">
                 <span>
@@ -182,7 +182,6 @@ export const UserProfile = ({ user }: UserProfileProps) => {
   )
 }
 
-
 const MoonBorders = () => {
   return (
     <>
@@ -190,10 +189,8 @@ const MoonBorders = () => {
       <MoonBorder size={32} />
       <MoonBorder size={40} />
     </>
-
   )
 }
-
 
 const MoonBorder = ({ size }: { size: number }) => {
   return (

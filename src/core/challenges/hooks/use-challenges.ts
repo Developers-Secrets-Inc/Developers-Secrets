@@ -4,7 +4,7 @@ import {
   // getUserChallengeProgressions, // Import the action to fetch all progressions for a user
   getAllUserCompletionStatuses,
 } from '../user-progression/completion-status'
-import { getAllChallenges } from '../challenge-queries'
+import { getAllChallenges, getChallengeTableInformations } from '../challenge-queries'
 import { getUser } from '@/core/user'
 import { ChallengeWithProgress } from '@/core/challenges' // Keep this type
 import { UserChallengeProgression } from '@/payload-types' // Import the progression type
@@ -21,7 +21,7 @@ export const useChallenges = () => {
   // Query to fetch ALL challenges (ensure getAllChallenges has pagination: false)
   const { data: challenges, isLoading: isChallengesLoading } = useQuery({
     queryKey: ['challenges'],
-    queryFn: () => getAllChallenges(),
+    queryFn: () => getChallengeTableInformations(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 

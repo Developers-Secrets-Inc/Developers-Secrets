@@ -8,6 +8,7 @@ import { CompletionToastProvider } from '@/core/courses/components/completion-to
 import { NotificationProvider } from '@/core/notifications/notification-provider'
 import { useState } from 'react'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
+import { TooltipProvider } from '@radix-ui/react-tooltip'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -25,6 +26,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
+        <TooltipProvider>
         {/* Wrap with the custom completion toast provider */}
         <CompletionToastProvider>
           <NuqsAdapter>
@@ -32,8 +34,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           </NuqsAdapter>
           {/* The actual Toast component is rendered inside CompletionToastProvider */}
         </CompletionToastProvider>
-        <Toaster /> {/* Re-added */}
-        <Sonner />
+          <Toaster /> {/* Re-added */}
+          <Sonner />
+        </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )

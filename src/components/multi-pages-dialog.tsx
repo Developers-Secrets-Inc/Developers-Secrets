@@ -1,14 +1,10 @@
 'use client'
 
 import React, { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export type DialogPage = {
   title: string
@@ -20,24 +16,56 @@ export const MultiPageDialog = ({
   pages,
   ...props
 }: React.ComponentProps<typeof Dialog> & { pages: DialogPage[] }) => {
-  const [page, setPage] = useState(1)
+  const [currentPageIndex, setCurrentPageIndex] = useState(0)
   const TOTAL_PAGES = pages.length
 
   const handleNext = () => {
-    if (page < TOTAL_PAGES) setPage(page + 1)
+    if (currentPageIndex < TOTAL_PAGES - 1) {
+      setCurrentPageIndex(currentPageIndex + 1)
+    }
   }
+
+  const handlePrevious = () => {
+    if (currentPageIndex > 0) {
+      setCurrentPageIndex(currentPageIndex - 1)
+    }
+  }
+
+  const page = pages[currentPageIndex]
 
   return (
     <Dialog {...props}>
       <DialogContent className="sm:max-w-md">
+        {process.env.NODE_ENV === 'development' && (
+          <div className="absolute top-3.5 right-14 flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePrevious}
+              disabled={currentPageIndex === 0}
+              className="h-6 w-6"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNext}
+              disabled={currentPageIndex === TOTAL_PAGES - 1}
+              className="h-6 w-6"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
         <div className="space-y-6">
           <DialogHeader>
-            <DialogTitle>{pages[page - 1].title}</DialogTitle>
+            <DialogTitle>{page.title}</DialogTitle>
           </DialogHeader>
-          {pages[page - 1].content}
+          {page.content}
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <Button className="w-full" type="button" onClick={handleNext}>
-              {pages[page - 1].cta}
+              {page.cta}
             </Button>
           </div>
         </div>
