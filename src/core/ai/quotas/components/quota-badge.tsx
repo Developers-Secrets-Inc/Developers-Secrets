@@ -60,7 +60,7 @@ export const QuotaBadge = () => {
             <span>{getText()}</span>
           </Badge>
         </TooltipTrigger>
-        <TooltipContentCustom>
+        <TooltipContentCustom side="bottom">
           <p>{getTooltipText()}</p>
         </TooltipContentCustom>
       </Tooltip>

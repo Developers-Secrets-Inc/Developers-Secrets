@@ -9,6 +9,7 @@ import { User } from '@/types/user'
 import { ChallengeDescriptionView } from './challenge-description-view'
 import { InlinePearlView } from './pearl/inline-pearl-view'
 import { SheetPearlView } from './pearl/sheet-pearl-view'
+import { Message } from 'ai'
 
 
 interface ChallengeViewManagerProps {
@@ -16,6 +17,7 @@ interface ChallengeViewManagerProps {
   user: User
   children: React.ReactNode
   challengeAIChat: ChallengeAiChat
+  messages: Message[]
 }
 
 export function ChallengeViewManager({
@@ -23,6 +25,7 @@ export function ChallengeViewManager({
   user,
   children,
   challengeAIChat,
+  messages,
 }: ChallengeViewManagerProps) {
   const { isChatActive, viewMode, hideChat } = useChallengeUIStore()
 
@@ -41,6 +44,7 @@ export function ChallengeViewManager({
             challenge={challenge}
             challengeAIChat={challengeAIChat}
             onClose={hideChat}
+            messages={messages}
           />
         </motion.div>
       </AnimatePresence>
@@ -56,6 +60,7 @@ export function ChallengeViewManager({
           onClose={hideChat}
           challenge={challenge}
           challengeAIChat={challengeAIChat}
+          messages={messages}
         />
       )}
     </>

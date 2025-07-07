@@ -72,7 +72,6 @@ function buildChallengeSystemPrompt(context: any): string {
 
 export async function POST(req: Request) {
   const { messages, chatId, challengeContext, userContext } = await req.json()
-  console.log(userContext.currentCode)
   const systemPrompt = buildChallengeSystemPrompt({ challengeContext, userContext })
 
   const result = streamText({

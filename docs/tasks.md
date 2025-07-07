@@ -8,3 +8,4 @@
 - Récupérer une conversation peut prendre énormément de bande passante dans la base de données
 - On devrait garder en mémoire l'input de l'utilisateur dans un challenge tant qu'il ne quitte pas le challenge
 - On doit bloquer l'envoi de messages quand on est en train d'en envoyer un 
+- Ce n'est pas sécurisé de laisser les conversations ouvertes

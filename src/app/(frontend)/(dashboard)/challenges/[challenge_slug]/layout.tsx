@@ -23,7 +23,7 @@ import { ChallengeIDE } from '@/core/compiler/challenge-editor'
 import { NewCompletionDialog } from '@/core/challenges/components/completion/new-completion-dialog'
 import { ChallengeTimerStarter } from '@/core/challenges/components/challenge-timer-starter'
 import { ChallengeViewManager } from '@/core/challenges/components/challenge-view-manager'
-import { getOrCreateChat } from '@/core/challenges/ai-chat'
+import { getOrCreateChat, loadChat } from '@/core/challenges/ai-chat'
 
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
@@ -59,6 +59,7 @@ export default async function ChallengeLayout({
   const initialStatus = await getUserCompletionStatus(user.id, challenge.id)
 
   const challengeAIChat = await getOrCreateChat({ userId: user.id, challenge: challenge.id })
+  const messages = await loadChat({ chatId: challengeAIChat.id })
 
   return (
     <DraftRedirect challenge={challenge} user={user}>
@@ -91,6 +92,7 @@ export default async function ChallengeLayout({
                               challenge={challenge}
                               user={user}
                               challengeAIChat={challengeAIChat}
+                              messages={messages}
                             >
                               <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
                             </ChallengeViewManager>

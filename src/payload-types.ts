@@ -123,6 +123,7 @@ export interface Config {
     'challenge-ai-chats': ChallengeAiChat;
     'user-ai-usage': UserAiUsage;
     'user-ai-credits': UserAiCredit;
+    'chat-histories': ChatHistory;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -185,6 +186,7 @@ export interface Config {
     'challenge-ai-chats': ChallengeAiChatsSelect<false> | ChallengeAiChatsSelect<true>;
     'user-ai-usage': UserAiUsageSelect<false> | UserAiUsageSelect<true>;
     'user-ai-credits': UserAiCreditsSelect<false> | UserAiCreditsSelect<true>;
+    'chat-histories': ChatHistoriesSelect<false> | ChatHistoriesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -245,6 +247,7 @@ export interface User {
 export interface Media {
   id: number;
   alt: string;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -2409,17 +2412,29 @@ export interface ChallengeAiChat {
   id: number;
   userId: string;
   challenge: number | Challenge;
-  messages:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  chatHistory?: (number | null) | ChatHistory;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-histories".
+ */
+export interface ChatHistory {
+  id: number;
+  chat: number | ChallengeAiChat;
+  prefix?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2675,6 +2690,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'user-ai-credits';
         value: number | UserAiCredit;
+      } | null)
+    | ({
+        relationTo: 'chat-histories';
+        value: number | ChatHistory;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2739,6 +2758,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -3903,7 +3923,7 @@ export interface ChallengeStreaksSelect<T extends boolean = true> {
 export interface ChallengeAiChatsSelect<T extends boolean = true> {
   userId?: T;
   challenge?: T;
-  messages?: T;
+  chatHistory?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3928,6 +3948,25 @@ export interface UserAiCreditsSelect<T extends boolean = true> {
   balance?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-histories_select".
+ */
+export interface ChatHistoriesSelect<T extends boolean = true> {
+  chat?: T;
+  prefix?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

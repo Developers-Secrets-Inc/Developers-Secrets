@@ -20,10 +20,11 @@ export const ChallengeAIChats: CollectionConfig = {
       index: true,
     },
     {
-      name: 'messages',
-      type: 'json',
-      required: true,
-      defaultValue: [],
+      name: 'chatHistory',
+      label: 'Chat History File',
+      type: 'relationship',
+      relationTo: 'chat-histories',
+      required: false,
     },
     // Optionally, quotaUsed or other fields can be added later
   ],

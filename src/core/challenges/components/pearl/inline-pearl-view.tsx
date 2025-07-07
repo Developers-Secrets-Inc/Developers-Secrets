@@ -13,14 +13,16 @@ import { useSolutionUnlockStatus } from '@/core/challenges/hooks/use-solution-qu
 import React from 'react'
 import { QuotaBadge } from '@/core/ai/quotas/components/quota-badge'
 import { useAIQuota } from '@/core/ai/quotas/hooks/use-ai-quota'
+import { Message } from 'ai'
 
 interface InlinePearlViewProps {
   challenge: Challenge
   challengeAIChat: ChallengeAiChat
   onClose?: () => void
+  messages: Message[]
 }
 
-export function InlinePearlView({ challenge, challengeAIChat, onClose }: InlinePearlViewProps) {
+export function InlinePearlView({ challenge, challengeAIChat, onClose, messages }: InlinePearlViewProps) {
   const { viewMode, setViewMode } = useChallengeUIStore()
 
   const { currentLanguage, codeByLanguage } = useChallengeEditorStore()
@@ -30,8 +32,9 @@ export function InlinePearlView({ challenge, challengeAIChat, onClose }: InlineP
     challenge.id,
   )
 
-  const { messages, input, handleInputChange, handleSubmit, reset } = usePearlChat({
+  const { messages: clientMessages, input, handleInputChange, handleSubmit, reset } = usePearlChat({
     challengeAIChat,
+    initialMessages: messages,
   })
 
   const { canSend, isLoading: isQuotaLoading, increment } = useAIQuota()
@@ -76,7 +79,7 @@ export function InlinePearlView({ challenge, challengeAIChat, onClose }: InlineP
         </div>
       </header>
       <PearlChatInterface
-        messages={messages}
+        messages={clientMessages}
         input={input}
         handleInputChange={handleInputChange}
         handleFormSubmit={handleFormSubmit}

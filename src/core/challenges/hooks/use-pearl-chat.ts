@@ -6,12 +6,13 @@ import { resetChat } from '@/core/challenges/ai-chat'
 
 interface UsePearlChatOptions {
   challengeAIChat: ChallengeAiChat
+  initialMessages: Message[]
 }
 
-export function usePearlChat({ challengeAIChat }: UsePearlChatOptions) {
+export function usePearlChat({ challengeAIChat, initialMessages }: UsePearlChatOptions) {
   const chat = useChat({
     id: challengeAIChat.id.toString(),
-    initialMessages: challengeAIChat.messages as Message[],
+    initialMessages,
     api: '/api/challenges/chat',
     body: {
       chatId: challengeAIChat.id,

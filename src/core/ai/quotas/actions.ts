@@ -13,7 +13,6 @@ export const getRemainingMessagesForToday = async (userId: string): Promise<numb
     const remainingMessages = userAIUsage.dailyLimit - userAIUsage.messagesUsed
     const remainingCredits = userAICredits.balance
 
-    console.log(remainingMessages, remainingCredits)
     return remainingMessages + remainingCredits
 }
 
