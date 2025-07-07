@@ -14,6 +14,7 @@ interface PearlChatInterfaceProps {
     e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>,
   ) => void
   handleFormSubmit: (e: React.FormEvent<HTMLFormElement>) => void
+  isDisabled?: boolean
 }
 
 export const PearlChatInterface = ({
@@ -21,6 +22,7 @@ export const PearlChatInterface = ({
   input,
   handleInputChange,
   handleFormSubmit,
+  isDisabled,
 }: PearlChatInterfaceProps) => {
   return (
     <>
@@ -79,12 +81,13 @@ export const PearlChatInterface = ({
         <form onSubmit={handleFormSubmit} className="flex gap-2 w-full">
           <Input
             type="text"
-            placeholder="Type your message..."
+            placeholder={isDisabled ? 'You have no messages left.' : 'Type your message...'}
             className="flex-1"
             value={input}
             onChange={handleInputChange}
+            disabled={isDisabled}
           />
-          <Button type="submit" variant="default" size="sm">
+          <Button type="submit" variant="default" size="sm" disabled={isDisabled}>
             Send
           </Button>
         </form>

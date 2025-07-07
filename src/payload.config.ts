@@ -61,6 +61,8 @@ import { UserChallengeCode } from './collections/UserChallengeCode'
 import { DailyLoginEntry } from './collections/DailyLoginEntry'
 import { ChallengeStreaks } from './collections/ChallengeStreaks'
 import { ChallengeAIChats } from './collections/ChallengeAIChats'
+import { UserAIUsage } from './collections/UserAIUsage'
+import { UserAICredits } from './collections/UserAICredits'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -127,6 +129,8 @@ export default buildConfig({
     DailyLoginEntry,
     ChallengeStreaks,
     ChallengeAIChats,
+    UserAIUsage,
+    UserAICredits,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

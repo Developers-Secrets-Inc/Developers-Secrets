@@ -11,6 +11,8 @@ import { usePearlChat } from '../../hooks/use-pearl-chat'
 import { useChallengeEditorStore } from '@/core/compiler/challenge-editor/store'
 import { useSolutionUnlockStatus } from '@/core/challenges/hooks/use-solution-queries'
 import React from 'react'
+import { QuotaBadge } from '@/core/ai/quotas/components/quota-badge'
+import { useAIQuota } from '@/core/ai/quotas/hooks/use-ai-quota'
 
 interface InlinePearlViewProps {
   challenge: Challenge
@@ -32,7 +34,14 @@ export function InlinePearlView({ challenge, challengeAIChat, onClose }: InlineP
     challengeAIChat,
   })
 
+  const { canSend, isLoading: isQuotaLoading, increment } = useAIQuota()
+
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!canSend) {
+      e.preventDefault()
+      return
+    }
+    increment()
     handleSubmit(e, {
       body: {
         challengeContext: {
@@ -59,6 +68,7 @@ export function InlinePearlView({ challenge, challengeAIChat, onClose }: InlineP
           <h3 className="font-semibold">Pearl</h3>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
+          <QuotaBadge />
           <ChatParameters viewMode={viewMode} onViewModeChange={setViewMode} onResetChat={reset} />
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
             <X size={18} />
@@ -70,6 +80,7 @@ export function InlinePearlView({ challenge, challengeAIChat, onClose }: InlineP
         input={input}
         handleInputChange={handleInputChange}
         handleFormSubmit={handleFormSubmit}
+        isDisabled={!canSend || isQuotaLoading}
       />
     </div>
   )

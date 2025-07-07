@@ -10,6 +10,8 @@ import { usePearlChat } from '../../hooks/use-pearl-chat'
 import { useChallengeEditorStore } from '@/core/compiler/challenge-editor/store'
 import { useSolutionUnlockStatus } from '@/core/challenges/hooks/use-solution-queries'
 import React from 'react'
+import { QuotaBadge } from '@/core/ai/quotas/components/quota-badge'
+import { useAIQuota } from '@/core/ai/quotas/hooks/use-ai-quota'
 
 interface SheetPearlViewProps {
   challenge: Challenge
@@ -37,7 +39,14 @@ export function SheetPearlView({
     challengeAIChat,
   })
 
+  const { canSend, isLoading: isQuotaLoading, increment } = useAIQuota()
+
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!canSend) {
+      e.preventDefault()
+      return
+    }
+    increment()
     handleSubmit(e, {
       body: {
         challengeContext: {
@@ -73,12 +82,16 @@ export function SheetPearlView({
             />
             <SheetTitle>Pearl</SheetTitle>
           </div>
+          <div className="flex items-center gap-2">
+            <QuotaBadge />
+          </div>
         </SheetHeader>
         <PearlChatInterface
           messages={messages}
           input={input}
           handleInputChange={handleInputChange}
           handleFormSubmit={handleFormSubmit}
+          isDisabled={!canSend || isQuotaLoading}
         />
       </SheetContent>
     </Sheet>
