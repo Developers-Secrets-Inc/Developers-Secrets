@@ -9,3 +9,5 @@
 - On devrait garder en mémoire l'input de l'utilisateur dans un challenge tant qu'il ne quitte pas le challenge
 - On doit bloquer l'envoi de messages quand on est en train d'en envoyer un 
 - Ce n'est pas sécurisé de laisser les conversations ouvertes
+- On doit charger le status du challenge sur le serveur initialement 
+- On doit charger les quotas de messages sur le serveur aussi 

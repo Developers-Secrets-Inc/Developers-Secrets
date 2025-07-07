@@ -54,13 +54,7 @@ export function NewChallengeSuccessDialog({
     {
       title: 'Your Level',
       cta: 'Continue',
-      content: initialInfo ? (
-        <LevelPage initialInfo={initialInfo} xpGained={xp} />
-      ) : (
-        <div className="flex justify-center items-center h-48">
-          <Loader2 className="animate-spin text-muted-foreground" />
-        </div>
-      ),
+      content: <LevelPage initialInfo={initialInfo} xpGained={xp} />,
     },
     {
       title: 'Your Daily Quests',

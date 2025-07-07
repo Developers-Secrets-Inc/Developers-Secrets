@@ -70,6 +70,13 @@ function buildChallengeSystemPrompt(context: any): string {
   return prompt
 }
 
+function errorHandler(error: unknown) {
+  if (error == null) return 'unknown error'
+  if (typeof error === 'string') return error
+  if (error instanceof Error) return error.message
+  return JSON.stringify(error)
+}
+
 export async function POST(req: Request) {
   const { messages, chatId, challengeContext, userContext } = await req.json()
   const systemPrompt = buildChallengeSystemPrompt({ challengeContext, userContext })
@@ -93,5 +100,7 @@ export async function POST(req: Request) {
 
   result.consumeStream()
 
-  return result.toDataStreamResponse()
+  return result.toDataStreamResponse({
+    getErrorMessage: errorHandler,
+  })
 }
