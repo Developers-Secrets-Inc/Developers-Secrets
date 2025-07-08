@@ -26,7 +26,7 @@ export const Challenges: CollectionConfig = {
     drafts: true,
   },
   access: {
-    create: () => { return true }
+    // create: () => { return true }
   },
   hooks: {
     afterChange: [({ doc }) => {
