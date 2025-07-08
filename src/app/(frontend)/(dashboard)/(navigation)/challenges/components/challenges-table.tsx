@@ -6,21 +6,17 @@ import {
   CommandGroup,
   CommandItem,
   CommandList,
-  CommandSeparator
+  CommandSeparator,
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import * as Tooltip from '@radix-ui/react-tooltip'
-import type {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-} from '@tanstack/react-table'
+import type { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/react-table'
 import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  useReactTable
+  useReactTable,
 } from '@tanstack/react-table'
 import {
   CheckCircle2Icon,
@@ -29,7 +25,7 @@ import {
   CircleDotIcon,
   CircleXIcon,
   FilterIcon,
-  ListFilterIcon
+  ListFilterIcon,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
@@ -54,6 +50,7 @@ import { CompletionStatus } from '@/core/challenges/user-progression/types'
 import { useSessionUser } from '@/core/user/hooks/use-user'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { useQueryState } from 'nuqs'
 
 const ChallengeStatusCell = () => {
   const { visualStatus } = useChallengeStatus()
@@ -93,14 +90,50 @@ const difficulties = [
   { value: 'horrible', label: 'Horrible' },
 ]
 
+const statuses = [
+  { value: 'not_started', label: 'Not Started' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'completed', label: 'Completed' },
+]
+
 export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [sorting, setSorting] = useState<SortingState>([
-    {
-      id: 'baseExperience',
-      desc: true,
-    },
-  ])
+  const [titleQuery, setTitleQuery] = useQueryState('title', { defaultValue: '' })
+  const [difficultyQuery, setDifficultyQuery] = useQueryState('difficulty', {
+    defaultValue: [],
+    parse: (value) => value.split(',').filter(Boolean),
+    serialize: (value) => value.join(','),
+  })
+  const [statusQuery, setStatusQuery] = useQueryState('status', {
+    defaultValue: [],
+    parse: (value) => value.split(',').filter(Boolean),
+    serialize: (value) => value.join(','),
+  })
+  const [sortBy, setSortBy] = useQueryState('sortBy', { defaultValue: 'difficulty' })
+  const [sortOrder, setSortOrder] = useQueryState('sortOrder', { defaultValue: 'asc' })
+
+  const columnFilters = useMemo(() => {
+    const filters: ColumnFiltersState = []
+    if (titleQuery) {
+      filters.push({ id: 'title', value: titleQuery })
+    }
+    if (difficultyQuery.length > 0) {
+      filters.push({ id: 'difficulty', value: difficultyQuery })
+    }
+    if (statusQuery.length > 0) {
+      filters.push({ id: 'status', value: statusQuery })
+    }
+    return filters
+  }, [titleQuery, difficultyQuery, statusQuery])
+
+  const sorting = useMemo(() => {
+    if (!sortBy) return []
+    return [
+      {
+        id: sortBy,
+        desc: sortOrder === 'desc',
+      },
+    ]
+  }, [sortBy, sortOrder])
 
   const { challenges, isLoading } = useChallenges()
   const { user } = useSessionUser()
@@ -148,6 +181,12 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
         enableSorting: true,
         enableColumnFilter: true,
         filterFn: 'arrIncludesSome',
+        sortingFn: (rowA, rowB, columnId) => {
+          const order = ['very_easy', 'easy', 'medium', 'hard', 'horrible']
+          const diffA = rowA.original.difficulty
+          const diffB = rowB.original.difficulty
+          return order.indexOf(diffA) - order.indexOf(diffB)
+        },
         cell: ({ row }) => {
           const difficulty = row.getValue('difficulty') as string
           const styles = {
@@ -185,8 +224,25 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
       sorting,
       columnFilters,
     },
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onSortingChange: (updater) => {
+      const newSorting = typeof updater === 'function' ? updater(sorting) : updater
+      if (newSorting.length > 0) {
+        setSortBy(newSorting[0].id)
+        setSortOrder(newSorting[0].desc ? 'desc' : 'asc')
+      } else {
+        setSortBy(null)
+        setSortOrder(null)
+      }
+    },
+    onColumnFiltersChange: (updater) => {
+      const newFilters = typeof updater === 'function' ? updater(columnFilters) : updater
+      const newTitle = newFilters.find((f) => f.id === 'title')?.value || ''
+      const newDifficulty = newFilters.find((f) => f.id === 'difficulty')?.value || []
+      const newStatus = newFilters.find((f) => f.id === 'status')?.value || []
+      setTitleQuery(newTitle as string)
+      setDifficultyQuery(newDifficulty as string[])
+      setStatusQuery(newStatus as string[])
+    },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -196,20 +252,17 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
     return <TableSkeleton />
   }
 
-  const titleFilter = columnFilters.find((f) => f.id === 'title')?.value || ''
-
-  const selectedDifficulties = new Set(
-    (columnFilters.find((f) => f.id === 'difficulty')?.value as string[]) ?? [],
-  )
+  const selectedDifficulties = new Set(difficultyQuery)
+  const selectedStatuses = new Set(statusQuery)
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <div className="relative">
           <Input
-            className={cn('peer h-10 ps-9 w-72', Boolean(titleFilter) && 'pe-9')}
-            value={titleFilter as string}
-            onChange={(e) => table.getColumn('title')?.setFilterValue(e.target.value)}
+            className={cn('peer h-10 ps-9 w-72', Boolean(titleQuery) && 'pe-9')}
+            value={titleQuery}
+            onChange={(e) => setTitleQuery(e.target.value)}
             placeholder="Filter challenges by title..."
             type="text"
             aria-label="Filter challenges by title"
@@ -217,11 +270,11 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
           <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
             <ListFilterIcon size={16} aria-hidden="true" />
           </div>
-          {Boolean(titleFilter) && (
+          {Boolean(titleQuery) && (
             <button
               className="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-md transition-[color,box-shadow] outline-none focus:z-10 focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Clear title filter"
-              onClick={() => table.getColumn('title')?.setFilterValue('')}
+              onClick={() => setTitleQuery('')}
             >
               <CircleXIcon size={16} aria-hidden="true" />
             </button>
@@ -279,9 +332,7 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
                           } else {
                             newSelected.add(option.value)
                           }
-                          const filterValue =
-                            newSelected.size > 0 ? Array.from(newSelected) : undefined
-                          table.getColumn('difficulty')?.setFilterValue(filterValue)
+                          setDifficultyQuery(Array.from(newSelected))
                         }}
                       >
                         <div
@@ -304,7 +355,94 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
                     <CommandSeparator />
                     <CommandGroup>
                       <CommandItem
-                        onSelect={() => table.getColumn('difficulty')?.setFilterValue(undefined)}
+                        onSelect={() => setDifficultyQuery([])}
+                        className="justify-center text-center"
+                      >
+                        Clear filters
+                      </CommandItem>
+                    </CommandGroup>
+                  </>
+                )}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-10 border-dashed">
+              <FilterIcon className="mr-2 h-4 w-4" />
+              Status
+              {selectedStatuses.size > 0 && (
+                <>
+                  <span className="mx-2" />
+                  <Badge variant="secondary" className="rounded-sm px-1 font-normal lg:hidden">
+                    {selectedStatuses.size}
+                  </Badge>
+                  <div className="hidden space-x-1 lg:flex">
+                    {selectedStatuses.size > 2 ? (
+                      <Badge variant="secondary" className="rounded-sm px-1 font-normal">
+                        {selectedStatuses.size} selected
+                      </Badge>
+                    ) : (
+                      statuses
+                        .filter((option) => selectedStatuses.has(option.value))
+                        .map((option) => (
+                          <Badge
+                            variant="secondary"
+                            key={option.value}
+                            className="rounded-sm px-1 font-normal"
+                          >
+                            {option.label}
+                          </Badge>
+                        ))
+                    )}
+                  </div>
+                </>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0" align="start">
+            <Command>
+              <CommandList>
+                <CommandEmpty>No results found.</CommandEmpty>
+                <CommandGroup>
+                  {statuses.map((option) => {
+                    const isSelected = selectedStatuses.has(option.value)
+                    return (
+                      <CommandItem
+                        key={option.value}
+                        onSelect={() => {
+                          const newSelected = new Set(selectedStatuses)
+                          if (isSelected) {
+                            newSelected.delete(option.value)
+                          } else {
+                            newSelected.add(option.value)
+                          }
+                          setStatusQuery(Array.from(newSelected))
+                        }}
+                      >
+                        <div
+                          className={cn(
+                            'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                            isSelected
+                              ? 'bg-primary text-primary-foreground'
+                              : 'opacity-50 [&_svg]:invisible',
+                          )}
+                        >
+                          <CheckCircle2Icon className={cn('h-4 w-4')} />
+                        </div>
+                        <span>{option.label}</span>
+                      </CommandItem>
+                    )
+                  })}
+                </CommandGroup>
+                {selectedStatuses.size > 0 && (
+                  <>
+                    <CommandSeparator />
+                    <CommandGroup>
+                      <CommandItem
+                        onSelect={() => setStatusQuery([])}
                         className="justify-center text-center"
                       >
                         Clear filters

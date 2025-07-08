@@ -7,16 +7,21 @@ import {
 } from '@/core/challenges/user-progression/completion-status'
 import { trackAchievementProgress } from '@/core/gamification/achievements/action'
 import { addExperience } from '@/core/gamification/level'
-import { handleChallengeCompletionForQuests } from '@/core/gamification/quests/actions'
+import { useQuestActions } from '@/core/gamification/quests/hooks/use-quests'
 import { Loader2, Send } from 'lucide-react'
 
 import { useChallengeUserStatus } from '@/core/challenges/hooks/use-challenge-user-status'
-import { useChallengeSubmissions } from '@/core/challenges/submissions/hooks/use-challenge-submissions'
-import { useChallengeEditorStore } from '../store'
-import { useSubmitCode } from '../../hooks/use-submit-code'
-import { useQueryClient } from '@tanstack/react-query'
 import { solutionQueryKeys } from '@/core/challenges/hooks/use-solution-queries'
+import { useChallengeSubmissions } from '@/core/challenges/submissions/hooks/use-challenge-submissions'
+import { useQueryClient } from '@tanstack/react-query'
+import { useSubmitCode } from '../../hooks/use-submit-code'
+import { useChallengeEditorStore } from '../store'
+import { updateChallengeStreak } from '@/core/gamification/streaks/challenges'
+import { useChallengeStreak } from '@/core/gamification/streaks/challenges/hooks/use-challenge-streak'
+import { addCurrency } from '@/core/gamification/marketplace/currency'
+import { useChallengeStore } from '@/core/challenges/store'
 
+// Map icon names to actual LucideIcon components
 const LoadingIcon = ({
   isLoading,
   children,
@@ -43,6 +48,7 @@ const PureSubmitButton = ({
       className="h-8"
       onClick={onSubmit}
       disabled={isSubmitting || isDisabled}
+      id="challenge-submit-button"
     >
       <LoadingIcon isLoading={isSubmitting}>
         <Send size={14} className="mr-1" />
@@ -76,7 +82,10 @@ export const SubmitButton = ({
   const { submitCode: submitCodeHook, isLoadingSubmit } = useSubmitCode()
   const { setInProgress, setCompleted, status } = useChallengeUserStatus(challenge.id)
   const { createSubmission } = useChallengeSubmissions(challenge.id)
+  const { progressQuest } = useQuestActions()
   const queryClient = useQueryClient()
+  const { updateStreak } = useChallengeStreak(userId)
+  const { currencyOnCompletion } = useChallengeStore()
 
   const handleSubmit = async () => {
     setIsLoadingSubmit(true)
@@ -114,19 +123,30 @@ export const SubmitButton = ({
     createSubmission(submission)
 
     if (submission.testsPassed === testCases.length) {
-      if (!((await getCompletionStatus(userId, challenge.id)) === 'completed')) {
+      const isAlreadyCompleted = (await getCompletionStatus(userId, challenge.id)) === 'completed'
+
+      if (!isAlreadyCompleted) {
         openCompletionDialog()
 
-        if (!(await isSolutionUnlocked(userId, challenge.id))) {
-          await addExperience(userId, challenge.baseExperience ?? 50)
+        progressQuest({ eventType: 'challengesCompleted', userId })
+
+        const solutionUnlocked = await isSolutionUnlocked(userId, challenge.id)
+
+        const gamificationPromises: Promise<any>[] = [
+          trackAchievementProgress(userId, 'challenges_completed', 1),
+          updateStreak.mutateAsync(),
+          addCurrency(userId, currencyOnCompletion, 'Challenge completion'),
+        ]
+      
+        if (!solutionUnlocked) {
+          gamificationPromises.push(addExperience(userId, challenge.baseExperience ?? 50))
         }
-
-        await handleChallengeCompletionForQuests(userId)
-
-        await trackAchievementProgress(userId, 'challenges_completed', 1)
+      
+        // On n'a plus besoin de récupérer le résultat ici
+        await Promise.all(gamificationPromises)
       }
 
-      setCompleted()
+      await setCompleted()
       queryClient.invalidateQueries({
         queryKey: solutionQueryKeys.solutionUnlock(userId, challenge.id),
       })

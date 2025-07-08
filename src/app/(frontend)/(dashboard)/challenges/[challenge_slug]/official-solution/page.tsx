@@ -27,6 +27,7 @@ export default async function OfficialSolutionPage({
     redirect(`/challenges/${challenge_slug}/description`)
   }
 
+
   return (
     <div className="p-6">
       <ChallengeHeader

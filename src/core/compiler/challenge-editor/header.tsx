@@ -1,7 +1,18 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Play, Send, Loader2 } from 'lucide-react'
+import {
+  Play,
+  Send,
+  Loader2,
+  HeartIcon,
+  DiamondIcon,
+  SpadeIcon,
+  ClubIcon,
+  Beaker,
+  Bot,
+  LucideIcon,
+} from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -10,6 +21,19 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useChallengeEditorStore } from './store'
+import { useChallengeTour } from '@/core/challenges/components/challenge-tour-context'
+import { useEffect, useRef, useState } from 'react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
+
+const IconMap: Record<string, LucideIcon> = {
+  HeartIcon,
+  DiamondIcon,
+  SpadeIcon,
+  ClubIcon,
+  Beaker,
+  Bot,
+}
 
 type CodeFunction = () => void
 
@@ -60,18 +84,18 @@ export const RunButton = ({
   isDisabled: boolean
 }) => {
   return (
-    <Button
-      variant="secondary"
-      size="sm"
-      className="h-8"
-      onClick={onRun}
-      disabled={isRunning || isDisabled}
-    >
-      <LoadingIcon isLoading={isRunning}>
-        <Play size={14} className="mr-1" />
-      </LoadingIcon>
-      Run
-    </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="h-8"
+          onClick={onRun}
+          disabled={isRunning || isDisabled}
+        >
+          <LoadingIcon isLoading={isRunning}>
+            <Play size={14} className="mr-1" />
+          </LoadingIcon>
+          Run
+        </Button>
   )
 }
 

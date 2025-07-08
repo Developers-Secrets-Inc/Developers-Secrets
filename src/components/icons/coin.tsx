@@ -22,8 +22,8 @@ export function CoinIcon(props: React.SVGProps<SVGSVGElement>) {
           x2="104.68082"
           y2="18.611294"
         >
-          <stop offset="0" stop-color="#FF7421" />
-          <stop offset="1" stop-color="#FF9125" />
+          <stop offset="0" stopColor="#FF7421" />
+          <stop offset="1" stopColor="#FF9125" />
         </linearGradient>
       </defs>
       <path

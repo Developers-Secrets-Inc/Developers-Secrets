@@ -3,8 +3,8 @@
 import { getGamificationInformations, getUserNextLevelExperience } from '@/core/gamification/level'
 import {
   getCalendarDays,
-  getTotalCompletedChallengesCount,
 } from '@/core/challenges/user-progression'
+import { getTotalCompletedChallengesCount } from '../challenges/user-progression/completion-status'
 
 export async function getUserProfileData(userId: string) {
   const [userGamificationsInformation, calendarDays, nextLevelExperience, totalCompletedCount] =

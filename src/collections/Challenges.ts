@@ -26,13 +26,7 @@ export const Challenges: CollectionConfig = {
     drafts: true,
   },
   access: {
-    read: () => true, // Tous les utilisateurs peuvent lire les challenges
-    create: () => {
-      if (process.env.NODE_ENV === 'development') {
-        return true
-      }
-      return false
-    }, // Tous les utilisateurs peuvent créer des challenges
+    // create: () => { return true }
   },
   hooks: {
     afterChange: [({ doc }) => {

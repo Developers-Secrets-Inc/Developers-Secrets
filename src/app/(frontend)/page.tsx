@@ -178,7 +178,7 @@ const HeroSection = ({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             {integration.id === 'integration-1' ? (
-                              <Link href="/tutorials/python" passHref>
+                              <Link href="/articles/python" passHref>
                                 <div className="size-22 rounded-xl border border-background bg-muted shadow-xl cursor-pointer">
                                   <div className="h-full w-full bg-muted/20 p-4">
                                     {integration.icon}

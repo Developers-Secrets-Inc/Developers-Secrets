@@ -1,19 +1,40 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
-import { useChat } from '@ai-sdk/react'
-import { Button } from '@/components/ui/button'
-import { MessageSquareText, Bot, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Markdown } from '@/components/markdown'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { useChallenge } from '@/core/challenges/contexts/challenge-context'
 import { useChallengeEditor } from '@/core/challenges/contexts/challenge-editor-context'
 import { useSolutionUnlockStatus } from '@/core/challenges/hooks/use-solution-queries'
-import type { Challenge } from '@/payload-types'
 import { getUser } from '@/core/user'
+import { cn } from '@/lib/utils'
+import type { Challenge } from '@/payload-types'
+import { useChat } from '@ai-sdk/react'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  Beaker,
+  Bot,
+  ClubIcon,
+  DiamondIcon,
+  HeartIcon,
+  LucideIcon,
+  MessageSquareText,
+  SpadeIcon,
+  X,
+} from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+
+// Map icon names to actual LucideIcon components
+const IconMap: Record<string, LucideIcon> = {
+  HeartIcon,
+  DiamondIcon,
+  SpadeIcon,
+  ClubIcon,
+  Beaker,
+  Bot,
+  // Add other icons as needed
+}
 
 function buildChallengeSystemPrompt(context: {
   challenge: Challenge | null

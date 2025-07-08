@@ -14,6 +14,8 @@ import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { FirstChallengeDialog } from './first-challenge-dialog'
+import { useState } from 'react'
 
 interface GoalsAndTechnologiesCardProps {
   currentStep: number
@@ -38,6 +40,7 @@ export const GoalsAndTechnologiesCard = ({
 }: GoalsAndTechnologiesCardProps) => {
   const goalsSelectId = useId()
   const technologySelectId = useId()
+  const [isChallengeDialogOpened, setIsChallengeDialogOpened] = useState(false)
 
   // Synchronise les goals avec le backend
   const {
@@ -133,9 +136,9 @@ export const GoalsAndTechnologiesCard = ({
             Previous Step
           </LinkButton>
         )}
-        <LinkButton
-          href="/home"
-          className="flex-1"
+        <Button
+          onClick={() => setIsChallengeDialogOpened(true)}
+          className="flex-1 cursor-pointer"
           disabled={
             isLoading ||
             isUpdating ||
@@ -144,8 +147,13 @@ export const GoalsAndTechnologiesCard = ({
           }
         >
           Finish
-        </LinkButton>
+        </Button>
       </CardFooter>
+      <FirstChallengeDialog
+        isOpen={isChallengeDialogOpened}
+        onClose={() => setIsChallengeDialogOpened(false)}
+        userId={userId}
+      />
     </Card>
   )
 }

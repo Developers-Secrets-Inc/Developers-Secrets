@@ -1,6 +1,6 @@
 'use server'
 
-import { Quest } from '@/payload-types'
+import { Quest, UserQuest } from '@/payload-types'
 import { getRandomQuest, getQuestById } from '.'
 import {
   addMultipleUserQuests,
@@ -10,7 +10,7 @@ import {
   getUserQuest,
   getUserQuests,
   markQuestAsCompleted,
-  increaseUserQuestProgression,
+  updateUserQuestProgression,
 } from './user-quests'
 import { getSessionUser, getUserInformation } from '@/core/user'
 import { addExperience, getGamificationInformations } from '../level'
@@ -20,137 +20,90 @@ import { Item } from '@/payload-types'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-/*   
-
-- On doit avoir une action qui permet d'ajouter les quêtes quotidiennes à un utilisateur.
-    - Chaque jour, on doit supprimer les quêtes de l'utilisateur et en ajouter de nouvelles. On doit faire attention à de potentiels conflits. On doit faire un `deleteAllUserQuests` et un `addUserQuests`
-- On doit avoir une action qui permet de modifier une quête spécifique d'un utilisateur.
-
-*/
-
-export const fetchUserQuests = async () => {
+export const getSessionUserQuests = async (): Promise<UserQuest[]> => {
   const userResult = await getSessionUser()
   if (!userResult.success) {
     throw new Error('User not authenticated')
   }
 
-  const payloadQuests = await getUserQuests(userResult.value.id)
-
-  const convertedQuests = await Promise.all(
-    payloadQuests.map(async (pq) => {
-      const fullQuest =
-        typeof pq.quest === 'number'
-          ? await getRandomQuest(1, 'easy') // Temporary fix, should use getQuestById
-          : pq.quest
-
-      return {
-        ...pq,
-        quest: fullQuest,
-        currentProgression: pq.currentProgression || 0,
-        isCompleted: pq.isCompleted || false,
-      }
-    }),
-  )
-
-  return convertedQuests
+  return await getUserQuests(userResult.value.id)
 }
 
-/**
- * Vérifie si une quête doit être complétée en fonction de sa progression
- * et la complète si nécessaire
- */
-const checkAndCompleteQuest = async (userId: string, questId: string) => {
+const checkAndCompleteQuest = async (userId: string, questId: number) => {
   const quest = await getUserQuest(userId, questId)
   if (!quest || quest.isCompleted) return
 
-  const questValue =
-    typeof quest.quest === 'number'
-      ? (await getRandomQuest(1, 'easy')).value // Temporary fix, should use getQuestById
-      : quest.quest.value
+  const questValue = quest.quest.value
 
   if (quest.currentProgression >= questValue) {
-    // Pass skipExperienceReward=true when called from handleExperienceGainForQuests
-    await completeUserQuest(questId, true)
+    await completeUserQuest(quest)
   }
+}
+
+const increaseUserQuestProgression = async (
+  userId: string,
+  userQuest: UserQuest,
+  quantity: number,
+) => {
+  const NEW_PROGRESSION = userQuest.currentProgression + quantity
+  const QUEST = userQuest.quest as Quest
+
+  await updateUserQuestProgression(userId, QUEST.id, NEW_PROGRESSION)
+  await checkAndCompleteQuest(userId, QUEST.id)
+}
+
+export const handleUserQuestsProgression = async (
+  userId: string,
+  type: Quest['type'],
+  quantity: number,
+) => {
+  const userQuests = await getUserQuests(userId, type)
+
+  await Promise.all(
+    userQuests.map(async (userQuest: UserQuest) => {
+      await increaseUserQuestProgression(userId, userQuest, quantity)
+    }),
+  )
 }
 
 export const handleExperienceGainForQuests = async (userId: string, experienceAmount: number) => {
-  const userQuests = await getUserQuests(userId)
-
-  // Filter quests that are related to experience gain and not completed yet
-  const experienceQuests = userQuests.filter(
-    (quest) =>
-      !quest.isCompleted &&
-      typeof quest.quest !== 'number' &&
-      quest.quest.type === 'experienceGained',
-  )
-
-  // Increase progression for each relevant quest
-  for (const quest of experienceQuests) {
-    const questId = typeof quest.quest === 'number' ? quest.quest : quest.quest.id
-    await increaseUserQuestProgression(userId, questId.toString(), experienceAmount)
-    await checkAndCompleteQuest(userId, questId.toString())
-  }
+  await handleUserQuestsProgression(userId, 'experienceGained', experienceAmount)
 }
 
 export const handleChallengeCompletionForQuests = async (userId: string) => {
-  const userQuests = await getUserQuests(userId)
-
-  // Filter quests that are related to challenge completion and not completed yet
-  const challengeQuests = userQuests.filter(
-    (quest) =>
-      !quest.isCompleted &&
-      typeof quest.quest !== 'number' &&
-      quest.quest.type === 'challengesCompleted',
-  )
-
-  // Increase progression for each relevant quest
-  for (const quest of challengeQuests) {
-    const questId = typeof quest.quest === 'number' ? quest.quest : quest.quest.id
-    await increaseUserQuestProgression(userId, questId.toString(), 1)
-    await checkAndCompleteQuest(userId, questId.toString())
-  }
+  await handleUserQuestsProgression(userId, 'challengesCompleted', 1)
 }
 
-export const completeUserQuest = async (questId: string, skipExperienceReward: boolean = false) => {
-  const userResult = await getSessionUser()
-  if (!userResult.success) {
-    throw new Error('User not authenticated')
-  }
-  const userId = userResult.value.id
-
-  const userQuest = await getUserQuest(userId, questId)
-  if (!userQuest) {
-    throw new Error('Quest not found')
-  }
-
+export const completeUserQuest = async (userQuest: UserQuest) => {
   if (userQuest.isCompleted) {
-    // Avoid re-completing and re-awarding
-    console.warn(`Attempted to complete already completed quest: ${questId} for user ${userId}`)
+    console.warn(
+      `Attempted to complete already completed quest: ${userQuest.id} for user ${userQuest.userId}`,
+    )
     return false
   }
 
-  const quest =
-    typeof userQuest.quest === 'number'
-      ? await getRandomQuest(1, 'easy') // Temporary fix, should use getQuestById
-      : userQuest.quest
+  const quest = userQuest.quest as Quest
+  const userId = userQuest.userId
 
-  // Ensure quest is fully loaded (especially difficulty)
-  if (!quest || !quest.difficulty) {
-    throw new Error(`Quest details or difficulty missing for quest ID: ${questId}`)
-  }
+  await markQuestAsCompleted(userQuest.userId, quest.id)
+  const chestRewardString = await handleChestReward(userQuest)
+  await addExperience(userQuest.userId, quest.experience)
 
-  // Mark quest as completed in the database first
-  await markQuestAsCompleted(userId, questId)
+  await createNotification({
+    userId: userId,
+    content: `Quest completed: ${quest.title} (+${quest.experience} XP${chestRewardString})`,
+    importance: 'medium',
+    type: 'achievement',
+  })
 
-  // Add experience to the user only if not skipped (to avoid infinite loop)
-  let xpGained = 0
-  if (!skipExperienceReward) {
-    await addExperience(userId, quest.experience)
-    xpGained = quest.experience
-  }
+  return true
+}
 
-  // --- Add Chest Reward ---
+const handleChestReward = async (userQuest: UserQuest) => {
+  const quest = userQuest.quest as Quest
+  const questId = quest.id
+  const userId = userQuest.userId
+
   let chestRewardString = ''
   let awardedChest: Item | null = null
   const difficultyToRarityMap: Record<Quest['difficulty'], Item['rarity']> = {
@@ -189,17 +142,8 @@ export const completeUserQuest = async (questId: string, skipExperienceReward: b
       // Proceed without chest if there's an error finding/adding it
     }
   }
-  // --- End Chest Reward ---
 
-  // Send a notification (adjusted content)
-  await createNotification({
-    userId: userId,
-    content: `Quest completed: ${quest.title} (+${xpGained} XP${chestRewardString})`,
-    importance: 'medium',
-    type: 'achievement',
-  })
-
-  return true
+  return chestRewardString
 }
 
 const generateUserDailyQuests = async (): Promise<Quest[]> => {

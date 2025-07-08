@@ -29,6 +29,36 @@ export const getAllChallenges = unstable_cache(
   },
 )
 
+
+export const getChallengeTableInformations = async (): Promise<{
+  id: Challenge['id'],
+  title: Challenge['title'],
+  slug: Challenge['slug'],
+  difficulty: Challenge['difficulty'],
+  baseExperience: Challenge['baseExperience'],
+}[]> => {
+  const payload = await getPayload({ config })
+  const challenges = await payload.find({
+    collection: CHALLENGE_COLLECTION_NAME,
+    pagination: false,
+    select: {
+      title: true,
+      slug: true,
+      difficulty: true,
+      baseExperience: true,
+    }
+  })
+
+  return challenges.docs.map((challenge) => ({
+    id: challenge.id,
+    title: challenge.title,
+    slug: challenge.slug,
+    difficulty: challenge.difficulty,
+    baseExperience: challenge.baseExperience,
+  }))
+}
+
+
 export const getAllChallengesSlugs = unstable_cache(
   async (): Promise<string[]> => {
     const payload = await getPayload({ config })

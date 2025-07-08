@@ -22,6 +22,7 @@ import {
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { UserNotFoundError } from './errors'
+import { UserInformation as PayloadUserInformation } from '@/payload-types'
 
 export const getUserInformations = async (userId: string): Promise<UserInformations> => {
   const payload = await getPayload({ config })
@@ -37,6 +38,28 @@ export const getUserInformations = async (userId: string): Promise<UserInformati
 
   const validatedUser = validateUserInformations(user)
   return validatedUser
+}
+
+export const getUserRole = async (userId: string): Promise<PayloadUserInformation['role']> => {
+    const payload = await getPayload({ config })
+    const user = await payload.find({
+        collection: 'user-informations',
+        where: {
+            userId: {
+                equals: userId,
+            },
+        },
+        select: {
+            role: true,
+        },
+        depth: 0,
+    })
+
+    if (!user) {
+        throw new UserNotFoundError(userId)
+    }
+
+    return user.docs[0].role
 }
 
 export const updateUserInformations = async <T extends UserInformationsFields>(

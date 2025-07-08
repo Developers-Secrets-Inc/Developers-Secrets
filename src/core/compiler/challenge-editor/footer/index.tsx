@@ -3,8 +3,32 @@
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import { Beaker, ChevronDown, ChevronUp, FileOutput, CheckCircle, XCircle, Loader2 } from 'lucide-react'
-import { useChallengeEditorStore, TerminalTab } from '../store'
+import {
+  Beaker,
+  Bot,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  ClubIcon,
+  DiamondIcon,
+  FileOutput,
+  HeartIcon,
+  Loader2,
+  LucideIcon,
+  SpadeIcon,
+  XCircle,
+} from 'lucide-react'
+import { TerminalTab, useChallengeEditorStore } from '../store'
+
+// Map icon names to actual LucideIcon components
+const IconMap: Record<string, LucideIcon> = {
+  HeartIcon,
+  DiamondIcon,
+  SpadeIcon,
+  ClubIcon,
+  Beaker,
+  Bot,
+}
 
 const TERMINAL_STYLE = {
   backgroundColor: '#1a1b26',
@@ -24,11 +48,11 @@ export type TestResult = {
 }
 
 export const TerminalTabs = () => {
-  const { 
-    activeTerminalTab: activeTab, 
-    isTerminalOpen, 
-    toggleTerminal: toggleTerminalOpen, 
-    setActiveTerminalTab: setActiveTab 
+  const {
+    activeTerminalTab: activeTab,
+    isTerminalOpen,
+    toggleTerminal: toggleTerminalOpen,
+    setActiveTerminalTab: setActiveTab,
   } = useChallengeEditorStore()
 
   const handleTabChange = (value: string) => {
@@ -125,10 +149,10 @@ const TestCaseDisplay = ({ testResult, index }: TestCaseDisplayProps) => (
 )
 
 export const TerminalContent = () => {
-  const { 
-    activeTerminalTab: activeTab, 
-    isTerminalOpen, 
-    setActiveTerminalTab: setActiveTab, 
+  const {
+    activeTerminalTab: activeTab,
+    isTerminalOpen,
+    setActiveTerminalTab: setActiveTab,
     toggleTerminal: toggleTerminalOpen,
     testResults,
     executionOutput,
@@ -143,54 +167,54 @@ export const TerminalContent = () => {
   }
 
   return (
-    <div
-      className={cn(
-        'transition-all duration-300 ease-in-out overflow-hidden',
-        isTerminalOpen ? 'h-[30%] opacity-100' : 'h-0 opacity-0',
-      )}
-    >
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full">
-        <TabsContent value="tests" className="h-full p-0 m-0">
-          {isLoadingSubmit && activeTab === 'tests' ? (
-            <div style={TERMINAL_STYLE} className="flex items-center justify-center">
-              <Loader2 size={24} className="animate-spin mr-2" /> Loading test results...
-            </div>
-          ) : testResults.length > 0 ? (
-            <div className="h-full overflow-auto">
-              <Tabs defaultValue="0" className="h-full border-t">
-                <div className="border-b">
-                  <TabsList className="bg-background h-auto -space-x-px p-0 shadow-xs rtl:space-x-reverse">
-                    {testResults.map((_, index) => (
-                      <TabsTrigger
-                        key={index}
-                        value={index.toString()}
-                        className="data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
-                      >
-                        Test {index + 1}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </div>
-                {testResults.map((result, index) => (
-                  <TabsContent key={index} value={index.toString()}>
-                    <TestCaseDisplay testResult={result} index={index} />
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </div>
-          ) : (
-            <div style={TERMINAL_STYLE}>
-              {'> No test results available. Run your code to see test results.'}
-            </div>
+        <div
+          className={cn(
+            'transition-all duration-300 ease-in-out overflow-hidden',
+            isTerminalOpen ? 'h-[30%] opacity-100' : 'h-0 opacity-0',
           )}
-        </TabsContent>
+        >
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full">
+            <TabsContent value="tests" className="h-full p-0 m-0">
+              {isLoadingSubmit && activeTab === 'tests' ? (
+                <div style={TERMINAL_STYLE} className="flex items-center justify-center">
+                  <Loader2 size={24} className="animate-spin mr-2" /> Loading test results...
+                </div>
+              ) : testResults.length > 0 ? (
+                <div className="h-full overflow-auto">
+                  <Tabs defaultValue="0" className="h-full border-t">
+                    <div className="border-b">
+                      <TabsList className="bg-background h-auto -space-x-px p-0 shadow-xs rtl:space-x-reverse">
+                        {testResults.map((_, index) => (
+                          <TabsTrigger
+                            key={index}
+                            value={index.toString()}
+                            className="data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
+                          >
+                            Test {index + 1}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </div>
+                    {testResults.map((result, index) => (
+                      <TabsContent key={index} value={index.toString()}>
+                        <TestCaseDisplay testResult={result} index={index} />
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </div>
+              ) : (
+                <div style={TERMINAL_STYLE}>
+                  {'> No test results available. Run your code to see test results.'}
+                </div>
+              )}
+            </TabsContent>
 
-        <TabsContent value="output" className="h-full p-0 m-0">
-          <div style={TERMINAL_STYLE}>
-            {executionOutput || '> No output available. Run your code to see results.'}
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+            <TabsContent value="output" className="h-full p-0 m-0">
+              <div style={TERMINAL_STYLE}>
+                {executionOutput || '> No output available. Run your code to see results.'}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
   )
 }

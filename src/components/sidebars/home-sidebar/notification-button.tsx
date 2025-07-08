@@ -94,18 +94,21 @@ export const NotificationButton = () => {
   const importanceColor = {
     high: {
       background: 'bg-red-500/10',
+      dot: 'bg-red-500/40',
       text: 'text-red-500',
       border: 'border-red-500/20',
       hover: 'hover:bg-red-500/20',
     },
     medium: {
       background: 'bg-orange-500/10',
+      dot: 'bg-orange-500/40',
       text: 'text-orange-500',
       border: 'border-orange-500/20',
       hover: 'hover:bg-orange-500/20',
     },
     low: {
       background: 'bg-blue-500/10',
+      dot: 'bg-blue-500/40',
       text: 'text-blue-500',
       border: 'border-blue-500/20',
       hover: 'hover:bg-blue-500/20',
@@ -168,7 +171,7 @@ export const NotificationButton = () => {
             <span
               className={cn(
                 'absolute top-1 right-1 h-2 w-2 rounded-full',
-                importanceColor[highestImportance].background,
+                importanceColor[highestImportance].dot,
                 importanceColor[highestImportance].text,
               )}
             />

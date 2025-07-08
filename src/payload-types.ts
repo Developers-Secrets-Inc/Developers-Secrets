@@ -118,6 +118,12 @@ export interface Config {
     userChallengeEngagement: UserChallengeEngagement;
     userChallengeCompletionStatus: UserChallengeCompletionStatus;
     userChallengeCode: UserChallengeCode;
+    'daily-login-entries': DailyLoginEntry;
+    'challenge-streaks': ChallengeStreak;
+    'challenge-ai-chats': ChallengeAiChat;
+    'user-ai-usage': UserAiUsage;
+    'user-ai-credits': UserAiCredit;
+    'chat-histories': ChatHistory;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -175,6 +181,12 @@ export interface Config {
     userChallengeEngagement: UserChallengeEngagementSelect<false> | UserChallengeEngagementSelect<true>;
     userChallengeCompletionStatus: UserChallengeCompletionStatusSelect<false> | UserChallengeCompletionStatusSelect<true>;
     userChallengeCode: UserChallengeCodeSelect<false> | UserChallengeCodeSelect<true>;
+    'daily-login-entries': DailyLoginEntriesSelect<false> | DailyLoginEntriesSelect<true>;
+    'challenge-streaks': ChallengeStreaksSelect<false> | ChallengeStreaksSelect<true>;
+    'challenge-ai-chats': ChallengeAiChatsSelect<false> | ChallengeAiChatsSelect<true>;
+    'user-ai-usage': UserAiUsageSelect<false> | UserAiUsageSelect<true>;
+    'user-ai-credits': UserAiCreditsSelect<false> | UserAiCreditsSelect<true>;
+    'chat-histories': ChatHistoriesSelect<false> | ChatHistoriesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -235,6 +247,7 @@ export interface User {
 export interface Media {
   id: number;
   alt: string;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -2355,6 +2368,100 @@ export interface UserChallengeCode {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "daily-login-entries".
+ */
+export interface DailyLoginEntry {
+  id: number;
+  /**
+   * The Supabase user ID
+   */
+  userId: string;
+  /**
+   * The date when the user logged in
+   */
+  date: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-streaks".
+ */
+export interface ChallengeStreak {
+  id: number;
+  /**
+   * The Supabase user ID
+   */
+  userId: string;
+  /**
+   * The date of the challenge completion streak.
+   */
+  date: string;
+  /**
+   * The number of challenges completed on this date.
+   */
+  challengesCompleted: number;
+  /**
+   * The status of the streak for this day.
+   */
+  status: 'active' | 'frozen';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-ai-chats".
+ */
+export interface ChallengeAiChat {
+  id: number;
+  userId: string;
+  challenge: number | Challenge;
+  chatHistory?: (number | null) | ChatHistory;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-histories".
+ */
+export interface ChatHistory {
+  id: number;
+  chat: number | ChallengeAiChat;
+  prefix?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-ai-usage".
+ */
+export interface UserAiUsage {
+  id: number;
+  userId: string;
+  date: string;
+  messagesUsed: number;
+  dailyLimit: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-ai-credits".
+ */
+export interface UserAiCredit {
+  id: number;
+  userId: string;
+  balance: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -2563,6 +2670,30 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'userChallengeCode';
         value: number | UserChallengeCode;
+      } | null)
+    | ({
+        relationTo: 'daily-login-entries';
+        value: number | DailyLoginEntry;
+      } | null)
+    | ({
+        relationTo: 'challenge-streaks';
+        value: number | ChallengeStreak;
+      } | null)
+    | ({
+        relationTo: 'challenge-ai-chats';
+        value: number | ChallengeAiChat;
+      } | null)
+    | ({
+        relationTo: 'user-ai-usage';
+        value: number | UserAiUsage;
+      } | null)
+    | ({
+        relationTo: 'user-ai-credits';
+        value: number | UserAiCredit;
+      } | null)
+    | ({
+        relationTo: 'chat-histories';
+        value: number | ChatHistory;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2627,6 +2758,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -3765,6 +3897,76 @@ export interface UserChallengeCodeSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "daily-login-entries_select".
+ */
+export interface DailyLoginEntriesSelect<T extends boolean = true> {
+  userId?: T;
+  date?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-streaks_select".
+ */
+export interface ChallengeStreaksSelect<T extends boolean = true> {
+  userId?: T;
+  date?: T;
+  challengesCompleted?: T;
+  status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-ai-chats_select".
+ */
+export interface ChallengeAiChatsSelect<T extends boolean = true> {
+  userId?: T;
+  challenge?: T;
+  chatHistory?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-ai-usage_select".
+ */
+export interface UserAiUsageSelect<T extends boolean = true> {
+  userId?: T;
+  date?: T;
+  messagesUsed?: T;
+  dailyLimit?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-ai-credits_select".
+ */
+export interface UserAiCreditsSelect<T extends boolean = true> {
+  userId?: T;
+  balance?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-histories_select".
+ */
+export interface ChatHistoriesSelect<T extends boolean = true> {
+  chat?: T;
+  prefix?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
