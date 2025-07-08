@@ -1,9 +1,10 @@
+'use client'
+
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { Beaker, ChevronDown, ChevronUp, FileOutput, CheckCircle, XCircle } from 'lucide-react'
-
-type TerminalTab = 'tests' | 'output'
+import { useEditorStore, TerminalTab } from './store'
 
 const TERMINAL_STYLE = {
   backgroundColor: '#1a1b26',
@@ -25,57 +26,55 @@ export type TestResult = {
 /**
  * Terminal tabs component
  */
-type TerminalTabsProps = {
-  activeTab: TerminalTab
-  isTerminalOpen: boolean
-  onTabChange: (value: string) => void
-  onChevronClick: (e: React.MouseEvent) => void
-  onDoubleClick: (e: React.MouseEvent) => void
-}
 
-export const TerminalTabs = ({
-  activeTab,
-  isTerminalOpen,
-  onTabChange,
-  onChevronClick,
-  onDoubleClick,
-}: TerminalTabsProps) => (
-  <div
-    className={cn(
-      'border-t flex items-center justify-between px-1 h-10',
-      isTerminalOpen ? 'border-b-0' : '',
-    )}
-    onDoubleClick={onDoubleClick}
-  >
-    <Tabs value={activeTab} onValueChange={onTabChange} className="h-full">
-      <TabsList className="bg-transparent tabs-list-container">
-        <TabsTrigger value="tests" className="flex items-center gap-1.5">
-          <Beaker size={14} />
-          <span>Test Results</span>
-        </TabsTrigger>
+export const TerminalTabs = () => {
+  const { activeTab, isTerminalOpen, toggleTerminalOpen, setActiveTab } = useEditorStore()
 
-        <Separator orientation="vertical" className="h-3 mx-1" />
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as TerminalTab)
+    if (!isTerminalOpen) {
+      toggleTerminalOpen()
+    }
+  }
 
-        <TabsTrigger value="output" className="flex items-center gap-1.5">
-          <FileOutput size={14} />
-          <span>Output</span>
-        </TabsTrigger>
-      </TabsList>
-    </Tabs>
-
+  return (
     <div
-      className="flex items-center cursor-pointer p-1 hover:bg-muted rounded-sm"
-      onClick={onChevronClick}
-      title={isTerminalOpen ? 'Close terminal' : 'Open terminal'}
-    >
-      {isTerminalOpen ? (
-        <ChevronDown size={16} className="text-muted-foreground" />
-      ) : (
-        <ChevronUp size={16} className="text-muted-foreground" />
+      className={cn(
+        'border-t flex items-center justify-between px-1 h-10',
+        isTerminalOpen ? 'border-b-0' : '',
       )}
+      onDoubleClick={toggleTerminalOpen}
+    >
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full">
+        <TabsList className="flex-grow bg-transparent tabs-list-container">
+          <TabsTrigger value="tests" className="flex items-center gap-1.5">
+            <Beaker size={14} />
+            <span>Test Results</span>
+          </TabsTrigger>
+
+          <Separator orientation="vertical" className="h-3 mx-1" />
+
+          <TabsTrigger value="output" className="flex items-center gap-1.5">
+            <FileOutput size={14} />
+            <span>Output</span>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <div
+        className="flex items-center cursor-pointer p-1 hover:bg-muted rounded-sm"
+        onClick={toggleTerminalOpen}
+        title={isTerminalOpen ? 'Close terminal' : 'Open terminal'}
+      >
+        {isTerminalOpen ? (
+          <ChevronDown size={16} className="text-muted-foreground" />
+        ) : (
+          <ChevronUp size={16} className="text-muted-foreground" />
+        )}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 type TestCaseDisplayProps = {
   testResult: TestResult
@@ -128,63 +127,65 @@ const TestCaseDisplay = ({ testResult, index }: TestCaseDisplayProps) => (
  * Terminal content component
  */
 type TerminalContentProps = {
-  activeTab: TerminalTab
   testResults: TestResult[]
   executionOutput: string
-  onTabChange: (value: string) => void
-  isTerminalOpen: boolean
 }
 
-export const TerminalContent = ({
-  activeTab,
-  testResults,
-  executionOutput,
-  onTabChange,
-  isTerminalOpen,
-}: TerminalContentProps) => (
-  <div
-    className={cn(
-      'transition-all duration-300 ease-in-out overflow-hidden',
-      isTerminalOpen ? 'h-[30%] opacity-100' : 'h-0 opacity-0',
-    )}
-  >
-    <Tabs value={activeTab} onValueChange={(value) => onTabChange(value)} className="h-full">
-      <TabsContent value="tests" className="h-full p-0 m-0">
-        {testResults.length > 0 ? (
-          <div className="h-full overflow-auto">
-            <Tabs defaultValue="0" className="h-full border-t">
-              <div className="border-b">
-                <TabsList className="bg-background h-auto -space-x-px p-0 shadow-xs rtl:space-x-reverse">
-                  {testResults.map((_, index) => (
-                    <TabsTrigger
-                      key={index}
-                      value={index.toString()}
-                      className="data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
-                    >
-                      Test {index + 1}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-              {testResults.map((result, index) => (
-                <TabsContent key={index} value={index.toString()}>
-                  <TestCaseDisplay testResult={result} index={index} />
-                </TabsContent>
-              ))}
-            </Tabs>
-          </div>
-        ) : (
-          <div style={TERMINAL_STYLE}>
-            {'> No test results available. Run your code to see test results.'}
-          </div>
-        )}
-      </TabsContent>
+export const TerminalContent = ({ testResults, executionOutput }: TerminalContentProps) => {
+  const { activeTab, isTerminalOpen, setActiveTab, toggleTerminalOpen } = useEditorStore()
 
-      <TabsContent value="output" className="h-full p-0 m-0">
-        <div style={TERMINAL_STYLE}>
-          {executionOutput || '> No output available. Run your code to see results.'}
-        </div>
-      </TabsContent>
-    </Tabs>
-  </div>
-)
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as TerminalTab)
+    if (!isTerminalOpen) {
+      toggleTerminalOpen()
+    }
+  }
+
+  return (
+    <div
+      className={cn(
+        'transition-all duration-300 ease-in-out overflow-hidden',
+        isTerminalOpen ? 'h-[30%] opacity-100' : 'h-0 opacity-0',
+      )}
+    >
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full">
+        <TabsContent value="tests" className="h-full p-0 m-0">
+          {testResults.length > 0 ? (
+            <div className="h-full overflow-auto">
+              <Tabs defaultValue="0" className="h-full border-t">
+                <div className="border-b">
+                  <TabsList className="bg-background h-auto -space-x-px p-0 shadow-xs rtl:space-x-reverse">
+                    {testResults.map((_, index) => (
+                      <TabsTrigger
+                        key={index}
+                        value={index.toString()}
+                        className="data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5"
+                      >
+                        Test {index + 1}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
+                {testResults.map((result, index) => (
+                  <TabsContent key={index} value={index.toString()}>
+                    <TestCaseDisplay testResult={result} index={index} />
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </div>
+          ) : (
+            <div style={TERMINAL_STYLE}>
+              {'> No test results available. Run your code to see test results.'}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="output" className="h-full p-0 m-0">
+          <div style={TERMINAL_STYLE}>
+            {executionOutput || '> No output available. Run your code to see results.'}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}

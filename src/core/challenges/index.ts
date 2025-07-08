@@ -1,132 +1,21 @@
 'use server'
 
-import 'server-only'
-import { getPayload } from 'payload'
-import config from '@payload-config'
-import { DEFAULT_LEVEL_UP_FORMULA, getGamificationInformations } from '@/core/gamification/level'
 import { getUserIsSolutionUnlocked } from '@/core/challenges/user-progression'
+import { DEFAULT_LEVEL_UP_FORMULA, getGamificationInformations } from '@/core/gamification/level'
+import config from '@payload-config'
+import { getPayload } from 'payload'
+import 'server-only'
 
-import { Challenge } from '@/types/challenge'
+import { Result } from '@/core/user/result'
 import type {
   Challenge as PayloadChallenge,
-  UserChallengeProgression,
-  CodeVersion,
-  Concept,
+  UserChallengeProgression
 } from '@/payload-types'
-import { Where } from 'payload/types'
-import { PaginatedDocs } from 'payload/database'
-import { Payload } from 'payload'
-import { Result } from '@/core/user/result'
-import { CompletionStatus } from './user-progression/types'
+import { getChallengeBySlug } from './challenge-queries'
+import { ChallengeNotFoundError } from './errors'
+import { getChallengeById } from './challenge-queries'
+import { getNextChallenge } from './navigation'
 
-class ChallengeNotFoundError extends Error {
-  constructor() {
-    super('Challenge not found')
-  }
-}
-
-export const getPreviousChallenge = async (slug: string): Promise<PayloadChallenge> => {
-  const payload = await getPayload({ config })
-
-  // Get all challenges sorted by creation date
-  const challenges = await payload.find({
-    collection: 'challenges',
-    sort: 'createdAt',
-  })
-
-  const docs = challenges.docs
-
-  // Find the index of the current challenge
-  const currentIndex = docs.findIndex((challenge) => challenge.slug === slug)
-
-  if (currentIndex <= 0) {
-    // If it's the first challenge or not found, return the last challenge (circular navigation)
-    return docs[docs.length - 1]
-  }
-
-  // Return the previous challenge
-  return docs[currentIndex - 1]
-}
-
-export const getNextChallenge = async (slug: string): Promise<PayloadChallenge> => {
-  const payload = await getPayload({ config })
-
-  // Get all challenges sorted by creation date
-  const challenges = await payload.find({
-    collection: 'challenges',
-    sort: 'createdAt',
-  })
-
-  const docs = challenges.docs
-
-  // Find the index of the current challenge
-  const currentIndex = docs.findIndex((challenge) => challenge.slug === slug)
-
-  if (currentIndex === -1 || currentIndex === docs.length - 1) {
-    // If it's the last challenge or not found, return the first challenge (circular navigation)
-    return docs[0]
-  }
-
-  // Return the next challenge
-  return docs[currentIndex + 1]
-}
-
-export const getRandomChallenge = async (excludeSlug?: string): Promise<PayloadChallenge> => {
-  const payload = await getPayload({ config })
-
-  // Get all challenges
-  const challenges = await payload.find({
-    collection: 'challenges',
-    limit: 100, // Set a reasonable limit
-  })
-
-  let availableChallenges = challenges.docs
-
-  // Exclude the current challenge if provided
-  if (excludeSlug) {
-    availableChallenges = availableChallenges.filter((challenge) => challenge.slug !== excludeSlug)
-  }
-
-  if (availableChallenges.length === 0) {
-    throw new Error('No challenges available')
-  }
-
-  // Select a random challenge
-  const randomIndex = Math.floor(Math.random() * availableChallenges.length)
-  return availableChallenges[randomIndex]
-}
-
-export const getPayloadChallenge = async (id: number): Promise<PayloadChallenge> => {
-  const payload = await getPayload({ config })
-  const challenge = await payload.find({
-    collection: 'challenges',
-    where: {
-      id: {
-        equals: id,
-      },
-    },
-  })
-  if (!challenge.docs.length) {
-    throw new ChallengeNotFoundError()
-  }
-  return challenge.docs[0]
-}
-
-export const getChallengeBySlug = async (slug: string): Promise<PayloadChallenge> => {
-  const payload = await getPayload({ config })
-  const challenge = await payload.find({
-    collection: 'challenges',
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
-  })
-  if (!challenge.docs.length) {
-    throw new ChallengeNotFoundError()
-  }
-  return challenge.docs[0]
-}
 
 export const addDescriptionComment = async (
   challengeSlug: string,
@@ -159,125 +48,10 @@ export const addDescriptionComment = async (
   })
 }
 
-export const addLikeToChallenge = async (challengeId: number): Promise<void> => {
-  const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(challengeId)
-  const currentLikes = challenge.engagement?.likes || 0 // Get current likes
-  await payload.update({
-    collection: 'challenges',
-    id: challenge.id,
-    data: {
-      engagement: {
-        likes: currentLikes + 1, // Increment likes by 1
-      },
-    },
-  })
-}
 
-export const removeLikeFromChallenge = async (challengeId: number): Promise<void> => {
-  const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(challengeId)
-  const currentLikes = challenge.engagement?.likes || 0 // Get current likes
-  await payload.update({
-    collection: 'challenges',
-    id: challenge.id,
-    data: {
-      engagement: {
-        likes: Math.max(0, currentLikes - 1), // Decrement likes by 1, ensuring it doesn't go below 0
-      },
-    },
-  })
-}
 
-export const addDislikeToChallenge = async (challengeId: number): Promise<void> => {
-  const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(challengeId)
-  const currentDislikes = challenge.engagement?.dislikes || 0
-  await payload.update({
-    collection: 'challenges',
-    id: challenge.id,
-    data: {
-      engagement: {
-        dislikes: currentDislikes + 1,
-      },
-    },
-  })
-}
-
-export const removeDislikeFromChallenge = async (challengeId: number): Promise<void> => {
-  const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(challengeId)
-  const currentDislikes = challenge.engagement?.dislikes || 0
-  await payload.update({
-    collection: 'challenges',
-    id: challenge.id,
-    data: {
-      engagement: {
-        dislikes: Math.max(0, currentDislikes - 1),
-      },
-    },
-  })
-}
-
-export const addRatingToChallenge = async (challengeId: number, rating: number): Promise<void> => {
-  const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(challengeId)
-
-  const currentTotal = challenge.ratings?.total || 0
-  const currentCount = challenge.ratings?.count || 0
-
-  await payload.update({
-    collection: 'challenges',
-    id: challenge.id,
-    data: {
-      ratings: {
-        total: currentTotal + rating,
-        count: currentCount + 1,
-        // average will be calculated automatically by the hook
-      },
-    },
-  })
-}
-
-export const updateRatingForChallenge = async (
-  challengeId: number,
-  oldRating: number,
-  newRating: number,
-): Promise<void> => {
-  const payload = await getPayload({ config })
-  const challenge = await getPayloadChallenge(challengeId)
-
-  const currentTotal = challenge.ratings?.total || 0
-
-  await payload.update({
-    collection: 'challenges',
-    id: challenge.id,
-    data: {
-      ratings: {
-        total: currentTotal - oldRating + newRating,
-        // Count stays the same since we're updating an existing rating
-        count: challenge.ratings?.count || 0,
-        // average will be calculated automatically by the hook
-      },
-    },
-  })
-}
 
 // ===============================
-
-export const getAllChallenges = async (): Promise<PayloadChallenge[]> => {
-  const payload = await getPayload({ config })
-  const challenges = await payload.find({
-    collection: 'challenges',
-    pagination: false,
-  })
-  return challenges.docs
-}
-
-export const getAllChallengesSlugs = async (): Promise<string[]> => {
-  const challenges = await getAllChallenges()
-  return challenges.map((challenge) => challenge.slug)
-}
 
 export const getNextChallengeUrl = async (currentSlug: string): Promise<string> => {
   const nextChallenge = await getNextChallenge(currentSlug)
@@ -285,47 +59,11 @@ export const getNextChallengeUrl = async (currentSlug: string): Promise<string> 
 }
 
 export const getChallengeExperience = async (challengeId: number): Promise<number> => {
-  const challenge = await getPayloadChallenge(challengeId)
+  const challenge = await getChallengeById(challengeId)
   return challenge.baseExperience || 50 // Default to 50 if not set
 }
 
-export interface ChallengeCompletionData {
-  wasUnlocked: boolean
-  challengeExperience: number
-  nextChallengeUrl: string
-  gamificationInfo: {
-    currentLevel: number
-    currentExperience: number
-    totalExperience: number
-    nextLevelExperience: number
-  }
-}
 
-export const getChallengeCompletionData = async (
-  userId: string,
-  challengeId: number,
-  challengeSlug: string,
-): Promise<ChallengeCompletionData> => {
-  // Fetch all required data in parallel
-  const [challenge, nextChallenge, wasUnlocked, gamificationInfo] = await Promise.all([
-    getPayloadChallenge(challengeId),
-    getNextChallenge(challengeSlug),
-    getUserIsSolutionUnlocked(userId, challengeId),
-    getGamificationInformations(userId),
-  ])
-
-  return {
-    wasUnlocked,
-    challengeExperience: challenge.baseExperience || 50,
-    nextChallengeUrl: `/challenges/${nextChallenge.slug}`,
-    gamificationInfo: {
-      currentLevel: gamificationInfo.currentLevel,
-      currentExperience: gamificationInfo.currentExperience,
-      totalExperience: gamificationInfo.totalExperience,
-      nextLevelExperience: await DEFAULT_LEVEL_UP_FORMULA(gamificationInfo.currentLevel),
-    },
-  }
-}
 
 // Define the simplified structure for return (id is number)
 export interface SimpleChallenge {
@@ -401,22 +139,7 @@ export const getChallengesForConcept = async (conceptId: number): Promise<Simple
   }
 }
 
-// --- Keep other existing functions in this file ---
-// Example: Assuming getChallengeWithDepth exists here
-export const getChallengeWithDepth = async (challengeId: number): Promise<PayloadChallenge> => {
-  const payload = await getPayload({ config })
-  const challenge = await payload.findByID({
-    collection: 'challenges',
-    id: challengeId,
-    depth: 3,
-  })
 
-  if (!challenge) {
-    throw new Error(`Challenge with ID "${challengeId}" not found`)
-  }
-
-  return challenge as PayloadChallenge
-}
 
 // Add other functions from src/core/challenges/index.ts if they exist
 
@@ -428,6 +151,7 @@ export interface ChallengeWithProgress {
   baseExperience: number
   slug: string
   status: 'not_started' | 'in_progress' | 'completed'
+  draft?: boolean
 }
 
 // Define the pagination structure directly
@@ -466,7 +190,7 @@ export const getChallengesWithProgress = async ({
 }: GetChallengesWithProgressParams): Promise<PaginatedChallengesWithProgress> => {
   const payload = await getPayload({ config })
 
-  const challengeWhereClause: Where = {}
+  const challengeWhereClause = {}
   if (filter) {
     challengeWhereClause.title = {
       like: filter,
@@ -548,77 +272,6 @@ export const getAllChallenges = async (): Promise<PayloadChallenge[]> => {
 }
 */
 
-// Define the input data structure for creating a challenge
-// Based on src/collections/Challenges.ts, focusing on required fields for creation
-interface CreateChallengeData {
-  title: string
-  slug: string
-  difficulty: 'easy' | 'medium' | 'hard' | 'horrible'
-  description: {
-    statement: string
-    hints?: Array<{ content: string }> // Optional hints
-    similarChallenges?: Array<{ challenge: number }> // Use number for ID reference
-  }
-  // Require at least one code version
-  codeVersions: Array<{
-    language: string
-    initialCode: string
-    testCases: Array<{
-      input: string
-      expectedOutput: string
-    }>
-  }>
-  concepts?: Array<{ concept: string }> // Optional concepts
-
-  // Use optional '?' instead of '| null'
-  officialSolution?: {
-    statement: string
-    comments?: number[] | null
-  }
-  // Use optional '?' for code and its required fields
-  code?: {
-    language?: string
-    initialCode?: string
-    testCases?: Array<{ input: string; expectedOutput: string }>
-  }
-}
-
-// Define a more specific error type if needed
-class ChallengeCreationError extends Error {
-  constructor(message: string) {
-    super(`Challenge creation failed: ${message}`)
-    this.name = 'ChallengeCreationError'
-  }
-}
-
-/**
- * Creates a new challenge in the Payload CMS.
- * @param challengeData - The data for the new challenge.
- * @returns A Result object containing the created challenge or an error.
- */
-export const createChallenge = async (
-  challengeData: CreateChallengeData,
-): Promise<Result<PayloadChallenge, ChallengeCreationError>> => {
-  const payload = await getPayload({ config })
-
-  try {
-    // Payload handles field validation based on the collection config
-    // The baseExperience hook will run automatically
-    const newChallenge = await payload.create({
-      collection: 'challenges',
-      data: challengeData as any,
-      // Optional: Add depth if you need populated relations immediately
-      // depth: 1,
-    })
-
-    return { success: true, value: newChallenge as PayloadChallenge }
-  } catch (error: any) {
-    console.error('Error creating challenge:', error)
-    // Check for specific Payload validation errors if possible, otherwise return a generic error
-    const errorMessage = error?.message || 'An unknown error occurred during challenge creation.'
-    return { success: false, error: new ChallengeCreationError(errorMessage) }
-  }
-}
 
 /**
  * Fetches all challenge progressions for a specific user.

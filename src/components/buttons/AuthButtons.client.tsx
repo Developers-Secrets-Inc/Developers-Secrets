@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Button } from '../ui/button'
 import { NotificationButton } from '../sidebars/home-sidebar/notification-button'
 import { Skeleton } from '../ui/skeleton'
+import { DailyEntriesBadge } from '@/core/gamification/streaks/login-entries/components/daily-entries-badge'
 
 const LoginButton = () => {
   return (
@@ -36,6 +37,7 @@ const AuthButtonsSkeleton = () => {
 const AuthButtonsLoggedIn = ({ user }: { user: User }) => {
   return (
     <>
+
       <NotificationButton />
       <DashboardButton />
       <UserDropdownMenu user={user} />

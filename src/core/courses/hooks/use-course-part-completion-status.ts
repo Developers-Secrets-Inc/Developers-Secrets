@@ -15,8 +15,8 @@ export type CompletionStatus = 'not_started' | 'in_progress' | 'completed'
 interface UseCompletionStatusProps {
   partId: number
   userId: string // Doit être une string valide pour l'appel
-  initialStatus: CompletionStatus
-  enabled?: boolean // Ajouter l'option enabled à l'interface
+  initialStatus?: CompletionStatus
+  enabled?: boolean
 }
 
 // Clé de query unique pour le statut de complétion
@@ -33,19 +33,22 @@ export function useCoursePartCompletionStatus({
   partId,
   userId,
   initialStatus,
-  enabled = true, // Valeur par défaut à true
+  enabled = true,
 }: UseCompletionStatusProps) {
   const queryClient = useQueryClient()
 
+  // Utilisation d'une valeur par défaut 'not_started' pour initialStatus si non défini
+  const defaultStatus: CompletionStatus = initialStatus ?? 'not_started'
+
   // Exposer isLoading comme isInitialLoading
-  const { data: currentStatus = initialStatus, isLoading: isInitialLoading } =
+  const { data: currentStatus = defaultStatus, isLoading: isInitialLoading } =
     useQuery<CompletionStatus>({
       queryKey: getCompletionStatusQueryKey(userId, partId),
       queryFn: () => getUserPartCompletionStatus(userId, partId),
-      initialData: initialStatus,
+      initialData: defaultStatus,
       enabled: enabled && !!userId,
-      staleTime: 5 * 60 * 1000, // Exemple: 5 minutes
-      refetchOnWindowFocus: true,
+      staleTime: 24 * 60 * 60 * 1000, // 24 heures
+      refetchOnWindowFocus: false,
     })
 
   // Mutation pour mettre à jour le statut

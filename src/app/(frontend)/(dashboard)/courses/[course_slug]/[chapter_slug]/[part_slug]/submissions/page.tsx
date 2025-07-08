@@ -3,6 +3,9 @@ import { getCoursePartSubmissions } from '@/core/courses/submissions/actions'
 import { getPartBySlug } from '@/core/courses/parts' // Correct import path
 import { CourseSubmissionsList } from './components/CourseSubmissionsList' // Assume this client component exists
 import { notFound, redirect } from 'next/navigation'
+import { Suspense } from 'react'
+import { PartHeader } from '../components/part-header'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default async function CoursePartSubmissionsPage({
   params,
@@ -49,6 +52,9 @@ export default async function CoursePartSubmissionsPage({
 
   return (
     <div className="py-4 px-6">
+      <Suspense fallback={<HeaderFallback />}>
+        <PartHeader part={coursePart} />
+      </Suspense>
       {/* Add context like part title if needed */}
       {/* <h1>Submissions for: {coursePart.name}</h1> */}
       <h3 className="text-lg font-semibold mb-3">Your Submissions</h3>
@@ -59,4 +65,9 @@ export default async function CoursePartSubmissionsPage({
       />
     </div>
   )
+}
+
+
+const HeaderFallback = () => {
+  return <Skeleton className="h-10 w-full mb-4" />
 }

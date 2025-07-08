@@ -1,21 +1,16 @@
+'use client'
+import { LinkButton } from '@/components/common/link-button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import Link from 'next/link'
-import { getUser } from '@/core/user'
-import { getGamificationInformations, getUserNextLevelExperience } from '@/core/gamification/level'
-import {
-  getCalendarDays,
-  getTotalCompletedChallengesCount,
-} from '@/core/challenges/user-progression'
-import { User } from '@/types/user'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { getUserProfileData } from '@/core/user-profile'
+import { User } from '@/types/user'
+import { useQuery } from '@tanstack/react-query'
 import { CheckCircle2 } from 'lucide-react'
 import { CalendarDayButton } from './calendar-day-button'
-import { CompletedChallengeInfo } from '@/core/challenges/user-progression/types'
+import { ChallengeStreakBadge } from '@/core/gamification/streaks/challenges/components/challenge-streak-badge'
 
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -44,18 +39,62 @@ const getRoleBadgeClass = (role: string | undefined): string => {
       return 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-500'
     case 'basic':
     default:
-      return ''
+      return 'bg-background border border-border'
   }
 }
 
-export const UserProfile = async ({ user }: UserProfileProps) => {
-  const [userGamificationsInformation, calendarDays, nextLevelExperience, totalCompletedCount] =
-    await Promise.all([
-      getGamificationInformations(user.id),
-      getCalendarDays(user.id),
-      getUserNextLevelExperience(user.id),
-      getTotalCompletedChallengesCount(user.id),
-    ])
+export const UserProfileCardSkeleton = () => (
+  <Card className="w-full py-0">
+    <CardContent className="pt-6">
+      <div className="flex items-start gap-4">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="flex-1">
+          <Skeleton className="h-5 w-3/4" />
+          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-4 w-10" />
+          </div>
+          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2">
+            <Skeleton className="h-4 w-1/3" />
+            <span className="hidden sm:inline text-muted-foreground">•</span>
+            <Skeleton className="h-4 w-20" />
+          </div>
+          <Skeleton className="h-2 w-full mt-1.5" />
+        </div>
+      </div>
+      <div className="mt-4">
+        <div className="grid grid-cols-7 mb-1">
+          {DAYS_OF_WEEK.map((day) => (
+            <div key={day} className="flex justify-center items-center">
+              <Skeleton className="h-3 w-5" />
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-y-1">
+          {Array.from({ length: 35 }).map((_, index) => (
+            <Skeleton key={index} className="h-7 w-7 rounded" />
+          ))}
+        </div>
+      </div>
+    </CardContent>
+    <CardFooter className="px-6 pb-6 pt-0">
+      <Skeleton className="h-10 w-full" />
+    </CardFooter>
+  </Card>
+)
+
+export const UserProfile = ({ user }: UserProfileProps) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['user-profile', user.id],
+    queryFn: () => getUserProfileData(user.id),
+    enabled: !!user.id,
+  })
+
+  if (isLoading) return <UserProfileCardSkeleton />
+  if (isError || !data) return <div className="text-destructive">Failed to load profile.</div>
+
+  const { userGamificationsInformation, calendarDays, nextLevelExperience, totalCompletedCount } =
+    data
 
   const experiencePercentage =
     (userGamificationsInformation.currentExperience / nextLevelExperience) * 100
@@ -64,24 +103,7 @@ export const UserProfile = async ({ user }: UserProfileProps) => {
 
   return (
     <Card className="relative w-full py-0 overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="absolute top-0 right-0 h-40 w-40 -translate-y-1/2 translate-x-1/2 pointer-events-none"
-      >
-        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-20" />
-      </div>
-      <div
-        aria-hidden="true"
-        className="absolute top-0 right-0 h-32 w-32 -translate-y-1/2 translate-x-1/2 pointer-events-none"
-      >
-        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-15" />
-      </div>
-      <div
-        aria-hidden="true"
-        className="absolute top-0 right-0 h-24 w-24 -translate-y-1/2 translate-x-1/2 pointer-events-none"
-      >
-        <div className="h-full w-full rounded-full border border-gray-200/30 opacity-10" />
-      </div>
+      <MoonBorders />
 
       <div className="relative z-10">
         <CardContent className="pt-6">
@@ -95,31 +117,27 @@ export const UserProfile = async ({ user }: UserProfileProps) => {
             <div className="flex-1">
               <h3 className="text-lg font-semibold">{user.informations.name}</h3>
               <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-sm text-muted-foreground mt-1">
-                <span>Level {userGamificationsInformation.currentLevel}</span>
                 {role && (
                   <>
-                    <span className="hidden sm:inline">•</span>
                     <Badge
                       variant={getRoleBadgeVariant(role)}
-                      className={cn(
-                        'capitalize text-xs px-1.5 py-0.5 font-medium border',
-                        getRoleBadgeClass(role),
-                      )}
+                      className={
+                        'capitalize text-xs px-1.5 py-0.5 font-medium border ' +
+                        getRoleBadgeClass(role)
+                      }
                     >
                       {role}
                     </Badge>
                   </>
                 )}
+                <ChallengeStreakBadge userId={user.id} />
               </div>
               <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-sm text-muted-foreground mt-2">
                 <span>
                   {userGamificationsInformation.currentExperience} / {nextLevelExperience} XP
                 </span>
                 <span className="hidden sm:inline">•</span>
-                <span className="flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  {totalCompletedCount} Completed
-                </span>
+                <span>Level {userGamificationsInformation.currentLevel}</span>
               </div>
               <Progress value={experiencePercentage} className="h-2 mt-1.5" />
             </div>
@@ -138,7 +156,7 @@ export const UserProfile = async ({ user }: UserProfileProps) => {
             </div>
 
             <div className="grid grid-cols-7 gap-y-1">
-              {calendarDays.map((day, index) => (
+              {calendarDays.map((day: any, index: number) => (
                 <div key={index} className="flex justify-center items-center">
                   <CalendarDayButton
                     day={day?.day ?? null}
@@ -155,54 +173,32 @@ export const UserProfile = async ({ user }: UserProfileProps) => {
         </CardContent>
 
         <CardFooter className="px-6 pb-6 pt-2">
-          <Button asChild variant="outline" className="w-full">
-            <Link href={`/profile/me`}>View full profile</Link>
-          </Button>
+          <LinkButton variant="outline" className="w-full" href={`/profile/me`}>
+            View full profile
+          </LinkButton>
         </CardFooter>
       </div>
     </Card>
   )
 }
 
-export function UserProfileCardSkeleton() {
+const MoonBorders = () => {
   return (
-    <Card className="w-full py-0">
-      <CardContent className="pt-6">
-        <div className="flex items-start gap-4">
-          <Skeleton className="h-12 w-12 rounded-full" />
-          <div className="flex-1">
-            <Skeleton className="h-5 w-3/4" />
-            <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1">
-              <Skeleton className="h-4 w-1/4" />
-              <Skeleton className="h-4 w-10" />
-            </div>
-            <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2">
-              <Skeleton className="h-4 w-1/3" />
-              <span className="hidden sm:inline text-muted-foreground">•</span>
-              <Skeleton className="h-4 w-20" />
-            </div>
-            <Skeleton className="h-2 w-full mt-1.5" />
-          </div>
-        </div>
+    <>
+      <MoonBorder size={24} />
+      <MoonBorder size={32} />
+      <MoonBorder size={40} />
+    </>
+  )
+}
 
-        <div className="mt-4">
-          <div className="grid grid-cols-7 mb-1">
-            {DAYS_OF_WEEK.map((day) => (
-              <div key={day} className="flex justify-center items-center">
-                <Skeleton className="h-3 w-5" />
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-y-1">
-            {Array.from({ length: 35 }).map((_, index) => (
-              <Skeleton key={index} className="h-7 w-7 rounded" />
-            ))}
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter className="px-6 pb-6 pt-0">
-        <Skeleton className="h-10 w-full" />
-      </CardFooter>
-    </Card>
+const MoonBorder = ({ size }: { size: number }) => {
+  return (
+    <div
+      aria-hidden="true"
+      className={`absolute top-0 right-0 h-${size} w-${size} -translate-y-1/2 translate-x-1/2 pointer-events-none`}
+    >
+      <div className="h-full w-full rounded-full border border-gray-200/30 opacity-20" />
+    </div>
   )
 }

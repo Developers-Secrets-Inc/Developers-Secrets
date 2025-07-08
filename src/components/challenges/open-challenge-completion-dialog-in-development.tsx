@@ -1,11 +1,12 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { CompletionDialog } from '@/core/challenges/components/completion-dialog'
-import { getChallengeCompletionData } from '@/core/challenges'
+import { getChallengeCompletionData } from '@/core/challenges/actions'
+import { useChallengeEditorStore } from '@/core/compiler/challenge-editor/store'
 import { useEffect, useState } from 'react'
 import { Trophy } from 'lucide-react'
 import { Loader2 } from 'lucide-react'
+import { CompletionDialog } from '@/core/challenges/components/completion-dialog.client'
 
 interface OpenChallengeCompletionDialogInDevelopmentProps {
   challengeId: number
@@ -18,7 +19,8 @@ export function OpenChallengeCompletionDialogInDevelopment({
   userId,
   challengeSlug,
 }: OpenChallengeCompletionDialogInDevelopmentProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const { showCompletionDialog, openCompletionDialog, closeCompletionDialog } =
+    useChallengeEditorStore()
   const [isLoading, setIsLoading] = useState(false)
   const [completionData, setCompletionData] = useState<Awaited<
     ReturnType<typeof getChallengeCompletionData>
@@ -43,7 +45,7 @@ export function OpenChallengeCompletionDialogInDevelopment({
   const handleOpenDialog = async () => {
     if (completionData) {
       // Si les données sont déjà chargées, ouvrir directement
-      setIsDialogOpen(true)
+      openCompletionDialog()
       return
     }
 
@@ -52,7 +54,7 @@ export function OpenChallengeCompletionDialogInDevelopment({
     try {
       const data = await getChallengeCompletionData(userId, challengeId, challengeSlug)
       setCompletionData(data)
-      setIsDialogOpen(true)
+      openCompletionDialog()
     } catch (error) {
       console.error('Failed to load completion data:', error)
     } finally {
@@ -77,10 +79,8 @@ export function OpenChallengeCompletionDialogInDevelopment({
         {isLoading ? 'Loading...' : 'Test Completion'}
       </Button>
 
-      {isDialogOpen && completionData && (
+      {showCompletionDialog && completionData && (
         <CompletionDialog
-          open={true}
-          onOpen={() => setIsDialogOpen(false)}
           experienceGained={completionData.challengeExperience}
           currentLevel={completionData.gamificationInfo.currentLevel}
           currentExperience={completionData.gamificationInfo.currentExperience}

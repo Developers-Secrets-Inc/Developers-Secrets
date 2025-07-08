@@ -15,7 +15,7 @@ import { Loader2, AtSignIcon } from 'lucide-react' // Removed LockIcon as Passwo
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CustomToast } from './CustomErrorToast'
-
+import { useQueryClient } from '@tanstack/react-query'
 interface LoginCardProps {
   onSubmit: (
     email: string,
@@ -39,6 +39,7 @@ export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
   const emailInputId = useId()
   // const passwordInputId = useId() // No longer needed here if PasswordInput handles its own ID/label
   const { toast } = useToast()
+  const queryClient = useQueryClient()
 
   const [toastOpen, setToastOpen] = useState(false)
   const [toastProps, setToastProps] = useState({
@@ -78,10 +79,21 @@ export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
         // Handle structured errors
         const error = result.error as string | { code: string; message: string } | undefined
         if (typeof error === 'object' && error?.code) {
-          if (error.code === 'EMAIL_IN_USE' || error.code === 'INVALID_CREDENTIALS') {
-            setErrors({ email: error.message })
-          } else if (error.code === 'INVALID_PASSWORD') {
-            setErrors({ password: error.message })
+          if (
+            error.code === 'EMAIL_IN_USE' ||
+            error.code === 'INVALID_CREDENTIALS' ||
+            error.code === 'INVALID_PASSWORD'
+          ) {
+            setToastProps({
+              type: 'error',
+              title: 'Login failed',
+              description:
+                error.message ||
+                (error.code === 'EMAIL_IN_USE'
+                  ? 'This email is already in use.'
+                  : 'Incorrect email or password.'),
+            })
+            setToastOpen(true)
           } else if (error.code === 'TOO_MANY_ATTEMPTS') {
             setToastProps({
               type: 'error',
@@ -122,13 +134,12 @@ export function LoginCard({ onSubmit, redirectTo }: LoginCardProps) {
         setToastOpen(true)
         sessionStorage.setItem('postLoginToast', JSON.stringify(toastData))
         // Redirection dynamique
-        setTimeout(() => {
-          if (redirectTo && redirectTo.startsWith('/')) {
-            router.push(redirectTo)
-          } else {
-            router.push('/home')
-          }
-        }, 100)
+        await queryClient.invalidateQueries({ queryKey: ['sessionUser'] })
+        if (redirectTo && redirectTo.startsWith('/')) {
+          router.push(redirectTo)
+        } else {
+          router.push('/home')
+        }
       }
     } catch (error: any) {
       if (!error.digest?.startsWith('NEXT_REDIRECT')) {

@@ -22,7 +22,7 @@ import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 
-type Difficulty = 'easy' | 'medium' | 'hard' | 'horrible'
+type Difficulty = 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible'
 type CompletionStatus = 'not_started' | 'in_progress' | 'completed'
 
 interface Challenge {
@@ -35,6 +35,7 @@ interface Challenge {
 }
 
 const difficultyStyles: Record<Difficulty, string> = {
+  very_easy: 'bg-cyan-500/10 text-cyan-500',
   easy: 'bg-emerald-500/10 text-emerald-500',
   medium: 'bg-amber-500/10 text-amber-500',
   hard: 'bg-red-500/10 text-red-500',
@@ -79,7 +80,7 @@ function ChallengeRow({ challenge }: { challenge: Challenge }) {
       </TableCell>
       <TableCell>
         <Badge className={cn(difficultyStyles[challenge.difficulty])} variant="secondary">
-          {challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)}
+          {challenge.difficulty === 'very_easy' ? 'Very Easy' : challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)}
         </Badge>
       </TableCell>
       <TableCell>

@@ -22,7 +22,9 @@ import { SearchForm } from './search-form'
 import { HomeSidebarFooter } from './sidebar-footer'
 import { SocialGroup } from './social-group'
 import { getActiveEffects, getPassiveXPBoostMultiplier } from '@/core/gamification/effects'
-import { ActiveEffect } from '@/payload-types'
+import { HiddenOnIconSidebar } from '@/components/common/hidden-on-icon-sidebar'
+import { ShowOnlyOnIconSidebar } from '@/components/common/show-only-on-icon-sidebar'
+import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 
 const ComingSoonTooltip = () => {
   return (
@@ -49,9 +51,19 @@ const SidebarLink = ({
     <SidebarMenuItem key={text.toLowerCase().replace(' ', '-')}>
       <SidebarMenuButton asChild>
         <Link href={href} className={cn('relative pr-8', isComingSoon && 'text-muted-foreground')}>
-          {icon}
-          <span>{text}</span>
-          {isComingSoon && <ComingSoonTooltip />}
+          <HiddenOnIconSidebar>
+            {icon}
+            <span>{text}</span>
+            {isComingSoon && <ComingSoonTooltip />}
+          </HiddenOnIconSidebar>
+          <ShowOnlyOnIconSidebar>
+            <TooltipPrimitive.Root delayDuration={200}>
+              <TooltipPrimitive.Trigger asChild>
+                <span className="flex items-center justify-center w-full h-12">{icon}</span>
+              </TooltipPrimitive.Trigger>
+              <TooltipContentCustom side="right">{text}</TooltipContentCustom>
+            </TooltipPrimitive.Root>
+          </ShowOnlyOnIconSidebar>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -64,7 +76,12 @@ const LearningGroup = () => {
       <SidebarGroupLabel>Learning</SidebarGroupLabel>
       <SidebarMenu>
         <SidebarLink href="/home" text="Home" icon={<Home className="size-4" />} />
-        <SidebarLink href="/courses" text="Courses" icon={<Book className="size-4" />} />
+        <SidebarLink
+          href="#"
+          text="Courses"
+          icon={<Book className="size-4" />}
+          isComingSoon={true}
+        />
         <SidebarLink href="/challenges" text="Challenges" icon={<Trophy className="size-4" />} />
         <SidebarLink href="/skills" text="Skills" icon={<GitMerge className="size-4" />} />
       </SidebarMenu>
@@ -94,10 +111,16 @@ export const HomeSidebar = async () => {
 
   return (
     <TooltipPrimitive.Provider>
-      <Sidebar style={{ '--sidebar-width': '270px' } as React.CSSProperties} className="z-50">
+      <Sidebar
+        collapsible="icon"
+        style={{ '--sidebar-width': '270px' } as React.CSSProperties}
+        className="z-50"
+      >
         <SidebarHeader>
           <LearningPathSwitcher />
-          <SearchForm />
+          <HiddenOnIconSidebar>
+            <SearchForm />
+          </HiddenOnIconSidebar>
         </SidebarHeader>
         <SidebarContent className="gap-0">
           <LearningGroup />

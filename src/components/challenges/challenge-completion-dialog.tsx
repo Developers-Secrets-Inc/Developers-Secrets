@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { getChallengeCompletionData } from '@/core/challenges'
+import { getChallengeCompletionData } from '@/core/challenges/actions'
 import { addExperience } from '@/core/gamification/level'
 import { AnimatePresence, motion, useAnimation } from 'framer-motion'
 import { Loader2, Trophy } from 'lucide-react'

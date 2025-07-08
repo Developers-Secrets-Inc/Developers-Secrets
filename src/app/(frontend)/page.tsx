@@ -57,7 +57,7 @@ interface Hero32Props {
 
 const HeroSection = ({
   heading = "It's never been easier to become a fullstack developer",
-  description = 'Fully decomposable components, all the images and background patterns are individual images or svgs that can be replaced.',
+  description = 'Discover our interactive fullstack development learning platform. Master the most in-demand technologies through practical coding challenges and structured progression.',
   button = {
     text: 'Start Learning',
     url: '/auth/signup',
@@ -178,7 +178,7 @@ const HeroSection = ({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             {integration.id === 'integration-1' ? (
-                              <Link href="/tutorials/python" passHref>
+                              <Link href="/articles/python" passHref>
                                 <div className="size-22 rounded-xl border border-background bg-muted shadow-xl cursor-pointer">
                                   <div className="h-full w-full bg-muted/20 p-4">
                                     {integration.icon}

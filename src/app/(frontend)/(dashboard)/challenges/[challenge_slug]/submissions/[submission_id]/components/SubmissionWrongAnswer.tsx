@@ -27,16 +27,7 @@ export function SubmissionWrongAnswer({
   expectedOutput,
 }: SubmissionWrongAnswerProps) {
   return (
-    <div className="w-full space-y-6 p-6">
-      <div className="flex items-center justify-between py-2 border-b -mx-6 px-6">
-        <Button variant="ghost" size="sm" className="gap-1.5" asChild>
-          <Link href={`/challenges/${challengeSlug}/submissions`} prefetch={true}>
-            <ArrowLeft className="h-4 w-4" />
-            Back to submissions
-          </Link>
-        </Button>
-      </div>
-
+    <div className="w-full">
       <div className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
         <div className="space-y-1">
           <div className="flex items-center gap-2">

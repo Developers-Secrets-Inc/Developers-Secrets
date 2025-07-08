@@ -2,23 +2,28 @@
 
 import {
   Dialog,
-  DialogTitle,
-  DialogHeader,
   DialogContent,
   DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
-import { Quest, UserQuest as PayloadUserQuest } from '@/payload-types'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Award, RefreshCw } from 'lucide-react'
 import { useMemo } from 'react'
+import { useQuestActions, useQuestReplacementInfo, useQuests } from '../hooks/use-quests'
 import { QuestCard } from './quest-card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useQuests, useQuestActions, useQuestReplacementInfo } from '../hooks/use-quests'
+import { UserQuest } from '@/payload-types'
+import { Quest } from '@/payload-types'
 
-// Extend PayloadUserQuest to ensure we have all required fields
-interface UserQuest extends PayloadUserQuest {
-  quest: Quest
-  currentProgression: number
-  isCompleted: boolean
+
+const getSortedQuests = (quests: UserQuest[]): UserQuest[] => {
+  return [...quests].sort((a, b) => {
+    if (a.isCompleted !== b.isCompleted) {
+      return a.isCompleted ? 1 : -1
+    }
+    const difficultyOrder: Record<Quest['difficulty'], number> = { easy: 1, medium: 2, hard: 3 }
+    return difficultyOrder[(a.quest as Quest).difficulty] - difficultyOrder[(b.quest as Quest).difficulty]
+  })
 }
 
 const QuestSkeleton = () => {
@@ -36,6 +41,41 @@ const QuestSkeleton = () => {
     </div>
   )
 }
+
+const PureQuestsDialog = ({
+  isOpen,
+  onOpenChange,
+  children,
+  replacementText,
+}: {
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
+  children: React.ReactNode
+  replacementText: string
+}) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[550px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Award className="h-6 w-6 text-amber-500" />
+            Available Quests
+          </DialogTitle>
+          <DialogDescription>
+            Complete quests for XP and chests. Replace quests you don&apos;t like.
+            <span className="block text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <RefreshCw className="h-3 w-3" />
+              {replacementText}
+            </span>
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">{children}</div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 
 export const QuestsDialog = ({
   isOpen,
@@ -64,22 +104,13 @@ export const QuestsDialog = ({
     return Math.max(0, replacementInfo.maxReplacements - replacementInfo.replacementsUsed)
   }, [replacementInfo])
 
-  // Mémoiser les quêtes triées
+  // Memoize the sorted quests
   const sortedQuests = useMemo(() => {
     if (!activeQuests) return []
-
-    return [...activeQuests].sort((a, b) => {
-      // Trier d'abord par statut de complétion (non complétées en premier)
-      if (a.isCompleted !== b.isCompleted) {
-        return a.isCompleted ? 1 : -1
-      }
-      // Puis par difficulté
-      const difficultyOrder = { easy: 1, medium: 2, hard: 3 }
-      return difficultyOrder[a.quest.difficulty] - difficultyOrder[b.quest.difficulty]
-    })
+    return getSortedQuests(activeQuests)
   }, [activeQuests])
 
-  // Mémoiser le contenu des quêtes
+  // Memoize the quest content
   const questContent = useMemo(() => {
     if (isLoading) {
       return Array.from({ length: 4 }).map((_, index) => <QuestSkeleton key={index} />)
@@ -99,33 +130,45 @@ export const QuestsDialog = ({
       const isCurrentQuestReplacing = !!questId && isReplacingQuestId === questId.toString()
 
       return (
-        <QuestCard
-          key={userQuest.id}
-          userQuest={userQuest}
-          onReplaceQuest={() => {
-            if (questId) {
-              replaceQuest(questId.toString())
-            } else {
-              console.error('Cannot replace quest: Quest ID is missing.')
-            }
-          }}
-          canReplace={canReplaceQuest && !isReplacingQuestId}
-          isReplacing={isCurrentQuestReplacing}
-          onCompleteQuest={() => {
-            if (questId) {
-              completeQuest(questId.toString())
-            } else {
-              console.error('Cannot complete quest: Quest ID is missing.')
-            }
-          }}
-        />
+        // <QuestCard
+        //   key={userQuest.id}
+        //   userQuest={userQuest}
+        //   onReplaceQuest={() => {
+        //     if (questId) {
+        //       replaceQuest(questId.toString())
+        //     } else {
+        //       console.error('Cannot replace quest: Quest ID is missing.')
+        //     }
+        //   }}
+        //   canReplace={canReplaceQuest && !isReplacingQuestId}
+        //   isReplacing={isCurrentQuestReplacing}
+        //   onCompleteQuest={() => {
+        //     if (questId) {
+        //       completeQuest(questId)
+        //     } else {
+        //       console.error('Cannot complete quest: Quest ID is missing.')
+        //     }
+        //   }}
+        // />
+        <QuestCard.Root key={userQuest.id} userQuest={userQuest}>
+          <QuestCard.Icon />
+          <QuestCard.Container>
+            <QuestCard.Header>
+              <div className="flex items-center gap-2">
+                <QuestCard.Title />
+              </div>
+              <QuestCard.Reward />
+            </QuestCard.Header>
+            <QuestCard.Progression />
+          </QuestCard.Container>
+        </QuestCard.Root>
       )
     })
   }, [
     isLoading,
     questsError,
     infoError,
-    sortedQuests,
+    activeQuests,
     remainingReplacements,
     completeQuest,
     replaceQuest,
@@ -133,7 +176,6 @@ export const QuestsDialog = ({
     isReplacingQuestId,
   ])
 
-  // Display remaining replacements
   const replacementText = useMemo(() => {
     if (isLoading || !replacementInfo) return 'Loading...'
     if (remainingReplacements === Infinity) return 'Unlimited replacements left'
@@ -141,24 +183,8 @@ export const QuestsDialog = ({
   }, [isLoading, replacementInfo, remainingReplacements])
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Award className="h-6 w-6 text-amber-500" />
-            Available Quests
-          </DialogTitle>
-          <DialogDescription>
-            Complete quests for XP and chests. Replace quests you don&apos;t like.
-            <span className="block text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <RefreshCw className="h-3 w-3" />
-              {replacementText}
-            </span>
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="mt-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">{questContent}</div>
-      </DialogContent>
-    </Dialog>
+    <PureQuestsDialog isOpen={isOpen} onOpenChange={onOpenChange} replacementText={replacementText}>
+      {questContent}
+    </PureQuestsDialog>
   )
 }

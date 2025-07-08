@@ -4,14 +4,7 @@ export const UserChallengeProgression: CollectionConfig = {
   slug: 'userChallengeProgression',
   admin: {
     useAsTitle: 'userId',
-    defaultColumns: [
-      'userId',
-      'challenge',
-      'hasLiked',
-      'hasDisliked',
-      'completionStatus',
-      'createdAt',
-    ],
+    
   },
   fields: [
     {
@@ -88,30 +81,30 @@ export const UserChallengeProgression: CollectionConfig = {
         description: 'Whether the solution has been unlocked by the user',
       },
     },
-    {
-      name: 'code',
-      type: 'array',
-      admin: {
-        description: 'Code submissions for this challenge',
-      },
-      fields: [
-        {
-          name: 'language',
-          type: 'text',
-          required: true,
-          admin: {
-            description: 'Programming language of the code',
-          },
-        },
-        {
-          name: 'content',
-          type: 'code',
-          required: true,
-          admin: {
-            description: 'The actual code content',
-          },
-        },
-      ],
-    },
+    // {
+    //   name: 'code',
+    //   type: 'array',
+    //   admin: {
+    //     description: 'Code submissions for this challenge',
+    //   },
+    //   fields: [
+    //     {
+    //       name: 'language',
+    //       type: 'text',
+    //       required: true,
+    //       admin: {
+    //         description: 'Programming language of the code',
+    //       },
+    //     },
+    //     {
+    //       name: 'content',
+    //       type: 'code',
+    //       required: true,
+    //       admin: {
+    //         description: 'The actual code content',
+    //       },
+    //     },
+    //   ],
+    // },
   ],
 }

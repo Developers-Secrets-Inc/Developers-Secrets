@@ -17,11 +17,7 @@ import { useState } from 'react'
 import { LogoutConfirmationDialog } from './dialogs/logout-confirmation-dialog'
 import { SettingsDialog } from './dialogs/settings-dialog'
 
-type UserDropdownMenuProps = {
-  user: User
-}
-
-export const UserDropdownMenu = ({ user }: UserDropdownMenuProps) => {
+export const UserDropdownMenu = ({ user }: { user: User }) => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [showSettingsDialog, setShowSettingsDialog] = useState(false)
 

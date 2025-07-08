@@ -16,7 +16,6 @@ export const CommentsSection = ({ context, userId, className }: CommentsSectionP
   const { comments, totalComments, isLoading, addComment, deleteComment, addReply, editComment } =
     useComments(context, userId)
 
-  console.log('comments', comments)
 
   const handleSubmit = async (content: string) => {
     if (!userId) return

@@ -22,8 +22,8 @@ export function SubmissionRuntimeError({
   lastExpectedOutput,
 }: SubmissionRuntimeErrorProps) {
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+    <div className="w-full">
+      <div className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-6 w-6 text-red-500" />
@@ -36,9 +36,9 @@ export function SubmissionRuntimeError({
         <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20 px-3 py-1">
           {testsPassed}/{testsTotal} tests passed
         </Badge>
-      </CardHeader>
+      </div>
 
-      <CardContent className="space-y-6 pt-6">
+      <div className="space-y-6 pt-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">Error Details</h3>
@@ -80,7 +80,7 @@ export function SubmissionRuntimeError({
             <CodeBlockCode code={code.content} language={code.language} />
           </CodeBlock>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

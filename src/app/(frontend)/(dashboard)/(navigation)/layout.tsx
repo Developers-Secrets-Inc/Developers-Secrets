@@ -1,22 +1,24 @@
+import { DashboardHeader } from '@/components/sidebars/home-sidebar/dashboard-header'
 import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
-import { getUser } from '@/core/user'
-import { redirect } from 'next/navigation'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { RedirectIfNotSignedIn } from '@/core/user/components/signed-in'
+import DashboardSettingsBubble from '@/core/admin/settings/components/dashboard-settings-bubble'
+import { AdminComponent } from '@/core/user/components/admin-component'
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const user = await getUser()
-  if (!user) {
-    redirect('/auth/login')
-  }
-
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
-      <HomeSidebar />
-      <SidebarInset>
-        <HomeHeader />
-        {children}
-      </SidebarInset>
-    </SidebarProvider>
+    <RedirectIfNotSignedIn redirectTo="/auth/signup">
+      <SidebarProvider>
+        <HomeSidebar />
+        <SidebarInset>
+          <DashboardHeader />
+          {children}
+        </SidebarInset>
+
+        {/* <AdminComponent> */}
+          {/* <DashboardSettingsBubble /> */}
+        {/* </AdminComponent> */}
+      </SidebarProvider>
+    </RedirectIfNotSignedIn>
   )
 }

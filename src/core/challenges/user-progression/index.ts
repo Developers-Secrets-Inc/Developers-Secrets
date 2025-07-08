@@ -16,12 +16,19 @@ import {
   validateRating,
   validateUserId,
 } from './types'
+import {
+  createCompletionStatus,
+  getCompletionStatus,
+  setCompletionStatus,
+  isSolutionUnlocked as getSolutionUnlockStatusFromCompletion,
+  setSolutionUnlocked,
+} from './completion-status'
 import { Where } from 'payload'
 import { unstable_cache } from 'next/cache'
 import { Challenge as PayloadChallenge, UserChallengeProgression } from '@/payload-types'
 import { CalendarDay, CompletedChallengeInfo } from './types'
 
-const getUserProgression = async (
+export const getUserProgression = async (
   userId: string,
   challengeId: number,
 ): Promise<UserProgression | null> => {
@@ -30,7 +37,8 @@ const getUserProgression = async (
 
   const payload = await getPayload({ config })
 
-  const userProgression = await payload.find({
+  // Fetch from userChallengeProgression
+  const userProgressionDoc = await payload.find({
     collection: 'userChallengeProgression',
     where: {
       userId: {
@@ -41,51 +49,105 @@ const getUserProgression = async (
       },
     },
   })
+  const progression = userProgressionDoc.docs[0]
 
-  const doc = userProgression.docs[0]
+  // Fetch from userChallengeCompletionStatus
+  const completionStatusDoc = await payload.find({
+    collection: 'userChallengeCompletionStatus',
+    where: {
+      userId: {
+        equals: validatedUserId,
+      },
+      challenge: {
+        equals: validatedChallengeId,
+      },
+    },
+  })
+  const completion = completionStatusDoc.docs[0]
 
-  if (!doc) {
+  // Fetch from userChallengeCode
+  const userCodeDoc = await payload.find({
+    collection: 'userChallengeCode',
+    where: {
+      userId: {
+        equals: validatedUserId,
+      },
+      challenge: {
+        equals: validatedChallengeId,
+      },
+    },
+  })
+  const codeData = userCodeDoc.docs[0]
+
+  if (!progression && !completion && !codeData) {
     return null
   }
 
   return {
-    ...doc,
-    code: doc.code ?? null,
-    hasLiked: doc.hasLiked ?? null,
-    hasDisliked: doc.hasDisliked ?? null,
-    completionStatus: doc.completionStatus ?? 'not_started',
-    isSolutionUnlocked: doc.isSolutionUnlocked ?? null,
-    rating: doc.rating ?? null,
+    id: progression?.id || '', // Use ID from main progression or generate if needed
+    userId: validatedUserId,
+    challenge: validatedChallengeId,
+    hasLiked: progression?.hasLiked ?? false,
+    hasDisliked: progression?.hasDisliked ?? false,
+    rating: progression?.rating ?? null,
+    completionStatus: completion?.completionStatus ?? 'not_started',
+    isSolutionUnlocked: completion?.isSolutionUnlocked ?? false,
+    code: codeData?.code ?? [],
+    userCode: codeData?.code?.find((c) => c.language === 'javascript')?.content ?? null, // Assuming 'javascript' as default
   } as UserProgression
 }
 
-const createUserProgression = async (
-  userId: string,
-  challengeId: number,
-): Promise<UserProgression> => {
-  const validatedUserId = validateUserId(userId)
-  const validatedChallengeId = validateChallengeId(challengeId)
-
+export const createUserProgression = async (userId: string, challengeId: number): Promise<void> => {
   const payload = await getPayload({ config })
 
-  const userProgression = await payload.create({
+  // Create entry in userChallengeProgression
+  const existingProgression = await payload.find({
     collection: 'userChallengeProgression',
-    data: {
-      userId: validatedUserId,
-      challenge: validatedChallengeId,
-      completionStatus: 'not_started',
+    where: {
+      userId: { equals: userId },
+      challenge: { equals: challengeId },
     },
   })
+  if (existingProgression.totalDocs === 0) {
+    await payload.create({
+      collection: 'userChallengeProgression',
+      data: {
+        userId,
+        challenge: challengeId,
+      },
+    })
+  }
 
-  return {
-    ...userProgression,
-    code: null,
-    hasLiked: null,
-    hasDisliked: null,
-    completionStatus: 'not_started',
-    isSolutionUnlocked: null,
-    rating: null,
-  } as UserProgression
+  // Create entry in userChallengeCompletionStatus
+  const existingCompletion = await payload.find({
+    collection: 'userChallengeCompletionStatus',
+    where: {
+      userId: { equals: userId },
+      challenge: { equals: challengeId },
+    },
+  })
+  if (existingCompletion.totalDocs === 0) {
+    await createCompletionStatus(userId, challengeId)
+  }
+
+  // Create entry in userChallengeCode
+  const existingCode = await payload.find({
+    collection: 'userChallengeCode',
+    where: {
+      userId: { equals: userId },
+      challenge: { equals: challengeId },
+    },
+  })
+  if (existingCode.totalDocs === 0) {
+    await payload.create({
+      collection: 'userChallengeCode',
+      data: {
+        userId,
+        challenge: challengeId,
+        code: [{ language: 'javascript', content: '' }], // Initial empty code
+      },
+    })
+  }
 }
 
 export const hasUserLikedChallenge = async (
@@ -160,8 +222,7 @@ export const getUserCompletionStatus = async (
   const validatedUserId = validateUserId(userId)
   const validatedChallengeId = validateChallengeId(challengeId)
 
-  const userProgression = await getUserProgression(validatedUserId, validatedChallengeId)
-  return userProgression?.completionStatus ?? 'not_started'
+  return getCompletionStatus(validatedUserId, validatedChallengeId)
 }
 
 export const setUserCompletionStatus = async (
@@ -173,28 +234,7 @@ export const setUserCompletionStatus = async (
   const validatedChallengeId = validateChallengeId(challengeId)
   const validatedCompletionStatus = validateCompletionStatus(completionStatus)
 
-  const userProgression = await getUserProgression(validatedUserId, validatedChallengeId)
-
-  if (!userProgression) {
-    await createUserProgression(validatedUserId, validatedChallengeId)
-  }
-
-  const payload = await getPayload({ config })
-
-  await payload.update({
-    collection: 'userChallengeProgression',
-    where: {
-      userId: {
-        equals: validatedUserId,
-      },
-      challenge: {
-        equals: validatedChallengeId,
-      },
-    },
-    data: {
-      completionStatus: validatedCompletionStatus,
-    },
-  })
+  await setCompletionStatus(validatedUserId, validatedChallengeId, validatedCompletionStatus)
 }
 
 export const getUserIsSolutionUnlocked = async (
@@ -204,9 +244,7 @@ export const getUserIsSolutionUnlocked = async (
   const validatedUserId = validateUserId(userId)
   const validatedChallengeId = validateChallengeId(challengeId)
 
-  const userProgression = await getUserProgression(validatedUserId, validatedChallengeId)
-  // Solution is unlocked if explicitly unlocked OR if the challenge is completed
-  return userProgression?.isSolutionUnlocked || userProgression?.completionStatus === 'completed'
+  return getSolutionUnlockStatusFromCompletion(validatedUserId, validatedChallengeId)
 }
 
 export const setUserIsSolutionUnlocked = async (
@@ -218,28 +256,28 @@ export const setUserIsSolutionUnlocked = async (
   const validatedChallengeId = validateChallengeId(challengeId)
   const validatedIsSolutionUnlocked = validateIsSolutionUnlocked(isSolutionUnlocked)
 
-  const userProgression = await getUserProgression(validatedUserId, validatedChallengeId)
-
-  if (!userProgression) {
-    await createUserProgression(validatedUserId, validatedChallengeId)
+  // If setting to unlocked, use the dedicated function
+  if (validatedIsSolutionUnlocked) {
+    await setSolutionUnlocked(validatedUserId, validatedChallengeId)
+  } else {
+    // If setting to locked, we need to explicitly update the progression status in the completion collection
+    // This case might not be common as solution unlock is usually one-way
+    const payload = await getPayload({ config })
+    await payload.update({
+      collection: 'userChallengeCompletionStatus',
+      where: {
+        userId: {
+          equals: validatedUserId,
+        },
+        challenge: {
+          equals: validatedChallengeId,
+        },
+      },
+      data: {
+        isSolutionUnlocked: false,
+      },
+    })
   }
-
-  const payload = await getPayload({ config })
-
-  await payload.update({
-    collection: 'userChallengeProgression',
-    where: {
-      userId: {
-        equals: validatedUserId,
-      },
-      challenge: {
-        equals: validatedChallengeId,
-      },
-    },
-    data: {
-      isSolutionUnlocked: validatedIsSolutionUnlocked,
-    },
-  })
 }
 
 export const getUserCode = async (
@@ -251,12 +289,120 @@ export const getUserCode = async (
   const validatedChallengeId = validateChallengeId(challengeId)
   const validatedLanguage = validateCodeLanguage(language)
 
-  const userProgression = await getUserProgression(validatedUserId, validatedChallengeId)
-  const codeBlock = userProgression?.code?.find((code) => code.language === validatedLanguage)
+  const payload = await getPayload({ config })
+
+  const userCodeDoc = await payload.find({
+    collection: 'userChallengeCode',
+    where: {
+      userId: {
+        equals: validatedUserId,
+      },
+      challenge: {
+        equals: validatedChallengeId,
+      },
+    },
+  })
+
+  const doc = userCodeDoc.docs[0]
+
+  if (!doc || !doc.code) {
+    throw new Error('Code block not found or empty')
+  }
+
+  const codeBlock = doc.code.find((code) => code.language === validatedLanguage)
   if (!codeBlock) {
-    throw new Error('Code block not found')
+    throw new Error('Code block for specified language not found')
   }
   return codeBlock
+}
+
+export const setUserCode = async (
+  userId: string,
+  challengeId: number,
+  userCodeContent: string, // Renamed to avoid confusion with collection field
+): Promise<void> => {
+  const validatedUserId = validateUserId(userId)
+  const validatedChallengeId = validateChallengeId(challengeId)
+
+  const payload = await getPayload({ config })
+
+  const existingCodeDoc = await payload.find({
+    collection: 'userChallengeCode',
+    where: {
+      userId: {
+        equals: validatedUserId,
+      },
+      challenge: {
+        equals: validatedChallengeId,
+      },
+    },
+  })
+
+  if (existingCodeDoc.docs.length > 0) {
+    // Update existing code block
+    const docId = existingCodeDoc.docs[0].id
+    const existingCodeArray = existingCodeDoc.docs[0].code || []
+    const codeLanguage = 'javascript' // Assuming default language for now
+
+    const updatedCodeArray = existingCodeArray.map((block) =>
+      block.language === codeLanguage ? { ...block, content: userCodeContent } : block,
+    )
+
+    if (!updatedCodeArray.some((block) => block.language === codeLanguage)) {
+      updatedCodeArray.push({ language: codeLanguage, content: userCodeContent })
+    }
+
+    await payload.update({
+      collection: 'userChallengeCode',
+      id: docId,
+      data: {
+        code: updatedCodeArray,
+      },
+    })
+  } else {
+    // Create new code block entry
+    await payload.create({
+      collection: 'userChallengeCode',
+      data: {
+        userId: validatedUserId,
+        challenge: validatedChallengeId,
+        code: [{ language: 'javascript', content: userCodeContent }], // Assuming default language
+      },
+    })
+  }
+}
+
+export const getUserSavedCode = async (
+  userId: string,
+  challengeId: number,
+  language: string, // Added language parameter
+): Promise<string | null> => {
+  const validatedUserId = validateUserId(userId)
+  const validatedChallengeId = validateChallengeId(challengeId)
+  const validatedLanguage = validateCodeLanguage(language)
+
+  const payload = await getPayload({ config })
+
+  const userCodeDoc = await payload.find({
+    collection: 'userChallengeCode',
+    where: {
+      userId: {
+        equals: validatedUserId,
+      },
+      challenge: {
+        equals: validatedChallengeId,
+      },
+    },
+  })
+
+  const doc = userCodeDoc.docs[0]
+
+  if (!doc || !doc.code) {
+    return null
+  }
+
+  const codeBlock = doc.code.find((block) => block.language === validatedLanguage)
+  return codeBlock?.content ?? null
 }
 
 export const setUserLike = async (
@@ -557,7 +703,7 @@ export const getCalendarDays = async (userId: string): Promise<(CalendarDay | nu
 
   // Fetch all completed progressions for the user within the current month
   const completedProgressions = await payload.find({
-    collection: 'userChallengeProgression',
+    collection: 'userChallengeCompletionStatus',
     where: {
       and: [
         {
@@ -604,7 +750,7 @@ export const getCalendarDays = async (userId: string): Promise<(CalendarDay | nu
       const dateString = `${utcYear}-${utcMonth}-${utcDay}`
 
       const challenge = progression.challenge as PayloadChallenge
-      const difficulty = ['easy', 'medium', 'hard', 'horrible'].includes(challenge.difficulty)
+      const difficulty = ['very_easy', 'easy', 'medium', 'hard', 'horrible'].includes(challenge.difficulty)
         ? (challenge.difficulty as CompletedChallengeInfo['difficulty'])
         : 'medium'
 
@@ -664,25 +810,6 @@ export const getCalendarDays = async (userId: string): Promise<(CalendarDay | nu
   }
 
   return allDays
-}
-
-export const getTotalCompletedChallengesCount = async (userId: string): Promise<number> => {
-  const validatedUserId = validateUserId(userId)
-  const payload = await getPayload({ config })
-
-  const countResult = await payload.count({
-    collection: 'userChallengeProgression',
-    where: {
-      userId: {
-        equals: validatedUserId,
-      },
-      completionStatus: {
-        equals: 'completed',
-      },
-    },
-  })
-
-  return countResult.totalDocs ?? 0
 }
 
 /**

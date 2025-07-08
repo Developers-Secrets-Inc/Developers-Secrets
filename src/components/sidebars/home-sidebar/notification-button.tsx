@@ -21,7 +21,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useNotifications } from '@/core/notifications/hooks/use-notification'
+import { useNotifications } from '@/core/notifications/notification-provider'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Pagination,
@@ -36,7 +36,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export const NotificationButton = () => {
   const queryClient = useQueryClient()
-  const { data: notifications = [] } = useNotifications()
+  const { notifications, unreadCount, isLoading, isError, markAsRead, markAllAsRead } =
+    useNotifications()
   const [removingIds, setRemovingIds] = useState<number[]>([])
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -46,64 +47,42 @@ export const NotificationButton = () => {
     return notifications.filter((n) => !n.isRead && !removingIds.includes(n.id))
   }, [notifications, removingIds])
 
+  const userId = notifications[0]?.userId
   const { data: readNotificationsData, isLoading: isLoadingHistory } = useQuery({
-    queryKey: ['readNotifications', currentPage],
-    queryFn: () => getReadNotifications({ page: currentPage, limit: ITEMS_PER_PAGE }),
-    enabled: isHistoryOpen,
+    queryKey: ['readNotifications', userId, currentPage],
+    queryFn: () =>
+      userId
+        ? getReadNotifications({ userId, page: currentPage, limit: ITEMS_PER_PAGE })
+        : { docs: [], totalDocs: 0, currentPage },
+    enabled: isHistoryOpen && !!userId,
   })
-
-  // Get total pages from the first page response
   const { data: firstPageData } = useQuery({
-    queryKey: ['readNotifications', 1],
-    queryFn: () => getReadNotifications({ page: 1, limit: ITEMS_PER_PAGE }),
-    enabled: isHistoryOpen,
+    queryKey: ['readNotifications', userId, 1],
+    queryFn: () =>
+      userId
+        ? getReadNotifications({ userId, page: 1, limit: ITEMS_PER_PAGE })
+        : { docs: [], totalDocs: 0, currentPage: 1 },
+    enabled: isHistoryOpen && !!userId,
   })
 
   const readNotifications = readNotificationsData?.docs ?? []
   const totalDocs = firstPageData?.totalDocs ?? 0
   const totalPages = Math.ceil(totalDocs / ITEMS_PER_PAGE)
 
-  const markAsReadMutation = useMutation({
-    mutationFn: setIsRead,
-    onMutate: async (id) => {
-      setRemovingIds((prev) => [...prev, id])
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['readNotifications'] })
-    },
-    onError: (error, id) => {
-      setRemovingIds((prev) => prev.filter((rid) => rid !== id))
-      console.error('Failed to mark notification as read:', error)
-    },
-  })
-
-  const markAllAsReadMutation = useMutation({
-    mutationFn: setAllNotificationsAsRead,
-    onMutate: () => {
-      const currentIds = notifications.map((n) => n.id)
-      setRemovingIds(currentIds)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['readNotifications'] })
-    },
-    onError: (error) => {
-      setRemovingIds([])
-      console.error('Failed to mark all notifications as read:', error)
-    },
-  })
-
   const handleMarkAsRead = useCallback(
     (id: number) => {
-      markAsReadMutation.mutate(id)
+      setRemovingIds((prev) => [...prev, id])
+      markAsRead(id)
+      setTimeout(() => setRemovingIds((prev) => prev.filter((rid) => rid !== id)), 500)
     },
-    [markAsReadMutation],
+    [markAsRead],
   )
 
   const handleMarkAllAsRead = useCallback(() => {
-    markAllAsReadMutation.mutate()
-  }, [markAllAsReadMutation])
+    setRemovingIds(notifications.map((n) => n.id))
+    markAllAsRead()
+    setTimeout(() => setRemovingIds([]), 500)
+  }, [markAllAsRead, notifications])
 
   const getHighestImportance = () => {
     if (activeNotifications.length === 0) return null
@@ -115,18 +94,21 @@ export const NotificationButton = () => {
   const importanceColor = {
     high: {
       background: 'bg-red-500/10',
+      dot: 'bg-red-500/40',
       text: 'text-red-500',
       border: 'border-red-500/20',
       hover: 'hover:bg-red-500/20',
     },
     medium: {
       background: 'bg-orange-500/10',
+      dot: 'bg-orange-500/40',
       text: 'text-orange-500',
       border: 'border-orange-500/20',
       hover: 'hover:bg-orange-500/20',
     },
     low: {
       background: 'bg-blue-500/10',
+      dot: 'bg-blue-500/40',
       text: 'text-blue-500',
       border: 'border-blue-500/20',
       hover: 'hover:bg-blue-500/20',
@@ -189,7 +171,7 @@ export const NotificationButton = () => {
             <span
               className={cn(
                 'absolute top-1 right-1 h-2 w-2 rounded-full',
-                importanceColor[highestImportance].background,
+                importanceColor[highestImportance].dot,
                 importanceColor[highestImportance].text,
               )}
             />

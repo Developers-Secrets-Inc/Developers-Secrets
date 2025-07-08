@@ -52,6 +52,19 @@ import { CoursePartUserProgression } from './collections/CoursePartUserProgressi
 import { CoursePartSubmissions } from './collections/CoursePartSubmissions'
 import { UserChapterProgress } from './collections/UserChapterProgress'
 import { CoursePartFeedback } from './collections/CoursePartFeedback'
+import UserOnboarding from './collections/UserOnboarding'
+import { LearningPath } from './collections/LearningPath'
+import { BlogArticles } from './collections/BlogArticles'
+import { UserChallengeEngagement } from './collections/UserChallengeEngagement'
+import { UserChallengeCompletionStatus } from './collections/UserChallengeCompletionStatus'
+import { UserChallengeCode } from './collections/UserChallengeCode'
+import { DailyLoginEntry } from './collections/DailyLoginEntry'
+import { ChallengeStreaks } from './collections/ChallengeStreaks'
+import { ChallengeAIChats } from './collections/ChallengeAIChats'
+import { UserAIUsage } from './collections/UserAIUsage'
+import { UserAICredits } from './collections/UserAICredits'
+import { ChatHistories } from './collections/ChatHistories'
+import { s3Storage } from '@payloadcms/storage-s3'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -103,12 +116,24 @@ export default buildConfig({
     UserImplementationConceptProgressions,
     ConceptGroups,
     Courses,
+    LearningPath,
     Chapters,
     CourseParts,
     CoursePartUserProgression,
     CoursePartSubmissions,
     UserChapterProgress,
     CoursePartFeedback,
+    UserOnboarding,
+    BlogArticles,
+    UserChallengeEngagement,
+    UserChallengeCompletionStatus,
+    UserChallengeCode,
+    DailyLoginEntry,
+    ChallengeStreaks,
+    ChallengeAIChats,
+    UserAIUsage,
+    UserAICredits,
+    ChatHistories,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
@@ -123,7 +148,26 @@ export default buildConfig({
   sharp,
   plugins: [
     payloadCloudPlugin(),
-    // storage-adapter-placeholder
+    s3Storage({
+      collections: {
+        media: {
+          prefix: 'media',
+        },
+        'chat-histories': {
+          prefix: 'chat-histories',
+        },
+      },
+      bucket: process.env.S3_BUCKET!,
+      config: {
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+        },
+        region: process.env.S3_REGION!,
+        endpoint: process.env.S3_ENDPOINT,
+      },
+    }),
   ],
   jobs: {
     access: {
@@ -143,28 +187,5 @@ export default buildConfig({
         return false
       },
     },
-    tasks: [
-      {
-        slug: 'createWeeklyDivisionLeaderboards',
-        handler: async (...args) => {
-          const { createWeeklyLeaderboardsHandler } = await import(
-            './jobs/createWeeklyLeaderboards'
-          )
-          return createWeeklyLeaderboardsHandler(...args)
-        },
-        // Add other config like retries, queue if needed
-        // queue: 'weekly-start',
-        // retries: 2,
-      },
-      {
-        slug: 'processWeeklyLeaderboardResults',
-        handler: async (...args) => {
-          const { processWeeklyResultsHandler } = await import('./jobs/processWeeklyResults')
-          return processWeeklyResultsHandler(...args)
-        },
-        // queue: 'weekly-end',
-        // retries: 2,
-      },
-    ],
   },
 })

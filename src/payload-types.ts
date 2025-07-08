@@ -106,13 +106,24 @@ export interface Config {
     userImplementationConceptProgressions: UserImplementationConceptProgression;
     conceptGroups: ConceptGroup;
     courses: Course;
+    'learning-paths': LearningPath;
     chapters: Chapter;
     courseParts: CoursePart;
     coursePartUserProgression: CoursePartUserProgression;
     coursePartSubmissions: CoursePartSubmission;
     userChapterProgress: UserChapterProgress;
     coursePartFeedback: CoursePartFeedback;
-    'payload-jobs': PayloadJob;
+    'user-onboarding': UserOnboarding;
+    'blog-articles': BlogArticle;
+    userChallengeEngagement: UserChallengeEngagement;
+    userChallengeCompletionStatus: UserChallengeCompletionStatus;
+    userChallengeCode: UserChallengeCode;
+    'daily-login-entries': DailyLoginEntry;
+    'challenge-streaks': ChallengeStreak;
+    'challenge-ai-chats': ChallengeAiChat;
+    'user-ai-usage': UserAiUsage;
+    'user-ai-credits': UserAiCredit;
+    'chat-histories': ChatHistory;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -158,13 +169,24 @@ export interface Config {
     userImplementationConceptProgressions: UserImplementationConceptProgressionsSelect<false> | UserImplementationConceptProgressionsSelect<true>;
     conceptGroups: ConceptGroupsSelect<false> | ConceptGroupsSelect<true>;
     courses: CoursesSelect<false> | CoursesSelect<true>;
+    'learning-paths': LearningPathsSelect<false> | LearningPathsSelect<true>;
     chapters: ChaptersSelect<false> | ChaptersSelect<true>;
     courseParts: CoursePartsSelect<false> | CoursePartsSelect<true>;
     coursePartUserProgression: CoursePartUserProgressionSelect<false> | CoursePartUserProgressionSelect<true>;
     coursePartSubmissions: CoursePartSubmissionsSelect<false> | CoursePartSubmissionsSelect<true>;
     userChapterProgress: UserChapterProgressSelect<false> | UserChapterProgressSelect<true>;
     coursePartFeedback: CoursePartFeedbackSelect<false> | CoursePartFeedbackSelect<true>;
-    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
+    'user-onboarding': UserOnboardingSelect<false> | UserOnboardingSelect<true>;
+    'blog-articles': BlogArticlesSelect<false> | BlogArticlesSelect<true>;
+    userChallengeEngagement: UserChallengeEngagementSelect<false> | UserChallengeEngagementSelect<true>;
+    userChallengeCompletionStatus: UserChallengeCompletionStatusSelect<false> | UserChallengeCompletionStatusSelect<true>;
+    userChallengeCode: UserChallengeCodeSelect<false> | UserChallengeCodeSelect<true>;
+    'daily-login-entries': DailyLoginEntriesSelect<false> | DailyLoginEntriesSelect<true>;
+    'challenge-streaks': ChallengeStreaksSelect<false> | ChallengeStreaksSelect<true>;
+    'challenge-ai-chats': ChallengeAiChatsSelect<false> | ChallengeAiChatsSelect<true>;
+    'user-ai-usage': UserAiUsageSelect<false> | UserAiUsageSelect<true>;
+    'user-ai-credits': UserAiCreditsSelect<false> | UserAiCreditsSelect<true>;
+    'chat-histories': ChatHistoriesSelect<false> | ChatHistoriesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -179,14 +201,7 @@ export interface Config {
     collection: 'users';
   };
   jobs: {
-    tasks: {
-      createWeeklyDivisionLeaderboards: TaskCreateWeeklyDivisionLeaderboards;
-      processWeeklyLeaderboardResults: TaskProcessWeeklyLeaderboardResults;
-      inline: {
-        input: unknown;
-        output: unknown;
-      };
-    };
+    tasks: unknown;
     workflows: unknown;
   };
 }
@@ -232,6 +247,7 @@ export interface User {
 export interface Media {
   id: number;
   alt: string;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -397,6 +413,10 @@ export interface Tag {
 export interface Tutorial {
   id: number;
   title: string;
+  /**
+   * URL-friendly identifier for this tutorial. Will be used in the URL.
+   */
+  slug: string;
   description?: string | null;
   /**
    * Tutorial visibility (independent from the draft/publish system)
@@ -1183,6 +1203,10 @@ export interface Challenge {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Indique si le challenge est en mode brouillon (draft)
+   */
+  draft?: boolean | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1453,22 +1477,6 @@ export interface UserChallengeProgression {
    * Whether the solution has been unlocked by the user
    */
   isSolutionUnlocked?: boolean | null;
-  /**
-   * Code submissions for this challenge
-   */
-  code?:
-    | {
-        /**
-         * Programming language of the code
-         */
-        language: string;
-        /**
-         * The actual code content
-         */
-        content: string;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2025,6 +2033,30 @@ export interface CoursePart {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "learning-paths".
+ */
+export interface LearningPath {
+  id: number;
+  name: string;
+  slug: string;
+  icon: 'binary' | 'code' | 'robotic-brain';
+  description: string;
+  sections: {
+    name: string;
+    description?: string | null;
+    courses: {
+      course: number | Course;
+      isChoiceGroup?: boolean | null;
+      choiceGroupId?: string | null;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Tracks user progression and engagement for specific course parts.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2177,93 +2209,254 @@ export interface CoursePartFeedback {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-jobs".
+ * via the `definition` "user-onboarding".
  */
-export interface PayloadJob {
+export interface UserOnboarding {
   id: number;
-  /**
-   * Input data provided to the job
-   */
-  input?:
+  userId: string;
+  skipped: boolean;
+  codingLevel?: ('beginner' | 'intermediate' | 'advanced') | null;
+  timeCoding?: ('less-than-6-months' | 'less-than-1-year' | '1-2-years' | '3-5-years' | '5-plus-years') | null;
+  selectedLanguages?:
     | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  taskStatus?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  completedAt?: string | null;
-  totalTried?: number | null;
-  /**
-   * If hasError is true this job will not be retried
-   */
-  hasError?: boolean | null;
-  /**
-   * If hasError is true, this is the error that caused it
-   */
-  error?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Task execution log
-   */
-  log?:
-    | {
-        executedAt: string;
-        completedAt: string;
-        taskSlug: 'inline' | 'createWeeklyDivisionLeaderboards' | 'processWeeklyLeaderboardResults';
-        taskID: string;
-        input?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        output?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        state: 'failed' | 'succeeded';
-        error?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
+        value?: string | null;
+        label?: string | null;
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'createWeeklyDivisionLeaderboards' | 'processWeeklyLeaderboardResults') | null;
-  queue?: string | null;
-  waitUntil?: string | null;
-  processing?: boolean | null;
+  selectedConcepts?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  selectedGoals?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  selectedTechnologiesToLearn?:
+    | {
+        value?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-articles".
+ */
+export interface BlogArticle {
+  id: number;
+  title: string;
+  /**
+   * URL-friendly identifier for this blog article. Will be used in the URL.
+   */
+  slug: string;
+  /**
+   * The main content of the blog article, written in Markdown.
+   */
+  content: string;
+  /**
+   * A brief description or summary of the blog article.
+   */
+  description: string;
+  /**
+   * The category this blog article belongs to.
+   */
+  category: 'engineering' | 'changelog';
+  author: number | User;
+  /**
+   * The date and time when the article was published.
+   */
+  publishedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeEngagement".
+ */
+export interface UserChallengeEngagement {
+  id: number;
+  /**
+   * ID of the user
+   */
+  userId: string;
+  /**
+   * Related challenge
+   */
+  challenge: number | Challenge;
+  /**
+   * Whether the user has liked this challenge
+   */
+  hasLiked?: boolean | null;
+  /**
+   * Whether the user has disliked this challenge
+   */
+  hasDisliked?: boolean | null;
+  /**
+   * User rating for this challenge (1-5)
+   */
+  rating?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeCompletionStatus".
+ */
+export interface UserChallengeCompletionStatus {
+  id: number;
+  /**
+   * ID of the user
+   */
+  userId: string;
+  /**
+   * Related challenge
+   */
+  challenge: number | Challenge;
+  /**
+   * Current completion status of the challenge
+   */
+  completionStatus: 'not_started' | 'in_progress' | 'completed';
+  /**
+   * Whether the solution has been unlocked by the user
+   */
+  isSolutionUnlocked?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeCode".
+ */
+export interface UserChallengeCode {
+  id: number;
+  /**
+   * ID of the user
+   */
+  userId: string;
+  /**
+   * Related challenge
+   */
+  challenge: number | Challenge;
+  /**
+   * Code submissions for this challenge
+   */
+  code?:
+    | {
+        /**
+         * Programming language of the code
+         */
+        language: string;
+        /**
+         * The actual code content
+         */
+        content: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "daily-login-entries".
+ */
+export interface DailyLoginEntry {
+  id: number;
+  /**
+   * The Supabase user ID
+   */
+  userId: string;
+  /**
+   * The date when the user logged in
+   */
+  date: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-streaks".
+ */
+export interface ChallengeStreak {
+  id: number;
+  /**
+   * The Supabase user ID
+   */
+  userId: string;
+  /**
+   * The date of the challenge completion streak.
+   */
+  date: string;
+  /**
+   * The number of challenges completed on this date.
+   */
+  challengesCompleted: number;
+  /**
+   * The status of the streak for this day.
+   */
+  status: 'active' | 'frozen';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-ai-chats".
+ */
+export interface ChallengeAiChat {
+  id: number;
+  userId: string;
+  challenge: number | Challenge;
+  chatHistory?: (number | null) | ChatHistory;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-histories".
+ */
+export interface ChatHistory {
+  id: number;
+  chat: number | ChallengeAiChat;
+  prefix?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-ai-usage".
+ */
+export interface UserAiUsage {
+  id: number;
+  userId: string;
+  date: string;
+  messagesUsed: number;
+  dailyLimit: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-ai-credits".
+ */
+export interface UserAiCredit {
+  id: number;
+  userId: string;
+  balance: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -2431,6 +2624,10 @@ export interface PayloadLockedDocument {
         value: number | Course;
       } | null)
     | ({
+        relationTo: 'learning-paths';
+        value: number | LearningPath;
+      } | null)
+    | ({
         relationTo: 'chapters';
         value: number | Chapter;
       } | null)
@@ -2455,8 +2652,48 @@ export interface PayloadLockedDocument {
         value: number | CoursePartFeedback;
       } | null)
     | ({
-        relationTo: 'payload-jobs';
-        value: number | PayloadJob;
+        relationTo: 'user-onboarding';
+        value: number | UserOnboarding;
+      } | null)
+    | ({
+        relationTo: 'blog-articles';
+        value: number | BlogArticle;
+      } | null)
+    | ({
+        relationTo: 'userChallengeEngagement';
+        value: number | UserChallengeEngagement;
+      } | null)
+    | ({
+        relationTo: 'userChallengeCompletionStatus';
+        value: number | UserChallengeCompletionStatus;
+      } | null)
+    | ({
+        relationTo: 'userChallengeCode';
+        value: number | UserChallengeCode;
+      } | null)
+    | ({
+        relationTo: 'daily-login-entries';
+        value: number | DailyLoginEntry;
+      } | null)
+    | ({
+        relationTo: 'challenge-streaks';
+        value: number | ChallengeStreak;
+      } | null)
+    | ({
+        relationTo: 'challenge-ai-chats';
+        value: number | ChallengeAiChat;
+      } | null)
+    | ({
+        relationTo: 'user-ai-usage';
+        value: number | UserAiUsage;
+      } | null)
+    | ({
+        relationTo: 'user-ai-credits';
+        value: number | UserAiCredit;
+      } | null)
+    | ({
+        relationTo: 'chat-histories';
+        value: number | ChatHistory;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2521,6 +2758,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -2604,6 +2842,7 @@ export interface ArticlesSelect<T extends boolean = true> {
  */
 export interface TutorialsSelect<T extends boolean = true> {
   title?: T;
+  slug?: T;
   description?: T;
   tutorialStatus?: T;
   sections?:
@@ -2982,6 +3221,7 @@ export interface ChallengesSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  draft?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -2998,13 +3238,6 @@ export interface UserChallengeProgressionSelect<T extends boolean = true> {
   rating?: T;
   completionStatus?: T;
   isSolutionUnlocked?: T;
-  code?:
-    | T
-    | {
-        language?: T;
-        content?: T;
-        id?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3389,6 +3622,33 @@ export interface CoursesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "learning-paths_select".
+ */
+export interface LearningPathsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  icon?: T;
+  description?: T;
+  sections?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        courses?:
+          | T
+          | {
+              course?: T;
+              isChoiceGroup?: T;
+              choiceGroupId?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "chapters_select".
  */
 export interface ChaptersSelect<T extends boolean = true> {
@@ -3543,34 +3803,170 @@ export interface CoursePartFeedbackSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-jobs_select".
+ * via the `definition` "user-onboarding_select".
  */
-export interface PayloadJobsSelect<T extends boolean = true> {
-  input?: T;
-  taskStatus?: T;
-  completedAt?: T;
-  totalTried?: T;
-  hasError?: T;
-  error?: T;
-  log?:
+export interface UserOnboardingSelect<T extends boolean = true> {
+  userId?: T;
+  skipped?: T;
+  codingLevel?: T;
+  timeCoding?: T;
+  selectedLanguages?:
     | T
     | {
-        executedAt?: T;
-        completedAt?: T;
-        taskSlug?: T;
-        taskID?: T;
-        input?: T;
-        output?: T;
-        state?: T;
-        error?: T;
+        value?: T;
+        label?: T;
         id?: T;
       };
-  taskSlug?: T;
-  queue?: T;
-  waitUntil?: T;
-  processing?: T;
+  selectedConcepts?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
+  selectedGoals?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
+  selectedTechnologiesToLearn?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-articles_select".
+ */
+export interface BlogArticlesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  content?: T;
+  description?: T;
+  category?: T;
+  author?: T;
+  publishedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeEngagement_select".
+ */
+export interface UserChallengeEngagementSelect<T extends boolean = true> {
+  userId?: T;
+  challenge?: T;
+  hasLiked?: T;
+  hasDisliked?: T;
+  rating?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeCompletionStatus_select".
+ */
+export interface UserChallengeCompletionStatusSelect<T extends boolean = true> {
+  userId?: T;
+  challenge?: T;
+  completionStatus?: T;
+  isSolutionUnlocked?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeCode_select".
+ */
+export interface UserChallengeCodeSelect<T extends boolean = true> {
+  userId?: T;
+  challenge?: T;
+  code?:
+    | T
+    | {
+        language?: T;
+        content?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "daily-login-entries_select".
+ */
+export interface DailyLoginEntriesSelect<T extends boolean = true> {
+  userId?: T;
+  date?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-streaks_select".
+ */
+export interface ChallengeStreaksSelect<T extends boolean = true> {
+  userId?: T;
+  date?: T;
+  challengesCompleted?: T;
+  status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-ai-chats_select".
+ */
+export interface ChallengeAiChatsSelect<T extends boolean = true> {
+  userId?: T;
+  challenge?: T;
+  chatHistory?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-ai-usage_select".
+ */
+export interface UserAiUsageSelect<T extends boolean = true> {
+  userId?: T;
+  date?: T;
+  messagesUsed?: T;
+  dailyLimit?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-ai-credits_select".
+ */
+export interface UserAiCreditsSelect<T extends boolean = true> {
+  userId?: T;
+  balance?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-histories_select".
+ */
+export interface ChatHistoriesSelect<T extends boolean = true> {
+  chat?: T;
+  prefix?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -3603,22 +3999,6 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskCreateWeeklyDivisionLeaderboards".
- */
-export interface TaskCreateWeeklyDivisionLeaderboards {
-  input?: unknown;
-  output?: unknown;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskProcessWeeklyLeaderboardResults".
- */
-export interface TaskProcessWeeklyLeaderboardResults {
-  input?: unknown;
-  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

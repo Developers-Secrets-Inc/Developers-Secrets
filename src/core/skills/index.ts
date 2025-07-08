@@ -22,21 +22,6 @@ export const getSkillBySlug = async (slug: string) => {
   return skill.docs[0]
 }
 
-export const getChallengeWithDepth = async (challengeId: number) => {
-  const payload = await getPayload({ config })
-  const challenge = await payload.findByID({
-    collection: 'challenges',
-    id: challengeId,
-    depth: 3,
-  })
-
-  if (!challenge) {
-    throw new Error(`Challenge with ID "${challengeId}" not found`)
-  }
-
-  return challenge
-}
-
 /**
  * Fetches all available skills from the database.
  * @returns A promise resolving to an array of objects containing skill id (as string), name, and slug.

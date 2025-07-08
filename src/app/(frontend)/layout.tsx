@@ -4,7 +4,9 @@ import '@/styles/globals.css'
 import { Providers } from '@/components/providers'
 import { Metadata } from 'next'
 import { RootProvider } from 'fumadocs-ui/provider'
-
+import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Analytics } from '@vercel/analytics/next'
+import Script from 'next/script'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
@@ -22,11 +24,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <Providers>
           <RootProvider>
+            <Script
+              src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"
+              strategy="beforeInteractive"
+            />
             <main>{children}</main>
           </RootProvider>
         </Providers>
+        <SpeedInsights />
+        <Analytics mode="production" />
 
         {/* Initialize Pyodide */}
+      </body>
+    </html>
+  )
+}
+
+/*  
+
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -67,7 +82,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `,
           }}
         />
-      </body>
-    </html>
-  )
-}
+
+*/

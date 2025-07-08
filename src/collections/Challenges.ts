@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { revalidateTag } from 'next/cache'
 
 // Fonction pour calculer l'expérience basée sur la difficulté
 const calculateExperience = (difficulty: string): number => {
@@ -25,7 +26,33 @@ export const Challenges: CollectionConfig = {
     drafts: true,
   },
   access: {
-    read: () => true, // Tous les utilisateurs peuvent lire les challenges
+    // create: () => { return true }
+  },
+  hooks: {
+    afterChange: [({ doc }) => {
+      revalidateTag(`challenges`)
+      revalidateTag(`all-challenges`)
+      revalidateTag(`all-challenges-slugs`)
+      if (doc.id) {
+        revalidateTag(`challenge-${doc.id}`)
+      }
+      if (doc.slug) {
+        revalidateTag(`challenge-${doc.slug}`)
+      }
+      return
+    }],
+    afterDelete: [({ doc }) => {
+      revalidateTag(`challenges`)
+      revalidateTag(`all-challenges`)
+      revalidateTag(`all-challenges-slugs`)
+      if (doc.id) {
+        revalidateTag(`challenge-${doc.id}`)
+      }
+      if (doc.slug) {
+        revalidateTag(`challenge-${doc.slug}`)
+      }
+      return
+    }]
   },
   fields: [
     {
@@ -723,6 +750,16 @@ export const Challenges: CollectionConfig = {
           ],
         },
       ],
+    },
+    {
+      name: 'draft',
+      label: 'Draft',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        description: 'Indique si le challenge est en mode brouillon (draft)',
+        position: 'sidebar',
+      },
     },
   ],
   timestamps: true, // Ajout automatique des champs createdAt et updatedAt

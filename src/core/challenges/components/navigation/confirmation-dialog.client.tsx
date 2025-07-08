@@ -15,6 +15,8 @@ type ConfirmationDialogProps = {
   onConfirm: () => void
 }
 
+// TODO: Should be renamed UnlockSolutionsConfirmationDialog
+
 /**
  * A client component that wraps the server ConfirmationDialog with interactivity.
  * This component handles the dialog's open state and user interactions.

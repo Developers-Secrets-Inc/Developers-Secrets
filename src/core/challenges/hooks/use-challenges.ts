@@ -1,20 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   // Import the action that fetches ALL challenges with progress
-  // We need a modified version or a new action for this
-  // Let's assume we create/modify getChallengesWithProgress to accept NO args
-  // and return all challenges. For now, let's simulate this.
-  // We'll revert to the original logic pattern for simplicity here:
-  getAllChallenges, // Assuming this fetches all challenges (needs pagination: false)
-  getUserChallengeProgressions, // Import the action to fetch all progressions for a user
-} from '..'
+  // getUserChallengeProgressions, // Import the action to fetch all progressions for a user
+  getAllUserCompletionStatuses,
+} from '../user-progression/completion-status'
+import { getAllChallenges, getChallengeTableInformations } from '../challenge-queries'
 import { getUser } from '@/core/user'
-// import { getUserCompletionStatus } from '../user-progression' // No longer needed here
 import { ChallengeWithProgress } from '@/core/challenges' // Keep this type
 import { UserChallengeProgression } from '@/payload-types' // Import the progression type
 import { CompletionStatus } from '../user-progression/types'
-
-// Remove UseChallengesParams interface and defaultParams
 
 export const useChallenges = () => {
   // Re-introduce the query for the user object
@@ -27,7 +21,7 @@ export const useChallenges = () => {
   // Query to fetch ALL challenges (ensure getAllChallenges has pagination: false)
   const { data: challenges, isLoading: isChallengesLoading } = useQuery({
     queryKey: ['challenges'],
-    queryFn: getAllChallenges, // Use the function that gets all challenges
+    queryFn: () => getChallengeTableInformations(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
@@ -40,7 +34,7 @@ export const useChallenges = () => {
     queryFn: async () => {
       if (!user?.id) return []
       // Assuming getUserChallengeProgressions fetches all progressions for the user
-      return getUserChallengeProgressions(user.id)
+      return getAllUserCompletionStatuses(user.id)
     },
     enabled: !!user?.id, // Enable only when user is available
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -74,7 +68,16 @@ export const useChallenges = () => {
 
       // Map challenges and add status from the map
       return challenges.map(
-        (challenge: { id: any; title: any; difficulty: any; baseExperience: any; slug: any }) => {
+        (
+          challenge: Partial<{
+            id: any
+            title: any
+            difficulty: any
+            baseExperience: any
+            slug: any
+            draft?: boolean | null
+          }>,
+        ) => {
           const status = progressionMap.get(challenge.id as number) ?? 'not_started'
           return {
             id: challenge.id as number,
@@ -83,6 +86,7 @@ export const useChallenges = () => {
             baseExperience: challenge.baseExperience ?? 50,
             slug: challenge.slug,
             status,
+            draft: !!challenge.draft, // Force à false si null/undefined
           }
         },
       )

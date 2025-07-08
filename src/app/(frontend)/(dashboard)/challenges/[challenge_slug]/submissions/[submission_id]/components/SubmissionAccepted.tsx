@@ -14,8 +14,8 @@ type SubmissionAcceptedProps = {
 
 export function SubmissionAccepted({ testsPassed, testsTotal, code }: SubmissionAcceptedProps) {
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+    <div className="w-full">
+      <div className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <CheckCircle2Icon className="h-6 w-6 text-emerald-500" />
@@ -29,9 +29,9 @@ export function SubmissionAccepted({ testsPassed, testsTotal, code }: Submission
         >
           {testsPassed}/{testsTotal} tests passed
         </Badge>
-      </CardHeader>
+      </div>
 
-      <CardContent className="pt-6">
+      <div className="pt-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">Your Solution</h3>
@@ -46,7 +46,7 @@ export function SubmissionAccepted({ testsPassed, testsTotal, code }: Submission
             <CodeBlockCode code={code.content} language={code.language} />
           </CodeBlock>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

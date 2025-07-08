@@ -2,10 +2,11 @@ import { CommunitySolutions } from '@/core/challenges/users-solutions/components
 import { NoSolutionsAvailable } from '@/core/challenges/users-solutions/components/no-solutions-available'
 import { CreateSolutionBanner } from '@/core/challenges/users-solutions/components/create-solution-banner'
 import { getChallengeSolutions } from '@/core/challenges/users-solutions'
-import { getChallengeBySlug } from '@/core/challenges'
+import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { Suspense } from 'react'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
+import { canAccessSolution } from '@/core/challenges/user-progression/completion-status'
 // Ajoutons la configuration ISR pour cette page
 export const revalidate = 600 // 10 minutes en secondes
 
@@ -23,25 +24,6 @@ function SolutionsLoading() {
   )
 }
 
-// Cette fonction sera exécutée au moment de la génération de la page
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ challenge_slug: string }>
-}) {
-  // Attendre les paramètres avant de les utiliser
-  const { challenge_slug } = await params
-
-  // Préchargement des solutions pendant la génération des métadonnées
-  const challenge = await getChallengeBySlug(challenge_slug)
-  await getChallengeSolutions(challenge.id)
-
-  return {
-    title: `Community Solutions | Challenge`,
-    description: `View community solutions for the challenge`,
-  }
-}
-
 export default async function SolutionsPage({
   params,
 }: {
@@ -55,6 +37,12 @@ export default async function SolutionsPage({
 
   if (!user) {
     redirect('/login')
+  }
+
+  const isSolutionUnlocked = await canAccessSolution(user.id, challenge.id)
+
+  if (!isSolutionUnlocked) {
+    redirect(`/challenges/${challenge_slug}/description`)
   }
 
   if (!hasSolutions) {

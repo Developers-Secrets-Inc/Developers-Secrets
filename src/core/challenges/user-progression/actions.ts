@@ -1,6 +1,7 @@
 'use server'
 
 import { getUser } from '@/core/user'
+
 import {
   addLikeToChallenge,
   removeLikeFromChallenge,
@@ -8,7 +9,7 @@ import {
   removeDislikeFromChallenge,
   addRatingToChallenge,
   updateRatingForChallenge,
-} from '@/core/challenges'
+} from '@/core/challenges/reactions'
 import {
   hasUserLikedChallenge,
   hasUserDislikedChallenge,
@@ -18,6 +19,8 @@ import {
   setUserRating,
   getUserIsSolutionUnlocked,
   getUserCompletionStatus,
+  setUserCode,
+  getSavedUserCode,
 } from '@/core/challenges/user-progression'
 
 /**

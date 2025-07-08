@@ -36,6 +36,8 @@ export function ArticleOutline({ outline }: ArticleOutlineProps) {
       return elements.filter(Boolean) as HTMLElement[]
     })
 
+    console.log(headingElements)
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -67,7 +69,7 @@ export function ArticleOutline({ outline }: ArticleOutlineProps) {
   }
 
   return (
-    <aside className="w-64 shrink-0 sticky top-16 h-[calc(100vh-64px)] pb-2 pt-6 max-xl:hidden overflow-hidden">
+    <aside className="w-72 shrink-0 sticky top-16 h-[calc(100vh-64px)] pb-2 pt-6 max-xl:hidden overflow-hidden">
       <nav className="h-full overflow-y-auto px-4 flex flex-col gap-3 pe-4 pr-2">
         <h3 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
           <Text className="size-4" />

@@ -1,26 +1,23 @@
 export const experimental_ppr = true
-import { ArticleOutline } from '@/components/article-outline'
+import { ArticleOutline } from '../../[article_slug]/components/article-outline'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import {
-  convertPayloadArticleToArticle,
-  convertPayloadTutorialToTutorial,
-  getArticleOutline,
-  getExampleArticle,
-  getPersonalizedArticleRecommendations,
-  getPopularArticles,
-  getTutorial,
-  getTutorialExampleArticles,
+  getExampleArticleBySlug,
+  getFirstExampleArticle,
+  getTutorialBySlug,
+  getTutorialExamplesArticles,
   getTutorials,
-} from '@/core/articles'
-import { ArticleNotFoundError, TutorialNotFoundError } from '@/core/articles/errors'
-import { slugify } from '@/core/format'
-import { notFound } from 'next/navigation'
-import { ArticleContent } from '../../components/article-content'
-import { ArticleSidebar } from '../../components/article-sidebar'
-import { ArticleHeader } from '../../components/article-header'
+} from '@/core/articles/index-v2'
+import { getArticleOutline } from '@/core/articles'
 import { Metadata, ResolvingMetadata } from 'next'
 import { Suspense } from 'react'
+import { ArticleContent, ArticleSkeleton } from '../../components/article-content'
+import { ArticleSidebar } from '../../components/article-sidebar'
+import { ArticleHeader } from '../../components/article-header'
 import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
+import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'
+import { getPopularArticles, getPersonalizedArticles } from '@/core/articles/recommandations-v2'
+import { notFound } from 'next/navigation'
 
 // Revalidate content every hour
 export const revalidate = 3600
@@ -36,29 +33,26 @@ export async function generateMetadata(
   const { tutorial_slug, example_slug } = await params
 
   try {
-    // Get the tutorial and article data
-    const payloadTutorial = await getTutorial(tutorial_slug)
-    const payloadArticle = await getExampleArticle(tutorial_slug, example_slug)
-
-    // Convert to our custom types
-    const tutorial = convertPayloadTutorialToTutorial(payloadTutorial)
-    const article = convertPayloadArticleToArticle(payloadArticle)
+    // Get the tutorial and article data (Payload structure)
+    const payloadTutorial = await getTutorialBySlug(tutorial_slug)
+    const payloadArticle = await getExampleArticleBySlug(tutorial_slug, example_slug)
 
     // Get the parent metadata
     const previousImages = (await parent).openGraph?.images || []
 
     // Prepare SEO title - use SEO title if available, otherwise use article title
-    const title = article.seo?.title || article.title
-    const fullTitle = `${title} | Examples | ${tutorial.title}`
+    const title = payloadArticle.seo?.title || payloadArticle.title
+    const fullTitle = `${title} | Examples | ${payloadTutorial.title}`
 
     // Prepare SEO description
     const description =
-      article.seo?.description ||
-      article.subtitle ||
-      `Practical examples of ${article.title} in our ${tutorial.title} tutorial.`
+      payloadArticle.seo?.description ||
+      payloadArticle.subtitle ||
+      `Practical examples of ${payloadArticle.title} in our ${payloadTutorial.title} tutorial.`
 
     // Prepare keywords
-    const keywords = article.seo?.keywords?.map((k) => k.keyword) || []
+    const keywords =
+      payloadArticle.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
 
     return {
       title: fullTitle,
@@ -68,8 +62,8 @@ export async function generateMetadata(
         title: fullTitle,
         description: description,
         type: 'article',
-        publishedTime: article.metadata.publishedAt,
-        modifiedTime: article.metadata.updatedAt,
+        publishedTime: payloadArticle.createdAt,
+        modifiedTime: payloadArticle.updatedAt,
         url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/examples/${example_slug}`,
         images: previousImages,
       },
@@ -96,51 +90,27 @@ export default async function ExamplePage({
   const { tutorial_slug, example_slug } = await params
 
   try {
-    // Get the tutorial, article, and related data with cache tags
-    const payloadTutorial = await getTutorial(tutorial_slug, {
-      next: { tags: [`tutorial-${tutorial_slug}`] },
-    })
-
-    const payloadArticle = await getExampleArticle(tutorial_slug, example_slug, {
-      next: { tags: [`example-article-${tutorial_slug}-${example_slug}`] },
-    })
-
-    const payloadArticles = await getTutorialExampleArticles(tutorial_slug, {
-      next: { tags: [`tutorial-examples-${tutorial_slug}`] },
-    })
-
-    // Convert to our custom types using the utility functions
-    const tutorial = convertPayloadTutorialToTutorial(payloadTutorial)
-    const article = convertPayloadArticleToArticle(payloadArticle)
-    const articles = payloadArticles.map(convertPayloadArticleToArticle)
+    // Get the tutorial, article, and related data
+    const [tutorial, article, articles] = await Promise.all([
+      getTutorialBySlug(tutorial_slug),
+      getExampleArticleBySlug(tutorial_slug, example_slug),
+      getTutorialExamplesArticles(tutorial_slug),
+    ])
 
     // Get the article outline
     const outline = getArticleOutline(article.content)
 
-    // Get recommended articles with cache tags
-    const popularArticles = await getPopularArticles(
-      tutorial_slug,
-      article.id,
-      {
-        next: { tags: [`popular-articles-${tutorial_slug}`] },
-      },
-      2,
-    )
-
-    const personalizedArticles = await getPersonalizedArticleRecommendations(
-      tutorial_slug,
-      article.id,
-      {
-        next: { tags: [`personalized-articles-${tutorial_slug}`] },
-      },
-      2,
-    )
+    // Get recommended articles
+    const [popularArticles, personalizedArticles] = await Promise.all([
+      getPopularArticles(tutorial_slug, article.id, 2),
+      getPersonalizedArticles(tutorial_slug, article.id, 2),
+    ])
 
     return (
       <SidebarProvider>
         <ArticleSidebar
           tutorial={tutorial}
-          articles={payloadArticles}
+          articles={articles}
           currentArticleSlug={example_slug}
           articleType="examples"
         />
@@ -151,19 +121,23 @@ export default async function ExamplePage({
           <div className="flex flex-1">
             <ArticleContent
               article={article}
-              popularArticles={popularArticles.map(convertPayloadArticleToArticle)}
-              personalizedArticles={personalizedArticles.map(convertPayloadArticleToArticle)}
+              popularArticles={popularArticles}
+              personalizedArticles={personalizedArticles}
               tutorial_slug={tutorial_slug}
             />
             <ArticleOutline outline={outline} />
           </div>
         </SidebarInset>
+        <ChatActivationButton
+          tutorialSlug={tutorial_slug}
+          articleSlug={example_slug}
+          tutorialTitle={tutorial.title}
+          articleTitle={article.title}
+          articleFullContent={article.content}
+        />
       </SidebarProvider>
     )
   } catch (error) {
-    if (error instanceof ArticleNotFoundError || error instanceof TutorialNotFoundError) {
-      notFound()
-    }
-    throw error
+    notFound()
   }
 }

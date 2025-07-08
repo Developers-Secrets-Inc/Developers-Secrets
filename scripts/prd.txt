@@ -1,0 +1,16 @@
+# Product Requirements Document (PRD)
+
+## Title
+Notification System Not Working
+
+## Problem
+The notification system is not functioning as expected.
+
+## Proposed Solution
+Investigate why notifications are not being displayed and fix the underlying issue.
+
+## Acceptance Criteria
+- Notifications are displayed correctly to users.
+
+## Files Involved
+- (Likely files related to notifications, to be identified during investigation)

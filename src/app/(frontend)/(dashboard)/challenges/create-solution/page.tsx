@@ -1,7 +1,7 @@
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { getPayloadChallenge } from '@/core/challenges'
+import { getChallengeById } from '@/core/challenges/challenge-queries'
 import { getUserSolution } from '@/core/challenges/users-solutions'
 import { getUser } from '@/core/user'
 import { FC } from 'react'
@@ -80,7 +80,7 @@ const CreateSolutionPage: FC<CreateSolutionPageProps> = async ({ searchParams })
   }
 
   const user = await getUser()
-  const challenge = await getPayloadChallenge(challengeId)
+  const challenge = await getChallengeById(challengeId)
 
   if (!user || !user.id) {
     return <UserNotAuthenticated />
