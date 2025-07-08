@@ -9,17 +9,19 @@ interface ChallengeStoreHydratorProps {
   challenge: PayloadChallenge
   user: User
   children: React.ReactNode
+  currencyOnCompletion: number
 }
 
 export const ChallengeStoreHydrator = ({
   challenge,
   user,
   children,
+  currencyOnCompletion,
 }: ChallengeStoreHydratorProps) => {
   const initialized = useRef(false)
 
   if (!initialized.current) {
-    initializeChallengeStore({ challenge, user })
+    initializeChallengeStore({ challenge, user, currencyOnCompletion })
     initialized.current = true
   }
 

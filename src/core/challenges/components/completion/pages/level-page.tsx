@@ -142,14 +142,12 @@ const UpcomingRewards = () => {
 
 export const LevelPage = ({
   initialInfo,
-  xpGained,
-}: {
+}: {  
   initialInfo: {
     level: number
-    currentXp: number
-    xpForNextLevel: number
+    currentXp: number,
+    xpGained: number
   }
-  xpGained: number
 }) => {
   // --- Configuration ---
   const xpPerLevel = (level: number) => level * 100
@@ -158,20 +156,19 @@ export const LevelPage = ({
   const {
     level: startLevel,
     currentXp: startCurrentXp,
-    xpForNextLevel: startXpForNextLevel,
+    xpGained,
   } = initialInfo
-  const startProgressPercent = (startCurrentXp / startXpForNextLevel) * 100
+  const startProgressPercent = (startCurrentXp / xpPerLevel(startLevel + 1)) * 100
 
   // --- Final State Calculation ---
   const xpAfterGain = startCurrentXp + xpGained
-  const didLevelUp = xpAfterGain >= startXpForNextLevel
+  const didLevelUp = xpAfterGain >= xpPerLevel(startLevel + 1)
 
   const endLevel = didLevelUp ? startLevel + 1 : startLevel
-  const xpForEndLevel = xpPerLevel(endLevel)
   const xpForNextLevelAfterUp = xpPerLevel(endLevel + 1)
 
-  const finalCurrentXp = didLevelUp ? xpAfterGain - startXpForNextLevel : xpAfterGain
-  const finalProgressPercent = (finalCurrentXp / xpForEndLevel) * 100
+  const finalCurrentXp = didLevelUp ? xpAfterGain - xpPerLevel(startLevel + 1) : xpAfterGain
+  const finalProgressPercent = (finalCurrentXp / xpForNextLevelAfterUp) * 100
 
   // --- State for Animation ---
   const [displayedLevel, setDisplayedLevel] = useState(startLevel)
@@ -207,7 +204,7 @@ export const LevelPage = ({
       <div className="w-full max-w-sm">
         <div className="flex justify-between w-full text-sm text-muted-foreground mb-2">
           <span>
-            {Math.round(finalCurrentXp)}/{xpForEndLevel}
+            {Math.round(finalCurrentXp)}/{xpForNextLevelAfterUp}
           </span>
           <span>Level {endLevel + 1}</span>
         </div>

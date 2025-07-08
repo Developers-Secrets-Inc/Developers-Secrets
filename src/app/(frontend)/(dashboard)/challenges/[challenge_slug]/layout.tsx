@@ -24,6 +24,15 @@ import { NewCompletionDialog } from '@/core/challenges/components/completion/new
 import { ChallengeTimerStarter } from '@/core/challenges/components/challenge-timer-starter'
 import { ChallengeViewManager } from '@/core/challenges/components/challenge-view-manager'
 import { getOrCreateChat, loadChat } from '@/core/challenges/ai-chat'
+import { Challenge } from '@/payload-types'
+
+
+const getCurrencyOnCompletion = (challenge: Challenge): number => {
+  const baseExp = challenge.baseExperience ?? 50
+  const min = Math.floor(baseExp * 0.5)
+  const max = Math.ceil(baseExp * 1.5)
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
@@ -38,8 +47,7 @@ export default async function ChallengeLayout({
 }) {
   const { challenge_slug } = await params
 
-  const challenge = await getChallengeBySlug(challenge_slug)
-  const user = await getUser()
+  const [challenge, user] = await Promise.all([getChallengeBySlug(challenge_slug), getUser()])
 
   if (!user) {
     redirect('/auth/login?redirect=' + encodeURIComponent('/challenges/' + challenge_slug))
@@ -56,14 +64,17 @@ export default async function ChallengeLayout({
 
   const initialLanguage = challenge.codeVersions?.[0]?.language || 'javascript'
 
-  const initialStatus = await getUserCompletionStatus(user.id, challenge.id)
+  const [initialStatus, challengeAIChat] = await Promise.all([
+    getUserCompletionStatus(user.id, challenge.id),
+    getOrCreateChat({ userId: user.id, challenge: challenge.id }),
+  ])
 
-  const challengeAIChat = await getOrCreateChat({ userId: user.id, challenge: challenge.id })
   const messages = await loadChat({ chatId: challengeAIChat.id })
+  const currencyOnCompletion = getCurrencyOnCompletion(challenge)
 
   return (
     <DraftRedirect challenge={challenge} user={user}>
-      <ChallengeStoreHydrator challenge={challenge} user={user}>
+      <ChallengeStoreHydrator challenge={challenge} user={user} currencyOnCompletion={currencyOnCompletion}>
         <ChallengeProvider challenge={challenge}>
           <ChallengeStatusProvider
             challengeId={challenge.id}

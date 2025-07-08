@@ -14,6 +14,7 @@ import { animate, motion, useMotionValue } from 'framer-motion'
 
 // Imports nécessaires pour le Tooltip
 import { CoinIcon } from '@/components/icons/coin'
+import { useChallengeStore } from '@/core/challenges/store'
 
 const AnimatedNumber = ({
   value,
@@ -120,6 +121,12 @@ const CompletedChallengeSubmissionsCount = ({
   animate: boolean
   comment?: string
 }) => {
+  const comments: Record<number, string> = {
+    0: 'Are you a genius?',
+    1: 'Is this possible??',
+    3: 'Incredible!',
+  }
+
   return (
     <CompletedChallengeInformationCard>
       <span className="font-medium">Total Submissions</span>
@@ -131,11 +138,11 @@ const CompletedChallengeSubmissionsCount = ({
           animate={animate}
         />
       </div>
-      {comment && (
-        <CommentBadge
-          comment={comment}
-          className="gap-1.5 bg-red-400/10 text-red-400 border-red-400/20 uppercase"
-        />
+      {(comment || comments[submissions]) && (
+          <CommentBadge
+            comment={comment || comments[submissions]}
+            className="gap-1.5 bg-red-400/10 text-red-400 border-red-400/20 uppercase"
+          />
       )}
     </CompletedChallengeInformationCard>
   )
@@ -191,7 +198,7 @@ const PureChallengeCompletionInformation = ({
   const [visibleCardIndex, setVisibleCardIndex] = useState(0)
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-6 py-4">
       {cards.map((card, idx) => (
         <motion.div
           key={card.key}
@@ -224,6 +231,10 @@ export const ChallengeCompletionInformations = ({
   const { showCompletionDialog } = useChallengeEditorStore()
   const submissionsCount = paginationData?.docs?.length ?? 0
   const [timeSpent, setTimeSpent] = useState('00:00:00')
+  const { currencyOnCompletion, challenge } = useChallengeStore()
+
+  const isLucky = currencyOnCompletion >= (challenge?.baseExperience ?? 0) * 0.8
+  const isUnlucky = currencyOnCompletion <= (challenge?.baseExperience ?? 0) * 0.2
 
   useEffect(() => {
     if (showCompletionDialog) {
@@ -235,12 +246,13 @@ export const ChallengeCompletionInformations = ({
   }, [showCompletionDialog, getTimeSpent])
 
   if (isLoading) return <div>Loading...</div>
+ 
 
   const cards = [
     {
       key: 'coins',
       render: (animate: boolean) => (
-        <CompletedChallengeCoins coins={25} animate={animate} /> // Dummy value
+        <CompletedChallengeCoins coins={currencyOnCompletion} animate={animate} comment={isLucky ? 'Feeling lucky!' : isUnlucky ? 'Feeling unlucky...' : undefined} />
       ),
     },
     {

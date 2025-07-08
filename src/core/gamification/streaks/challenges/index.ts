@@ -46,10 +46,15 @@ export const getCurrentChallengeStreak = async (
   userId: string,
 ): Promise<CurrentChallengeStreak> => {
   const streakEntries = await findStreakEntries(userId)
+
+  // Handle case where user has no streak entries yet
+  if (!streakEntries || streakEntries.length === 0) {
+    return { streakLength: 0, challengesToday: 0 }
+  }
+
   const mostRecentEntryDate = await getNormalizedDate(new Date(streakEntries[0].date))
 
-  const noStreakEntries = !streakEntries || streakEntries.length === 0
-  if (noStreakEntries || !(await isActive(mostRecentEntryDate))) {
+  if (!(await isActive(mostRecentEntryDate))) {
     return { streakLength: 0, challengesToday: 0 }
   }
 
@@ -72,6 +77,58 @@ export const getCurrentChallengeStreak = async (
   }
 
   return { streakLength, challengesToday }
+}
+
+export const getWeeklyChallengeStreak = async (
+  userId: string,
+): Promise<{
+  challengesPerDay: number[]
+  currentStreak: number
+}> => {
+  const payload = await getPayload({ config })
+  const today = new Date()
+  const dayOfWeek = today.getUTCDay() // Sunday is 0, Monday is 1, etc.
+
+  // Set to the beginning of the current week (Sunday)
+  const startDate = new Date(today)
+  startDate.setUTCDate(today.getUTCDate() - dayOfWeek)
+  const normalizedStartDate = await getNormalizedDate(startDate)
+
+  // Set to the end of the current week (Saturday)
+  const endDate = new Date(normalizedStartDate)
+  endDate.setUTCDate(normalizedStartDate.getUTCDate() + 6)
+
+  const { docs: weeklyEntries } = await payload.find({
+    collection: 'challenge-streaks',
+    where: {
+      userId: { equals: userId },
+      date: {
+        greater_than_equal: normalizedStartDate.toISOString().split('T')[0],
+        less_than_equal: endDate.toISOString().split('T')[0],
+      },
+    },
+    limit: 7, // A user can have at most 7 entries for a week
+  })
+
+  // Initialize a 7-day array with 0s
+  const challengesPerDay = Array(7).fill(0)
+
+  // Populate the array with the number of challenges completed
+  for (const entry of weeklyEntries) {
+    const entryDate = new Date(entry.date)
+    // Adding 1 to getUTCHours to avoid issues with the date changing when normalizing
+    entryDate.setUTCHours(entryDate.getUTCHours() + 1)
+    const entryDayOfWeek = entryDate.getUTCDay() // Sunday is 0
+    challengesPerDay[entryDayOfWeek] = entry.challengesCompleted
+  }
+
+  // Reuse existing logic to get the current streak length
+  const { streakLength } = await getCurrentChallengeStreak(userId)
+
+  return {
+    challengesPerDay,
+    currentStreak: streakLength,
+  }
 }
 
 export const updateChallengeStreak = async (userId: string): Promise<ChallengeStreakUpdateInfo> => {

@@ -58,7 +58,7 @@ export const getUserCurrency = async (userId: string): Promise<number> => {
 export const addCurrency = async (
   userId: string,
   amountToAdd: number,
-  description: string,
+  description?: string,
 ): Promise<{ success: boolean; newBalance?: number; error?: string }> => {
   if (amountToAdd <= 0) {
     return { success: false, error: 'Amount to add must be positive.' }
@@ -95,7 +95,7 @@ export const addCurrency = async (
               timestamp: new Date().toISOString(),
               type: 'earn',
               amount: amountToAdd,
-              description: description || 'Initial balance',
+              description: description ?? 'Initial balance',
             },
           ],
         },
@@ -131,4 +131,12 @@ export const addCurrency = async (
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
     return { success: false, error: `Failed to add currency: ${errorMessage}` }
   }
+}
+
+
+
+export const addRandomCurrency = async (userId: string, min: number, max: number): Promise<number> => {
+  const amountToAdd = Math.floor(Math.random() * (max - min + 1)) + min
+  await addCurrency(userId, amountToAdd, 'Random currency')
+  return amountToAdd
 }

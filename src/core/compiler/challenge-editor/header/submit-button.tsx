@@ -18,6 +18,8 @@ import { useSubmitCode } from '../../hooks/use-submit-code'
 import { useChallengeEditorStore } from '../store'
 import { updateChallengeStreak } from '@/core/gamification/streaks/challenges'
 import { useChallengeStreak } from '@/core/gamification/streaks/challenges/hooks/use-challenge-streak'
+import { addCurrency } from '@/core/gamification/marketplace/currency'
+import { useChallengeStore } from '@/core/challenges/store'
 
 // Map icon names to actual LucideIcon components
 const LoadingIcon = ({
@@ -83,6 +85,7 @@ export const SubmitButton = ({
   const { progressQuest } = useQuestActions()
   const queryClient = useQueryClient()
   const { updateStreak } = useChallengeStreak(userId)
+  const { currencyOnCompletion } = useChallengeStore()
 
   const handleSubmit = async () => {
     setIsLoadingSubmit(true)
@@ -132,6 +135,7 @@ export const SubmitButton = ({
         const gamificationPromises: Promise<any>[] = [
           trackAchievementProgress(userId, 'challenges_completed', 1),
           updateStreak.mutateAsync(),
+          addCurrency(userId, currencyOnCompletion, 'Challenge completion'),
         ]
       
         if (!solutionUnlocked) {
