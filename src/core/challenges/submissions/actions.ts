@@ -2,75 +2,110 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import {
-  RunTimeErrorSubmission,
-  TimeLimitExceededSubmission,
-  WrongAnswerSubmission,
-  AcceptedSubmission,
-} from './index.client'
+import { executeCodeInE2B, E2BTestResult, CompilationResult } from '@/core/compiler/e2b-service'
+import { getChallengeById } from '@/core/challenges/challenge-queries'
+import { Challenge } from '@/payload-types'
+import { ChallengeNotFoundError } from '../errors'
 
-type SubmissionData = {
-  challenge: number
+async function _createSubmissionRecord(options: {
+  challenge: Challenge
   authorId: string
-  testsPassed: number
-  testsTotal: number
   code: { language: string; content: string }
-  submissionType: 'accepted' | 'runtimeError' | 'wrongAnswer' | 'timeLimitExceeded'
-  error?: string
-  lastExpectedOutput?: { output: string }[]
-  input?: string
-  output?: string
-  expectedOutput?: string
-}
-
-export async function handleSubmission(
-  submission:
-    | AcceptedSubmission
-    | RunTimeErrorSubmission
-    | WrongAnswerSubmission
-    | TimeLimitExceededSubmission,
-  challengeId: number,
-  authorId: string,
-) {
+  compilationResult: CompilationResult
+  testResults: E2BTestResult[]
+}) {
   const payload = await getPayload({ config })
+  const { challenge, authorId, code, compilationResult, testResults } = options
 
-  const submissionData: SubmissionData = {
-    challenge: challengeId,
-    authorId,
-    testsPassed: submission.testsPassed,
-    testsTotal: submission.testsTotal,
-    code: submission.code,
-    submissionType: submission.type,
+  const testsPassed = testResults.filter((r) => r.success).length
+  const testsTotal = testResults.length
+
+  let submissionType: 'accepted' | 'wrongAnswer' | 'runtimeError' = 'accepted'
+  if (compilationResult.error) {
+    submissionType = 'runtimeError'
+  } else if (testsPassed < testsTotal) {
+    submissionType = 'wrongAnswer'
   }
 
-  // Handle specific fields based on submission type
-  if (submission.type === 'runtimeError') {
-    submissionData.error = submission.error
-    submissionData.lastExpectedOutput = submission.lastExpectedOutput
-  } else if (submission.type === 'wrongAnswer') {
-    submissionData.input = submission.input
-    submissionData.output = submission.output
-    submissionData.expectedOutput = submission.expectedOutput
-  } else if (submission.type === 'timeLimitExceeded') {
-    submissionData.lastExpectedOutput = submission.lastExpectedOutput
+  const failedTest = testResults.find((r) => !r.success)
+
+  const submissionData = {
+    challenge: challenge.id,
+    authorId,
+    testsPassed,
+    testsTotal,
+    code,
+    submissionType,
+    error: compilationResult.error || undefined,
+    input: submissionType === 'wrongAnswer' ? failedTest?.input : undefined,
+    output: submissionType === 'wrongAnswer' ? failedTest?.actualOutput : undefined,
+    expectedOutput: submissionType === 'wrongAnswer' ? failedTest?.expectedOutput : undefined,
   }
 
   try {
-    // Create the submission in the database
-    const result = await payload.create({
+    await payload.create({
       collection: 'challenge-submissions',
       data: submissionData,
     })
-
-    return {
-      success: true,
-      data: result,
-    }
   } catch (error) {
-    console.error('Error saving submission:', error)
+    console.error('Failed to create submission record:', error)
+  }
+}
+
+
+export async function submitCode(options: {
+  userId: string
+  challengeId: number
+  code: string
+  language: string
+}): Promise<{ compilationResult: CompilationResult; testResults: E2BTestResult[] }> {
+  const { userId, challengeId, code, language } = options
+
+  let challenge: Challenge
+  try {
+    challenge = await getChallengeById(challengeId)
+  } catch (error) {
+    if (error instanceof ChallengeNotFoundError) {
+      return {
+        compilationResult: { success: false, output: '', error: 'Challenge not found.' },
+        testResults: [],
+      }
+    }
+    console.error(`Failed to retrieve challenge ${challengeId}:`, error)
     return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to save submission',
+      compilationResult: {
+        success: false,
+        output: '',
+        error: 'An error occurred while fetching the challenge.',
+      },
+      testResults: [],
     }
   }
+
+  const codeVersion = challenge.codeVersions?.find((v) => v.language === language)
+  if (!codeVersion) {
+    return {
+      compilationResult: {
+        success: false,
+        output: '',
+        error: `Language version for "${language}" not found for this challenge.`,
+      },
+      testResults: [],
+    }
+  }
+
+  const testCases =
+    codeVersion.testCases?.map((t) => ({ input: t.input, expectedOutput: t.expectedOutput })) || []
+
+  const { compilationResult, testResults } = await executeCodeInE2B(code, language, testCases)
+
+  await _createSubmissionRecord({
+    challenge,
+    authorId: userId,
+    code: { language, content: code },
+    compilationResult,
+    testResults,
+  })
+
+  return { compilationResult, testResults }
 }

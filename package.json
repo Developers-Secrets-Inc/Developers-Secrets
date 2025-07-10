@@ -23,6 +23,7 @@
     "@blocknote/core": "^0.26.0",
     "@blocknote/mantine": "^0.26.0",
     "@blocknote/react": "^0.26.0",
+    "@e2b/code-interpreter": "1.2.0-beta.4",
     "@hookform/resolvers": "^4.1.2",
     "@mdx-js/react": "^3.1.0",
     "@monaco-editor/react": "^4.7.0",

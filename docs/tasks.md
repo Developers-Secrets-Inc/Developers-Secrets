@@ -9,8 +9,10 @@
 - On devrait garder en mémoire l'input de l'utilisateur dans un challenge tant qu'il ne quitte pas le challenge
 - On doit bloquer l'envoi de messages quand on est en train d'en envoyer un 
 - Ce n'est pas sécurisé de laisser les conversations ouvertes
-- On doit charger le status du challenge sur le serveur initialement 
-- On doit charger les quotas de messages sur le serveur aussi 
+- Charger les informations de pearl sur le serveur
+    - On doit charger le status du challenge sur le serveur initialement 
+    - On doit charger les quotas de messages sur le serveur aussi 
+
 
 
 #### Completion dialog 
@@ -19,3 +21,8 @@
 - Les quêtes ne sont pas mises à jour en direct puisqu'on est sur le serveur maintenant
 - Aucunes animations, c'est vraiment chiant à regarder
 - On ne peut pas aller au prochain challenge
+
+
+#### Challenges 
+
+Avoir un challenge dans un challenge doit être obligatoire

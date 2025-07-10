@@ -12,7 +12,6 @@ import { Loader2, Send } from 'lucide-react'
 
 import { useChallengeUserStatus } from '@/core/challenges/hooks/use-challenge-user-status'
 import { solutionQueryKeys } from '@/core/challenges/hooks/use-solution-queries'
-import { useChallengeSubmissions } from '@/core/challenges/submissions/hooks/use-challenge-submissions'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSubmitCode } from '../../hooks/use-submit-code'
 import { useChallengeEditorStore } from '../store'
@@ -74,14 +73,12 @@ export const SubmitButton = ({
     toggleTerminal,
     codeByLanguage,
     currentLanguage,
-    availableLanguages,
     setTestResults,
     openCompletionDialog,
     setIsLoadingSubmit,
   } = useChallengeEditorStore()
   const { submitCode: submitCodeHook, isLoadingSubmit } = useSubmitCode()
   const { setInProgress, setCompleted, status } = useChallengeUserStatus(challenge.id)
-  const { createSubmission } = useChallengeSubmissions(challenge.id)
   const { progressQuest } = useQuestActions()
   const queryClient = useQueryClient()
   const { updateStreak } = useChallengeStreak(userId)
@@ -95,63 +92,62 @@ export const SubmitButton = ({
     }
 
     const code = codeByLanguage[currentLanguage]
-    const languageConfig = availableLanguages.find((lang) => lang.value === currentLanguage)
 
-    if (!languageConfig) {
+    const result = await submitCodeHook({
+      userId,
+      challengeId: challenge.id,
+      code,
+      language: currentLanguage,
+    })
+
+    setIsLoadingSubmit(false)
+
+    if (result) {
+      // The server now returns detailed test results.
+      // We adapt the shape for the UI if necessary, but here we assume it's compatible.
+      // E2BTestResult has { success, input, expectedOutput, actualOutput }
+      setTestResults(result.testResults)
+
+      if (result.compilationResult.success) {
+        const isAlreadyCompleted = (await getCompletionStatus(userId, challenge.id)) === 'completed'
+
+        if (!isAlreadyCompleted) {
+          openCompletionDialog()
+
+          progressQuest({ eventType: 'challengesCompleted', userId })
+
+          const solutionUnlocked = await isSolutionUnlocked(userId, challenge.id)
+
+          const gamificationPromises: Promise<any>[] = [
+            trackAchievementProgress(userId, 'challenges_completed', 1),
+            updateStreak.mutateAsync(),
+            addCurrency(userId, currencyOnCompletion, 'Challenge completion'),
+          ]
+
+          if (!solutionUnlocked) {
+            gamificationPromises.push(addExperience(userId, challenge.baseExperience ?? 50))
+          }
+
+          await Promise.all(gamificationPromises)
+        }
+
+        await setCompleted()
+        queryClient.invalidateQueries({
+          queryKey: solutionQueryKeys.solutionUnlock(userId, challenge.id),
+        })
+      } else if (status === 'not_started') {
+        setInProgress()
+      }
+    } else {
+      // Handle potential submission error from the hook
       setTestResults([
         {
           success: false,
-          input: '',
-          expectedOutput: '',
-          actualOutput: 'Error: No test cases found for this language',
+          input: 'N/A',
+          expectedOutput: 'N/A',
+          actualOutput: 'Submission failed. Please check the console for errors.',
         },
       ])
-      return
-    }
-
-    const testCases = languageConfig.testCases.map((tc) => ({
-      input: { content: tc.input, language: currentLanguage },
-      expectedOutput: { content: tc.expectedOutput, language: currentLanguage },
-    }))
-
-    const { submission, testResults } = await submitCodeHook({
-      code: { content: code, language: currentLanguage },
-      testCases,
-    })
-    setIsLoadingSubmit(false)
-    setTestResults(testResults)
-    createSubmission(submission)
-
-    if (submission.testsPassed === testCases.length) {
-      const isAlreadyCompleted = (await getCompletionStatus(userId, challenge.id)) === 'completed'
-
-      if (!isAlreadyCompleted) {
-        openCompletionDialog()
-
-        progressQuest({ eventType: 'challengesCompleted', userId })
-
-        const solutionUnlocked = await isSolutionUnlocked(userId, challenge.id)
-
-        const gamificationPromises: Promise<any>[] = [
-          trackAchievementProgress(userId, 'challenges_completed', 1),
-          updateStreak.mutateAsync(),
-          addCurrency(userId, currencyOnCompletion, 'Challenge completion'),
-        ]
-      
-        if (!solutionUnlocked) {
-          gamificationPromises.push(addExperience(userId, challenge.baseExperience ?? 50))
-        }
-      
-        // On n'a plus besoin de récupérer le résultat ici
-        await Promise.all(gamificationPromises)
-      }
-
-      await setCompleted()
-      queryClient.invalidateQueries({
-        queryKey: solutionQueryKeys.solutionUnlock(userId, challenge.id),
-      })
-    } else if (status === 'not_started' && submission.testsPassed < testCases.length) {
-      setInProgress()
     }
   }
 

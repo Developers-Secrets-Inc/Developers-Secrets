@@ -1,7 +1,7 @@
 'use client'
 
 import { Challenge } from '@/payload-types'
-import { forwardRef, useEffect } from 'react'; // Import useState
+import { forwardRef, useEffect } from 'react' // Import useState
 import { useRunCode } from '../hooks/use-run-code'
 import { ChallengeEditor, ChallengeEditorContainer } from './editor'
 import { TerminalContent, TerminalTabs } from './footer'
@@ -16,11 +16,7 @@ import { SubmitButton } from './header/submit-button'
 import { useChallengeEditorStore } from './store'
 
 const ChallengeIDEContainer = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="h-full flex flex-col border-t overflow-hidden" >
-      {children}
-    </div>
-  )
+  return <div className="h-full flex flex-col border-t overflow-hidden">{children}</div>
 }
 
 type CodeVersion = {
@@ -49,9 +45,8 @@ export const ChallengeIDE = (props: ChallengeIDEProps) => {
     toggleTerminal,
     codeByLanguage,
     currentLanguage,
-    // availableLanguages, // Removed as not used for popover logic
-    setIsLoadingRun,
     setExecutionOutput,
+    setPrecheckError, // Use the new setter for precheck errors
   } = useChallengeEditorStore()
 
   useEffect(() => {
@@ -60,21 +55,28 @@ export const ChallengeIDE = (props: ChallengeIDEProps) => {
     }
   }, [props.codeVersions, initialize])
 
-  const { isLoadingRun, executionOutput, runCode: runCodeHook } = useRunCode()
+  const { isLoadingRun, executionOutput, runCode, error } = useRunCode()
+
+  // Update the store whenever the hook's output/error changes
+  useEffect(() => {
+    if (error) {
+      setPrecheckError(error)
+      setExecutionOutput('') // Clear main output on error
+    } else {
+      setExecutionOutput(executionOutput || '')
+      setPrecheckError(null) // Clear precheck error on success
+    }
+  }, [executionOutput, error, setExecutionOutput, setPrecheckError])
 
   const handleRun = async () => {
-    // if (onRun) onRun()
-
     setActiveTerminalTab('output')
     if (!isTerminalOpen) {
       toggleTerminal()
     }
 
     const code = codeByLanguage[currentLanguage]
-    setIsLoadingRun(true)
-    await runCodeHook({ code, language: currentLanguage })
-    setExecutionOutput(executionOutput)
-    setIsLoadingRun(false)
+    // The hook now manages its own loading state, so we just call the function.
+    await runCode({ code, language: currentLanguage })
   }
 
   return (
@@ -84,8 +86,8 @@ export const ChallengeIDE = (props: ChallengeIDEProps) => {
           <LanguageSelector />
         </ChallengeIDEHeaderLeftPart>
         <ChallengeIDEHeaderRightPart>
-          <RunButton onRun={handleRun} isRunning={isLoadingRun} isDisabled={false} />
-          {/* Changed to isRunningCode to match RunButton prop */}
+          <RunButton onRun={handleRun} isRunning={isLoadingRun} isDisabled={isLoadingRun} />
+          {/* SubmitButton logic remains untouched */}
           <SubmitButton challenge={props.challenge} userId={props.userId} />
         </ChallengeIDEHeaderRightPart>
       </ChallengeIDEHeader>

@@ -1,0 +1,44 @@
+---
+alwaysApply: true
+---
+
+# Core Security Principle: Never Trust the Client
+
+- **The Server is the Single Source of Truth**
+  - All security-sensitive logic, business rule validation, and data verification **must** be performed on the server.
+  - The server should never trust that data sent from the client is valid, correct, or safe, even if the client has its own validation logic.
+
+- **The Client's Role is Presentation and Input Collection**
+  - The client is responsible for collecting raw user input and displaying the authoritative state provided by the server.
+  - Client-side validation should only be considered a UX enhancement (for immediate feedback) and **never** a substitute for server-side validation.
+  - Example: The client can check if an email *looks* valid, but only the server can verify if it's actually registered.
+
+- **Implementation Flow for New Features**
+  - **1. Client:** Collects raw data from the user (e.g., code to submit, form data).
+  - **2. Server Action:** Receives the raw data. It **does not** receive a pre-calculated result from the client (e.g., `testsPassed: true`).
+  - **3. Server Logic:** Performs all necessary operations (e.g., runs code against test cases, validates data against business rules).
+  - **4. Server Response:** Returns an authoritative, non-falsifiable result to the client.
+  - **5. Client:** Renders the result provided by the server.
+
+- **Reminder**
+  - When proposing solutions, I must challenge any architecture that delegates validation authority to the client. I should actively recommend server-side validation as the primary security measure.
+# Core Security Principle: Never Trust the Client
+
+- **The Server is the Single Source of Truth**
+  - All security-sensitive logic, business rule validation, and data verification **must** be performed on the server.
+  - The server should never trust that data sent from the client is valid, correct, or safe, even if the client has its own validation logic.
+
+- **The Client's Role is Presentation and Input Collection**
+  - The client is responsible for collecting raw user input and displaying the authoritative state provided by the server.
+  - Client-side validation should only be considered a UX enhancement (for immediate feedback) and **never** a substitute for server-side validation.
+  - Example: The client can check if an email *looks* valid, but only the server can verify if it's actually registered.
+
+- **Implementation Flow for New Features**
+  - **1. Client:** Collects raw data from the user (e.g., code to submit, form data).
+  - **2. Server Action:** Receives the raw data. It **does not** receive a pre-calculated result from the client (e.g., `testsPassed: true`).
+  - **3. Server Logic:** Performs all necessary operations (e.g., runs code against test cases, validates data against business rules).
+  - **4. Server Response:** Returns an authoritative, non-falsifiable result to the client.
+  - **5. Client:** Renders the result provided by the server.
+
+- **Reminder**
+  - When proposing solutions, I must challenge any architecture that delegates validation authority to the client. I should actively recommend server-side validation as the primary security measure.
