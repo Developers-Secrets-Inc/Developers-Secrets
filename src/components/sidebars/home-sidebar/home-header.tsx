@@ -11,6 +11,7 @@ export const HomeHeader = () => {
           <Eclipse />
         </Link>
         <MainNavigationMenu />
+
       </div>
       <AuthButtons />
     </header>
