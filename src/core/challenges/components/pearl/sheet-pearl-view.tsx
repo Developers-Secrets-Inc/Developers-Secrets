@@ -20,6 +20,10 @@ interface SheetPearlViewProps {
   isOpen: boolean
   onClose: () => void
   messages: Message[]
+  initialQuota: {
+    remaining: number
+    canSend: boolean
+  }
 }
 
 export function SheetPearlView({
@@ -28,6 +32,7 @@ export function SheetPearlView({
   isOpen,
   onClose,
   messages,
+  initialQuota,
 }: SheetPearlViewProps) {
   const { viewMode, setViewMode } = useChallengeUIStore()
 
@@ -38,12 +43,24 @@ export function SheetPearlView({
     challenge.id,
   )
 
-  const { messages: clientMessages, input, handleInputChange, handleSubmit, reset } = usePearlChat({
+  const {
+    messages: clientMessages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    reset,
+  } = usePearlChat({
     challengeAIChat,
     initialMessages: messages,
   })
 
-  const { canSend, isLoading: isQuotaLoading, increment } = useAIQuota()
+  const {
+    canSend,
+    isLoading: isQuotaLoading,
+    increment,
+  } = useAIQuota({
+    initialData: initialQuota,
+  })
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (!canSend) {

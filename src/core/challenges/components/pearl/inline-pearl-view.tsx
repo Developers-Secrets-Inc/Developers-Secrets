@@ -20,9 +20,19 @@ interface InlinePearlViewProps {
   challengeAIChat: ChallengeAiChat
   onClose?: () => void
   messages: Message[]
+  initialQuota: {
+    remaining: number
+    canSend: boolean
+  }
 }
 
-export function InlinePearlView({ challenge, challengeAIChat, onClose, messages }: InlinePearlViewProps) {
+export function InlinePearlView({
+  challenge,
+  challengeAIChat,
+  onClose,
+  messages,
+  initialQuota,
+}: InlinePearlViewProps) {
   const { viewMode, setViewMode } = useChallengeUIStore()
 
   const { currentLanguage, codeByLanguage } = useChallengeEditorStore()
@@ -32,12 +42,24 @@ export function InlinePearlView({ challenge, challengeAIChat, onClose, messages 
     challenge.id,
   )
 
-  const { messages: clientMessages, input, handleInputChange, handleSubmit, reset } = usePearlChat({
+  const {
+    messages: clientMessages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    reset,
+  } = usePearlChat({
     challengeAIChat,
     initialMessages: messages,
   })
 
-  const { canSend, isLoading: isQuotaLoading, increment } = useAIQuota()
+  const {
+    canSend,
+    isLoading: isQuotaLoading,
+    increment,
+  } = useAIQuota({
+    initialData: initialQuota,
+  })
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (!canSend) {

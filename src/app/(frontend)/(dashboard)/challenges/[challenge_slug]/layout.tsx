@@ -10,10 +10,9 @@ import { NewCompletionDialog } from '@/core/challenges/components/completion/new
 import { ChallengeNavigation } from '@/core/challenges/components/navigation/challenge-navigation'
 import { ChallengeProvider } from '@/core/challenges/contexts/challenge-context'
 import { ChallengeEditorProvider } from '@/core/challenges/contexts/challenge-editor-context'
-import {
-  getUserCompletionStatus
-} from '@/core/challenges/user-progression'
+import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { ChallengeIDE } from '@/core/compiler/challenge-editor'
+import { canSendMessage, getRemainingMessagesForToday } from '@/core/ai/quotas/actions'
 import { getUser } from '@/core/user'
 import { AdminComponent } from '@/core/user/components/admin-component'
 import { Challenge } from '@/payload-types'
@@ -21,7 +20,6 @@ import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { DraftRedirect } from './components/draft-redirect'
 import { ChallengeLayoutHeader } from './components/header'
-
 
 const getCurrencyOnCompletion = (challenge: Challenge): number => {
   const baseExp = challenge.baseExperience ?? 50
@@ -60,17 +58,24 @@ export default async function ChallengeLayout({
 
   const initialLanguage = challenge.codeVersions?.[0]?.language || 'javascript'
 
-  const [initialStatus, challengeAIChat] = await Promise.all([
-    getUserCompletionStatus(user.id, challenge.id),
-    getOrCreateChat({ userId: user.id, challenge: challenge.id }),
-  ])
+  const [initialStatus, challengeAIChat, initialRemainingMessages, initialCanSend] =
+    await Promise.all([
+      getUserCompletionStatus(user.id, challenge.id),
+      getOrCreateChat({ userId: user.id, challenge: challenge.id }),
+      getRemainingMessagesForToday(user.id),
+      canSendMessage(user.id),
+    ])
 
   const messages = await loadChat({ chatId: challengeAIChat.id })
   const currencyOnCompletion = getCurrencyOnCompletion(challenge)
 
   return (
     <DraftRedirect challenge={challenge} user={user}>
-      <ChallengeStoreHydrator challenge={challenge} user={user} currencyOnCompletion={currencyOnCompletion}>
+      <ChallengeStoreHydrator
+        challenge={challenge}
+        user={user}
+        currencyOnCompletion={currencyOnCompletion}
+      >
         <ChallengeProvider challenge={challenge}>
           <ChallengeStatusProvider
             challengeId={challenge.id}
@@ -100,6 +105,10 @@ export default async function ChallengeLayout({
                               user={user}
                               challengeAIChat={challengeAIChat}
                               messages={messages}
+                              initialQuota={{
+                                remaining: initialRemainingMessages,
+                                canSend: initialCanSend,
+                              }}
                             >
                               <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
                             </ChallengeViewManager>

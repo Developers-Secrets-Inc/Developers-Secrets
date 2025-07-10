@@ -9,6 +9,13 @@ import {
 import { useSessionUser } from '@/core/user/hooks/use-user'
 import { getUserRole } from '@/core/user/user-informations'
 
+interface UseAIQuotaProps {
+  initialData?: {
+    remaining?: number
+    canSend?: boolean
+  }
+}
+
 const quotaKeys = {
   all: ['ai-quota'],
   details: (userId: string) => [...quotaKeys.all, userId, 'details'],
@@ -16,7 +23,8 @@ const quotaKeys = {
   role: (userId: string) => [...quotaKeys.all, userId, 'role'],
 }
 
-export const useAIQuota = () => {
+export const useAIQuota = (props: UseAIQuotaProps = {}) => {
+  const { initialData } = props
   const { user } = useSessionUser()
   const userId = user?.id
   const queryClient = useQueryClient()
@@ -25,12 +33,14 @@ export const useAIQuota = () => {
     queryKey: quotaKeys.details(userId!),
     queryFn: () => getRemainingMessagesForToday(userId!),
     enabled: !!userId,
+    initialData: initialData?.remaining,
   })
 
   const { data: canSend, isLoading: isLoadingCanSend } = useQuery({
     queryKey: quotaKeys.canSend(userId!),
     queryFn: () => canSendMessage(userId!),
     enabled: !!userId,
+    initialData: initialData?.canSend,
   })
 
   const { data: role, isLoading: isLoadingRole } = useQuery({

@@ -97,6 +97,8 @@ export async function submitCode(options: {
   const testCases =
     codeVersion.testCases?.map((t) => ({ input: t.input, expectedOutput: t.expectedOutput })) || []
 
+  console.log('testCases', codeVersion.testCases)
+
   const { compilationResult, testResults } = await executeCodeInE2B(code, language, testCases)
 
   await _createSubmissionRecord({

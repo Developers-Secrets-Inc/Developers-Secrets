@@ -1,12 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSubmissions } from '..'
-import {
-  AcceptedSubmission,
-  RunTimeErrorSubmission,
-  WrongAnswerSubmission,
-  TimeLimitExceededSubmission,
-} from '../index.client'
-import { handleSubmission } from '../client-actions'
+
 import { useSessionUser } from '@/core/user/hooks/use-user'
 
 export const SUBMISSIONS_QUERY_KEY = 'submissions'
@@ -34,24 +28,10 @@ export const useChallengeSubmissions = (
     placeholderData: (previousData) => previousData, // Keep previous data while fetching new page
   })
 
-  const { mutateAsync: createSubmission } = useMutation({
-    mutationFn: (
-      submissionData:
-        | AcceptedSubmission
-        | RunTimeErrorSubmission
-        | WrongAnswerSubmission
-        | TimeLimitExceededSubmission,
-    ) => handleSubmission(submissionData, challengeId, userId as string),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [SUBMISSIONS_QUERY_KEY] })
-    },
-  })
-
   return {
     paginationData: data, // Returning the full PaginatedDocs object
     isLoading,
     isError,
     error,
-    createSubmission,
   }
 }
