@@ -1,0 +1,227 @@
+---
+alwaysApply: true
+---
+# Guide d'application des formes normales (1NF à 5NF/BCNF)
+
+## 1. Objectif
+
+- Appliquer les formes normales pour éviter anomalies, redondance, et garantir l'intégrité des données.
+- S'utilise sur tout modèle de données ou schéma de table.
+
+## 2. Règles et exemples
+
+### 1NF (First Normal Form)
+- Valeurs atomiques (pas de listes, pas de champs imbriqués)
+- Clé primaire unique
+- **Exemple** :
+  - Table initiale :
+    | CustomerID | Name    | Transactions                         |
+    | ---------- | ------- | ------------------------------------ |
+    | 1          | Abraham | [(12890,2003-10-14,‑87), (12904,…)]  |
+  - **Action** : Créer une table Transaction liée par CustomerID, chaque ligne = 1 transaction
+
+### 2NF (Second Normal Form)
+- Respecte 1NF
+- Aucun attribut non-clé ne dépend d'une partie de la clé primaire (clé composite)
+- **Exemple** :
+  - Table :
+    | OrderID | ProductID | ProductName | Quantity |
+    | ------- | --------- | ----------- | -------- |
+  - ProductName dépend seulement de ProductID → violation 2NF
+  - **Action** :
+    - Créer Products(ProductID, ProductName)
+    - OrderItems(OrderID, ProductID, Quantity)
+
+### 3NF (Third Normal Form)
+- Respecte 2NF
+- Aucun attribut non-clé ne dépend d'un autre non-clé (pas de dépendance transitive)
+- **Exemple** :
+  - Table :
+    | PatientID | DoctorID | DoctorPhone |
+    | --------- | -------- | ----------- |
+  - DoctorPhone dépend de DoctorID, qui dépend de PatientID
+  - **Action** :
+    - Extraire Doctors(DoctorID, DoctorPhone)
+    - Patients(PatientID, DoctorID)
+
+### BCNF (Boyce–Codd Normal Form)
+- Version renforcée de la 3NF : chaque dépendance fonctionnelle non triviale implique une super-clé
+- **Exemple** :
+  - Table :
+    | TeacherID | StudentID | Room |
+    | --------- | --------- | ---- |
+  - Room dépend seulement de TeacherID
+  - **Action** :
+    - TeacherRooms(TeacherID, Room)
+    - TeacherStudent(TeacherID, StudentID)
+
+### 4NF (Fourth Normal Form)
+- Respecte BCNF
+- Pas de dépendances multivaluées (plusieurs valeurs indépendantes pour un même attribut)
+- **Exemple** :
+  - Table :
+    | Title | Format | Author |
+    | ----- | ------ | ------ |
+  - Plusieurs formats et auteurs pour un livre
+  - **Action** :
+    - BookFormats(Title, Format)
+    - BookAuthors(Title, Author)
+
+### 5NF (Fifth Normal Form)
+- Respecte 4NF
+- Aucun décomposage supplémentaire possible sans perte d'information
+- **À appliquer si** : cas très complexes avec jointures multiples
+
+## 3. Plan d'action pour l'équipe
+
+1. **Audit rapide** :
+   - Vérifier 1NF (valeurs atomiques)
+   - Identifier la clé primaire
+2. **Décomposer vers 2NF** :
+   - Localiser clés composites
+   - Extraire tables filles si dépendances partielles
+3. **Passage à 3NF** :
+   - Extraire tables si dépendances transitives
+4. **Vérification BCNF** :
+   - Isoler toute dépendance non-triviale où la partie gauche n'est pas super-clé
+5. **4NF/5NF (optionnel)** :
+   - Cas avancés : isoler tables multivaluées
+6. **Documentation** :
+   - Diagrammes entité-relation, définition des clés
+7. **Test d'intégrité** :
+   - Insérer, MAJ, supprimer : vérifier absence d'anomalie
+
+## 4. Format recommandé pour transmission
+
+- Résumé théorique pour chaque forme
+- Exemple visuel (table avant/après)
+- Exercice d'application : identifier forme violée, proposer tables corrigées
+- Checklist à cocher à chaque étape
+- Cas réels de l'entreprise à vérifier
+
+## 5. Résumé express
+
+- 1NF = valeurs simples + clé primaire unique
+- 2NF = éliminer dépendances partielles
+- 3NF = éliminer dépendances transitives
+- BCNF = chaque dépendance implique une super-clé
+- 4NF = pas de listes multiples
+- 5NF = découpage optimal sans perte (cas rares)
+
+## 6. Pourquoi s'arrêter à 3NF/BCNF ?
+- Suffit pour 95% des cas
+- Bon équilibre performance/intégrité
+
+
+# Guide d'application des formes normales (1NF à 5NF/BCNF)
+
+## 1. Objectif
+
+- Appliquer les formes normales pour éviter anomalies, redondance, et garantir l'intégrité des données.
+- S'utilise sur tout modèle de données ou schéma de table.
+
+## 2. Règles et exemples
+
+### 1NF (First Normal Form)
+- Valeurs atomiques (pas de listes, pas de champs imbriqués)
+- Clé primaire unique
+- **Exemple** :
+  - Table initiale :
+    | CustomerID | Name    | Transactions                         |
+    | ---------- | ------- | ------------------------------------ |
+    | 1          | Abraham | [(12890,2003-10-14,‑87), (12904,…)]  |
+  - **Action** : Créer une table Transaction liée par CustomerID, chaque ligne = 1 transaction
+
+### 2NF (Second Normal Form)
+- Respecte 1NF
+- Aucun attribut non-clé ne dépend d'une partie de la clé primaire (clé composite)
+- **Exemple** :
+  - Table :
+    | OrderID | ProductID | ProductName | Quantity |
+    | ------- | --------- | ----------- | -------- |
+  - ProductName dépend seulement de ProductID → violation 2NF
+  - **Action** :
+    - Créer Products(ProductID, ProductName)
+    - OrderItems(OrderID, ProductID, Quantity)
+
+### 3NF (Third Normal Form)
+- Respecte 2NF
+- Aucun attribut non-clé ne dépend d'un autre non-clé (pas de dépendance transitive)
+- **Exemple** :
+  - Table :
+    | PatientID | DoctorID | DoctorPhone |
+    | --------- | -------- | ----------- |
+  - DoctorPhone dépend de DoctorID, qui dépend de PatientID
+  - **Action** :
+    - Extraire Doctors(DoctorID, DoctorPhone)
+    - Patients(PatientID, DoctorID)
+
+### BCNF (Boyce–Codd Normal Form)
+- Version renforcée de la 3NF : chaque dépendance fonctionnelle non triviale implique une super-clé
+- **Exemple** :
+  - Table :
+    | TeacherID | StudentID | Room |
+    | --------- | --------- | ---- |
+  - Room dépend seulement de TeacherID
+  - **Action** :
+    - TeacherRooms(TeacherID, Room)
+    - TeacherStudent(TeacherID, StudentID)
+
+### 4NF (Fourth Normal Form)
+- Respecte BCNF
+- Pas de dépendances multivaluées (plusieurs valeurs indépendantes pour un même attribut)
+- **Exemple** :
+  - Table :
+    | Title | Format | Author |
+    | ----- | ------ | ------ |
+  - Plusieurs formats et auteurs pour un livre
+  - **Action** :
+    - BookFormats(Title, Format)
+    - BookAuthors(Title, Author)
+
+### 5NF (Fifth Normal Form)
+- Respecte 4NF
+- Aucun décomposage supplémentaire possible sans perte d'information
+- **À appliquer si** : cas très complexes avec jointures multiples
+
+## 3. Plan d'action pour l'équipe
+
+1. **Audit rapide** :
+   - Vérifier 1NF (valeurs atomiques)
+   - Identifier la clé primaire
+2. **Décomposer vers 2NF** :
+   - Localiser clés composites
+   - Extraire tables filles si dépendances partielles
+3. **Passage à 3NF** :
+   - Extraire tables si dépendances transitives
+4. **Vérification BCNF** :
+   - Isoler toute dépendance non-triviale où la partie gauche n'est pas super-clé
+5. **4NF/5NF (optionnel)** :
+   - Cas avancés : isoler tables multivaluées
+6. **Documentation** :
+   - Diagrammes entité-relation, définition des clés
+7. **Test d'intégrité** :
+   - Insérer, MAJ, supprimer : vérifier absence d'anomalie
+
+## 4. Format recommandé pour transmission
+
+- Résumé théorique pour chaque forme
+- Exemple visuel (table avant/après)
+- Exercice d'application : identifier forme violée, proposer tables corrigées
+- Checklist à cocher à chaque étape
+- Cas réels de l'entreprise à vérifier
+
+## 5. Résumé express
+
+- 1NF = valeurs simples + clé primaire unique
+- 2NF = éliminer dépendances partielles
+- 3NF = éliminer dépendances transitives
+- BCNF = chaque dépendance implique une super-clé
+- 4NF = pas de listes multiples
+- 5NF = découpage optimal sans perte (cas rares)
+
+## 6. Pourquoi s'arrêter à 3NF/BCNF ?
+- Suffit pour 95% des cas
+- Bon équilibre performance/intégrité
+
+
