@@ -346,7 +346,7 @@ export default function Home() {
   return (
     <div>
       <HomeHeader />
-      <main className="flex border-x border-border flex-col max-w-6xl mx-auto min-h-screen">
+      <main className="flex border-x border-border flex-col max-w-7xl mx-auto min-h-screen">
         <NewHeroSection />
         <Companies />
         <ProblemsSection />
