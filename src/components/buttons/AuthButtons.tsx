@@ -1,11 +1,10 @@
 'use client'
 
-import { useSessionUser } from "@/core/user/hooks/use-user"
 import { AuthButtonsClient } from "./AuthButtons.client"
-import { Skeleton } from "../ui/skeleton"
+import { useUser } from "@/core/users/hooks/use-user"
 
 export const AuthButtons = () => {
-  const { user, isLoading } = useSessionUser()
+  const { user, isLoading } = useUser()
 
   return <AuthButtonsClient user={user} isLoading={isLoading} />
 }

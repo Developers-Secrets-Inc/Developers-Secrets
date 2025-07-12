@@ -11,7 +11,7 @@ export const useSessionUser = () => {
   } = useQuery<User | null>({
     queryKey: ['sessionUser'],
     queryFn: getUser,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     retry: false,
   })
 

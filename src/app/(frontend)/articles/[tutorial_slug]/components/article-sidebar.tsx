@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import * as React from 'react'
-import { cache } from 'react'
 
 import {
   Sidebar,
@@ -13,67 +12,55 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { Article as PayloadArticle, Tutorial as PayloadTutorial } from '@/payload-types'
 import { SearchForm } from '../[article_slug]/components/search-form'
 import { ArticleSidebarFooter } from './article-sidebar-footer'
 import { ArticlesSwitcher } from './articles-switcher'
 
-interface ArticleSidebarProps {
-  tutorial: PayloadTutorial
-  currentArticleSlug: string
-  articles: PayloadArticle[]
-  articleType: 'tutorial' | 'examples' | 'references'
+
+type Article = {
+  id: number
+  title: string
+  slug: string
 }
 
-// Function to create tutorial outline from tutorial sections and articles
+type Section = {
+  title: string
+  articles: Article[]
+  id?: string | null
+}
+
+type Tutorial = {
+  slug: string
+  title: string
+  sections: Section[]
+}
+
+type ArticleType = 'tutorial' | 'examples' | 'references'
+
+interface ArticleSidebarProps {
+  tutorial: Tutorial
+  currentArticleSlug: string
+  articleType: ArticleType
+}
+
 // Wrapped in cache() to avoid recalculating on each render
-const createTutorialOutline = cache(
-  (
-    tutorial: PayloadTutorial,
-    articles: PayloadArticle[],
-    articleType: 'tutorial' | 'examples' | 'references',
-  ) => {
-    let sections
-    if (articleType === 'tutorial') {
-      sections = tutorial.sections
-    } else if (articleType === 'examples') {
-      sections = tutorial.exampleSections
-    } else {
-      sections = tutorial.referenceSections
-    }
-
-    if (!sections) return []
-
-    return sections.map((section) => ({
-      title: section.title,
-      items: articles
-        .filter((article) =>
-          Array.isArray(section.articles)
-            ? section.articles.some(
-                (a) =>
-                  typeof a === 'object' &&
-                  a !== null &&
-                  'id' in a &&
-                  String(a.id) === String(article.id),
-              )
-            : false,
-        )
-        .map((article) => ({
-          title: article.title,
-          url: article.slug,
-        })),
-    }))
-  },
-)
+const createTutorialOutline = (sections: ArticleSidebarProps['tutorial']['sections']) => {
+  return sections.map((section) => ({
+    title: section.title,
+    items: section.articles.map((article) => ({
+      title: article.title,
+      url: article.slug,
+    })),
+  }))
+}
 
 export const ArticleSidebar = ({
   tutorial,
   currentArticleSlug,
-  articles,
   articleType,
 }: ArticleSidebarProps) => {
   // Use cached functions
-  const tutorialOutline = createTutorialOutline(tutorial, articles, articleType)
+  const tutorialOutline = createTutorialOutline(tutorial.sections)
 
   return (
     <Sidebar style={{ '--sidebar-width': '270px' } as React.CSSProperties} className="z-50">
@@ -101,7 +88,6 @@ export const ArticleSidebar = ({
                       <Link
                         href={`/articles/${tutorial.slug}/${articleType !== 'tutorial' ? `${articleType}/` : ''}${item.url}`}
                         prefetch={true}
-                        
                       >
                         {item.title}
                       </Link>

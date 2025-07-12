@@ -1,12 +1,13 @@
 import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { getArticleOutline, getTutorialArticles } from '@/core/articles'
+import { getArticleOutline } from '@/core/articles'
 import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'
 import {
-  getArticleBySlug as getArticleBySlugV2,
+  getArticleBySlug,
   getTutorialBySlug,
   getTutorialsArticles,
+  getTutorialArticles,
 } from '@/core/articles/index-v2'
 import { getPersonalizedArticles, getPopularArticles } from '@/core/articles/recommandations-v2'
 import { Metadata, ResolvingMetadata } from 'next'
@@ -14,9 +15,10 @@ import { Suspense } from 'react'
 import { ArticleContent, ArticleSkeleton } from '../components/article-content'
 import { ArticleSidebar } from '../components/article-sidebar'
 import { ArticleOutline } from './components/article-outline'
+import { isFailure } from '@/lib/result'
+import { notFound } from 'next/navigation'
 // Revalidate content every hour
 export const revalidate = 3600
-export const experimental_ppr = true
 
 // Allow dynamic params for articles not in generateStaticParams
 export const dynamicParams = true
@@ -31,24 +33,30 @@ export async function generateMetadata(
   try {
     // Get the tutorial and article data (Payload structure)
     const payloadTutorial = await getTutorialBySlug(tutorial_slug)
-    const payloadArticle = await getArticleBySlugV2(tutorial_slug, article_slug)
+    const payloadArticle = await getArticleBySlug(tutorial_slug, article_slug)
+
+    if (isFailure(payloadArticle)) {
+      throw payloadArticle.error
+    }
+
+    const article = payloadArticle.value
 
     // Get the parent metadata
     const previousImages = (await parent).openGraph?.images || []
 
     // Prepare SEO title - use SEO title if available, otherwise use article title
-    const title = payloadArticle.seo?.title || payloadArticle.title
-    const fullTitle = `${title} | ${payloadTutorial.title}`
+    const title = article.seo?.title || article.title
+    const fullTitle = `${title} | ${article.title}`
 
     // Prepare SEO description
     const description =
-      payloadArticle.seo?.description ||
-      payloadArticle.subtitle ||
-      `Learn about ${payloadArticle.title} in our ${payloadTutorial.title} tutorial.`
+      article.seo?.description ||
+      article.subtitle ||
+      `Learn about ${article.title} in our ${article.title} tutorial.`
 
     // Prepare keywords
     const keywords =
-      payloadArticle.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
+      article.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
 
     return {
       title: fullTitle,
@@ -58,8 +66,8 @@ export async function generateMetadata(
         title: fullTitle,
         description: description,
         type: 'article',
-        publishedTime: payloadArticle.createdAt,
-        modifiedTime: payloadArticle.updatedAt,
+        publishedTime: article.createdAt,
+        modifiedTime: article.updatedAt,
         url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/${article_slug}`,
         images: previousImages,
       },
@@ -98,30 +106,55 @@ export default async function ArticlePage({
 }) {
   const { tutorial_slug, article_slug } = await params
 
-  // Utilise les fonctions v2 pour charger le tutoriel et les articles complets
-  const [tutorial, articles, article] = await Promise.all([
-    getTutorialBySlug(tutorial_slug),
-    getTutorialArticles(tutorial_slug),
-    getArticleBySlugV2(tutorial_slug, article_slug),
+  const [tutorial, article] = await Promise.all([
+    getTutorialBySlug(tutorial_slug, {
+      slug: true,
+      title: true,
+      sections: {
+        title: true,
+        articles: {
+          id: true,
+          title: true,
+          slug: true,
+        },
+        id: true,
+      },
+    }),
+    getArticleBySlug(tutorial_slug, article_slug, {
+      content: true,
+      title: true,
+      subtitle: true,
+    }),
   ])
 
-  // Convert to our custom types using the utility functions
+  if (isFailure(tutorial) || isFailure(article)) {
+    return notFound()
+  }
 
-  // Get the article outline
-  const outline = getArticleOutline(article.content)
+  const outline = getArticleOutline(article.value.content)
 
-  // Get recommended articles with cache tags
   const [popularArticles, personalizedArticles] = await Promise.all([
-    getPopularArticles(tutorial_slug, article.id, 1),
-    getPersonalizedArticles(tutorial_slug, article.id, 3),
+    getPopularArticles(tutorial_slug, article.value.id, 1),
+    getPersonalizedArticles(tutorial_slug, article.value.id, 3),
   ])
 
   return (
     <SidebarProvider>
       <ArticleSidebar
-        tutorial={tutorial}
+        tutorial={{
+          slug: tutorial.value.slug,
+          title: tutorial.value.title,
+          sections: tutorial.value.sections.map((section) => ({
+            ...section,
+            articles: Array.isArray(section.articles)
+              ? [...section.articles].filter(
+                  (a: any): a is { id: number; title: string; slug: string } =>
+                    typeof a === 'object' && a !== null && 'id' in a && 'title' in a && 'slug' in a,
+                )
+              : [],
+          })),
+        }}
         currentArticleSlug={article_slug}
-        articles={articles}
         articleType="tutorial"
       />
       <SidebarInset>
@@ -131,7 +164,7 @@ export default async function ArticlePage({
         <div className="flex flex-1">
           <Suspense fallback={<ArticleSkeleton />}>
             <ArticleContent
-              article={article}
+              article={article.value}
               popularArticles={popularArticles}
               personalizedArticles={personalizedArticles}
               tutorial_slug={tutorial_slug}
@@ -143,9 +176,9 @@ export default async function ArticlePage({
       <ChatActivationButton
         tutorialSlug={tutorial_slug}
         articleSlug={article_slug}
-        tutorialTitle={tutorial.title}
-        articleTitle={article.title}
-        articleFullContent={article.content}
+        tutorialTitle={tutorial.value.title}
+        articleTitle={article.value.title}
+        articleFullContent={article.value.content}
       />
     </SidebarProvider>
   )

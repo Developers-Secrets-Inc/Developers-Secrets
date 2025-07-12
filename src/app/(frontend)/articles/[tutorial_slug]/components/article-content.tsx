@@ -4,7 +4,11 @@ import { TypographyH1, TypographyP } from '@/components/typography'
 import { Article as PayloadArticle } from '@/payload-types'
 
 interface ArticleContentProps {
-  article: PayloadArticle
+  article: {
+    title: string
+    subtitle: string | null | undefined
+    content: string
+  }
   popularArticles: PayloadArticle[]
   personalizedArticles: PayloadArticle[]
   tutorial_slug: string

@@ -7,175 +7,243 @@ import config from '@payload-config'
 
 import { unstable_cache } from 'next/cache'
 
-import { Article, Tutorial } from '@/payload-types'
+import { Tutorial, Article } from '@/payload-types'
+import { failure, Result, success, isFailure, flatMapAsync } from '@/lib/result'
+import { TutorialNotFoundError, TutorialsNotFoundError } from './errors'
+import { TIME } from '@/lib/time'
+import { GetProjectedType, PayloadSelect } from './types'
 
-const ONE_DAY = 60 * 60 * 24
-const EVERY_DAY = ONE_DAY
 
-export const getTutorials = unstable_cache(async (): Promise<Tutorial[]> => {
-  const payload = await getPayload({ config })
+type TutorialSelect = PayloadSelect<Tutorial>
+type ArticleSelect = PayloadSelect<Article>
 
-  const tutorials = await payload.find({
-    collection: 'tutorials',
-  })
+export const getTutorials = unstable_cache(
+  async (): Promise<Result<Tutorial[], TutorialsNotFoundError>> => {
+    const payload = await getPayload({ config })
 
-  return tutorials.docs
-}, ['tutorials'])
+    const tutorials = await payload.find({
+      collection: 'tutorials',
+    })
 
-export const getTutorialBySlug = async (tutorialSlug: string): Promise<Tutorial> => {
+    if (!tutorials.docs || tutorials.docs.length === 0) {
+      return failure(new TutorialsNotFoundError())
+    }
+
+    return success(tutorials.docs)
+  },
+  ['tutorials'],
+  { revalidate: TIME.ONE_DAY },
+)
+
+export const getTutorialBySlug = async <S extends TutorialSelect | undefined>(
+  tutorialSlug: string,
+  select?: S,
+): Promise<Result<GetProjectedType<Tutorial, S>, TutorialNotFoundError>> => {
   const cached = unstable_cache(
-    async (tutorialSlug: string) => {
+    async (currentSlug, currentSelect) => {
       const payload = await getPayload({ config })
 
       const tutorial = await payload.find({
         collection: 'tutorials',
-        where: { slug: { equals: tutorialSlug } },
+        where: { slug: { equals: currentSlug } },
+        select: currentSelect,
       })
 
-      return tutorial.docs[0]
+      if (!tutorial.docs || tutorial.docs.length === 0) {
+        return failure(new TutorialNotFoundError(currentSlug))
+      }
+
+      return success(tutorial.docs[0] as GetProjectedType<Tutorial, S>)
     },
-    ['tutorials-by-slug', tutorialSlug],
+    ['tutorial-by-slug', tutorialSlug, select ? JSON.stringify(select) : 'all-fields'],
     {
       tags: [`tutorial-${tutorialSlug}`],
-      revalidate: EVERY_DAY,
+      revalidate: TIME.ONE_DAY,
     },
   )
-  return cached(tutorialSlug)
+  return cached(tutorialSlug, select)
 }
 
-export const getTutorialArticles = async (tutorialSlug: string): Promise<Article[]> => {
+export const getArticlesByType = async (
+  tutorialSlug: string,
+  type: 'sections' | 'exampleSections' | 'referenceSections',
+): Promise<Result<Article[], TutorialsNotFoundError>> => {
   const cached = unstable_cache(
-    async (tutorialSlug: string) => {
-      const tutorial = await getTutorialBySlug(tutorialSlug)
+    async (currentSlug, currentType) => {
+      const selectParam: TutorialSelect = {
+        [currentType]: { articles: true }, // Explicitly select articles within the section
+      }
 
-      const articles = tutorial.sections.flatMap((section) => (section.articles as Article[]))
-
-      return articles
-    },
-    ['tutorial-articles', tutorialSlug],
-    {
-      tags: [`tutorial-articles-${tutorialSlug}`],
-      revalidate: EVERY_DAY,
-    },
-  )
-  return cached(tutorialSlug)
-}
-
-export const getTutorialExamplesArticles = async (tutorialSlug: string): Promise<Article[]> => {
-  const cached = unstable_cache(
-    async (tutorialSlug: string) => {
-      const tutorial = await getTutorialBySlug(tutorialSlug)
-
-      const examples = tutorial.exampleSections?.flatMap((section) => (section.articles as Article[])) ?? []
-
-      return examples
-    },
-    ['tutorial-examples-articles', tutorialSlug],
-    {
-      tags: [`tutorial-examples-articles-${tutorialSlug}`],
-      revalidate: EVERY_DAY,
-    },
-  )
-  return cached(tutorialSlug)
-}
-
-export const getTutorialReferenceArticles = async (tutorialSlug: string): Promise<Article[]> => {
-  const cached = unstable_cache(
-    async (tutorialSlug: string) => {
-      const tutorial = await getTutorialBySlug(tutorialSlug)
-
-      const referenceArticles = tutorial.referenceSections?.flatMap((section) => (section.articles as Article[])) ?? []
-
-      return referenceArticles
-    },
-    ['tutorial-reference-articles', tutorialSlug],
-    {
-      tags: [`tutorial-reference-articles-${tutorialSlug}`],
-      revalidate: EVERY_DAY,
-    },
-  )
-  return cached(tutorialSlug)
-}
-
-// TODO: In the future, we should modify the Articles collection to include the tutorial. It could help us avoid the loop through the sections. 
-export const getArticleBySlug = async (tutorialSlug: string, articleSlug: string): Promise<Article> => {
-    const cached = unstable_cache(
-        async (tutorialSlug: string, articleSlug: string) => {
-            const articles = await getTutorialArticles(tutorialSlug)
-            const article = articles.find((article) => article.slug === articleSlug)
-
-            if (!article) {
-                throw new Error('Article not found')
-            }
-
-            return article
-            
+      return flatMapAsync(
+        await getTutorialBySlug(currentSlug, selectParam),
+        async (tutorial: Partial<Tutorial>) => {
+          // tutorial is Partial here because getTutorialBySlug returns Partial when `select` is used
+          const articles =
+            (
+              (tutorial[currentType as keyof Partial<Tutorial>] as Array<{
+                articles: Article[]
+              }>) || []
+            ).flatMap((section) => section.articles as Article[]) || []
+          return success(articles)
         },
-        ['article-by-slug', tutorialSlug, articleSlug],
-        {
-            tags: [`article-by-slug-${tutorialSlug}-${articleSlug}`],
-            revalidate: EVERY_DAY,
-        },
+      )
+    },
+    [`articles-by-type-${tutorialSlug}-${type}`],
+    {
+      tags: [`articles-by-type-${tutorialSlug}-${type}`],
+      revalidate: TIME.ONE_DAY,
+    },
+  )
+  return cached(tutorialSlug, type)
+}
+
+export const getTutorialArticles = async (
+  tutorialSlug: string,
+): Promise<Result<Article[], TutorialsNotFoundError>> => {
+  return getArticlesByType(tutorialSlug, 'sections')
+}
+
+export const getTutorialExamplesArticles = async (
+  tutorialSlug: string,
+): Promise<Result<Article[], TutorialsNotFoundError>> => {
+  return getArticlesByType(tutorialSlug, 'exampleSections')
+}
+
+export const getTutorialReferenceArticles = async (
+  tutorialSlug: string,
+): Promise<Result<Article[], TutorialsNotFoundError>> => {
+  return getArticlesByType(tutorialSlug, 'referenceSections')
+}
+
+export const getArticleBySlugAndType = async <S extends ArticleSelect | undefined>(
+  tutorialSlug: string,
+  articleSlug: string,
+  type: 'sections' | 'exampleSections' | 'referenceSections',
+  select?: S,
+): Promise<Result<GetProjectedType<Article, S>, TutorialNotFoundError>> => {
+  const cached = unstable_cache(
+    async (currentTutorialSlug, currentArticleSlug, currentType, currentSelect) => {
+      const articlesResult = await getArticlesByType(currentTutorialSlug, currentType)
+
+      return flatMapAsync(articlesResult, async (articles) => {
+        const article = articles.find((art) => art.slug === currentArticleSlug)
+
+        if (!article) {
+          return failure(
+            new TutorialNotFoundError(
+              `Article ${currentArticleSlug} not found in tutorial ${currentTutorialSlug} ${currentType} section.`,
+            ),
+          )
+        }
+
+        // Apply select to the found article
+        const selectedArticle = currentSelect
+          ? (Object.keys(currentSelect) as Array<keyof Article>).reduce(
+              (acc, key) => {
+                if (currentSelect[key]) {
+                  ;(acc as any)[key] = article[key]
+                }
+                return acc
+              },
+              {} as GetProjectedType<Article, S>,
+            )
+          : (article as GetProjectedType<Article, S>) // Cast to the projected type when no select is applied
+
+        return success(selectedArticle)
+      })
+    },
+    [
+      `article-by-slug-and-type-${tutorialSlug}-${articleSlug}-${type}-${select ? JSON.stringify(select) : 'all-fields'}`,
+    ],
+    {
+      tags: [`article-by-slug-and-type-${tutorialSlug}-${articleSlug}-${type}`],
+      revalidate: TIME.ONE_DAY,
+    },
+  )
+  return cached(tutorialSlug, articleSlug, type, select)
+}
+
+// TODO: In the future, we should modify the Articles collection to include the tutorial. It could help us avoid the loop through the sections.
+export const getArticleBySlug = async <S extends ArticleSelect | undefined>(
+  tutorialSlug: string,
+  articleSlug: string,
+  select?: S,
+): Promise<Result<GetProjectedType<Article, S>, TutorialNotFoundError>> => {
+  return getArticleBySlugAndType(tutorialSlug, articleSlug, 'sections', select)
+}
+
+export const getFirstTutorialArticle = async (
+  tutorialSlug: string,
+): Promise<Result<Article, TutorialNotFoundError>> => {
+  const articlesResult = await getTutorialArticles(tutorialSlug)
+  if (isFailure(articlesResult)) {
+    console.error(
+      `Failed to retrieve first tutorial article for slug ${tutorialSlug}:`,
+      articlesResult.error,
     )
-    return cached(tutorialSlug, articleSlug)
+    return failure(articlesResult.error)
+  }
+  const firstArticle = articlesResult.value[0]
+  if (!firstArticle) {
+    return failure(new TutorialNotFoundError(`No first article found for tutorial ${tutorialSlug}`))
+  }
+  return success(firstArticle)
 }
 
-export const getFirstTutorialArticle = async (tutorialSlug: string): Promise<Article> => {
-  const articles = await getTutorialArticles(tutorialSlug)
-  return articles[0]
+export const getExampleArticleBySlug = async <S extends ArticleSelect | undefined>(
+  tutorialSlug: string,
+  exampleSlug: string,
+  select?: S,
+): Promise<Result<GetProjectedType<Article, S>, TutorialNotFoundError>> => {
+  return getArticleBySlugAndType(tutorialSlug, exampleSlug, 'exampleSections', select)
 }
 
-export const getExampleArticleBySlug = async (tutorialSlug: string, exampleSlug: string): Promise<Article> => {
-  const cached = unstable_cache(
-    async (tutorialSlug: string, exampleSlug: string) => {
-      const articles = await getTutorialExamplesArticles(tutorialSlug)
-      const article = articles.find((article) => article.slug === exampleSlug)
-
-      if (!article) {
-        throw new Error('Article not found')
-      }
-
-      return article
-    },
-    ['example-article-by-slug', tutorialSlug, exampleSlug],
-    {
-      tags: [`example-article-by-slug-${tutorialSlug}-${exampleSlug}`],
-      revalidate: EVERY_DAY,
-    },
-  )
-  return cached(tutorialSlug, exampleSlug)
+export const getFirstExampleArticle = async (
+  tutorialSlug: string,
+): Promise<Result<Article, TutorialNotFoundError>> => {
+  const articlesResult = await getTutorialExamplesArticles(tutorialSlug)
+  if (isFailure(articlesResult)) {
+    console.error(
+      `Failed to retrieve first example article for slug ${tutorialSlug}:`,
+      articlesResult.error,
+    )
+    return failure(articlesResult.error)
+  }
+  const firstArticle = articlesResult.value[0]
+  if (!firstArticle) {
+    return failure(
+      new TutorialNotFoundError(`No first example article found for tutorial ${tutorialSlug}`),
+    )
+  }
+  return success(firstArticle)
 }
 
-export const getFirstExampleArticle = async (tutorialSlug: string): Promise<Article> => {
-  const articles = await getTutorialExamplesArticles(tutorialSlug)
-  return articles[0]
+export const getReferenceArticleBySlug = async <S extends ArticleSelect | undefined>(
+  tutorialSlug: string,
+  referenceSlug: string,
+  select?: S,
+): Promise<Result<GetProjectedType<Article, S>, TutorialNotFoundError>> => {
+  return getArticleBySlugAndType(tutorialSlug, referenceSlug, 'referenceSections', select)
 }
 
-
-export const getReferenceArticleBySlug = async (tutorialSlug: string, referenceSlug: string): Promise<Article> => {
-  const cached = unstable_cache(
-    async (tutorialSlug: string, referenceSlug: string) => {
-      const referenceArticles = await getTutorialReferenceArticles(tutorialSlug)    
-      const article = referenceArticles.find((article) => article.slug === referenceSlug)
-
-      if (!article) {
-        throw new Error('Article not found')
-      }
-
-      return article
-    },
-    ['reference-article-by-slug', tutorialSlug, referenceSlug],
-    {
-      tags: [`reference-article-by-slug-${tutorialSlug}-${referenceSlug}`],
-      revalidate: EVERY_DAY,
-    },
-  )
-  return cached(tutorialSlug, referenceSlug)
-}
-
-export const getFirstTutorialReferenceArticle = async (tutorialSlug: string): Promise<Article> => {
-  const referenceArticles = await getTutorialReferenceArticles(tutorialSlug)
-  return referenceArticles[0]
+export const getFirstTutorialReferenceArticle = async (
+  tutorialSlug: string,
+): Promise<Result<Article, TutorialNotFoundError>> => {
+  const referenceArticlesResult = await getTutorialReferenceArticles(tutorialSlug)
+  if (isFailure(referenceArticlesResult)) {
+    console.error(
+      `Failed to retrieve first reference article for slug ${tutorialSlug}:`,
+      referenceArticlesResult.error,
+    )
+    return failure(referenceArticlesResult.error)
+  }
+  const firstArticle = referenceArticlesResult.value[0]
+  if (!firstArticle) {
+    return failure(
+      new TutorialNotFoundError(`No first reference article found for tutorial ${tutorialSlug}`),
+    )
+  }
+  return success(firstArticle)
 }
 
 export const getTutorialsArticles = async (): Promise<
@@ -184,14 +252,26 @@ export const getTutorialsArticles = async (): Promise<
     articles: Article[]
   }[]
 > => {
-  const tutorials = await getTutorials()
+  const tutorialsResult = await getTutorials()
+
+  if (isFailure(tutorialsResult)) {
+    console.error('Failed to retrieve tutorials for articles:', tutorialsResult.error)
+    return []
+  }
 
   return Promise.all(
-    tutorials.map(async (tutorial) => {
-      const articles = await getTutorialArticles(tutorial.slug)
+    tutorialsResult.value.map(async (tutorial) => {
+      const articlesResult = await getTutorialArticles(tutorial.slug)
+      if (isFailure(articlesResult)) {
+        console.error(
+          `Failed to retrieve articles for tutorial ${tutorial.slug}:`,
+          articlesResult.error,
+        )
+        return { tutorial, articles: [] } // Return empty array for articles on failure
+      }
       return {
         tutorial,
-        articles,
+        articles: articlesResult.value,
       }
     }),
   )
@@ -205,20 +285,34 @@ export const getTutorialsReferenceArticles = async (): Promise<
 > => {
   const cached = unstable_cache(
     async () => {
-      const tutorials = await getTutorials()
+      const tutorialsResult = await getTutorials()
 
-      return Promise.all(tutorials.map(async (tutorial) => {
-        const referenceArticles = await getTutorialReferenceArticles(tutorial.slug)
-        return {
-          tutorial,
-          referenceArticles,
-        }
-      }))
+      if (isFailure(tutorialsResult)) {
+        console.error('Failed to retrieve tutorials for reference articles:', tutorialsResult.error)
+        return []
+      }
+
+      return Promise.all(
+        tutorialsResult.value.map(async (tutorial) => {
+          const referenceArticlesResult = await getTutorialReferenceArticles(tutorial.slug)
+          if (isFailure(referenceArticlesResult)) {
+            console.error(
+              `Failed to retrieve reference articles for tutorial ${tutorial.slug}:`,
+              referenceArticlesResult.error,
+            )
+            return { tutorial, referenceArticles: [] }
+          }
+          return {
+            tutorial,
+            referenceArticles: referenceArticlesResult.value,
+          }
+        }),
+      )
     },
     ['tutorials-reference-articles'],
     {
       tags: [`tutorials-reference-articles`],
-      revalidate: EVERY_DAY,
+      revalidate: TIME.ONE_DAY,
     },
   )
   return cached()
