@@ -28,6 +28,8 @@ import { unstable_cache } from 'next/cache'
 import { Challenge as PayloadChallenge, UserChallengeProgression } from '@/payload-types'
 import { CalendarDay, CompletedChallengeInfo } from './types'
 
+import { find } from '@/api'
+
 export const getUserProgression = async (
   userId: string,
   challengeId: number,
@@ -691,7 +693,6 @@ export const getCachedHistoricalCompletedChallengesCounts = unstable_cache(
  */
 export const getCalendarDays = async (userId: string): Promise<(CalendarDay | null)[]> => {
   const validatedUserId = validateUserId(userId)
-  const payload = await getPayload({ config })
 
   const now = new Date()
   const year = now.getFullYear()
@@ -702,7 +703,7 @@ export const getCalendarDays = async (userId: string): Promise<(CalendarDay | nu
   const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999))
 
   // Fetch all completed progressions for the user within the current month
-  const completedProgressions = await payload.find({
+  const completedProgressions = await find({
     collection: 'userChallengeCompletionStatus',
     where: {
       and: [

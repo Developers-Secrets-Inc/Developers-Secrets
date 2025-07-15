@@ -7,6 +7,6 @@ export const mergeUserInformations = (supabaseUser: SupabaseUser, userInformatio
     const { id, ...userInformationsWithoutId } = userInformations
     return {
       ...supabaseUser,
-      ...userInformationsWithoutId,
+      informations: {...userInformationsWithoutId},
     } as User
   }

@@ -18,15 +18,3 @@ export default async function Page({ params }: { params: { slug?: string[] } }) 
   )
 }
 
-export async function generateStaticParams() {
-  return source.generateParams()
-}
-
-export async function generateMetadata({ params }: { params: { slug?: string[] } }) {
-  const page = source.getPage(params.slug)
-  if (!page) notFound()
-  return {
-    title: page.data.title,
-    description: page.data.description,
-  }
-}

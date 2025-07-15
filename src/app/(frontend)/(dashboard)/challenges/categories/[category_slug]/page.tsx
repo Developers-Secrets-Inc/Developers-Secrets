@@ -21,6 +21,7 @@ import { getSessionUser } from '@/core/user'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
+import { getChallengeCategoryBySlug } from '@/api/challenges/categories'
 
 type Difficulty = 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible'
 type CompletionStatus = 'not_started' | 'in_progress' | 'completed'
@@ -103,7 +104,7 @@ function LoadingRow({ id }: { id: number }) {
 export default async function Page({ params }: { params: Promise<{ category_slug: string }> }) {
   const { category_slug } = await params
   const sessionResult = await getSessionUser()
-  const category = await getCategoryBySlug(category_slug)
+  const category = await getChallengeCategoryBySlug(category_slug)
   const similarCategories = await getSimilarCategories(category_slug)
 
   if (!category || category.isLocked) {
@@ -130,19 +131,6 @@ export default async function Page({ params }: { params: Promise<{ category_slug
             {/* Table Section - 8 columns */}
             <div className="col-span-8 space-y-8">
               {category.parts?.map(async (part, index) => {
-                const challengesWithStatus = await Promise.all(
-                  part.challenges.map(async (challengeData) => {
-                    const challenge = challengeData as Challenge | number
-                    if (typeof challenge === 'number') {
-                      return challenge
-                    }
-                    const status = sessionResult.success
-                      ? await getUserCompletionStatus(sessionResult.value.id, challenge.id)
-                      : 'not_started'
-                    return { ...challenge, status }
-                  }),
-                )
-
                 return (
                   <div key={part.id} className="space-y-4">
                     <div>
@@ -165,7 +153,7 @@ export default async function Page({ params }: { params: Promise<{ category_slug
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {challengesWithStatus.map((challenge) => {
+                          {part.challenges.map((challenge) => {
                             if (typeof challenge === 'number') {
                               return <LoadingRow key={challenge} id={challenge} />
                             }
