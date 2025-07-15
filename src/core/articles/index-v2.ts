@@ -2,7 +2,14 @@
 
 import 'server-only'
 
-import { getPayload } from 'payload'
+import {
+  BasePayload,
+  CollectionSlug,
+  GeneratedTypes,
+  getPayload,
+  SelectType,
+  TypedCollectionSelect,
+} from 'payload'
 import config from '@payload-config'
 
 import { unstable_cache } from 'next/cache'
@@ -12,7 +19,6 @@ import { failure, Result, success, isFailure, flatMapAsync } from '@/lib/result'
 import { TutorialNotFoundError, TutorialsNotFoundError } from './errors'
 import { TIME } from '@/lib/time'
 import { GetProjectedType, PayloadSelect } from './types'
-
 
 type TutorialSelect = PayloadSelect<Tutorial>
 type ArticleSelect = PayloadSelect<Article>
@@ -35,10 +41,12 @@ export const getTutorials = unstable_cache(
   { revalidate: TIME.ONE_DAY },
 )
 
-export const getTutorialBySlug = async <S extends TutorialSelect | undefined>(
+type Select<TSlug extends CollectionSlug> = TypedCollectionSelect[TSlug]
+
+export const getTutorialBySlug = async (
   tutorialSlug: string,
-  select?: S,
-): Promise<Result<GetProjectedType<Tutorial, S>, TutorialNotFoundError>> => {
+  select?: Select<'tutorials'>,
+): Promise<Result<GetProjectedType<Tutorial, typeof select>, TutorialNotFoundError>> => {
   const cached = unstable_cache(
     async (currentSlug, currentSelect) => {
       const payload = await getPayload({ config })
@@ -53,7 +61,7 @@ export const getTutorialBySlug = async <S extends TutorialSelect | undefined>(
         return failure(new TutorialNotFoundError(currentSlug))
       }
 
-      return success(tutorial.docs[0] as GetProjectedType<Tutorial, S>)
+      return success(tutorial.docs[0] as GetProjectedType<Tutorial, TSelect>)
     },
     ['tutorial-by-slug', tutorialSlug, select ? JSON.stringify(select) : 'all-fields'],
     {
@@ -64,55 +72,67 @@ export const getTutorialBySlug = async <S extends TutorialSelect | undefined>(
   return cached(tutorialSlug, select)
 }
 
-export const getArticlesByType = async (
+export const getArticlesByType = async <
+  S extends SelectFromCollectionSlug<'tutorials'> | undefined,
+>(
   tutorialSlug: string,
   type: 'sections' | 'exampleSections' | 'referenceSections',
-): Promise<Result<Article[], TutorialsNotFoundError>> => {
+  articleSelect?: S, // Add articleSelect parameter
+): Promise<Result<GetProjectedType<Article, S>[], TutorialsNotFoundError>> => {
+  // Update return type
   const cached = unstable_cache(
-    async (currentSlug, currentType) => {
+    async (currentSlug, currentType, currentArticleSelect) => {
+      // Add currentArticleSelect
       const selectParam: TutorialSelect = {
-        [currentType]: { articles: true }, // Explicitly select articles within the section
+        [currentType]: { articles: currentArticleSelect || true }, // Pass articleSelect or true for all fields
       }
 
       return flatMapAsync(
         await getTutorialBySlug(currentSlug, selectParam),
         async (tutorial: Partial<Tutorial>) => {
-          // tutorial is Partial here because getTutorialBySlug returns Partial when `select` is used
           const articles =
             (
               (tutorial[currentType as keyof Partial<Tutorial>] as Array<{
                 articles: Article[]
               }>) || []
-            ).flatMap((section) => section.articles as Article[]) || []
+            ).flatMap((section) => section.articles as GetProjectedType<Article, S>[]) || []
           return success(articles)
         },
       )
     },
-    [`articles-by-type-${tutorialSlug}-${type}`],
+    [
+      `articles-by-type-${tutorialSlug}-${type}-${articleSelect ? JSON.stringify(articleSelect) : 'all-fields'}`,
+    ], // Update cache key
     {
       tags: [`articles-by-type-${tutorialSlug}-${type}`],
       revalidate: TIME.ONE_DAY,
     },
   )
-  return cached(tutorialSlug, type)
+  return cached(tutorialSlug, type, articleSelect) // Pass articleSelect
 }
 
-export const getTutorialArticles = async (
+export const getTutorialArticles = async <S extends ArticleSelect | undefined>(
   tutorialSlug: string,
-): Promise<Result<Article[], TutorialsNotFoundError>> => {
-  return getArticlesByType(tutorialSlug, 'sections')
+  select?: S, // Add select parameter
+): Promise<Result<GetProjectedType<Article, S>[], TutorialsNotFoundError>> => {
+  // Update return type
+  return getArticlesByType(tutorialSlug, 'sections', select) // Pass select
 }
 
-export const getTutorialExamplesArticles = async (
+export const getTutorialExamplesArticles = async <S extends ArticleSelect | undefined>(
   tutorialSlug: string,
-): Promise<Result<Article[], TutorialsNotFoundError>> => {
-  return getArticlesByType(tutorialSlug, 'exampleSections')
+  select?: S, // Add select parameter
+): Promise<Result<GetProjectedType<Article, S>[], TutorialsNotFoundError>> => {
+  // Update return type
+  return getArticlesByType(tutorialSlug, 'exampleSections', select) // Pass select
 }
 
-export const getTutorialReferenceArticles = async (
+export const getTutorialReferenceArticles = async <S extends ArticleSelect | undefined>(
   tutorialSlug: string,
-): Promise<Result<Article[], TutorialsNotFoundError>> => {
-  return getArticlesByType(tutorialSlug, 'referenceSections')
+  select?: S, // Add select parameter
+): Promise<Result<GetProjectedType<Article, S>[], TutorialsNotFoundError>> => {
+  // Update return type
+  return getArticlesByType(tutorialSlug, 'referenceSections', select) // Pass select
 }
 
 export const getArticleBySlugAndType = async <S extends ArticleSelect | undefined>(
@@ -172,10 +192,12 @@ export const getArticleBySlug = async <S extends ArticleSelect | undefined>(
   return getArticleBySlugAndType(tutorialSlug, articleSlug, 'sections', select)
 }
 
-export const getFirstTutorialArticle = async (
+export const getFirstTutorialArticle = async <S extends ArticleSelect | undefined>(
   tutorialSlug: string,
-): Promise<Result<Article, TutorialNotFoundError>> => {
-  const articlesResult = await getTutorialArticles(tutorialSlug)
+  select?: S, // Add select parameter
+): Promise<Result<GetProjectedType<Article, S>, TutorialNotFoundError>> => {
+  // Update return type
+  const articlesResult = await getTutorialArticles(tutorialSlug, select) // Pass select
   if (isFailure(articlesResult)) {
     console.error(
       `Failed to retrieve first tutorial article for slug ${tutorialSlug}:`,
@@ -198,10 +220,12 @@ export const getExampleArticleBySlug = async <S extends ArticleSelect | undefine
   return getArticleBySlugAndType(tutorialSlug, exampleSlug, 'exampleSections', select)
 }
 
-export const getFirstExampleArticle = async (
+export const getFirstExampleArticle = async <S extends ArticleSelect | undefined>(
   tutorialSlug: string,
-): Promise<Result<Article, TutorialNotFoundError>> => {
-  const articlesResult = await getTutorialExamplesArticles(tutorialSlug)
+  select?: S, // Add select parameter
+): Promise<Result<GetProjectedType<Article, S>, TutorialNotFoundError>> => {
+  // Update return type
+  const articlesResult = await getTutorialExamplesArticles(tutorialSlug, select) // Pass select
   if (isFailure(articlesResult)) {
     console.error(
       `Failed to retrieve first example article for slug ${tutorialSlug}:`,
@@ -226,10 +250,12 @@ export const getReferenceArticleBySlug = async <S extends ArticleSelect | undefi
   return getArticleBySlugAndType(tutorialSlug, referenceSlug, 'referenceSections', select)
 }
 
-export const getFirstTutorialReferenceArticle = async (
+export const getFirstTutorialReferenceArticle = async <S extends ArticleSelect | undefined>(
   tutorialSlug: string,
-): Promise<Result<Article, TutorialNotFoundError>> => {
-  const referenceArticlesResult = await getTutorialReferenceArticles(tutorialSlug)
+  select?: S, // Add select parameter
+): Promise<Result<GetProjectedType<Article, S>, TutorialNotFoundError>> => {
+  // Update return type
+  const referenceArticlesResult = await getTutorialReferenceArticles(tutorialSlug, select) // Pass select
   if (isFailure(referenceArticlesResult)) {
     console.error(
       `Failed to retrieve first reference article for slug ${tutorialSlug}:`,

@@ -1,5 +1,5 @@
 import { Markdown } from './markdown'
-import { RecommendedArticles } from '@/components/recommended-articles'
+import { RecommendedArticleCard, RecommendedArticles } from '@/components/recommended-articles'
 import { TypographyH1, TypographyP } from '@/components/typography'
 import { Article as PayloadArticle } from '@/payload-types'
 
@@ -9,8 +9,8 @@ interface ArticleContentProps {
     subtitle: string | null | undefined
     content: string
   }
-  popularArticles: PayloadArticle[]
-  personalizedArticles: PayloadArticle[]
+  popularArticles: RecommendedArticleCard[]
+  personalizedArticles: RecommendedArticleCard[]
   tutorial_slug: string
 }
 

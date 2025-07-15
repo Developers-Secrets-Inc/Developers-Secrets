@@ -76,6 +76,7 @@ export const Tutorials: CollectionConfig = {
           admin: {
             description: 'Articles included in this section, in display order',
           },
+          maxDepth: 0,
         },
       ],
     },
@@ -100,9 +101,11 @@ export const Tutorials: CollectionConfig = {
           relationTo: 'articles',
           hasMany: true,
           required: true,
-          admin: {
+            admin: {
             description: 'Example articles included in this section',
           },
+          maxDepth: 0,
+          
         },
       ],
     },
@@ -135,6 +138,7 @@ export const Tutorials: CollectionConfig = {
           admin: {
             description: 'Reference articles included in this section',
           },
+          maxDepth: 0,
         },
       ],
     },

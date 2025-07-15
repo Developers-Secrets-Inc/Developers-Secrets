@@ -12,21 +12,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { SearchForm } from '../[article_slug]/components/search-form'
+import { SearchForm } from '../(article)/[article_slug]/components/search-form'
 import { ArticleSidebarFooter } from './article-sidebar-footer'
 import { ArticlesSwitcher } from './articles-switcher'
 
-
-type Article = {
+type FormattedArticle = {
   id: number
   title: string
   slug: string
 }
 
 type Section = {
-  title: string
-  articles: Article[]
   id?: string | null
+  title: string
+  description?: string | null
+  articles: FormattedArticle[]
 }
 
 type Tutorial = {
@@ -39,7 +39,7 @@ type ArticleType = 'tutorial' | 'examples' | 'references'
 
 interface ArticleSidebarProps {
   tutorial: Tutorial
-  currentArticleSlug: string
+  // currentArticleSlug: string
   articleType: ArticleType
 }
 
@@ -54,12 +54,7 @@ const createTutorialOutline = (sections: ArticleSidebarProps['tutorial']['sectio
   }))
 }
 
-export const ArticleSidebar = ({
-  tutorial,
-  currentArticleSlug,
-  articleType,
-}: ArticleSidebarProps) => {
-  // Use cached functions
+export const ArticleSidebar = ({ tutorial, articleType }: ArticleSidebarProps) => {
   const tutorialOutline = createTutorialOutline(tutorial.sections)
 
   return (
@@ -80,10 +75,11 @@ export const ArticleSidebar = ({
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
-                      isActive={item.url === currentArticleSlug}
-                      className={`text-muted-foreground truncate ${
-                        item.url === currentArticleSlug ? 'text-primary' : ''
-                      }`}
+                      // isActive={item.url === currentArticleSlug}
+                      // className={`text-muted-foreground truncate ${
+                      //   item.url === currentArticleSlug ? 'text-primary' : ''
+                      // }`}
+                      className="text-muted-foreground truncate"
                     >
                       <Link
                         href={`/articles/${tutorial.slug}/${articleType !== 'tutorial' ? `${articleType}/` : ''}${item.url}`}

@@ -1,5 +1,5 @@
 import { Eclipse } from 'lucide-react'
-import { MainNavigationMenu } from '../[article_slug]/components/main-navigation-menu'
+import { MainNavigationMenu } from '../(article)/[article_slug]/components/main-navigation-menu'
 import Link from 'next/link'
 import { AuthButtons } from '@/components/buttons/AuthButtons'
 

@@ -1,5 +1,5 @@
 export const experimental_ppr = true
-import { ArticleOutline } from '../../[article_slug]/components/article-outline'
+import { ArticleOutline } from '../../(article)/[article_slug]/components/article-outline'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import {
   getExampleArticleBySlug,
@@ -18,14 +18,8 @@ import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
 import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'
 import { getPopularArticles, getPersonalizedArticles } from '@/core/articles/recommandations-v2'
 import { notFound } from 'next/navigation'
+import { isFailure } from '@/lib/result'
 
-// Revalidate content every hour
-export const revalidate = 3600
-
-// Allow dynamic params for examples not in generateStaticParams
-export const dynamicParams = true
-
-// Generate metadata for SEO
 export async function generateMetadata(
   { params }: { params: Promise<{ tutorial_slug: string; example_slug: string }> },
   parent: ResolvingMetadata,
@@ -34,25 +28,36 @@ export async function generateMetadata(
 
   try {
     // Get the tutorial and article data (Payload structure)
-    const payloadTutorial = await getTutorialBySlug(tutorial_slug)
-    const payloadArticle = await getExampleArticleBySlug(tutorial_slug, example_slug)
+    const payloadArticle = await getExampleArticleBySlug(tutorial_slug, example_slug, {
+      seo: true,
+      title: true,
+      subtitle: true,
+      createdAt: true,
+      updatedAt: true,
+    })
+
+    if (isFailure(payloadArticle)) {
+      throw payloadArticle.error
+    }
+
+    const article = payloadArticle.value
 
     // Get the parent metadata
     const previousImages = (await parent).openGraph?.images || []
 
     // Prepare SEO title - use SEO title if available, otherwise use article title
-    const title = payloadArticle.seo?.title || payloadArticle.title
-    const fullTitle = `${title} | Examples | ${payloadTutorial.title}`
+    const title = article.seo?.title || article.title
+    const fullTitle = `${title} | Examples | ${article.title}`
 
     // Prepare SEO description
     const description =
-      payloadArticle.seo?.description ||
-      payloadArticle.subtitle ||
-      `Practical examples of ${payloadArticle.title} in our ${payloadTutorial.title} tutorial.`
+      article.seo?.description ||
+      article.subtitle ||
+      `Practical examples of ${article.title} in our tutorial.`
 
     // Prepare keywords
     const keywords =
-      payloadArticle.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
+      article.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
 
     return {
       title: fullTitle,
@@ -62,8 +67,8 @@ export async function generateMetadata(
         title: fullTitle,
         description: description,
         type: 'article',
-        publishedTime: payloadArticle.createdAt,
-        modifiedTime: payloadArticle.updatedAt,
+        publishedTime: article.createdAt,
+        modifiedTime: article.updatedAt,
         url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/examples/${example_slug}`,
         images: previousImages,
       },
@@ -89,55 +94,59 @@ export default async function ExamplePage({
 }) {
   const { tutorial_slug, example_slug } = await params
 
-  try {
-    // Get the tutorial, article, and related data
-    const [tutorial, article, articles] = await Promise.all([
-      getTutorialBySlug(tutorial_slug),
-      getExampleArticleBySlug(tutorial_slug, example_slug),
-      getTutorialExamplesArticles(tutorial_slug),
-    ])
+  // Get the tutorial, article, and related data
+  const article = await getExampleArticleBySlug(tutorial_slug, example_slug, {
+    content: true,
+    title: true,
+    subtitle: true,
+  })
 
-    // Get the article outline
-    const outline = getArticleOutline(article.content)
+  if (isFailure(article)) return notFound()
 
-    // Get recommended articles
-    const [popularArticles, personalizedArticles] = await Promise.all([
-      getPopularArticles(tutorial_slug, article.id, 2),
-      getPersonalizedArticles(tutorial_slug, article.id, 2),
-    ])
+  const outline = getArticleOutline(article.value.content)
 
-    return (
-      <SidebarProvider>
-        <ArticleSidebar
-          tutorial={tutorial}
-          articles={articles}
-          currentArticleSlug={example_slug}
-          articleType="examples"
-        />
-        <SidebarInset>
-          <Suspense fallback={<HeaderPlaceholder />}>
-            <ArticleHeader />
-          </Suspense>
-          <div className="flex flex-1">
-            <ArticleContent
-              article={article}
-              popularArticles={popularArticles}
-              personalizedArticles={personalizedArticles}
-              tutorial_slug={tutorial_slug}
-            />
-            <ArticleOutline outline={outline} />
-          </div>
-        </SidebarInset>
-        <ChatActivationButton
-          tutorialSlug={tutorial_slug}
-          articleSlug={example_slug}
-          tutorialTitle={tutorial.title}
-          articleTitle={article.title}
-          articleFullContent={article.content}
-        />
-      </SidebarProvider>
+  const [popularArticles, personalizedArticles] = await Promise.all([
+    getPopularArticles(tutorial_slug, article.value.id, 1, {
+      id: true,
+      title: true,
+      subtitle: true,
+      slug: true,
+    }),
+    getPersonalizedArticles(tutorial_slug, article.value.id, 3, {
+      id: true,
+      title: true,
+      subtitle: true,
+      slug: true,
+    }),
+  ])
+
+  if (isFailure(popularArticles) || isFailure(personalizedArticles)) {
+    throw new Error(
+      `An error occured trying to load popular articles : ${popularArticles} and personalized articles ${personalizedArticles}`,
     )
-  } catch (error) {
-    notFound()
   }
+
+  return (
+    <>
+      <Suspense fallback={<HeaderPlaceholder />}>
+        <ArticleHeader />
+      </Suspense>
+      <div className="flex flex-1">
+        <ArticleContent
+          article={article.value}
+          popularArticles={popularArticles.value}
+          personalizedArticles={personalizedArticles.value}
+          tutorial_slug={tutorial_slug}
+        />
+        <ArticleOutline outline={outline} />
+      </div>
+      <ChatActivationButton
+        tutorialSlug={tutorial_slug}
+        articleSlug={example_slug}
+        tutorialTitle={tutorial_slug}
+        articleTitle={article.value.title}
+        articleFullContent={article.value.content}
+      />
+    </>
+  )
 }
