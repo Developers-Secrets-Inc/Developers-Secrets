@@ -18,7 +18,6 @@ import { Concepts } from './collections/Concepts'
 import { Divisions } from './collections/Divisions'
 import { ExperienceLogs } from './collections/ExperienceLogs'
 import { Feedbacks } from './collections/Feedbacks'
-import { ImplementationConcepts } from './collections/ImplementationConcepts'
 import { Items } from './collections/Items'
 import { MarketplaceItem } from './collections/MarketplaceItem'
 import { Media } from './collections/Media'
@@ -35,7 +34,6 @@ import { UserConceptProgressions } from './collections/UserConceptProgressions'
 import { UserCurrency } from './collections/UserCurrency'
 import { UserFollowingInformations } from './collections/UserFollowingInformations'
 import { UserGamification } from './collections/UserGamification'
-import { UserImplementationConceptProgressions } from './collections/UserImplementationConceptProgressions'
 import { UserInformations } from './collections/UserInformations'
 import { UserInventory } from './collections/UserInventory'
 import { UserItems } from './collections/UserItems'
@@ -44,6 +42,8 @@ import { Users } from './collections/Users'
 import { UserSolutions } from './collections/UserSolutions'
 import { WeeklyDivisionLeaderboards } from './collections/WeeklyDivisionLeaderboards'
 import { WeeklyLeaderboardMembers } from './collections/WeeklyLeaderboardMembers'
+import { UserOverallSkillProgressions } from './collections/UserOverallSkillProgressions'
+import { ChallengeConceptOutcomes } from './collections/ChallengeConceptOutcomes'
 import { ConceptGroups } from './collections/ConceptGroups'
 import { Courses } from './collections/Courses'
 import { Chapters } from './collections/Chapters'
@@ -111,9 +111,9 @@ export default buildConfig({
     WeeklyLeaderboardMembers,
     Skills,
     Concepts,
-    ImplementationConcepts,
     UserConceptProgressions,
-    UserImplementationConceptProgressions,
+    UserOverallSkillProgressions,
+    ChallengeConceptOutcomes,
     ConceptGroups,
     Courses,
     LearningPath,

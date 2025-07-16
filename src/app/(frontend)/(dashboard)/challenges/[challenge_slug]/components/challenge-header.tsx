@@ -3,7 +3,6 @@ import { Experience } from '@/components/challenges/challenge-experience'
 
 import { Challenge as PayloadChallenge } from '@/payload-types'
 import { ChallengeStatus } from './challenge-status'
-import { ChallengeSkillImpacts } from '@/components/challenges/challenge-skill-impacts'
 import { Badge } from '@/components/ui/badge'
 
 type ChallengeHeaderProps = {
@@ -41,7 +40,6 @@ const ChallengeHeaderTags = ({ challenge }: { challenge: PayloadChallenge }) => 
         <Difficulty difficulty={challenge.difficulty} />
         <Experience quantity={challenge.baseExperience || 0} />
       </div>
-      <ChallengeSkillImpacts skillImpacts={challenge.skillImpacts} />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { LinkButton } from '@/components/common/link-button'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
 import { ChallengeDifficultyBadge } from './difficulty-badge'
 import { Trophy } from 'lucide-react'
-import { getRandomUncompletedChallenge } from '@/core/skills/recommendations'
+// import { getRandomUncompletedChallenge } from '@/core/skills/recommendations'
 import { Skeleton } from '@/components/ui/skeleton'
 import { RecommendedChallengeClient } from './recommended-challenge.client'
 
@@ -63,8 +63,9 @@ RecommendedChallengeCard.Header = RecommendedChallengeCardHeader
 RecommendedChallengeCard.Description = RecommendedChallengeCardDescription
 
 export const RecommendedChallenge = async ({ userId }: { userId: string }) => {
-  const initialChallenge = await getRandomUncompletedChallenge(userId)
-  return <RecommendedChallengeClient userId={userId} initialChallenge={initialChallenge} />
+  // const initialChallenge = await getRandomUncompletedChallenge(userId)
+  // return <RecommendedChallengeClient userId={userId} initialChallenge={initialChallenge} />
+  return <RecommendedChallengeSkeleton />
 }
 
 export const RecommendedChallengeSkeleton = () => {

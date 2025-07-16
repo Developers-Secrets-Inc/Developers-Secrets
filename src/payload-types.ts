@@ -101,9 +101,9 @@ export interface Config {
     'weekly-leaderboard-members': WeeklyLeaderboardMember;
     skills: Skill;
     concepts: Concept;
-    implementationConcepts: ImplementationConcept;
     userConceptProgressions: UserConceptProgression;
-    userImplementationConceptProgressions: UserImplementationConceptProgression;
+    'user-overall-skill-progressions': UserOverallSkillProgression;
+    'challenge-concept-outcomes': ChallengeConceptOutcome;
     conceptGroups: ConceptGroup;
     courses: Course;
     'learning-paths': LearningPath;
@@ -164,9 +164,9 @@ export interface Config {
     'weekly-leaderboard-members': WeeklyLeaderboardMembersSelect<false> | WeeklyLeaderboardMembersSelect<true>;
     skills: SkillsSelect<false> | SkillsSelect<true>;
     concepts: ConceptsSelect<false> | ConceptsSelect<true>;
-    implementationConcepts: ImplementationConceptsSelect<false> | ImplementationConceptsSelect<true>;
     userConceptProgressions: UserConceptProgressionsSelect<false> | UserConceptProgressionsSelect<true>;
-    userImplementationConceptProgressions: UserImplementationConceptProgressionsSelect<false> | UserImplementationConceptProgressionsSelect<true>;
+    'user-overall-skill-progressions': UserOverallSkillProgressionsSelect<false> | UserOverallSkillProgressionsSelect<true>;
+    'challenge-concept-outcomes': ChallengeConceptOutcomesSelect<false> | ChallengeConceptOutcomesSelect<true>;
     conceptGroups: ConceptGroupsSelect<false> | ConceptGroupsSelect<true>;
     courses: CoursesSelect<false> | CoursesSelect<true>;
     'learning-paths': LearningPathsSelect<false> | LearningPathsSelect<true>;
@@ -1159,51 +1159,6 @@ export interface Challenge {
       }[]
     | null;
   /**
-   * Define how completing this challenge (per skill) affects user skill/concept progression.
-   */
-  skillImpacts?:
-    | {
-        /**
-         * The Skill (language/framework) used to complete the challenge for these impacts to apply.
-         */
-        skill: number | Skill;
-        /**
-         * Define the specific concept progressions gained for completing the challenge with the selected Skill.
-         */
-        impacts?:
-          | (
-              | {
-                  /**
-                   * The specific concept implementation (e.g., Loops in Python) that progresses.
-                   */
-                  implementationConcept: number | ImplementationConcept;
-                  /**
-                   * How many points (e.g., 0-100) this completion adds to the implementation concept mastery.
-                   */
-                  progressAmount: number;
-                  id?: string | null;
-                  blockName?: string | null;
-                  blockType: 'skillConceptImpact';
-                }
-              | {
-                  /**
-                   * The abstract concept (e.g., Loops, Encapsulation) that progresses directly.
-                   */
-                  concept: number | Concept;
-                  /**
-                   * How many points (e.g., 0-100) this completion adds directly to the base concept mastery.
-                   */
-                  progressAmount: number;
-                  id?: string | null;
-                  blockName?: string | null;
-                  blockType: 'baseConceptImpact';
-                }
-            )[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
    * Indique si le challenge est en mode brouillon (draft)
    */
   draft?: boolean | null;
@@ -1334,112 +1289,6 @@ export interface UserSolution {
    * The current status of the solution.
    */
   status: 'drafted' | 'published';
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Represents technical or conceptual skills (e.g., Python, React, POO, Algorithms).
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "skills".
- */
-export interface Skill {
-  id: number;
-  /**
-   * The name of the skill (e.g., Python, React, Object-Oriented Programming).
-   */
-  name: string;
-  /**
-   * A unique, URL-friendly identifier for the skill.
-   */
-  slug: string;
-  /**
-   * A brief description of the skill and its scope.
-   */
-  description?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Represents a specific Concept applied within a particular Skill (e.g., Loops in Python, Encapsulation in Java).
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "implementationConcepts".
- */
-export interface ImplementationConcept {
-  id: number;
-  /**
-   * The abstract concept being implemented.
-   */
-  concept: number | Concept;
-  /**
-   * The specific skill (language, framework, etc.) where the concept is applied.
-   */
-  implementationSkill: number | Skill;
-  /**
-   * Optional specific name for this implementation context (e.g., "Python For Loops", "Java Private Fields"). Can be auto-generated.
-   */
-  name?: string | null;
-  /**
-   * Optional unique, URL-friendly identifier. Can be auto-generated from concept and skill slugs.
-   */
-  slug?: string | null;
-  /**
-   * Optional description specific to this implementation context.
-   */
-  description?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Represents abstract concepts (e.g., Loops, Encapsulation, Stacks). Can be linked to a parent skill (e.g., Encapsulation belongs to POO).
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "concepts".
- */
-export interface Concept {
-  id: number;
-  /**
-   * The name of the abstract concept (e.g., Loops, Encapsulation, Stacks).
-   */
-  name: string;
-  /**
-   * A unique, URL-friendly identifier for the concept.
-   */
-  slug: string;
-  /**
-   * A brief description of the concept.
-   */
-  description?: string | null;
-  /**
-   * Optional: The main skill or paradigm this concept belongs to (e.g., Encapsulation belongs to POO). Helps categorize and link concepts.
-   */
-  parentSkill?: (number | null) | Skill;
-  /**
-   * Optional: Select another concept that acts as a logical parent or category for this one (e.g., "Data Types" could be the parent of "Strings").
-   */
-  parentConcept?: (number | null) | Concept;
-  /**
-   * Concepts that should generally be understood before tackling this one.
-   */
-  requiredConcepts?: (number | Concept)[] | null;
-  /**
-   * Concepts that logically follow this one in potential learning paths.
-   */
-  nextConcepts?: (number | Concept)[] | null;
-  groups?: (number | ConceptGroup)[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "conceptGroups".
- */
-export interface ConceptGroup {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1812,6 +1661,68 @@ export interface WeeklyLeaderboardMember {
   createdAt: string;
 }
 /**
+ * Represents technical or conceptual skills (e.g., Python, React, POO, Algorithms).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills".
+ */
+export interface Skill {
+  id: number;
+  /**
+   * The name of the skill (e.g., Python, React, Object-Oriented Programming).
+   */
+  name: string;
+  /**
+   * A unique, URL-friendly identifier for the skill.
+   */
+  slug: string;
+  /**
+   * A brief description of the skill and its scope.
+   */
+  description?: string | null;
+  /**
+   * The top-level concepts that form the entry points for this skill tree.
+   */
+  rootConcepts?: (number | Concept)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Represents abstract concepts (e.g., Loops, Encapsulation, Stacks). Can be linked to a parent skill (e.g., Encapsulation belongs to POO).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "concepts".
+ */
+export interface Concept {
+  id: number;
+  /**
+   * The name of the abstract concept (e.g., Loops, Encapsulation, Stacks).
+   */
+  name: string;
+  /**
+   * A unique, URL-friendly identifier for the concept.
+   */
+  slug: string;
+  /**
+   * A brief description of the concept.
+   */
+  description?: string | null;
+  /**
+   * Distinguishes between abstract concepts (general ideas like "Loops") and concrete applications/implementations (specific tasks like "Iterate in a loop").
+   */
+  type: 'abstract' | 'concrete';
+  /**
+   * Concepts that are direct children of this concept. Used for calculating weighted average progression for abstract concepts.
+   */
+  subConcepts?: (number | Concept)[] | null;
+  /**
+   * Concepts that should generally be understood before tackling this one.
+   */
+  requiredConcepts?: (number | Concept)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Stores a user's progress on an abstract Concept.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1836,26 +1747,44 @@ export interface UserConceptProgression {
   createdAt: string;
 }
 /**
- * Stores a user's progress on a specific Implementation Concept.
- *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "userImplementationConceptProgressions".
+ * via the `definition` "user-overall-skill-progressions".
  */
-export interface UserImplementationConceptProgression {
+export interface UserOverallSkillProgression {
   id: number;
-  /**
-   * The Supabase unique identifier for the user.
-   */
   user: string;
-  implementationConcept: number | ImplementationConcept;
-  /**
-   * The user's current mastery level for this specific implementation (0-100).
-   */
-  progressValue: number;
-  /**
-   * Timestamp of the last activity that contributed to this progression.
-   */
-  lastActivityAt?: string | null;
+  skill: number | Skill;
+  overallMasteryPercentage: number;
+  lastUpdated: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-concept-outcomes".
+ */
+export interface ChallengeConceptOutcome {
+  id: number;
+  challenge: number | Challenge;
+  conceptProgressions?:
+    | {
+        concept: number | Concept;
+        completionPercentage: number;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "conceptGroups".
+ */
+export interface ConceptGroup {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1991,43 +1920,6 @@ export interface CoursePart {
           | null;
         id?: string | null;
       }[]
-    | null;
-  /**
-   * Define how completing this part affects user skill/concept progression.
-   */
-  skillImpacts?:
-    | (
-        | {
-            /**
-             * The skill context for this specific impact.
-             */
-            implementationSkill: number | Skill;
-            /**
-             * The specific concept implementation that progresses.
-             */
-            implementationConcept: number | ImplementationConcept;
-            /**
-             * Points added to the concept mastery (e.g., 0-100).
-             */
-            progressAmount: number;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'skillConceptImpact';
-          }
-        | {
-            /**
-             * The abstract concept that progresses directly.
-             */
-            concept: number | Concept;
-            /**
-             * Points added to the concept mastery (e.g., 0-100).
-             */
-            progressAmount: number;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'baseConceptImpact';
-          }
-      )[]
     | null;
   updatedAt: string;
   createdAt: string;
@@ -2604,16 +2496,16 @@ export interface PayloadLockedDocument {
         value: number | Concept;
       } | null)
     | ({
-        relationTo: 'implementationConcepts';
-        value: number | ImplementationConcept;
-      } | null)
-    | ({
         relationTo: 'userConceptProgressions';
         value: number | UserConceptProgression;
       } | null)
     | ({
-        relationTo: 'userImplementationConceptProgressions';
-        value: number | UserImplementationConceptProgression;
+        relationTo: 'user-overall-skill-progressions';
+        value: number | UserOverallSkillProgression;
+      } | null)
+    | ({
+        relationTo: 'challenge-concept-outcomes';
+        value: number | ChallengeConceptOutcome;
       } | null)
     | ({
         relationTo: 'conceptGroups';
@@ -3195,32 +3087,6 @@ export interface ChallengesSelect<T extends boolean = true> {
             };
         id?: T;
       };
-  skillImpacts?:
-    | T
-    | {
-        skill?: T;
-        impacts?:
-          | T
-          | {
-              skillConceptImpact?:
-                | T
-                | {
-                    implementationConcept?: T;
-                    progressAmount?: T;
-                    id?: T;
-                    blockName?: T;
-                  };
-              baseConceptImpact?:
-                | T
-                | {
-                    concept?: T;
-                    progressAmount?: T;
-                    id?: T;
-                    blockName?: T;
-                  };
-            };
-        id?: T;
-      };
   draft?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -3534,6 +3400,7 @@ export interface SkillsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   description?: T;
+  rootConcepts?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3545,24 +3412,9 @@ export interface ConceptsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   description?: T;
-  parentSkill?: T;
-  parentConcept?: T;
+  type?: T;
+  subConcepts?: T;
   requiredConcepts?: T;
-  nextConcepts?: T;
-  groups?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "implementationConcepts_select".
- */
-export interface ImplementationConceptsSelect<T extends boolean = true> {
-  concept?: T;
-  implementationSkill?: T;
-  name?: T;
-  slug?: T;
-  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3580,13 +3432,29 @@ export interface UserConceptProgressionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "userImplementationConceptProgressions_select".
+ * via the `definition` "user-overall-skill-progressions_select".
  */
-export interface UserImplementationConceptProgressionsSelect<T extends boolean = true> {
+export interface UserOverallSkillProgressionsSelect<T extends boolean = true> {
   user?: T;
-  implementationConcept?: T;
-  progressValue?: T;
-  lastActivityAt?: T;
+  skill?: T;
+  overallMasteryPercentage?: T;
+  lastUpdated?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-concept-outcomes_select".
+ */
+export interface ChallengeConceptOutcomesSelect<T extends boolean = true> {
+  challenge?: T;
+  conceptProgressions?:
+    | T
+    | {
+        concept?: T;
+        completionPercentage?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3710,27 +3578,6 @@ export interface CoursePartsSelect<T extends boolean = true> {
               id?: T;
             };
         id?: T;
-      };
-  skillImpacts?:
-    | T
-    | {
-        skillConceptImpact?:
-          | T
-          | {
-              implementationSkill?: T;
-              implementationConcept?: T;
-              progressAmount?: T;
-              id?: T;
-              blockName?: T;
-            };
-        baseConceptImpact?:
-          | T
-          | {
-              concept?: T;
-              progressAmount?: T;
-              id?: T;
-              blockName?: T;
-            };
       };
   updatedAt?: T;
   createdAt?: T;
