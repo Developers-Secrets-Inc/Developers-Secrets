@@ -26,10 +26,11 @@ import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import { Bot, Code, Network, Users } from 'lucide-react'
 
-
 import { MainNavigationMenu } from '@/components/navigation-menu/header-navigation-menu'
 import { Eclipse } from 'lucide-react'
 import { AuthButtons } from '@/components/buttons/AuthButtons'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import ProblemsSection from './components/problems-section'
 
 const HomeHeader = () => {
   return (
@@ -39,15 +40,11 @@ const HomeHeader = () => {
           <Eclipse />
         </Link>
         <MainNavigationMenu />
-
       </div>
       <AuthButtons />
     </header>
   )
 }
-
-
-
 
 export const metadata: Metadata = {
   title: 'Developers Secrets',
@@ -274,10 +271,6 @@ export function Companies() {
       </div>
     </section>
   )
-}
-
-const ProblemsSection = () => {
-  return <div className="border-t border-border"></div>
 }
 
 const features = [
