@@ -274,7 +274,18 @@ export const getSimilarArticles = async (
  * score = engagement / (hours since publication + 2)^alpha
  * where alpha is a parameter that controls the decay rate (default: 1.5)
  */
-export const calculateHotnessScore = (article: PayloadArticle, alpha: number = 1.5): number => {
+
+type HotnessArticle = {
+  _status: "draft" | "published" | null | undefined
+  createdAt: string 
+  analytics: {
+    views: number 
+    ratingSum: number 
+    recommendationClicks: number
+  }
+}
+
+export const calculateHotnessScore = (article: HotnessArticle, alpha: number = 1.5): number => {
   if (!article.analytics) {
     return 0
   }

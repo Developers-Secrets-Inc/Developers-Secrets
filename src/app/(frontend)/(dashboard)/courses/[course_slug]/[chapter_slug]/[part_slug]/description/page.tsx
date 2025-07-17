@@ -13,9 +13,7 @@ const HeaderFallback = () => {
   return <Skeleton className="h-10 w-full mb-4" />
 }
 
-export const generateStaticParams = async () => {
-  return await getCoursesStaticInformation()
-}
+
 
 export default async function CoursePartDescriptionPage({
   params,

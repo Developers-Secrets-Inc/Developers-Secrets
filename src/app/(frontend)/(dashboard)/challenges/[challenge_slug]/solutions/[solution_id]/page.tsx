@@ -8,46 +8,7 @@ import { Suspense } from 'react'
 import { SolutionDetail } from '../../components/solution-detail'
 import { getAllChallenges } from '@/core/challenges/challenge-queries'
 
-// This function enables ISR with a 10-minute revalidation period
-export const revalidate = 600 // 10 minutes in seconds
 
-export async function generateStaticParams() {
-  try {
-    // 1. Fetch all challenges to get their slugs
-    const challenges = await getAllChallenges()
-    if (!challenges || challenges.length === 0) {
-      console.warn('generateStaticParams: No challenges found.')
-      return []
-    }
-
-    // 2. For each challenge, fetch its user solutions to get their IDs
-    const params = await Promise.all(
-      challenges.map(async (challenge) => {
-        if (!challenge.slug || !challenge.id) {
-          console.warn(
-            `generateStaticParams: Challenge missing slug or ID: ${JSON.stringify(challenge)}`,
-          )
-          return []
-        }
-        // Assuming getUserSolutions fetches solutions for a specific challenge
-        // Adjust if the function signature is different
-        const solutions = await getUserSolutions() // Fetch solutions (potentially filter by challenge.id if needed)
-        const solutionsForChallenge = solutions.filter((sol) => sol.challenge === challenge.id)
-
-        return solutionsForChallenge.map((solution) => ({
-          challenge_slug: challenge.slug,
-          solution_id: solution.id.toString(), // Ensure solution_id is a string
-        }))
-      }),
-    )
-
-    // 3. Flatten the array of paths
-    return params.flat().filter((param) => param.challenge_slug && param.solution_id) // Filter out any invalid entries
-  } catch (error) {
-    console.error('Error in generateStaticParams for solutions:', error)
-    return [] // Return empty array on error to prevent build failure
-  }
-}
 
 // Composant de chargement optimisé
 function SolutionSkeleton() {

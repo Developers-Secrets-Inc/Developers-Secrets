@@ -1,16 +1,12 @@
+import { RecommendedChallenge } from '@/core/challenges/recommended-challenge'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { ChallengeCategories } from './components/challenge-categories'
 import { DivisionLeaderboardCard } from './components/challenges-leaderboard'
 import { ChallengesTable, TableSkeleton } from './components/challenges-table'
-import { RecommendedChallenge } from '@/core/challenges/recommended-challenge'
 import { UserProfile, UserProfileCardSkeleton } from './components/user-profile'
-// Remove Payload imports if no longer needed here
-// import { getPayload } from 'payload'
-// import config from '@payload-config'
 import { DevSettingsBubble } from '@/core/dev/components/settings'
-import { QuestCompletionSonner } from '@/core/gamification/quests/components/question-completion-sonner'
 
 export default async function ChallengesPage() {
   const user = await getUser()

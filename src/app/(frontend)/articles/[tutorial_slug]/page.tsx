@@ -1,4 +1,4 @@
-import { getFirstArticleOfTutorial, getSlugFromTitle } from '@/core/articles'
+import { getFirstArticleOfTutorial } from '@/core/articles'
 import { TutorialNotFoundError } from '@/core/articles/errors'
 import { notFound, redirect } from 'next/navigation'
 

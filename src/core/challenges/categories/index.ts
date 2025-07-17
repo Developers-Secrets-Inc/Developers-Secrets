@@ -8,6 +8,7 @@ export const getChallengeCategories = async (): Promise<ChallengeCategory[]> => 
   const payload = await getPayload({ config })
   const challengeCategories = await payload.find({
     collection: 'challenge-categories',
+    depth: 0
   })
 
   return challengeCategories.docs

@@ -1,12 +1,16 @@
 import { Markdown } from './markdown'
-import { RecommendedArticles } from '@/components/recommended-articles'
+import { RecommendedArticleCard, RecommendedArticles } from '@/components/recommended-articles'
 import { TypographyH1, TypographyP } from '@/components/typography'
 import { Article as PayloadArticle } from '@/payload-types'
 
 interface ArticleContentProps {
-  article: PayloadArticle
-  popularArticles: PayloadArticle[]
-  personalizedArticles: PayloadArticle[]
+  article: {
+    title: string
+    subtitle: string | null | undefined
+    content: string
+  }
+  popularArticles: RecommendedArticleCard[]
+  personalizedArticles: RecommendedArticleCard[]
   tutorial_slug: string
 }
 

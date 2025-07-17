@@ -1,10 +1,10 @@
 import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
-import { User } from '@/types/user'
 import Link from 'next/link'
 import { Button } from '../ui/button'
 import { NotificationButton } from '../sidebars/home-sidebar/notification-button'
 import { Skeleton } from '../ui/skeleton'
 import { DailyEntriesBadge } from '@/core/gamification/streaks/login-entries/components/daily-entries-badge'
+import { User } from '@/core/users/types'
 
 const LoginButton = () => {
   return (
@@ -72,10 +72,9 @@ const IsLoading = ({
   return isLoading ? fallback : children
 }
 
-type Optional<T> = T | null | undefined
 
 type AuthButtonsClientProps = {
-  user: Optional<User>
+  user: User | undefined
   isLoading: boolean
 }
 

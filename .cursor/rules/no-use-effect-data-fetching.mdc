@@ -1,0 +1,25 @@
+---
+alwaysApply: true
+---
+- **Avoid `useEffect` for Server-Side Data Fetching**
+  - **❌ DON'T**: Use `useEffect` to trigger data fetching operations that retrieve data from the server (e.g., calling server actions, APIs).
+  - **✅ DO**: Leverage React Server Components to fetch data directly on the server and pass it as props to client components. For client-side data updates (e.g., "load more", mutations), use direct server action calls from event handlers, potentially combined with `@tanstack/react-query` for caching and revalidation.
+  - **Reasoning**: Improves Time-To-First-Byte (TTFB), reduces client-side hydration overhead, and minimizes database egress by fetching only necessary data on the server.
+
+- **Avoid `useEffect` for State Synchronization with `useState`**
+  - **❌ DON'T**: Use `useEffect` to update local state (`useState`) when that state can be directly derived from props or other existing state variables.
+  - **✅ DO**: Compute derived state directly in the render function. This avoids unnecessary re-renders and simplifies state management logic.
+  - **Reasoning**: Prevents stale closures, infinite loops, and improves component performance.
+
+- **Appropriate Use Cases for `useEffect`**
+  - **✅ DO**: Use `useEffect` for side effects that cannot be handled during rendering, such as:
+    - DOM manipulations (e.g., directly interacting with the DOM ref).
+    - Subscriptions to external systems (e.g., WebSockets, global event listeners).
+    - Integrating with non-React libraries.
+    - Logging or analytics (with caution).
+    - Animations requiring direct DOM access.
+
+**References:**
+- [Maximiser l'utilisation des composants serveur](mdc:.cursor/rules/server-client-component-decomposition.mdc)
+- [Gestion des données côté client avec React Query](mdc:.cursor/rules/react-query-client-data-management.mdc)
+- [Guide pour la Réduction de l'Egress de la Base de Données](mdc:.cursor/rules/reduce-database-egress.mdc)

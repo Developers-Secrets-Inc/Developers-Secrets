@@ -11,3 +11,11 @@
 - Ce n'est pas sécurisé de laisser les conversations ouvertes
 - On doit charger le status du challenge sur le serveur initialement 
 - On doit charger les quotas de messages sur le serveur aussi 
+
+
+#### Completion dialog 
+
+- Ca n'affiche pas en optimiste les soumissions mais le commentaire se mets à jour au bout d'un moment, la quantité de soumissions n'est pas la bonne.
+- Les quêtes ne sont pas mises à jour en direct puisqu'on est sur le serveur maintenant
+- Aucunes animations, c'est vraiment chiant à regarder
+- On ne peut pas aller au prochain challenge

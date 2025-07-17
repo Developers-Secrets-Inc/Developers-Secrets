@@ -2,11 +2,17 @@ import React, { useMemo } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Sparkles, BookOpen, LogIn } from 'lucide-react'
-import { Article as PayloadArticle } from '@/payload-types'
+
+export type RecommendedArticleCard = {
+  id: number
+  title: string
+  subtitle: string | null | undefined
+  slug: string
+}
 
 interface RecommendedArticlesProps {
-  popularArticles?: PayloadArticle[]
-  personalizedArticles?: PayloadArticle[]
+  popularArticles?: RecommendedArticleCard[]
+  personalizedArticles?: RecommendedArticleCard[]
   tutorialSlug: string
 }
 
@@ -31,7 +37,7 @@ const LoginPrompt = React.memo(() => (
 LoginPrompt.displayName = 'LoginPrompt'
 
 interface ArticleCardProps {
-  article: PayloadArticle
+  article: RecommendedArticleCard
   tutorialSlug: string
   isPopular?: boolean
 }
@@ -90,9 +96,7 @@ const ArticleCard = React.memo(function ArticleCard({
               </div>
             )}
           </div>
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {article.subtitle || stripMarkdown(article.content).substring(0, 100)}
-          </p>
+          <p className="text-sm text-muted-foreground line-clamp-2">{article.subtitle || ''}</p>
         </div>
       </div>
       <Link href={`/articles/${tutorialSlug}/${article.slug}`} className="mt-auto">
