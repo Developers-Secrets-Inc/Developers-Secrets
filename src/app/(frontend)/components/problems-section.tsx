@@ -10,6 +10,11 @@ import { Markdown } from '@/components/markdown'
 import { HelpCircle, ShieldAlert, Volume2 } from 'lucide-react'
 import React, { useState } from 'react'
 import { News } from './news-card'
+import { NoSkillGraph } from './no-skill-graph'
+import { Cross } from './cross'
+
+
+// In less than 5 years, learning to code became almost impossible alone.
 
 const TABS = [
   {
@@ -207,54 +212,83 @@ export default function ProblemsSection() {
   const current = TABS.find((tab) => tab.key === selected)
 
   return (
-    <section className="border-t border-border py-12">
-      <div className="px-8 mx-auto">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-row gap-16 w-full">
-            <div className="flex flex-col min-w-[50%] max-w-md w-full gap-3">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setSelected(tab.key)}
-                  className={
-                    `text-left text-base font-medium p-5 rounded-md border transition-colors ` +
-                    (selected === tab.key
-                      ? 'bg-primary/10 border-primary/20 text-primary'
-                      : 'bg-background border-border text-foreground hover:bg-muted')
-                  }
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <tab.icon className="h-4 w-4 shrink-0" />
-                    <span>{tab.title}</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground leading-normal">{tab.content}</div>
-                </button>
-              ))}
-            </div>
-            <div className="flex-1 flex flex-col items-stretch justify-start">
-              <div>
-                {selected === 'noise' ? (
-                  <div className="relative flex h-[400px] w-full flex-col overflow-hidden p-2">
-                    <AnimatedList limit={4} delay={1200}>
-                      {TECHS.map((tech) => (
-                        <TechCard key={tech.name} {...tech} />
-                      ))}
-                    </AnimatedList>
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-background"></div>
-                  </div>
-                ) : selected === 'trust' ? (
-                  <div className="relative flex h-[400px] w-full flex-col overflow-hidden p-2">
-                    <News articles={DEMO_ARTICLES} />
-                  </div>
-                ) : (
-                  <p>{current?.content}</p>
-                )}
+    <>
+      {/* Mini section décorative avec le pattern de lignes */}
+      <div
+        className="w-full h-4 border-t border-border"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cg stroke-width='3.5' stroke='hsla(0, 0%25, 100%25, 1.00)' fill='none'%3E%3Cline x1='0' y1='0' x2='400' y2='400'%3E%3C/line%3E%3Cline x1='400' y1='0' x2='800' y2='400'%3E%3C/line%3E%3Cline x1='800' y1='0' x2='1200' y2='400'%3E%3C/line%3E%3Cline x1='0' y1='400' x2='400' y2='800'%3E%3C/line%3E%3Cline x1='400' y1='400' x2='800' y2='800'%3E%3C/line%3E%3Cline x1='800' y1='400' x2='1200' y2='800'%3E%3C/line%3E%3Cline x1='0' y1='800' x2='400' y2='1200'%3E%3C/line%3E%3Cline x1='400' y1='800' x2='800' y2='1200'%3E%3C/line%3E%3Cline x1='800' y1='800' x2='1200' y2='1200'%3E%3C/line%3E%3C/g%3E%3C/svg%3E\")",
+          backgroundRepeat: 'repeat',
+          backgroundSize: '20px 20px',
+        }}
+        aria-hidden="true"
+      />
+      {/* Section intermédiaire avec titre */}
+      <div className="border-t border-border">
+        <div className="w-full p-8 flex flex-col items-start gap-2">
+          <span className="rounded-md px-2 py-0.5 text-xs font-medium bg-red-500/10 border border-red-500/20 text-red-500 mb-2">
+            Modern hell
+          </span>
+          <h2 className="text-2xl md:text-4xl font-bold text-foreground text-left">
+            Why learning online became so hard for developers
+          </h2>
+        </div>
+      </div>
+      <section className="relative border-t border-border py-12">
+        {/* Cross icons bottom left/right */}
+        <Cross className="absolute left-0 bottom-0 translate-y-1/2 -translate-x-1/2 z-0" />
+        <Cross className="absolute right-0 bottom-0 translate-y-1/2 translate-x-1/2 z-0" />
+        <div className="px-8 mx-auto">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-row gap-16 w-full">
+              <div className="flex flex-col min-w-[50%] max-w-md w-full gap-3">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setSelected(tab.key)}
+                    className={
+                      `text-left text-base font-medium p-5 rounded-md border transition-colors shadow-sm ` +
+                      (selected === tab.key
+                        ? 'bg-primary/10 border-primary/20 text-primary'
+                        : 'bg-background border-border text-foreground hover:bg-muted')
+                    }
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <tab.icon className="h-4 w-4 shrink-0" />
+                      <span>{tab.title}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground leading-normal">
+                      {tab.content}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="flex-1 flex flex-col items-stretch justify-start">
+                <div>
+                  {selected === 'noise' ? (
+                    <div className="relative flex h-[400px] w-full flex-col overflow-hidden p-2">
+                      <AnimatedList limit={4} delay={1200}>
+                        {TECHS.map((tech) => (
+                          <TechCard key={tech.name} {...tech} />
+                        ))}
+                      </AnimatedList>
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-background"></div>
+                    </div>
+                  ) : selected === 'trust' ? (
+                    <div className="relative flex h-[400px] w-full flex-col overflow-hidden p-2">
+                      <News articles={DEMO_ARTICLES} />
+                    </div>
+                  ) : (
+                    <NoSkillGraph />
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   )
 }

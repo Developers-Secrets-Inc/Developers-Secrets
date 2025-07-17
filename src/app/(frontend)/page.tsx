@@ -1,36 +1,30 @@
-import { Metadata } from 'next'
-import { Button } from '@/components/ui/button'
-import { PythonLogoIcon } from '@/components/icons/python-logo-icon'
-import { ReactLogoIcon } from '@/components/icons/react-logo-icon'
-import { NextjsLogoIcon } from '@/components/icons/nextjs-logo-icon'
-import { HtmlLogoIcon } from '@/components/icons/html-logo-icon'
 import { CssLogoIcon } from '@/components/icons/css-logo-icon'
-import { JsLogoIcon } from '@/components/icons/js-logo-icon'
-import { TypescriptLogoIcon } from '@/components/icons/typescript-logo-icon'
 import { DjangoLogoIcon } from '@/components/icons/django-logo-icon'
 import { FastApiLogoIcon } from '@/components/icons/fastapi-logo-icon'
-import { TailwindLogoIcon } from '@/components/icons/tailwind-logo-icon'
 import { GoLogoIcon } from '@/components/icons/go-logo-icon'
-import { VueLogoIcon } from '@/components/icons/vue-logo-icon'
-import { PostgreSqlLogoIcon } from '@/components/icons/postgresql-logo-icon'
-import { ReactRouterLogoIcon } from '@/components/icons/react-router-logo-icon'
-import Link from 'next/link'
-import { Tooltip, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
-import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
-import { Feature197 } from './components/features'
-import { ValuePropsSection } from './components/value-props-section'
-import { Footer7 } from './components/footer'
-import { ProblemSection } from './components/problem'
 import { GraphQLLogoIcon } from '@/components/icons/graphql-logo-icon'
+import { HtmlLogoIcon } from '@/components/icons/html-logo-icon'
+import { JsLogoIcon } from '@/components/icons/js-logo-icon'
+import { NextjsLogoIcon } from '@/components/icons/nextjs-logo-icon'
+import { PostgreSqlLogoIcon } from '@/components/icons/postgresql-logo-icon'
+import { PythonLogoIcon } from '@/components/icons/python-logo-icon'
+import { ReactLogoIcon } from '@/components/icons/react-logo-icon'
+import { ReactRouterLogoIcon } from '@/components/icons/react-router-logo-icon'
+import { TailwindLogoIcon } from '@/components/icons/tailwind-logo-icon'
+import { TypescriptLogoIcon } from '@/components/icons/typescript-logo-icon'
+import { VueLogoIcon } from '@/components/icons/vue-logo-icon'
 import { Badge } from '@/components/ui/badge'
-import Image from 'next/image'
+import { Button } from '@/components/ui/button'
 import { Bot, Code, Network, Users } from 'lucide-react'
+import { Metadata } from 'next'
+import Image from 'next/image'
+import Link from 'next/link'
 
+import { AuthButtons } from '@/components/buttons/AuthButtons'
 import { MainNavigationMenu } from '@/components/navigation-menu/header-navigation-menu'
 import { Eclipse } from 'lucide-react'
-import { AuthButtons } from '@/components/buttons/AuthButtons'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import ProblemsSection from './components/problems-section'
+import { FeaturesSection } from './components/features-section'
 
 const HomeHeader = () => {
   return (
@@ -268,68 +262,6 @@ export function Companies() {
             </div>
           </div>
         </div>
-      </div>
-    </section>
-  )
-}
-
-const features = [
-  {
-    icon: <Code className="h-8 w-8" />,
-    title: 'Interactive Challenges',
-    description:
-      'Solve real-world problems in our interactive coding environment. Get instant feedback and improve your skills.',
-  },
-  {
-    icon: <Network className="h-8 w-8" />,
-    title: 'Structured Learning Paths',
-    description:
-      'Follow curated learning paths that take you from beginner to advanced topics in a logical sequence.',
-  },
-  {
-    icon: <Bot className="h-8 w-8" />,
-    title: 'AI-Powered Assistance',
-    description:
-      'Stuck on a problem? Get hints and explanations from our AI assistant without revealing the solution.',
-  },
-  {
-    icon: <Users className="h-8 w-8" />,
-    title: 'Community & Leaderboards',
-    description:
-      'Compete with other learners, climb the leaderboards, and join a community of motivated developers.',
-  },
-]
-
-export const FeaturesSection = () => {
-  return (
-    <section className="border-t border-border py-20">
-      <div className="max-w-3xl mx-auto text-center">
-        <h2 className="text-3xl font-bold md:text-4xl">Everything you need to succeed</h2>
-        <p className="mt-4 text-muted-foreground">
-          Our platform provides all the tools and resources you need to master fullstack
-          development.
-        </p>
-      </div>
-      <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 divide-x divide-y">
-        {features.slice(0, 2).map((feature, i) => (
-          <div key={i} className="p-6 bg-card text-card-foreground border-t">
-            <div className="flex justify-center mb-4">{feature.icon}</div>
-            <h3 className="text-lg font-semibold text-center">{feature.title}</h3>
-            <p className="mt-2 text-sm text-muted-foreground text-center">{feature.description}</p>
-          </div>
-        ))}
-        <div className="p-8 sm:col-span-2 flex flex-col items-center justify-center text-center bg-card">
-          <h3 className="text-2xl font-bold">Ready to Elevate Your Skills?</h3>
-          <p className="mt-2 text-muted-foreground">Join today and start your journey.</p>
-          <Button className="mt-6">Explore Learning Paths</Button>
-        </div>
-        {features.slice(2).map((feature, i) => (
-          <div key={i + 2} className="p-6 bg-card text-card-foreground">
-            <div className="flex justify-center mb-4">{feature.icon}</div>
-            <h3 className="text-lg font-semibold text-center">{feature.title}</h3>
-            <p className="mt-2 text-sm text-muted-foreground text-center">{feature.description}</p>
-          </div>
-        ))}
       </div>
     </section>
   )
