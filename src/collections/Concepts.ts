@@ -3,7 +3,7 @@ import type { CollectionConfig } from 'payload'
 export const Concepts: CollectionConfig = {
   slug: 'concepts',
   admin: {
-    useAsTitle: 'name',
+    useAsTitle: 'slug',
     defaultColumns: ['name', 'slug', 'parentSkill', 'updatedAt'],
     description:
       'Represents abstract concepts (e.g., Loops, Encapsulation, Stacks). Can be linked to a parent skill (e.g., Encapsulation belongs to POO).',
@@ -14,7 +14,6 @@ export const Concepts: CollectionConfig = {
       label: 'Concept Name',
       type: 'text',
       required: true,
-      unique: true,
       index: true,
       admin: {
         description: 'The name of the abstract concept (e.g., Loops, Encapsulation, Stacks).',

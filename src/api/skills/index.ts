@@ -2,20 +2,141 @@
 
 import 'server-only'
 import { find } from '..'
+import config from '@payload-config'
 
+import { Skill, Concept } from '@/payload-types'
+import { getPayload } from 'payload'
+import { getConceptProgress, isConceptLocked } from './progression'
 
-export const getSkillTreesSelectInformations = async (): Promise<{
-    id: number,
-    name: string,
+// Récupère un concept complet et tous ses subConcepts récursivement
+export async function getConceptWithSubConcepts(id: number): Promise<Concept> {
+  const payload = await getPayload({ config })
+  const res = await payload.find({
+    collection: 'concepts',
+    where: { id: { equals: id } },
+    depth: 0,
+    limit: 1,
+  })
+  const concept = res.docs[0]
+  if (!concept) throw new Error(`Concept not found: ${id}`)
+
+  let subConcepts: Concept[] = []
+  if (Array.isArray(concept.subConcepts) && concept.subConcepts.length > 0) {
+    subConcepts = await Promise.all(
+      concept.subConcepts.map(async (subConcept) => {
+        return typeof subConcept === 'number'
+          ? await getConceptWithSubConcepts(subConcept)
+          : await getConceptWithSubConcepts(subConcept.id)
+      }),
+    )
+  }
+
+  return {
+    ...concept,
+    subConcepts,
+  }
+}
+
+export const getSkillTreesSelectInformations = async (): Promise<
+  {
+    id: number
+    name: string
     slug: string
-}[]> => {
-    const skillsDocs = await find({
-        collection: 'skills',
-        select: {
-            name: true,
-            slug: true
-        }
-    })
+  }[]
+> => {
+  const skillsDocs = await find({
+    collection: 'skills',
+    select: {
+      name: true,
+      slug: true,
+    },
+  })
 
-    return skillsDocs.docs
+  return skillsDocs.docs
+}
+
+type ConceptNode = {
+  id: number
+  name: string
+  slug: string
+  description?: string
+  type: 'abstract' | 'concrete'
+  subConcepts: ConceptNode[]
+  requiredConcepts: number[]
+}
+
+export type ConceptNodeWithProgress = ConceptNode & {
+  progress: number
+  isLocked: boolean
+  subConcepts: ConceptNodeWithProgress[]
+}
+
+export async function enrichConceptsWithProgressAndLock(
+  concepts: ConceptNode[],
+  userId: string,
+): Promise<ConceptNodeWithProgress[]> {
+  return Promise.all(
+    concepts.map(async (concept) => {
+      const [progress, isLocked, subConcepts] = await Promise.all([
+        getConceptProgress(userId, concept.id),
+        isConceptLocked(userId, concept.id),
+        enrichConceptsWithProgressAndLock(concept.subConcepts, userId),
+      ])
+      return {
+        ...concept,
+        progress: progress,
+        isLocked: isLocked,
+        subConcepts,
+      }
+    }),
+  )
+}
+
+export const getSkillConcepts = async (
+  skillSlug: string,
+): Promise<{
+  skill: {
+    id: number
+    name: string
+    slug: string
+    description?: string
+  }
+  concepts: Concept[]
+}> => {
+  const payload = await getPayload({ config })
+  // 1. Récupérer le skill par son slug, rootConcepts (ids uniquement)
+  const skillsRes = await payload.find({
+    collection: 'skills',
+    where: { slug: { equals: skillSlug } },
+    depth: 0,
+    limit: 1,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      rootConcepts: true, // ids uniquement
+    },
+  })
+  const skill = skillsRes.docs[0]
+  if (!skill) throw new Error('Skill not found')
+
+  // 2. Pour chaque rootConcept id, récupérer le concept complet récursivement
+  const concepts: Concept[] = Array.isArray(skill.rootConcepts)
+    ? await Promise.all(
+        skill.rootConcepts
+          .map((c: number | Concept) => typeof c === 'number' ? c : c.id)
+          .map((id: number) => getConceptWithSubConcepts(id))
+      )
+    : []
+
+  return {
+    skill: {
+      id: skill.id,
+      name: skill.name,
+      slug: skill.slug,
+      description: skill.description ?? undefined,
+    },
+    concepts,
+  }
 }

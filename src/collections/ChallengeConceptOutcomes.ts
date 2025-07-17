@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload';
+import type { CollectionConfig } from 'payload'
 
 export const ChallengeConceptOutcomes: CollectionConfig = {
   slug: 'challenge-concept-outcomes',
@@ -13,7 +13,7 @@ export const ChallengeConceptOutcomes: CollectionConfig = {
       relationTo: 'challenges',
       required: true,
       unique: true, // One outcome per challenge
-      maxDepth: 0
+      maxDepth: 0,
     },
     {
       name: 'conceptProgressions',
@@ -45,4 +45,4 @@ export const ChallengeConceptOutcomes: CollectionConfig = {
       unique: true,
     },
   ],
-};
+}

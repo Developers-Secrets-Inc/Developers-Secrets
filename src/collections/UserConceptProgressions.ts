@@ -59,7 +59,6 @@ export const UserConceptProgressions: CollectionConfig = {
   indexes: [
     {
       fields: ['user', 'concept'], // Corrected to array of field names
-      options: { unique: true },
     },
   ],
   timestamps: true, // Tracks createdAt and updatedAt for the progression record itself
