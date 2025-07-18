@@ -8,8 +8,13 @@ import dagre from '@dagrejs/dagre'
 import { useNodesState, useEdgesState } from 'reactflow'
 import { ConceptNodeWithProgress } from '@/api/skills'
 import { Lock, CheckCircle2 } from 'lucide-react'
+import { useConceptsProgression } from '@/api/skills/hooks/use-concepts-progression'
+import { ConceptNode } from '@/api/skills' // Add this import
+import { Concept } from '@/payload-types'
 
 // Types pour les props
+import { EnrichedConcept } from '@/api/skills/hooks/use-concepts-progression';
+
 export type SkillTreeProps = {
   skill: {
     id: number
@@ -17,45 +22,80 @@ export type SkillTreeProps = {
     slug: string
     description?: string
   }
-  concepts: ConceptNodeWithProgress[] // rootConcepts enrichis
+  skillSlug: string
+  userId: string
+  initialData: EnrichedConcept[]
 }
 
 // Transforme la structure récursive en nodes/edges pour React Flow
 function buildNodesAndEdges(
   concepts: ConceptNodeWithProgress[],
   parentId: number | null = null,
-  nodes: Node[] = [],
-  edges: Edge[] = [],
-  isRootLevel = false,
-) {
+): { nodes: Node[]; edges: Edge[] } {
+  let currentNodes: Node[] = [];
+  let currentEdges: Edge[] = [];
+
   for (const concept of concepts) {
-    nodes.push({
+    currentNodes.push({
       id: String(concept.id),
       data: { label: concept.name, progress: concept.progress, isLocked: concept.isLocked },
-      position: { x: Math.random() * 400, y: Math.random() * 400 },
+      position: { x: 0, y: 0 }, // Placeholder, Dagre will set this
       type: 'custom',
-    })
+    });
+
     if (parentId !== null) {
-      edges.push({
+      currentEdges.push({
         id: `${parentId}->${concept.id}`,
         source: String(parentId),
         target: String(concept.id),
         type: 'smoothstep',
-      })
+      });
     }
+
     // Edges pour les requiredConcepts (prérequis)
-    for (const reqId of concept.requiredConcepts) {
-      edges.push({
+    for (const reqId of Array.isArray(concept.requiredConcepts)
+      ? concept.requiredConcepts.filter((rc): rc is number => typeof rc === 'number')
+      : []) {
+      currentEdges.push({
         id: `req-${reqId}->${concept.id}`,
         source: String(reqId),
         target: String(concept.id),
         type: 'dashed',
         style: { strokeDasharray: '4 2', stroke: '#888' },
-      })
+      });
     }
-    buildNodesAndEdges(concept.subConcepts, concept.id, nodes, edges)
+
+    // Recursively build sub-nodes and edges
+    const { nodes: subNodes, edges: subEdges } = buildNodesAndEdges(concept.subConcepts, concept.id);
+    currentNodes = currentNodes.concat(subNodes);
+    currentEdges = currentEdges.concat(subEdges);
   }
-  return { nodes, edges }
+  return { nodes: currentNodes, edges: currentEdges };
+}
+
+function convertEnrichedToConceptNodeWithProgress(
+  enrichedConcept: EnrichedConcept
+): ConceptNodeWithProgress {
+  const baseConceptNode: ConceptNode = {
+    id: enrichedConcept.id,
+    name: enrichedConcept.name,
+    slug: enrichedConcept.slug,
+    description: enrichedConcept.description ?? undefined,
+    type: enrichedConcept.type,
+    requiredConcepts: Array.isArray(enrichedConcept.requiredConcepts)
+      ? enrichedConcept.requiredConcepts.filter((rc): rc is number => typeof rc === 'number')
+      : [],
+    subConcepts: [], // Will be filled recursively
+  };
+
+  return {
+    ...baseConceptNode,
+    progress: enrichedConcept.progression,
+    isLocked: enrichedConcept.isLocked,
+    subConcepts: Array.isArray(enrichedConcept.subConcepts)
+      ? enrichedConcept.subConcepts.map(convertEnrichedToConceptNodeWithProgress)
+      : [],
+  };
 }
 
 const nodeWidth = 180
@@ -103,6 +143,7 @@ const CustomConceptNode = ({
   data: { label: string; progress?: number; isLocked?: boolean }
 }) => {
   const isLocked = data.isLocked
+  console.log(data.label, data.progress)
   const progress = typeof data.progress === 'number' ? data.progress : 0
   const isMastered = progress >= 100
   return (
@@ -157,38 +198,50 @@ const SkillRootNode = ({ data }: { data: { label: string } }) => {
   )
 }
 
-export const SkillTree: React.FC<SkillTreeProps> = ({ skill, concepts }) => {
-  // Génère nodes/edges pour tous les concepts (sans parentId)
-  const { nodes, edges } = React.useMemo(() => buildNodesAndEdges(concepts), [concepts])
+export const SkillTree: React.FC<SkillTreeProps> = ({ skill, skillSlug, userId, initialData }) => {
+  const {
+    data: concepts,
+    isLoading,
+    isError,
+  } = useConceptsProgression(skillSlug, userId, initialData)
 
-  // Ajoute le node central (skill)
-  const rootNode = {
-    id: 'skill-root',
-    data: { label: skill.name },
-    position: { x: 0, y: 0 },
-    type: 'skillRoot' as const,
-  }
-  // Ajoute un edge du node central vers chaque rootConcept
-  const rootEdges = concepts.map((c) => ({
-    id: `skill-root->${c.id}`,
-    source: 'skill-root',
-    target: String(c.id),
-    type: 'smoothstep' as const,
-  }))
+  const [rfNodes, setNodes, onNodesChange] = useNodesState([]);
+  const [rfEdges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  // Fusionne nodes/edges
-  const allNodes = [rootNode, ...nodes]
-  const allEdges = [...rootEdges, ...edges]
+  React.useEffect(() => {
+    if (isLoading || isError || !concepts) {
+      // Handle loading/error states or no concepts
+      return;
+    }
 
-  // Applique le layout dagre (vertical par défaut)
-  const { nodes: layoutedNodes, edges: layoutedEdges } = React.useMemo(
-    () => getLayoutedElements(allNodes, allEdges, 'TB'),
-    [allNodes, allEdges],
-  )
+    const safeConcepts = concepts.map(convertEnrichedToConceptNodeWithProgress);
+    const { nodes, edges } = buildNodesAndEdges(safeConcepts);
 
-  // Utilise l'état React Flow
-  const [rfNodes, setNodes, onNodesChange] = useNodesState(layoutedNodes)
-  const [rfEdges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges)
+    const rootNode = {
+      id: 'skill-root',
+      data: { label: skill.name },
+      position: { x: 0, y: 0 },
+      type: 'skillRoot' as const,
+    };
+    const rootEdges = concepts.map((c) => ({
+      id: `skill-root->${c.id}`,
+      source: 'skill-root',
+      target: String(c.id),
+      type: 'smoothstep' as const,
+    }));
+
+    const allNodes = [rootNode, ...nodes];
+    const allEdges = [...rootEdges, ...edges];
+
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(allNodes, allEdges, 'TB');
+
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
+  }, [concepts, skill.name, isLoading, isError, setNodes, setEdges]); // Dependencies: concepts, skill.name, and setters
+
+  if (isLoading) return <div>Loading skill tree...</div>
+  if (isError) return <div>Error loading skill tree.</div>
+  if (!concepts) return null
 
   // Enregistre les nodeTypes
   const nodeTypes = React.useMemo(
@@ -213,3 +266,5 @@ export const SkillTree: React.FC<SkillTreeProps> = ({ skill, concepts }) => {
     </div>
   )
 }
+
+export default SkillTree

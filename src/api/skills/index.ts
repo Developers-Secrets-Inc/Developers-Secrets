@@ -55,7 +55,7 @@ export const getSkillTreesSelectInformations = async (): Promise<
   return skillsDocs.docs
 }
 
-type ConceptNode = {
+export type ConceptNode = {
   id: number
   name: string
   slug: string
@@ -125,8 +125,8 @@ export const getSkillConcepts = async (
   const concepts: Concept[] = Array.isArray(skill.rootConcepts)
     ? await Promise.all(
         skill.rootConcepts
-          .map((c: number | Concept) => typeof c === 'number' ? c : c.id)
-          .map((id: number) => getConceptWithSubConcepts(id))
+          .map((c: number | Concept) => (typeof c === 'number' ? c : c.id))
+          .map((id: number) => getConceptWithSubConcepts(id)),
       )
     : []
 
@@ -138,5 +138,79 @@ export const getSkillConcepts = async (
       description: skill.description ?? undefined,
     },
     concepts,
+  }
+}
+
+// Recursively enrich a concept and all its subConcepts with progression
+async function enrichConceptWithProgression(
+  userId: string,
+  concept: Concept,
+): Promise<Concept & { progression: number; isLocked: boolean }> {
+  const [progression, isLocked] = await Promise.all([
+    getConceptProgress(userId, concept.id),
+    isConceptLocked(userId, concept.id),
+  ]);
+  let subConcepts: (Concept & { progression: number; isLocked: boolean })[] = [];
+  if (Array.isArray(concept.subConcepts) && concept.subConcepts.length > 0) {
+    subConcepts = await Promise.all(
+      concept.subConcepts
+        .filter((sc): sc is Concept => typeof sc === 'object' && sc !== null)
+        .map((sub) => enrichConceptWithProgression(userId, sub)),
+    );
+  }
+  return {
+    ...concept,
+    progression,
+    isLocked,
+    subConcepts,
+  };
+}
+
+export const getSkillConceptsWithProgression = async (
+  userId: string,
+  skillSlug: string,
+): Promise<(Concept & { progression: number; isLocked: boolean })[]> => {
+  const { concepts } = await getSkillConcepts(skillSlug)
+  const enrichedConcepts = await Promise.all(
+    concepts.map((concept) => enrichConceptWithProgression(userId, concept)),
+  )
+  return enrichedConcepts
+}
+
+export const updateConceptProgression = async (
+  userId: string,
+  conceptId: number,
+  newProgression: number,
+): Promise<void> => {
+  const payload = await getPayload({ config })
+
+  // Try to find an existing progression entry
+  const res = await payload.find({
+    collection: 'userConceptProgressions',
+    where: {
+      and: [{ user: { equals: userId } }, { concept: { equals: conceptId } }],
+    },
+    select: { progressValue: true },
+    limit: 1,
+  })
+  const existing = res.docs[0]
+
+  if (existing) {
+    // Update the existing progression
+    await payload.update({
+      collection: 'userConceptProgressions',
+      id: existing.id,
+      data: { progressValue: newProgression },
+    })
+  } else {
+    // Create a new progression entry
+    await payload.create({
+      collection: 'userConceptProgressions',
+      data: {
+        user: userId,
+        concept: conceptId,
+        progressValue: newProgression,
+      },
+    })
   }
 }
