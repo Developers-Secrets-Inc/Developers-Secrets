@@ -5,6 +5,7 @@ import { LearningPathGraph } from './learning-path'
 import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage } from './chat-bubble'
 import { Copy, RefreshCcw } from 'lucide-react'
 import { SkillTreeGraph } from './skill-tree'
+import { Cross } from './cross'
 
 const features = [
   {
@@ -48,7 +49,7 @@ export const FeaturesSection = () => {
           </p>
         </div>
       </div>
-      <section className="border-t border-border">
+      <section className="border-t border-border relative">
         <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 divide-x divide-y">
           {/* Première carte (Interactive Challenges) avec DisplayCards en dessous */}
           <div className="p-6 bg-card text-card-foreground border-t">
@@ -130,17 +131,11 @@ nums = [2, 7, 11, 15], target = 9
             </div>
             <p className="text-left text-xl font-medium">{features[1].description}</p>
             <div className="mt-8">
-              <div className="mb-2 text-base font-semibold text-left">Skill Tree</div>
-              <SkillTreeGraph />
-            </div>
-            <div className="mt-8">
               <LearningPathGraph />
             </div>
           </div>
           <div className="p-8 sm:col-span-2 flex flex-col items-center justify-center text-center bg-card">
-            <h3 className="text-2xl font-bold">Ready to Elevate Your Skills?</h3>
-            <p className="mt-2 text-muted-foreground">Join today and start your journey.</p>
-            <Button className="mt-6">Explore Learning Paths</Button>
+            <SkillTreeGraph />
           </div>
           {features.slice(2).map((feature, i) =>
             i === 0 ? (
@@ -187,6 +182,9 @@ nums = [2, 7, 11, 15], target = 9
             ),
           )}
         </div>
+        {/* Cross icons bottom left/right */}
+        <Cross className="absolute left-0 bottom-0 translate-y-1/2 -translate-x-1/2 z-0" />
+        <Cross className="absolute right-0 bottom-0 translate-y-1/2 translate-x-1/2 z-0" />
       </section>
     </>
   )

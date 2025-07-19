@@ -25,6 +25,12 @@ import { MainNavigationMenu } from '@/components/navigation-menu/header-navigati
 import { Eclipse } from 'lucide-react'
 import ProblemsSection from './components/problems-section'
 import { FeaturesSection } from './components/features-section'
+import { CoursesSection } from './components/courses-section'
+import { FinalCTA } from './components/final-cta'
+import { Testimonials } from './components/testimonals'
+import { FAQ } from './components/faq'
+import { Footer7 } from './components/footer'
+import { WhatYouReallyWant } from './components/desire'
 
 const HomeHeader = () => {
   return (
@@ -275,8 +281,14 @@ export default function Home() {
         <NewHeroSection />
         <Companies />
         <ProblemsSection />
+        <WhatYouReallyWant />
         <FeaturesSection />
+        <CoursesSection />
+        <FinalCTA />
+        <Testimonials />
+        <FAQ />
       </main>
+      <Footer7 />
     </div>
   )
 }
