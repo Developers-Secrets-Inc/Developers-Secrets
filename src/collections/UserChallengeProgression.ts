@@ -23,6 +23,7 @@ export const UserChallengeProgression: CollectionConfig = {
       admin: {
         description: 'Related challenge',
       },
+      maxDepth: 0
     },
     {
       name: 'hasLiked',

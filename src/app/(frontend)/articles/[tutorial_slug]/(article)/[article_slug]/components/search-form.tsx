@@ -35,86 +35,87 @@ const articleVariants = {
 }
 
 export function SearchForm() {
-  const [open, setOpen] = React.useState(false)
-  const [articles, setArticles] = React.useState<ArticleWithTutorial[]>([])
-  const [isLoading, setIsLoading] = React.useState(false)
-  const [hasMore, setHasMore] = React.useState(false)
-  const [nextIndex, setNextIndex] = React.useState<number | null>(0)
-  const router = useRouter()
+  // const [open, setOpen] = React.useState(false)
+  // const [articles, setArticles] = React.useState<ArticleWithTutorial[]>([])
+  // const [isLoading, setIsLoading] = React.useState(false)
+  // const [hasMore, setHasMore] = React.useState(false)
+  // const [nextIndex, setNextIndex] = React.useState<number | null>(0)
+  // const router = useRouter()
 
-  // Load articles when dialog opens
-  React.useEffect(() => {
-    if (open && nextIndex !== null) {
-      setIsLoading(true)
-      fetchArticlesChunk(nextIndex)
-        .then((result) => {
-          setArticles((prev) => [...prev, ...result.articles])
-          setHasMore(result.hasMore)
-          setNextIndex(result.nextIndex)
-        })
-        .catch((error) => {
-          console.error('Error loading articles:', error)
-        })
-        .finally(() => {
-          setIsLoading(false)
-        })
-    }
-  }, [open, nextIndex])
+  // // Load articles when dialog opens
+  // React.useEffect(() => {
+  //   if (open && nextIndex !== null) {
+  //     setIsLoading(true)
+  //     fetchArticlesChunk(nextIndex)
+  //       .then((result) => {
+  //         setArticles((prev) => [...prev, ...result.articles])
+  //         setHasMore(result.hasMore)
+  //         setNextIndex(result.nextIndex)
+  //       })
+  //       .catch((error) => {
+  //         console.error('Error loading articles:', error)
+  //       })
+  //       .finally(() => {
+  //         setIsLoading(false)
+  //       })
+  //   }
+  // }, [open, nextIndex])
 
-  const handleSelect = React.useCallback(
-    (article: ArticleWithTutorial) => {
-      router.push(article.url)
-      setOpen(false)
-    },
-    [router],
-  )
+  // const handleSelect = React.useCallback(
+  //   (article: ArticleWithTutorial) => {
+  //     router.push(article.url)
+  //     setOpen(false)
+  //   },
+  //   [router],
+  // )
 
-  // Add keyboard shortcut to open search
-  React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen((open) => !open)
-      }
-    }
+  // // Add keyboard shortcut to open search
+  // React.useEffect(() => {
+  //   const down = (e: KeyboardEvent) => {
+  //     if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+  //       e.preventDefault()
+  //       setOpen((open) => !open)
+  //     }
+  //   }
 
-    document.addEventListener('keydown', down)
-    return () => document.removeEventListener('keydown', down)
-  }, [])
+  //   document.addEventListener('keydown', down)
+  //   return () => document.removeEventListener('keydown', down)
+  // }, [])
 
-  // Get icon based on article type
-  const getArticleIcon = (type: string) => {
-    switch (type) {
-      case 'tutorial':
-        return <BookOpen className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-      case 'examples':
-        return <Code className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-      case 'references':
-        return <FileText className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-      default:
-        return <BookOpen className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-    }
-  }
+  // // Get icon based on article type
+  // const getArticleIcon = (type: string) => {
+  //   switch (type) {
+  //     case 'tutorial':
+  //       return <BookOpen className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+  //     case 'examples':
+  //       return <Code className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+  //     case 'references':
+  //       return <FileText className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+  //     default:
+  //       return <BookOpen className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+  //   }
+  // }
 
   return (
     <>
       <SidebarGroup className="py-0">
         <SidebarGroupContent className="relative">
           <Label htmlFor="search" className="sr-only">
-            Search
+            Comming Soon
           </Label>
           <SidebarInput
             id="search"
             placeholder="Search the docs..."
             className="pl-8 cursor-pointer"
-            onClick={() => setOpen(true)}
+            // onClick={() => setOpen(true)}
             readOnly
+            disabled
           />
           <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 select-none opacity-50" />
         </SidebarGroupContent>
       </SidebarGroup>
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      {/* <CommandDialog open={open} onOpenChange={setOpen}>
         <Command className="rounded-lg border shadow-md">
           <CommandInput placeholder="Type to search all articles..." />
           <CommandList>
@@ -219,7 +220,7 @@ export function SearchForm() {
             </div>
           </div>
         </Command>
-      </CommandDialog>
+      </CommandDialog> */}
     </>
   )
 }

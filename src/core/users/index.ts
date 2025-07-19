@@ -1,43 +1,72 @@
 'use server'
 
+import 'server-only'
+
+import { AuthError } from '@supabase/supabase-js'
+import { UserNotFoundError } from './errors'
+import { Result, failure, isFailure, success, flatMapAsync, mapAsync } from '@/lib/result'
+import { User as SupabaseUser } from '@supabase/supabase-js'
+
+import { User } from './types'
+import { getAllUserInformations } from './informations'
+import { UserInformationsNotFoundError } from '@/core/user/errors'
 import { createClient } from '@/utils/supabase/server'
-import type { AuthError, Session, User } from '@supabase/supabase-js'
+import { mergeUserInformations } from './utils'
 
-/**
- * Server-side helper to get basic authentication details.
- * Inspired by Clerk's auth().
- *
- * @returns An object containing the user ID, session, and any potential auth error.
- */
-export const auth = async (): Promise<{
-  userId: string | null
-  session: Session | null
-  user: User | null
-  error: AuthError | null
-}> => {
-  try {
-    const supabase = await createClient()
-    const { data, error } = await supabase.auth.getUser()
-
-    if (error) {
-      console.error('Auth Error:', error)
-      return { userId: null, session: null, user: null, error }
-    }
-
-    const { data: sessionData } = await supabase.auth.getSession()
-
-    return {
-      userId: data?.user?.id ?? null,
-      session: sessionData.session,
-      user: data?.user ?? null,
-      error: null,
-    }
-  } catch (e) {
-    // Handle unexpected errors during client creation or auth calls
-    console.error('Unexpected error in auth():', e)
-    // Simulate an AuthError structure for consistency, if possible
-    const error = new Error('Unexpected server error during authentication.') as AuthError
-    error.name = 'UnexpectedAuthError'
-    return { userId: null, session: null, user: null, error: error }
+const checkSupabaseUser = async (
+  data: { user: SupabaseUser | null },
+  error: AuthError | null,
+): Promise<Result<SupabaseUser, AuthError | UserNotFoundError>> => {
+  if (error) {
+    return failure(error)
   }
+
+  if (!data.user) {
+    return failure(new UserNotFoundError('Supabase user not found.'))
+  }
+
+  return success(data.user)
+}
+
+
+const getSupabaseSessionUser = async (): Promise<
+  Result<SupabaseUser, AuthError | UserNotFoundError>
+> => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.getUser()
+  return await checkSupabaseUser(data, error)
+}
+
+
+const getSupabaseUserById = async (
+  userId: string,
+): Promise<Result<SupabaseUser, AuthError | UserNotFoundError>> => {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.admin.getUserById(userId)
+  return await checkSupabaseUser(data, error)
+}
+
+
+const getMergedUser = async <E>(
+  supabaseUserResult: Result<SupabaseUser, E>,
+): Promise<Result<User, E | UserInformationsNotFoundError>> => {
+  return await flatMapAsync(supabaseUserResult, async (supabaseUser) =>
+    mapAsync(await getAllUserInformations(supabaseUser.id), async (userInformations) =>
+      mergeUserInformations(supabaseUser, userInformations),
+    ),
+  )
+}
+
+
+export const getUser = async (): Promise<
+  Result<User, UserNotFoundError | AuthError | UserInformationsNotFoundError>
+> => {
+  return await getMergedUser(await getSupabaseSessionUser())
+}
+
+
+export const getUserById = async (
+  userId: string,
+): Promise<Result<User, UserNotFoundError | AuthError | UserInformationsNotFoundError>> => {
+  return await getMergedUser(await getSupabaseUserById(userId))
 }

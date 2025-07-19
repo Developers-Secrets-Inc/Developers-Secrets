@@ -1,24 +1,21 @@
-export const experimental_ppr = true
-import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
 import { getArticleOutline } from '@/core/articles'
 import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'
-import { getReferenceArticleBySlug } from '@/core/articles/index-v2'
+import { getArticleBySlug } from '@/core/articles/index-v2'
 import { getPersonalizedArticles, getPopularArticles } from '@/core/articles/recommandations-v2'
 import { isFailure } from '@/lib/result'
 import { Metadata, ResolvingMetadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
-import { ArticleOutline } from '../../(article)/[article_slug]/components/article-outline'
+import { ArticleOutline } from './components/article-outline'
 import { ArticleContent, ArticleSkeleton } from '../../components/article-content'
-import { ArticleHeader } from '../../components/article-header'
 
 export async function generateMetadata(
-  { params }: { params: Promise<{ tutorial_slug: string; reference_slug: string }> },
+  { params }: { params: Promise<{ tutorial_slug: string; article_slug: string }> },
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
-  const { tutorial_slug, reference_slug } = await params
+  const { tutorial_slug, article_slug } = await params
 
-  const payloadArticle = await getReferenceArticleBySlug(tutorial_slug, reference_slug, {
+  const payloadArticle = await getArticleBySlug(tutorial_slug, article_slug, {
     seo: true,
     title: true,
     subtitle: true,
@@ -32,18 +29,15 @@ export async function generateMetadata(
 
   const article = payloadArticle.value
 
-  // Get the parent metadata
   const previousImages = (await parent).openGraph?.images || []
 
-  // Prepare SEO title - use SEO title if available, otherwise use article title
   const title = article.seo?.title || article.title
-  const fullTitle = `${title} | Reference`
+  const fullTitle = `${title} | ${article.title}`
 
-  // Prepare SEO description
   const description =
     article.seo?.description ||
     article.subtitle ||
-    `Reference guide for ${article.title} in our tutorial.`
+    `Learn about ${article.title} in our ${article.title} tutorial.`
 
   const keywords =
     article.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
@@ -58,7 +52,7 @@ export async function generateMetadata(
       type: 'article',
       publishedTime: article.createdAt,
       modifiedTime: article.updatedAt,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/references/${reference_slug}`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/${article_slug}`,
       images: previousImages,
     },
     twitter: {
@@ -69,21 +63,23 @@ export async function generateMetadata(
   }
 }
 
-export default async function ReferencePage({
+export default async function ArticlePage({
   params,
 }: {
-  params: Promise<{ tutorial_slug: string; reference_slug: string }>
+  params: Promise<{ tutorial_slug: string; article_slug: string }>
 }) {
-  const { tutorial_slug, reference_slug } = await params
+  const { tutorial_slug, article_slug } = await params
 
-  const article = await getReferenceArticleBySlug(tutorial_slug, reference_slug, {
+  const article = await getArticleBySlug(tutorial_slug, article_slug, {
     content: true,
     title: true,
     subtitle: true,
   })
+
   if (isFailure(article)) {
     return notFound()
   }
+
   const outline = getArticleOutline(article.value.content)
 
   const [popularArticles, personalizedArticles] = await Promise.all([
@@ -109,9 +105,6 @@ export default async function ReferencePage({
 
   return (
     <>
-      <Suspense fallback={<HeaderPlaceholder />}>
-        <ArticleHeader />
-      </Suspense>
       <div className="flex flex-1">
         <Suspense fallback={<ArticleSkeleton />}>
           <ArticleContent
@@ -125,7 +118,7 @@ export default async function ReferencePage({
       </div>
       <ChatActivationButton
         tutorialSlug={tutorial_slug}
-        articleSlug={reference_slug}
+        articleSlug={article_slug}
         tutorialTitle={tutorial_slug}
         articleTitle={article.value.title}
         articleFullContent={article.value.content}

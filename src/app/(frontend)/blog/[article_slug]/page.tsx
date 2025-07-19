@@ -49,16 +49,3 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   )
 }
 
-// Optional: Generate static paths for SSG
-export async function generateStaticParams() {
-  // Using getAllBlogArticles to get slugs for static generation
-  const { success, value: articles } = await (await import('@/core/blog')).getAllBlogArticles()
-
-  if (!success || !articles) {
-    return []
-  }
-
-  return articles.map((article) => ({
-    article_slug: article.slug,
-  }))
-}
