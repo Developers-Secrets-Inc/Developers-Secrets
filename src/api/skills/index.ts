@@ -149,21 +149,21 @@ async function enrichConceptWithProgression(
   const [progression, isLocked] = await Promise.all([
     getConceptProgress(userId, concept.id),
     isConceptLocked(userId, concept.id),
-  ]);
-  let subConcepts: (Concept & { progression: number; isLocked: boolean })[] = [];
+  ])
+  let subConcepts: (Concept & { progression: number; isLocked: boolean })[] = []
   if (Array.isArray(concept.subConcepts) && concept.subConcepts.length > 0) {
     subConcepts = await Promise.all(
       concept.subConcepts
         .filter((sc): sc is Concept => typeof sc === 'object' && sc !== null)
         .map((sub) => enrichConceptWithProgression(userId, sub)),
-    );
+    )
   }
   return {
     ...concept,
     progression,
     isLocked,
     subConcepts,
-  };
+  }
 }
 
 export const getSkillConceptsWithProgression = async (
@@ -181,7 +181,7 @@ export const updateConceptProgression = async (
   userId: string,
   conceptId: number,
   newProgression: number,
-): Promise<void> => {
+): Promise<number> => {
   const payload = await getPayload({ config })
 
   // Try to find an existing progression entry
@@ -213,4 +213,69 @@ export const updateConceptProgression = async (
       },
     })
   }
+  return newProgression
+}
+
+export const increaseConceptProgression = async (
+  userId: string,
+  conceptId: number,
+  quantity: number,
+): Promise<void> => {
+  const payload = await getPayload({ config })
+
+  const res = await payload.find({
+    collection: 'userConceptProgressions',
+    where: {
+      and: [{ user: { equals: userId } }, { concept: { equals: conceptId } }],
+    },
+    select: { progressValue: true },
+    limit: 1,
+  })
+  const existing = res.docs[0]
+  console.log(existing)
+
+  if (!existing) {
+    await updateConceptProgression(userId, conceptId, quantity)
+  } else {
+    await updateConceptProgression(userId, conceptId, existing.progressValue + quantity)
+  }
+
+  console.log('Successfuly increased one concept')
+}
+
+export const completeSubConcepts = async (userId: string, conceptId: number): Promise<number[]> => {
+  const payload = await getPayload({ config })
+  const res = await payload.find({
+    collection: 'concepts',
+    where: { id: { equals: conceptId } },
+    depth: 2,
+    limit: 1,
+  })
+  const concept = res.docs[0]
+  if (!concept) return []
+
+  let completedIds: number[] = []
+
+  if (Array.isArray(concept.subConcepts) && concept.subConcepts.length > 0) {
+    for (const sub of concept.subConcepts) {
+      const subConceptId = typeof sub === 'object' && sub !== null ? sub.id : sub
+      await updateConceptProgression(userId, subConceptId, 100)
+      const subCompleted = await completeSubConcepts(userId, subConceptId)
+      completedIds.push(subConceptId, ...subCompleted)
+    }
+  }
+  // Ajouter le concept parent à la liste (en premier)
+  return [conceptId, ...completedIds]
+}
+
+export const getConceptById = async (conceptId: number): Promise<Concept> => {
+  const payload = await getPayload({ config })
+
+  const concept = await payload.findByID({
+    collection: 'concepts',
+    id: conceptId,
+  })
+
+  if (!concept) throw new Error(`Could not find concept with ID ${conceptId}`)
+  return concept
 }

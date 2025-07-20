@@ -21,6 +21,7 @@ import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { DraftRedirect } from './components/draft-redirect'
 import { ChallengeLayoutHeader } from './components/header'
+import { getChallengeConcepts } from '@/api/challenges/concepts'
 
 
 const getCurrencyOnCompletion = (challenge: Challenge): number => {

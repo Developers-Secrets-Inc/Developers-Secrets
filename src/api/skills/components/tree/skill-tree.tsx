@@ -13,7 +13,12 @@ import { ConceptNode } from '@/api/skills' // Add this import
 import { Concept } from '@/payload-types'
 
 // Types pour les props
-import { EnrichedConcept } from '@/api/skills/hooks/use-concepts-progression';
+import { EnrichedConcept } from '@/api/skills/hooks/use-concepts-progression'
+import {
+  CompletedConceptNode,
+  LockedConceptNode,
+  UncompletedConceptNode,
+} from './concepts/concept-node'
 
 export type SkillTreeProps = {
   skill: {
@@ -32,8 +37,8 @@ function buildNodesAndEdges(
   concepts: ConceptNodeWithProgress[],
   parentId: number | null = null,
 ): { nodes: Node[]; edges: Edge[] } {
-  let currentNodes: Node[] = [];
-  let currentEdges: Edge[] = [];
+  let currentNodes: Node[] = []
+  let currentEdges: Edge[] = []
 
   for (const concept of concepts) {
     currentNodes.push({
@@ -41,7 +46,7 @@ function buildNodesAndEdges(
       data: { label: concept.name, progress: concept.progress, isLocked: concept.isLocked },
       position: { x: 0, y: 0 }, // Placeholder, Dagre will set this
       type: 'custom',
-    });
+    })
 
     if (parentId !== null) {
       currentEdges.push({
@@ -49,7 +54,7 @@ function buildNodesAndEdges(
         source: String(parentId),
         target: String(concept.id),
         type: 'smoothstep',
-      });
+      })
     }
 
     // Edges pour les requiredConcepts (prérequis)
@@ -62,19 +67,19 @@ function buildNodesAndEdges(
         target: String(concept.id),
         type: 'dashed',
         style: { strokeDasharray: '4 2', stroke: '#888' },
-      });
+      })
     }
 
     // Recursively build sub-nodes and edges
-    const { nodes: subNodes, edges: subEdges } = buildNodesAndEdges(concept.subConcepts, concept.id);
-    currentNodes = currentNodes.concat(subNodes);
-    currentEdges = currentEdges.concat(subEdges);
+    const { nodes: subNodes, edges: subEdges } = buildNodesAndEdges(concept.subConcepts, concept.id)
+    currentNodes = currentNodes.concat(subNodes)
+    currentEdges = currentEdges.concat(subEdges)
   }
-  return { nodes: currentNodes, edges: currentEdges };
+  return { nodes: currentNodes, edges: currentEdges }
 }
 
 function convertEnrichedToConceptNodeWithProgress(
-  enrichedConcept: EnrichedConcept
+  enrichedConcept: EnrichedConcept,
 ): ConceptNodeWithProgress {
   const baseConceptNode: ConceptNode = {
     id: enrichedConcept.id,
@@ -86,7 +91,7 @@ function convertEnrichedToConceptNodeWithProgress(
       ? enrichedConcept.requiredConcepts.filter((rc): rc is number => typeof rc === 'number')
       : [],
     subConcepts: [], // Will be filled recursively
-  };
+  }
 
   return {
     ...baseConceptNode,
@@ -95,7 +100,7 @@ function convertEnrichedToConceptNodeWithProgress(
     subConcepts: Array.isArray(enrichedConcept.subConcepts)
       ? enrichedConcept.subConcepts.map(convertEnrichedToConceptNodeWithProgress)
       : [],
-  };
+  }
 }
 
 const nodeWidth = 180
@@ -146,42 +151,11 @@ const CustomConceptNode = ({
   console.log(data.label, data.progress)
   const progress = typeof data.progress === 'number' ? data.progress : 0
   const isMastered = progress >= 100
-  return (
-    <div
-      className={
-        `px-4 py-2 shadow-md rounded-lg border border-border min-w-[120px] max-w-[200px] relative ` +
-        (isLocked ? 'opacity-50 grayscale pointer-events-none' : 'bg-background')
-      }
-    >
-      <div className="flex items-center gap-2">
-        <div className="text-base font-semibold text-white truncate flex-1" title={data.label}>
-          {data.label}
-        </div>
-        {isLocked && <Lock className="h-4 w-4 text-muted-foreground" />}
-        {!isLocked && isMastered && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-      </div>
-      {/* Progression */}
-      {!isLocked && !isMastered && (
-        <div className="mt-1">
-          <div className="flex justify-between items-center mb-0.5">
-            <span className="text-xs text-muted-foreground">{progress}%</span>
-          </div>
-          <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
-            <div
-              className="h-1.5 rounded-full bg-primary transition-all"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-      <Handle type="target" position={Position.Top} className="w-12 h-1 !bg-primary rounded-full" />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="w-12 h-1 !bg-primary rounded-full"
-      />
-    </div>
-  )
+
+  if (isLocked) return <LockedConceptNode title={data.label} />
+  if (isMastered) return <CompletedConceptNode title={data.label} />
+
+  return <UncompletedConceptNode title={data.label} progress={progress} />
 }
 
 // Node central pour le skill
@@ -205,39 +179,43 @@ export const SkillTree: React.FC<SkillTreeProps> = ({ skill, skillSlug, userId, 
     isError,
   } = useConceptsProgression(skillSlug, userId, initialData)
 
-  const [rfNodes, setNodes, onNodesChange] = useNodesState([]);
-  const [rfEdges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [rfNodes, setNodes, onNodesChange] = useNodesState([])
+  const [rfEdges, setEdges, onEdgesChange] = useEdgesState([])
 
   React.useEffect(() => {
     if (isLoading || isError || !concepts) {
       // Handle loading/error states or no concepts
-      return;
+      return
     }
 
-    const safeConcepts = concepts.map(convertEnrichedToConceptNodeWithProgress);
-    const { nodes, edges } = buildNodesAndEdges(safeConcepts);
+    const safeConcepts = concepts.map(convertEnrichedToConceptNodeWithProgress)
+    const { nodes, edges } = buildNodesAndEdges(safeConcepts)
 
     const rootNode = {
       id: 'skill-root',
       data: { label: skill.name },
       position: { x: 0, y: 0 },
       type: 'skillRoot' as const,
-    };
+    }
     const rootEdges = concepts.map((c) => ({
       id: `skill-root->${c.id}`,
       source: 'skill-root',
       target: String(c.id),
       type: 'smoothstep' as const,
-    }));
+    }))
 
-    const allNodes = [rootNode, ...nodes];
-    const allEdges = [...rootEdges, ...edges];
+    const allNodes = [rootNode, ...nodes]
+    const allEdges = [...rootEdges, ...edges]
 
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(allNodes, allEdges, 'TB');
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      allNodes,
+      allEdges,
+      'TB',
+    )
 
-    setNodes(layoutedNodes);
-    setEdges(layoutedEdges);
-  }, [concepts, skill.name, isLoading, isError, setNodes, setEdges]); // Dependencies: concepts, skill.name, and setters
+    setNodes(layoutedNodes)
+    setEdges(layoutedEdges)
+  }, [concepts, skill.name, isLoading, isError, setNodes, setEdges]) // Dependencies: concepts, skill.name, and setters
 
   if (isLoading) return <div>Loading skill tree...</div>
   if (isError) return <div>Error loading skill tree.</div>

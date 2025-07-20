@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   getSkillConceptsWithProgression,
   updateConceptProgression as updateConceptProgressionAction,
+  completeSubConcepts,
 } from '../index'
 import { Concept } from '@/payload-types'
 
@@ -67,7 +68,25 @@ export function useConceptsProgression(
       conceptId: number
       newProgression: number
     }) => {
-      await updateConceptProgressionAction(userId, conceptId, newProgression)
+      const result = await updateConceptProgressionAction(userId, conceptId, newProgression)
+      if (result === 100) {
+        const completedIds = await completeSubConcepts(userId, conceptId)
+        // Update optimiste multi-noeuds dans le cache local
+        const previousData = queryClient.getQueryData<EnrichedConcept[]>([
+          'concepts-progression',
+          skillSlug,
+          userId,
+        ])
+        if (previousData) {
+          let newData = previousData
+          for (const id of completedIds) {
+            newData = updateConceptProgressionInTree(newData, id, 100)
+          }
+          queryClient.setQueryData(['concepts-progression', skillSlug, userId], newData)
+        }
+        // Invalider le cache global pour garantir la fraîcheur
+        queryClient.invalidateQueries({ queryKey: ['concepts-progression', skillSlug, userId] })
+      }
     },
     onMutate: async ({ conceptId, newProgression }) => {
       await queryClient.cancelQueries({ queryKey: ['concepts-progression', skillSlug, userId] })

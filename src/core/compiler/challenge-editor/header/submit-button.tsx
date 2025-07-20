@@ -20,6 +20,7 @@ import { updateChallengeStreak } from '@/core/gamification/streaks/challenges'
 import { useChallengeStreak } from '@/core/gamification/streaks/challenges/hooks/use-challenge-streak'
 import { addCurrency } from '@/core/gamification/marketplace/currency'
 import { useChallengeStore } from '@/core/challenges/store'
+import { dispatch } from '@/core/events'
 
 // Map icon names to actual LucideIcon components
 const LoadingIcon = ({
@@ -137,16 +138,17 @@ export const SubmitButton = ({
           updateStreak.mutateAsync(),
           addCurrency(userId, currencyOnCompletion, 'Challenge completion'),
         ]
-      
+
         if (!solutionUnlocked) {
           gamificationPromises.push(addExperience(userId, challenge.baseExperience ?? 50))
         }
-      
+
         // On n'a plus besoin de récupérer le résultat ici
         await Promise.all(gamificationPromises)
       }
 
       await setCompleted()
+      await dispatch('challenge.completed', { challengeId: challenge.id, userId: userId })
       queryClient.invalidateQueries({
         queryKey: solutionQueryKeys.solutionUnlock(userId, challenge.id),
       })
