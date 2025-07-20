@@ -1,31 +1,50 @@
-import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from 'react-icons/fa'
+import { Eclipse, Twitter, Github, Linkedin, Youtube } from 'lucide-react'
 
 const sections = [
   {
     title: 'Product',
     links: [
-      { name: 'Overview', href: '#' },
+      { name: 'Challenges', href: '#' },
+      { name: 'Learning Paths', href: '#' },
+      { name: 'Skill Tree', href: '#' },
+      { name: 'AI Challenges', href: '#' },
+      { name: 'Gamification', href: '#' },
+      { name: 'Projects', href: '#' },
+      { name: 'AI Assistant', href: '#' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { name: 'Community', href: '#' },
+      { name: 'Docs', href: '#' },
+      { name: 'Guide', href: '#' },
+      { name: 'Help', href: '#' },
       { name: 'Pricing', href: '#' },
-      { name: 'Marketplace', href: '#' },
-      { name: 'Features', href: '#' },
+      { name: 'Students', href: '#' },
+      { name: 'Enterprises', href: '#' },
     ],
   },
   {
     title: 'Company',
     links: [
       { name: 'About', href: '#' },
-      { name: 'Team', href: '#' },
       { name: 'Blog', href: '#' },
-      { name: 'Careers', href: '#' },
+      { name: 'Changelog', href: '#' },
+      { name: 'Events', href: '#' },
+      { name: 'Contact Us', href: '#' },
+      { name: 'Partners', href: '#' },
+      { name: 'Privacy Policy', href: '#' },
+      { name: 'Legal', href: '#' },
     ],
   },
   {
-    title: 'Resources',
+    title: 'Social',
     links: [
-      { name: 'Help', href: '#' },
-      { name: 'Sales', href: '#' },
-      { name: 'Advertise', href: '#' },
-      { name: 'Privacy', href: '#' },
+      { name: 'Twitter', href: '#', icon: <Twitter className="w-4 h-4 mr-2" /> },
+      { name: 'GitHub', href: '#', icon: <Github className="w-4 h-4 mr-2" /> },
+      { name: 'LinkedIn', href: '#', icon: <Linkedin className="w-4 h-4 mr-2" /> },
+      { name: 'YouTube', href: '#', icon: <Youtube className="w-4 h-4 mr-2" /> },
     ],
   },
 ]
@@ -47,60 +66,33 @@ const Footer7 = ({
   },
 }: Footer7Props) => {
   return (
-    <section className="py-32">
-      <div className="">
+    <section className="pt-32 pb-8 w-full flex">
+      <div className="w-full max-w-7xl mx-auto">
         <div className="flex w-full flex-col items-center justify-between gap-10 text-center lg:flex-row lg:items-start lg:text-left">
-          <div className="flex w-full flex-col items-center justify-between gap-6 lg:items-start">
-            {/* Logo */}
-            <div className="flex items-center gap-2 lg:justify-start">
-              <a href={logo.url}>
-                <img src={logo.src} alt={logo.alt} title={logo.title} className="h-8" />
-              </a>
-              <h2 className="text-xl font-semibold">{logo.title}</h2>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              A collection of 100+ responsive HTML templates for your startup business or side
-              project.
-            </p>
-            <ul className="flex items-center space-x-6 text-muted-foreground">
-              <li className="font-medium hover:text-primary">
-                <a href="#" aria-label="Instagram">
-                  <FaInstagram className="size-6" />
-                </a>
-              </li>
-              <li className="font-medium hover:text-primary">
-                <a href="#" aria-label="Facebook">
-                  <FaFacebook className="size-6" />
-                </a>
-              </li>
-              <li className="font-medium hover:text-primary">
-                <a href="#" aria-label="Twitter">
-                  <FaTwitter className="size-6" />
-                </a>
-              </li>
-              <li className="font-medium hover:text-primary">
-                <a href="#" aria-label="LinkedIn">
-                  <FaLinkedin className="size-6" />
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div className="grid w-full grid-cols-3 gap-6 lg:gap-20">
+          <div className="grid flex-1 w-full grid-cols-5 gap-6 lg:gap-20">
+            {/* Colonnes de liens */}
             {sections.map((section, sectionIdx) => (
               <div key={sectionIdx}>
                 <h3 className="mb-6 font-bold">{section.title}</h3>
                 <ul className="space-y-4 text-sm text-muted-foreground">
                   {section.links.map((link, linkIdx) => (
-                    <li key={linkIdx} className="font-medium hover:text-primary">
-                      <a href={link.href}>{link.name}</a>
+                    <li key={linkIdx} className="font-medium hover:text-primary flex items-center">
+                      <a href={link.href} className="flex items-center">
+                        {'icon' in link && link.icon}
+                        {link.name}
+                      </a>
                     </li>
                   ))}
                 </ul>
               </div>
             ))}
+            {/* 5ème colonne pour l'icône Eclipse, alignée en haut à droite */}
+            <div className="flex flex-col items-end justify-start">
+              <Eclipse className="h-8 w-8" />
+            </div>
           </div>
         </div>
-        <div className="mt-8 flex flex-col justify-between gap-4 border-t pt-8 text-center text-sm font-medium text-muted-foreground lg:flex-row lg:items-center lg:text-left">
+        <div className="mt-8 flex flex-col justify-between gap-4 border-t pt-8 text-center text-sm font-medium text-muted-foreground lg:flex-row lg:items-center lg:text-left w-full">
           <p>© {new Date().getFullYear()} Your Company. All rights reserved.</p>
           <ul className="flex justify-center gap-4 lg:justify-start">
             <li className="hover:text-primary">

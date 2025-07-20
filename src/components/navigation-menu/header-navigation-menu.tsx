@@ -97,7 +97,7 @@ export function MainNavigationMenu() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger className="text-muted-foreground">Tutorials</NavigationMenuTrigger>
+          <NavigationMenuTrigger className="text-muted-foreground">Articles</NavigationMenuTrigger>
           <NavigationMenuContent className="p-0">
             <div className="flex flex-col bg-muted/20 overflow-hidden">
               <div className="bg-background p-4">
@@ -119,7 +119,7 @@ export function MainNavigationMenu() {
               <div className="flex items-center justify-end border-t p-3">
                 <Button variant="default" size="sm" asChild disabled className="opacity-50">
                   <Link href="/articles" className="text-sm font-medium">
-                    View all tutorials
+                    View all articles
                   </Link>
                 </Button>
               </div>
