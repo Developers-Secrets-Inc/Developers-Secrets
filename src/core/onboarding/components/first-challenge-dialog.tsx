@@ -10,9 +10,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { getRandomUncompletedChallenge } from '@/core/skills/recommendations'
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { getRandomUncompletedChallenge } from '@/api/challenges'
 
 interface FirstChallengeDialogProps {
   isOpen: boolean

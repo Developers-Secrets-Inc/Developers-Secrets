@@ -2,6 +2,7 @@
 
 import { Markdown } from '@/components/markdown'
 import { useUpdateDescriptionAdmin } from '@/core/challenges/hooks/use-update-description-admin'
+import { string } from 'zod'
 
 /**
  * ChallengeDescriptionContent component
@@ -26,3 +27,5 @@ export const ChallengeDescriptionContent = ({
     </Markdown>
   )
 }
+
+

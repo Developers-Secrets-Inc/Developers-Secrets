@@ -18,7 +18,6 @@ import {
 // Import the completion toast hook
 import { useCompletionToast } from '../components/completion-toast-context'
 // --- CORRECTED IMPORT PATH (Relative) ---
-import { recordCoursePartCompletion } from '../skills'
 // --- END CORRECTED IMPORT PATH ---
 // Import the new hook
 import { useSolutionUnlockStatus } from '../progression/hooks/useSolutionUnlockStatus'
@@ -300,7 +299,6 @@ export function CourseCodeEditor({
 
           if (completionStatus !== 'completed') {
             try {
-              await recordCoursePartCompletion(userId, coursePart.id)
               console.log(`Skill progression recorded for part ${coursePart.id}`)
             } catch (skillError) {
               console.error('Error triggering skill progression update:', skillError)

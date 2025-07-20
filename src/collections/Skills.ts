@@ -41,6 +41,17 @@ export const Skills: CollectionConfig = {
         description: 'A brief description of the skill and its scope.',
       },
     },
+    {
+      name: 'rootConcepts',
+      label: 'Root Concepts for this Skill Tree',
+      type: 'relationship',
+      relationTo: 'concepts', // Relates to the Concepts collection
+      hasMany: true,
+      required: false,
+      admin: {
+        description: 'The top-level concepts that form the entry points for this skill tree.',
+      },
+    },
     // Optional: Uncomment and adjust if needed later for defining skill prerequisites
     // {
     //   name: 'requiredConcepts',

@@ -14,7 +14,6 @@ export const find: PayloadInstance['find'] = async (options) => {
 
   const cachedFind = unstable_cache(
     async () => {
-      console.log("hey")
       return await payload.find({
         ...options,
       })
@@ -27,5 +26,4 @@ export const find: PayloadInstance['find'] = async (options) => {
 
   return elements
 }
-
 

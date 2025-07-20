@@ -3,7 +3,7 @@ import type { CollectionConfig } from 'payload'
 export const Concepts: CollectionConfig = {
   slug: 'concepts',
   admin: {
-    useAsTitle: 'name',
+    useAsTitle: 'slug',
     defaultColumns: ['name', 'slug', 'parentSkill', 'updatedAt'],
     description:
       'Represents abstract concepts (e.g., Loops, Encapsulation, Stacks). Can be linked to a parent skill (e.g., Encapsulation belongs to POO).',
@@ -14,7 +14,6 @@ export const Concepts: CollectionConfig = {
       label: 'Concept Name',
       type: 'text',
       required: true,
-      unique: true,
       index: true,
       admin: {
         description: 'The name of the abstract concept (e.g., Loops, Encapsulation, Stacks).',
@@ -41,34 +40,28 @@ export const Concepts: CollectionConfig = {
       },
     },
     {
-      name: 'parentSkill',
-      label: 'Parent Skill (Optional)',
-      type: 'relationship',
-      relationTo: 'skills', // Relates to the Skills collection
-      required: false, // This concept might be fundamental and not belong to a specific skill/paradigm
+      name: 'type',
+      label: 'Concept Type',
+      type: 'select',
+      options: [
+        { label: 'Abstract', value: 'abstract' },
+        { label: 'Concrete', value: 'concrete' },
+      ],
+      required: true,
+      defaultValue: 'abstract',
       admin: {
-        description:
-          'Optional: The main skill or paradigm this concept belongs to (e.g., Encapsulation belongs to POO). Helps categorize and link concepts.',
+        description: 'Distinguishes between abstract concepts (general ideas like "Loops") and concrete applications/implementations (specific tasks like "Iterate in a loop").',
       },
     },
     {
-      name: 'parentConcept',
-      label: 'Parent Concept (for Grouping)',
+      name: 'subConcepts',
+      label: 'Sub-Concepts',
       type: 'relationship',
       relationTo: 'concepts', // Self-relation
-      hasMany: false, // A concept belongs to at most one parent group concept
-      required: false, // Optional, not all concepts need a grouping parent
+      hasMany: true,
+      required: false,
       admin: {
-        description:
-          'Optional: Select another concept that acts as a logical parent or category for this one (e.g., "Data Types" could be the parent of "Strings").',
-        position: 'sidebar', // Keep sidebar less cluttered
-      },
-      filterOptions: ({ id }) => {
-        // Prevent a concept from being its own parent
-        if (id) {
-          return { id: { not_equals: id } }
-        }
-        return true
+        description: 'Concepts that are direct children of this concept. Used for calculating weighted average progression for abstract concepts.',
       },
     },
     {
@@ -79,26 +72,6 @@ export const Concepts: CollectionConfig = {
       hasMany: true,
       admin: {
         description: 'Concepts that should generally be understood before tackling this one.',
-      },
-    },
-    {
-      name: 'nextConcepts',
-      label: 'Next Concepts',
-      type: 'relationship',
-      relationTo: 'concepts', // Self-relation for follow-up concepts
-      hasMany: true,
-      admin: {
-        description: 'Concepts that logically follow this one in potential learning paths.',
-      },
-    },
-    {
-      name: 'groups', // Categories/groups this concept belongs to
-      label: 'Concept Groups',
-      type: 'relationship',
-      relationTo: 'conceptGroups',
-      hasMany: true,
-      admin: {
-        position: 'sidebar',
       },
     },
   ],
