@@ -11,22 +11,24 @@ import { ReactLogoIcon } from '@/components/icons/react-logo-icon'
 // Custom node for a learning path step
 function LearningPathNode({ data }: { data: { label: string; icon: React.ReactNode } }) {
   return (
-    <div className="px-4 py-3 shadow rounded-md border flex flex-col items-center min-w-[80px] bg-background">
+    <div
+      className="px-2 py-1 shadow rounded border flex flex-col items-center bg-background text-xs"
+      style={{ minWidth: 48, minHeight: 48 }}
+    >
       <Handle
         type="target"
-        position={Position.Top}
-        className="!bg-primary/30 w-2 h-1"
-        style={{ top: -6 }}
+        position={Position.Left}
+        className="!bg-primary/30 w-1 h-1"
+        style={{ left: -6, top: '50%', transform: 'translateY(-50%)' }}
       />
-      <div className="flex items-center justify-center w-8 h-8 rounded-full mb-1 bg-muted border border-border">
+      <div className="flex items-center justify-center w-6 h-6 rounded-full mb-0.5 bg-muted border border-border">
         {data.icon}
       </div>
-      <div className="text-xs font-medium text-center truncate w-full">{data.label}</div>
       <Handle
         type="source"
-        position={Position.Bottom}
-        className="!bg-primary/30 w-2 h-1"
-        style={{ bottom: -6 }}
+        position={Position.Right}
+        className="!bg-primary/30 w-1 h-1"
+        style={{ right: -6, top: '50%', transform: 'translateY(-50%)' }}
       />
     </div>
   )
@@ -39,25 +41,25 @@ const nodes = [
     id: 'html',
     type: 'learning',
     position: { x: 0, y: 100 },
-    data: { label: 'HTML', icon: <HtmlLogoIcon width={24} height={24} /> },
+    data: { label: 'HTML', icon: <HtmlLogoIcon width={16} height={16} /> },
   },
   {
     id: 'css',
     type: 'learning',
-    position: { x: 120, y: 100 },
-    data: { label: 'CSS', icon: <CssLogoIcon width={24} height={24} /> },
+    position: { x: 80, y: 100 },
+    data: { label: 'CSS', icon: <CssLogoIcon width={16} height={16} /> },
   },
   {
     id: 'js',
     type: 'learning',
-    position: { x: 240, y: 100 },
-    data: { label: 'JavaScript', icon: <JsLogoIcon width={24} height={24} /> },
+    position: { x: 160, y: 100 },
+    data: { label: 'JavaScript', icon: <JsLogoIcon width={16} height={16} /> },
   },
   {
     id: 'react',
     type: 'learning',
-    position: { x: 360, y: 100 },
-    data: { label: 'React', icon: <ReactLogoIcon width={24} height={24} /> },
+    position: { x: 240, y: 100 },
+    data: { label: 'React', icon: <ReactLogoIcon width={16} height={16} /> },
   },
 ]
 
@@ -71,7 +73,7 @@ const proOptions = { hideAttribution: true }
 
 export function LearningPathGraph() {
   return (
-    <div className="relative w-full h-[180px]">
+    <div className="relative w-full h-[100px]">
       <ReactFlow
         nodes={nodes}
         edges={edges}

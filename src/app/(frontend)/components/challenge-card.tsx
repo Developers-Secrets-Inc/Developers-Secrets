@@ -48,16 +48,13 @@ function DisplayCard({
   return (
     <div
       className={cn(
-        "relative flex w-[22rem] skew-y-[0deg] select-none flex-col justify-between rounded-md border border-border bg-background backdrop-blur-sm px-4 py-3 transition-all duration-700 after:absolute after:-right-1 after:top-[-5%] after:h-[110%] after:w-[20rem] after:content-[''] hover:bg-background/90 [&>*]:flex [&>*]:items-center [&>*]:gap-2",
+        "relative flex w-[22rem] select-none flex-col justify-between rounded-md border border-border bg-background backdrop-blur-sm px-4 py-3 transition-all duration-700 after:absolute after:-right-1 after:top-[-5%] after:h-[110%] after:w-[20rem] after:content-[''] hover:bg-background/90 [&>*]:flex [&>*]:items-center [&>*]:gap-2",
         className,
       )}
     >
       {badge}
       <div>
         <p className="text-lg font-medium">{title}</p>
-      </div>
-      <div className="w-full flex justify-center">
-        <div className="w-full h-px bg-border" />
       </div>
       <Markdown className="text-sm text-muted-foreground flex-col">{description}</Markdown>
       <p className="text-sm text-muted-foreground">{date}</p>
@@ -77,9 +74,10 @@ function DisplayCard({
 
 interface DisplayCardsProps {
   cards?: DisplayCardProps[]
+  align?: 'left' | 'center'
 }
 
-export function DisplayCards({ cards }: DisplayCardsProps) {
+export function DisplayCards({ cards, align = 'center' }: DisplayCardsProps) {
   const defaultCards = [
     {
       className:
@@ -97,7 +95,12 @@ export function DisplayCards({ cards }: DisplayCardsProps) {
   const displayCards = cards || defaultCards
 
   return (
-    <div className="grid [grid-template-areas:'stack'] place-items-center opacity-100 animate-in fade-in-0 duration-700">
+    <div
+      className={cn(
+        "grid [grid-template-areas:'stack'] opacity-100 animate-in fade-in-0 duration-700",
+        align === 'left' ? 'place-items-start' : 'place-items-center',
+      )}
+    >
       {displayCards.map((cardProps, index) => (
         <DisplayCard key={index} {...cardProps} />
       ))}
