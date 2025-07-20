@@ -13,6 +13,13 @@ export class TutorialNotFoundError extends TutorialError {
   }
 }
 
+export class TutorialsNotFoundError extends TutorialError {
+  constructor() {
+    super(`Tutorials not found`)
+    this.name = 'TutorialNotFoundError'
+  }
+}
+
 export class MultipleTutorialsFoundError extends TutorialError {
   constructor(slug: string) {
     super(`Multiple tutorials found with slug "${slug}"`)

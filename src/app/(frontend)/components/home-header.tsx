@@ -1,5 +1,5 @@
 import { Eclipse } from 'lucide-react'
-import { MainNavigationMenu } from '../articles/[tutorial_slug]/[article_slug]/components/main-navigation-menu'
+import { MainNavigationMenu } from '../articles/[tutorial_slug]/(article)/[article_slug]/components/main-navigation-menu'
 import { AuthButtons } from '@/components/buttons/AuthButtons'
 
 export const HomeHeader = async () => {

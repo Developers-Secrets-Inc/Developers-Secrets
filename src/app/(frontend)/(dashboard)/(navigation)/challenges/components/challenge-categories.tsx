@@ -9,7 +9,7 @@ import {
   ShieldCheckIcon,
 } from 'lucide-react'
 import Link from 'next/link'
-import { getChallengeCategories } from '@/core/challenges/categories'
+import { getChallengeCategories } from '@/api/challenges/categories'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Suspense } from 'react'
 import { cn } from '@/lib/utils'

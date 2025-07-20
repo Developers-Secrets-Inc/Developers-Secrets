@@ -19,8 +19,9 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui
 import {
   getFirstTutorialArticle,
   getFirstExampleArticle,
-  getFirstTutorialReferenceArticle,
-} from '@/core/articles/index-v2'
+  getFirstReferenceArticle,
+} from '@/api/articles'
+import { isFailure } from '@/lib/result'
 
 interface ArticlesSwitcherProps {
   tutorialSlug: string
@@ -35,8 +36,20 @@ export const ArticlesSwitcher = async ({
   const [firstTutorialArticle, firstExampleArticle, firstReferenceArticle] = await Promise.all([
     getFirstTutorialArticle(tutorialSlug),
     getFirstExampleArticle(tutorialSlug),
-    getFirstTutorialReferenceArticle(tutorialSlug),
+    getFirstReferenceArticle(tutorialSlug),
   ])
+
+  // if (isFailure(firstTutorialArticle)) {
+  //   throw firstTutorialArticle.error
+  // }
+
+  // if (isFailure(firstExampleArticle)) {
+  //   throw firstExampleArticle.error
+  // }
+
+  // if (isFailure(firstReferenceArticle)) {
+  //   throw firstReferenceArticle.error
+  // }
 
   // Define the menu items with their properties
   const menuItems = [

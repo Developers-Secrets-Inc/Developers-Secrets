@@ -47,7 +47,13 @@ export const RecommendedChallengeClient = ({
   initialChallenge,
 }: {
   userId: string
-  initialChallenge: Challenge | null
+  initialChallenge: {
+    id: number
+    title: string
+    slug: string
+    difficulty: Challenge['difficulty']
+    baseExperience?: number | null
+  } | null
 }) => {
   const { recommendedChallenge, isLoading, error, fetchNewRecommendationWithFeedback, isFetching } =
     useRecommendedChallenge({

@@ -91,6 +91,7 @@ export const ChallengeCategory: CollectionConfig = {
           admin: {
             description: 'Sequence of challenges in this part',
           },
+          maxDepth: 0
         },
       ],
     },

@@ -23,6 +23,7 @@ import { ValuePropsSection } from './components/value-props-section'
 import { Footer7 } from './components/footer'
 import { ProblemSection } from './components/problem'
 import { GraphQLLogoIcon } from '@/components/icons/graphql-logo-icon'
+import { find } from '@/api'
 
 export const metadata: Metadata = {
   title: 'Developers Secrets',
@@ -212,7 +213,9 @@ const HeroSection = ({
   )
 }
 
-export default function Home() {
+export default async function Home() {
+
+  
   return (
     <div>
       <HomeHeader />
