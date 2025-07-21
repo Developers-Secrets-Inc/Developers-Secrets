@@ -1,0 +1,110 @@
+---
+alwaysApply: true
+---
+
+# Data Fetching & Mutation Standard
+
+All data fetching and mutation logic in this project **must** use the utilities provided in [`src/core/functions`](mdc:src/core/functions) and its hooks submodule. This ensures:
+- **Type safety** for all actions and queries
+- **Consistent SSR/CSR hydration** with React Query
+- **Automatic cache management and invalidation**
+- **Unified developer experience** for both server and client components
+
+## Core APIs
+- [`query`](mdc:src/core/functions/index.ts): Define a typed server action/query with Zod validation and context injection.
+- [`mutation`](mdc:src/core/functions/index.ts): Define a typed server mutation with Zod validation and context injection.
+- [`preloadQuery`](mdc:src/core/functions/preload.ts): Preload data and React Query cache state in a Server Component for hydration in a Client Component.
+- [`usePreloadedQuery`](mdc:src/core/functions/hooks/use-preload.ts): Client hook to consume preloaded data and enable reactivity with React Query.
+- [`useQuery`](mdc:src/core/functions/hooks/index.ts): Client hook for fetching/caching data with a typed query function and arguments.
+- [`useMutation`](mdc:src/core/functions/hooks/index.ts): Client hook for performing mutations and auto-invalidating related queries.
+
+## Usage Guidelines
+- **Always** define new data actions (queries/mutations) using `query` or `mutation` with Zod schemas for argument validation and type inference.
+- For SSR/CSR seamless hydration, use `preloadQuery` in Server Components and pass the result to a Client Component using `usePreloadedQuery`.
+- For client-only data fetching, use `useQuery` with the server-defined function and arguments.
+- For client-side mutations, use `useMutation` with the server-defined mutation function; cache invalidation is handled automatically.
+
+## Example
+```typescript
+// Server: define a query
+export const getChallenge = query({
+  name: 'challenge',
+  args: z.object({ slug: z.string() }),
+  handler: async (ctx, args) => { /* ... */ },
+});
+
+// Server Component: preload data
+const preloaded = await preloadQuery(getChallenge, { slug: 'my-challenge' });
+return <ChallengeClient preloaded={preloaded} />;
+
+// Client Component: consume preloaded data
+const { data } = usePreloadedQuery(preloaded);
+
+// Client: fetch data directly
+const { data } = useQuery(getChallenge, { slug: 'my-challenge' });
+
+// Client: perform mutation
+const mutation = useMutation(updateChallenge);
+mutation.mutate({ slug: 'my-challenge', data: { ... } });
+```
+
+## Rationale
+- Guarantees type safety and runtime validation for all data flows
+- Ensures cache consistency and optimal UX with React Query
+- Simplifies SSR/CSR data hydration and avoids double fetching
+- Centralizes all data access logic for maintainability
+
+**Do not use ad-hoc fetches, direct API calls, or untyped actions for data access. Always use this module.**
+# Data Fetching & Mutation Standard
+
+All data fetching and mutation logic in this project **must** use the utilities provided in [`src/core/functions`](mdc:src/core/functions) and its hooks submodule. This ensures:
+- **Type safety** for all actions and queries
+- **Consistent SSR/CSR hydration** with React Query
+- **Automatic cache management and invalidation**
+- **Unified developer experience** for both server and client components
+
+## Core APIs
+- [`query`](mdc:src/core/functions/index.ts): Define a typed server action/query with Zod validation and context injection.
+- [`mutation`](mdc:src/core/functions/index.ts): Define a typed server mutation with Zod validation and context injection.
+- [`preloadQuery`](mdc:src/core/functions/preload.ts): Preload data and React Query cache state in a Server Component for hydration in a Client Component.
+- [`usePreloadedQuery`](mdc:src/core/functions/hooks/use-preload.ts): Client hook to consume preloaded data and enable reactivity with React Query.
+- [`useQuery`](mdc:src/core/functions/hooks/index.ts): Client hook for fetching/caching data with a typed query function and arguments.
+- [`useMutation`](mdc:src/core/functions/hooks/index.ts): Client hook for performing mutations and auto-invalidating related queries.
+
+## Usage Guidelines
+- **Always** define new data actions (queries/mutations) using `query` or `mutation` with Zod schemas for argument validation and type inference.
+- For SSR/CSR seamless hydration, use `preloadQuery` in Server Components and pass the result to a Client Component using `usePreloadedQuery`.
+- For client-only data fetching, use `useQuery` with the server-defined function and arguments.
+- For client-side mutations, use `useMutation` with the server-defined mutation function; cache invalidation is handled automatically.
+
+## Example
+```typescript
+// Server: define a query
+export const getChallenge = query({
+  name: 'challenge',
+  args: z.object({ slug: z.string() }),
+  handler: async (ctx, args) => { /* ... */ },
+});
+
+// Server Component: preload data
+const preloaded = await preloadQuery(getChallenge, { slug: 'my-challenge' });
+return <ChallengeClient preloaded={preloaded} />;
+
+// Client Component: consume preloaded data
+const { data } = usePreloadedQuery(preloaded);
+
+// Client: fetch data directly
+const { data } = useQuery(getChallenge, { slug: 'my-challenge' });
+
+// Client: perform mutation
+const mutation = useMutation(updateChallenge);
+mutation.mutate({ slug: 'my-challenge', data: { ... } });
+```
+
+## Rationale
+- Guarantees type safety and runtime validation for all data flows
+- Ensures cache consistency and optimal UX with React Query
+- Simplifies SSR/CSR data hydration and avoids double fetching
+- Centralizes all data access logic for maintainability
+
+**Do not use ad-hoc fetches, direct API calls, or untyped actions for data access. Always use this module.**

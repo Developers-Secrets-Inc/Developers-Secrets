@@ -1,0 +1,74 @@
+---
+alwaysApply: true
+---
+
+# Limitation de la taille des champs text utilisateur dans Payload
+
+**Tous les champs de type `text` qui acceptent une saisie utilisateur doivent avoir une propriété `maxLength` définie.**
+
+## Raisons
+- Empêche les abus (injection de textes très volumineux)
+- Protège la base de données contre les saturations ou ralentissements
+- Améliore la robustesse et la sécurité de l'application
+
+## Bonnes pratiques
+- Pour un champ de motif court (ex: `reason` de report) : `maxLength: 100` à `maxLength: 255`
+- Pour un champ de détails ou de contenu plus long : `maxLength: 500` à `maxLength: 2000` selon le besoin
+- Toujours valider côté serveur (Payload) et côté client si possible
+
+## Exemple
+```typescript
+{
+  name: 'reason',
+  type: 'text',
+  required: true,
+  maxLength: 200, // Limite stricte
+},
+{
+  name: 'details',
+  type: 'text',
+  required: false,
+  maxLength: 1000, // Limite plus large pour un champ descriptif
+},
+```
+
+## À appliquer à
+- Tous les champs text des collections comme `Comments`, `CommentsReports`, `ChallengeComments`, etc.
+- Toute saisie utilisateur libre
+
+**Ne jamais laisser un champ text utilisateur sans limitation de taille.**
+# Limitation de la taille des champs text utilisateur dans Payload
+
+**Tous les champs de type `text` qui acceptent une saisie utilisateur doivent avoir une propriété `maxLength` définie.**
+
+## Raisons
+- Empêche les abus (injection de textes très volumineux)
+- Protège la base de données contre les saturations ou ralentissements
+- Améliore la robustesse et la sécurité de l'application
+
+## Bonnes pratiques
+- Pour un champ de motif court (ex: `reason` de report) : `maxLength: 100` à `maxLength: 255`
+- Pour un champ de détails ou de contenu plus long : `maxLength: 500` à `maxLength: 2000` selon le besoin
+- Toujours valider côté serveur (Payload) et côté client si possible
+
+## Exemple
+```typescript
+{
+  name: 'reason',
+  type: 'text',
+  required: true,
+  maxLength: 200, // Limite stricte
+},
+{
+  name: 'details',
+  type: 'text',
+  required: false,
+  maxLength: 1000, // Limite plus large pour un champ descriptif
+},
+```
+
+## À appliquer à
+- Tous les champs text des collections comme `Comments`, `CommentsReports`, `ChallengeComments`, etc.
+- Toute saisie utilisateur libre
+
+**Ne jamais laisser un champ text utilisateur sans limitation de taille.**

@@ -1,0 +1,31 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# GitHub CLI Commands
+
+This rule provides guidance on using common GitHub CLI commands.
+
+-   **gh issue list**
+    -   Lists issues in a GitHub repository.
+    -   By default, shows the most recent 30 open issues.
+    -   Use the `--repo <owner>/<repo>` flag to specify a repository.
+    -   Options include filtering by state (`--state {open|closed|all}`), assignee (`--assignee <string>`), author (`--author <string>`), label (`--label <strings>`), limit (`--limit <int>`), and search_files query (`--search_files <query>`).
+    -   Example to list all issues in a specific repo:
+        ```bash
+        gh issue list --repo <owner>/<repo> --state all
+        ```
+    -   Example to list issues assigned to you in the current repo:
+        ```bash
+        gh issue list --assignee "@me"
+        ```
+    -   Example for the current project (run from the project directory):
+        ```bash
+        gh issue list
+        ```
+    -   See the official documentation for more details: [gh issue list](mdc:https:/cli.github.com/manual/gh_issue_list)
+
+
+
+
