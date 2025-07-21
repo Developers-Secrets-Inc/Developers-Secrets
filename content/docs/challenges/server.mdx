@@ -1,0 +1,96 @@
+---
+title: Challenge Data Fetching (Server-Side)
+---
+
+## Introduction
+
+This document describes the data fetching functions for challenges, located in `src/core/challenges/challenge-queries.ts`. These functions are designed to be executed server-side (`'use server'`) and leverage Next.js's caching mechanisms.
+
+### `getAllChallenges`
+
+**Description**: Retrieves all available challenges from the collection. This function is cached by Next.js to improve performance.
+
+**Signature**:
+```typescript
+export const getAllChallenges = unstable_cache(
+  async (pagination: boolean = false): Promise<Challenge[]> => { /* ... */ },
+  ['all-challenges'],
+  { tags: ['all-challenges'], revalidate: 3600 }
+)
+```
+
+**Parameters**:
+- `pagination` (optional, `boolean`, default: `false`): Indicates whether pagination should be applied when fetching challenges. If `false`, all challenges are returned.
+
+**Returns**:
+- `Promise<Challenge[]>`: A promise that resolves to an array of `Challenge` objects.
+
+**Caching**:
+- **Cache Key**: `['all-challenges']`
+- **Tags**: `['all-challenges']`: This tag is used to invalidate the cache for all challenges when modifications are made to the `challenges` collection via the `afterChange` or `afterDelete` hooks in `src/collections/Challenges.ts`.
+- **Revalidation**: `3600` seconds (1 hour): The cache is automatically revalidated after this period.
+
+### `getAllChallengesSlugs`
+
+**Description**: Retrieves all unique text identifiers (slugs) of available challenges. This function is optimized by Next.js caching.
+
+**Signature**:
+```typescript
+export const getAllChallengesSlugs = unstable_cache(
+  async (): Promise<string[]> => { /* ... */ },
+  ['all-challenges-slugs'],
+  { tags: ['all-challenges-slugs'], revalidate: 3600 }
+)
+```
+
+**Parameters**: None.
+
+**Returns**:
+- `Promise<string[]>`: A promise that resolves to an array of strings, each representing a challenge's slug.
+
+**Caching**:
+- **Cache Key**: `['all-challenges-slugs']`
+- **Tags**: `['all-challenges-slugs']`: This tag is used to invalidate the cache for challenge slugs when modifications are made to the `challenges` collection via the `afterChange` or `afterDelete` hooks in `src/collections/Challenges.ts`.
+- **Revalidation**: `3600` seconds (1 hour): The cache is automatically revalidated after this period.
+
+### `getChallengeById`
+
+**Description**: Retrieves a specific challenge by its numeric ID (`id`). This function uses Next.js caching with dynamic tags for targeted invalidation.
+
+**Signature**:
+```typescript
+export const getChallengeById = async (id: number, depth: number = 1): Promise<Challenge> => { /* ... */ }
+```
+
+**Parameters**:
+- `id` (`number`): The unique numeric ID of the challenge to retrieve.
+- `depth` (optional, `number`, default: `1`): The depth level for fetching relationships in Payload CMS.
+
+**Returns**:
+- `Promise<Challenge>`: A promise that resolves to a `Challenge` object if found, or throws a `ChallengeNotFoundError` if the challenge does not exist.
+
+**Caching**:
+- **Cache Key**: `[id.toString(), depth.toString()]`: The cache key is composed of the ID and depth, converted to strings.
+- **Tags**: `['challenge-${id}']`: This dynamic tag is used to invalidate the cache for this specific challenge when modifications are made to the `challenges` collection via the `afterChange` or `afterDelete` hooks in `src/collections/Challenges.ts`.
+- **Revalidation**: `3600` seconds (1 hour): The cache is automatically revalidated after this period.
+
+### `getChallengeBySlug`
+
+**Description**: Retrieves a specific challenge by its slug (unique text identifier). This function uses Next.js caching with dynamic tags for targeted invalidation.
+
+**Signature**:
+```typescript
+export const getChallengeBySlug = async (slug: string, depth: number = 2): Promise<Challenge> => { /* ... */ }
+```
+
+**Parameters**:
+- `slug` (`string`): The unique slug of the challenge to retrieve.
+- `depth` (optional, `number`, default: `2`): The depth level for fetching relationships in Payload CMS.
+
+**Returns**:
+- `Promise<Challenge>`: A promise that resolves to a `Challenge` object if found, or throws a `ChallengeNotFoundError` if the challenge does not exist.
+
+**Caching**:
+- **Cache Key**: `[slug, depth.toString()]`: The cache key is composed of the slug and depth, converted to strings.
+- **Tags**: `['challenge-${slug}']`: This dynamic tag is used to invalidate the cache for this specific challenge when modifications are made to the `challenges` collection via the `afterChange` or `afterDelete` hooks in `src/collections/Challenges.ts`.
+- **Revalidation**: `3600` seconds (1 hour): The cache is automatically revalidated after this period.

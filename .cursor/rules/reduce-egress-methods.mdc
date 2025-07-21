@@ -1,0 +1,162 @@
+---
+alwaysApply: true
+---
+
+# Guide pour la Réduction de l'Egress de la Base de Données
+
+Ce guide regroupe les méthodes clés pour minimiser le trafic sortant de la base de données et améliorer les performances générales de l'application.
+
+## 1. Minimisation des Données Transférées
+
+L'objectif est de ne jamais envoyer plus de données que ce qui est strictement nécessaire.
+
+-   **Projection / Sélection de Champs**
+    -   Ne demandez à la base de données (ou à l'API) que les champs (colonnes) dont vous avez réellement besoin.
+    -   **Exemple** : Pour une liste d'utilisateurs, ne demandez pas les champs sensibles ou inutiles (`password`, `biography` complète).
+
+-   **Pagination Côté Serveur**
+    -   Au lieu de renvoyer tous les enregistrements pour une liste (notifications, solutions, challenges), ne renvoyez qu'un petit sous-ensemble (une "page"). Le client demande explicitement la page suivante si nécessaire.
+    -   **Application** : Indispensable pour toutes les listes potentiellement volumineuses (notifications, solutions communautaires, historiques de chat).
+
+-   **Filtrage Côté Serveur**
+    -   Appliquez les conditions de filtrage directement dans la requête à la base de données pour que seule la donnée pertinente soit renvoyée.
+
+-   **Agrégation / Résumé de Données**
+    -   Si seule une métrique agrégée (décompte, somme, moyenne) est nécessaire, effectuez le calcul côté serveur et ne renvoyez que le résultat agrégé.
+
+## 2. Optimisation du Cache
+
+Le cache doit être géré à plusieurs niveaux pour une efficacité maximale.
+
+-   **Cache Applicatif Client (React Query, Zustand)**
+    -   **`staleTime` et `gcTime` agressifs** : Augmentez la durée de vie du cache pour les données stables (informations utilisateur, détails de challenge).
+    -   **Hydratation SSR/SSG** : Prérécupérez les données côté serveur et injectez-les dans le HTML, permettant à React Query d'hydrater son cache sans fetch initial côté client.
+    -   **Invalidation chirurgicale** : Invalidez uniquement les caches affectés par une modification (ex : modification de profil utilisateur).
+
+-   **Cache CDN (Content Delivery Network)**
+    -   Configurez un CDN pour les assets statiques et les réponses API publiques et stables, afin de réduire la distance de transfert des données.
+
+-   **Cache Serveur (Redis, Memcached)**
+    -   Utilisez une couche de cache entre l'application et la base de données pour les requêtes coûteuses ou fréquentes dont les résultats sont stables.
+
+## 3. Compression des Données
+
+Réduisez la taille des données avant l'envoi.
+
+-   **Compression Gzip/Brotli HTTP**
+    -   Assurez-vous que les réponses HTTP (HTML, CSS, JS, JSON) sont compressées par le serveur ou le CDN.
+
+-   **Optimisation des Images et Médias**
+    -   Utilisez des formats d'image modernes (WebP), compressez-les, servez différentes tailles (responsive) et implémentez le lazy loading.
+
+## 4. Optimisation des Patrons d'Accès aux Données
+
+Améliorez la façon dont l'application interagit avec la base de données.
+
+-   **Résolution du Problème N+1**
+    -   Évitez les requêtes multiples pour chaque élément d'une liste en utilisant l'eager loading, les jointures ou des outils de batching.
+    -   **Application** : Charger les informations d'auteurs ou les tags des solutions en une seule requête plutôt que pour chaque solution.
+
+-   **GraphQL / API REST bien conçue**
+    -   Permettez aux clients de demander précisément les données nécessaires (GraphQL) ou assurez-vous que les endpoints REST sont granulaires.
+
+## 5. Synchronisation Intelligente des Données
+
+N'envoyez que les changements, pas l'intégralité d'un dataset.
+
+-   **Synchronisation Delta / Mises à jour Incrémentales**
+    -   Pour les données évolutives (historique de chat, notifications), n'envoyez que les nouveaux éléments ou les modifications depuis la dernière synchronisation, plutôt que la totalité.
+
+## 6. Revoir les Redirections et les Appels non essentiels
+
+-   **Redirections côté serveur** : Évitez les chaînes de redirection.
+-   **Éviter les Polling Inutiles** : Préférez les WebSockets ou Server-Sent Events (SSE) pour les données temps réel au lieu de requêtes régulières.
+
+
+
+**Priorités pour ce projet :**
+1.  **Pagination côté serveur** pour toutes les listes volumineuses.
+2.  **Optimisation du cache React Query** avec des `staleTime`/`gcTime` longs et l'hydratation SSR/SSG.
+3.  **Mutualisation des fetchs `getUser()`** et autres données partagées.
+4.  **Optimisation des `generateStaticParams`** (si utilisé) pour le build.
+
+
+# Guide pour la Réduction de l'Egress de la Base de Données
+
+Ce guide regroupe les méthodes clés pour minimiser le trafic sortant de la base de données et améliorer les performances générales de l'application.
+
+## 1. Minimisation des Données Transférées
+
+L'objectif est de ne jamais envoyer plus de données que ce qui est strictement nécessaire.
+
+-   **Projection / Sélection de Champs**
+    -   Ne demandez à la base de données (ou à l'API) que les champs (colonnes) dont vous avez réellement besoin.
+    -   **Exemple** : Pour une liste d'utilisateurs, ne demandez pas les champs sensibles ou inutiles (`password`, `biography` complète).
+
+-   **Pagination Côté Serveur**
+    -   Au lieu de renvoyer tous les enregistrements pour une liste (notifications, solutions, challenges), ne renvoyez qu'un petit sous-ensemble (une "page"). Le client demande explicitement la page suivante si nécessaire.
+    -   **Application** : Indispensable pour toutes les listes potentiellement volumineuses (notifications, solutions communautaires, historiques de chat).
+
+-   **Filtrage Côté Serveur**
+    -   Appliquez les conditions de filtrage directement dans la requête à la base de données pour que seule la donnée pertinente soit renvoyée.
+
+-   **Agrégation / Résumé de Données**
+    -   Si seule une métrique agrégée (décompte, somme, moyenne) est nécessaire, effectuez le calcul côté serveur et ne renvoyez que le résultat agrégé.
+
+## 2. Optimisation du Cache
+
+Le cache doit être géré à plusieurs niveaux pour une efficacité maximale.
+
+-   **Cache Applicatif Client (React Query, Zustand)**
+    -   **`staleTime` et `gcTime` agressifs** : Augmentez la durée de vie du cache pour les données stables (informations utilisateur, détails de challenge).
+    -   **Hydratation SSR/SSG** : Prérécupérez les données côté serveur et injectez-les dans le HTML, permettant à React Query d'hydrater son cache sans fetch initial côté client.
+    -   **Invalidation chirurgicale** : Invalidez uniquement les caches affectés par une modification (ex : modification de profil utilisateur).
+
+-   **Cache CDN (Content Delivery Network)**
+    -   Configurez un CDN pour les assets statiques et les réponses API publiques et stables, afin de réduire la distance de transfert des données.
+
+-   **Cache Serveur (Redis, Memcached)**
+    -   Utilisez une couche de cache entre l'application et la base de données pour les requêtes coûteuses ou fréquentes dont les résultats sont stables.
+
+## 3. Compression des Données
+
+Réduisez la taille des données avant l'envoi.
+
+-   **Compression Gzip/Brotli HTTP**
+    -   Assurez-vous que les réponses HTTP (HTML, CSS, JS, JSON) sont compressées par le serveur ou le CDN.
+
+-   **Optimisation des Images et Médias**
+    -   Utilisez des formats d'image modernes (WebP), compressez-les, servez différentes tailles (responsive) et implémentez le lazy loading.
+
+## 4. Optimisation des Patrons d'Accès aux Données
+
+Améliorez la façon dont l'application interagit avec la base de données.
+
+-   **Résolution du Problème N+1**
+    -   Évitez les requêtes multiples pour chaque élément d'une liste en utilisant l'eager loading, les jointures ou des outils de batching.
+    -   **Application** : Charger les informations d'auteurs ou les tags des solutions en une seule requête plutôt que pour chaque solution.
+
+-   **GraphQL / API REST bien conçue**
+    -   Permettez aux clients de demander précisément les données nécessaires (GraphQL) ou assurez-vous que les endpoints REST sont granulaires.
+
+## 5. Synchronisation Intelligente des Données
+
+N'envoyez que les changements, pas l'intégralité d'un dataset.
+
+-   **Synchronisation Delta / Mises à jour Incrémentales**
+    -   Pour les données évolutives (historique de chat, notifications), n'envoyez que les nouveaux éléments ou les modifications depuis la dernière synchronisation, plutôt que la totalité.
+
+## 6. Revoir les Redirections et les Appels non essentiels
+
+-   **Redirections côté serveur** : Évitez les chaînes de redirection.
+-   **Éviter les Polling Inutiles** : Préférez les WebSockets ou Server-Sent Events (SSE) pour les données temps réel au lieu de requêtes régulières.
+
+
+
+**Priorités pour ce projet :**
+1.  **Pagination côté serveur** pour toutes les listes volumineuses.
+2.  **Optimisation du cache React Query** avec des `staleTime`/`gcTime` longs et l'hydratation SSR/SSG.
+3.  **Mutualisation des fetchs `getUser()`** et autres données partagées.
+4.  **Optimisation des `generateStaticParams`** (si utilisé) pour le build.
+
+
