@@ -1,5 +1,12 @@
-import { getChallengeBySlug } from "@/api/challenges"
-import { notFound } from "next/navigation"
+import { getChallengeBySlug } from '@/api/challenges'
+import { ChallengeExercice } from '@/api/challenges/components/challenge-exercice'
+import { ChallengeProvider } from '@/api/challenges/contexts/components/challenge-provider'
+import { ChallengeLayout } from '@/api/challenges/components/sections/layout'
+import { ChallengeNavigationTabs } from '@/api/challenges/navigation/components/navigation-tabs'
+import { getUser } from '@/core/users'
+import { isNone, isSome, some } from '@/lib/maybe'
+import { isFailure } from '@/lib/result'
+import { notFound, redirect } from 'next/navigation'
 
 const Layout = async ({
   children,
@@ -8,37 +15,39 @@ const Layout = async ({
   children: React.ReactNode
   params: Promise<{ challenge_slug: string }>
 }) => {
-    const { challenge_slug } = await params 
+  const { challenge_slug } = await params
+  const [challenge, user] = await Promise.all([
+    getChallengeBySlug({ slug: challenge_slug }),
+    getUser(),
+  ])
 
-    // TODO: This query should not return an optional value but a Result where the error chould be a challenge not found. Next, this challenge will need to be passed to a challenge store. 
-    const challenge = await getChallengeBySlug({ slug: challenge_slug })
+  if (isFailure(user)) {
+    return redirect('/auth/login')
+  }
 
-    if (!challenge) {
-        return notFound()
-    }
+  if (isNone(challenge) || (isSome(challenge) && challenge.value.draft)) {
+    return notFound()
+  }
 
-    // TODO: We need to check multiple things for a challenge : It can be a draft, in this case, is only available to admins. The user can not have an account when visiting this page, we need to decide if we change the user status to let his stay on the challenge or redirect his to login page. We could have a behavior where no action is permited when the user is not logged in.
-
-    /*
-    
-    <ChallengeLayout.Root>
+  return (
+    <ChallengeProvider challenge={challenge.value}>
+      <ChallengeLayout.Root>
         <ChallengeLayout.Header />
         <ChallengeLayout.Body>
+          <ChallengeLayout.Content>
             <ChallengeLayout.LeftPart>
-                <ChallengeLayout.Navigation />
-                <ChallengeLayout.Content />
-            <ChallengeLayout.LeftPart>
+              <ChallengeNavigationTabs />
+              {children}
+            </ChallengeLayout.LeftPart>
+            <ChallengeLayout.ContentSeparator />
             <ChallengeLayout.RightPart>
-                <ChallengeLayout.IDE />
-            <ChallengeLayout.RightPart>
-        <ChallengeLayout.Body />
-    <ChallengeLayout.Root />
-    
-    */
-
-
-    // TODO: We need to use a more advanced pattern for challenges components with a composed component
-    return children
+              <ChallengeExercice />
+            </ChallengeLayout.RightPart>
+          </ChallengeLayout.Content>
+        </ChallengeLayout.Body>
+      </ChallengeLayout.Root>
+    </ChallengeProvider>
+  )
 }
 
 export default Layout

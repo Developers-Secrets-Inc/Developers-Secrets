@@ -131,10 +131,6 @@ export const enum_achievements_type = pgEnum('enum_achievements_type', [
   'items_used',
   'coins_earned',
 ])
-export const enum_challenges_submissions_submission_type = pgEnum(
-  'enum_challenges_submissions_submission_type',
-  ['accepted', 'runtimeError', 'wrongAnswer', 'timeLimitExceeded'],
-)
 export const enum_challenges_difficulty = pgEnum('enum_challenges_difficulty', [
   'very_easy',
   'easy',
@@ -143,10 +139,6 @@ export const enum_challenges_difficulty = pgEnum('enum_challenges_difficulty', [
   'horrible',
 ])
 export const enum_challenges_status = pgEnum('enum_challenges_status', ['draft', 'published'])
-export const enum__challenges_v_version_submissions_submission_type = pgEnum(
-  'enum__challenges_v_version_submissions_submission_type',
-  ['accepted', 'runtimeError', 'wrongAnswer', 'timeLimitExceeded'],
-)
 export const enum__challenges_v_version_difficulty = pgEnum(
   'enum__challenges_v_version_difficulty',
   ['very_easy', 'easy', 'medium', 'hard', 'horrible'],
@@ -159,15 +151,6 @@ export const enum_user_challenge_progression_completion_status = pgEnum(
   'enum_user_challenge_progression_completion_status',
   ['not_started', 'in_progress', 'completed'],
 )
-export const enum_comments_votes_vote = pgEnum('enum_comments_votes_vote', ['upvote', 'downvote'])
-export const enum_user_solutions_votes_status = pgEnum('enum_user_solutions_votes_status', [
-  'upvote',
-  'downvote',
-])
-export const enum_user_solutions_status = pgEnum('enum_user_solutions_status', [
-  'drafted',
-  'published',
-])
 export const enum_challenge_submissions_submission_type = pgEnum(
   'enum_challenge_submissions_submission_type',
   ['accepted', 'runtimeError', 'wrongAnswer', 'timeLimitExceeded'],
@@ -1385,25 +1368,6 @@ export const user_achievement_progress = pgTable(
   }),
 )
 
-export const challenges_concepts = pgTable(
-  'challenges_concepts',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-    concept: varchar('concept'),
-  },
-  (columns) => ({
-    _orderIdx: index('challenges_concepts_order_idx').on(columns._order),
-    _parentIDIdx: index('challenges_concepts_parent_id_idx').on(columns._parentID),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [challenges.id],
-      name: 'challenges_concepts_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
 export const challenges_description_hints = pgTable(
   'challenges_description_hints',
   {
@@ -1445,77 +1409,6 @@ export const challenges_description_similar_challenges = pgTable(
       columns: [columns['_parentID']],
       foreignColumns: [challenges.id],
       name: 'challenges_description_similar_challenges_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const challenges_submissions_last_expected_output = pgTable(
-  'challenges_submissions_last_expected_output',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: varchar('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-    param: varchar('param'),
-    value: varchar('value'),
-  },
-  (columns) => ({
-    _orderIdx: index('challenges_submissions_last_expected_output_order_idx').on(columns._order),
-    _parentIDIdx: index('challenges_submissions_last_expected_output_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [challenges_submissions.id],
-      name: 'challenges_submissions_last_expected_output_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const challenges_submissions = pgTable(
-  'challenges_submissions',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-    submissionType: enum_challenges_submissions_submission_type('submission_type'),
-    authorId: varchar('author_id'),
-    testsPassed: numeric('tests_passed'),
-    testsTotal: numeric('tests_total'),
-    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 }),
-    error: varchar('error'),
-    input: varchar('input'),
-    output: varchar('output'),
-    expectedOutput: varchar('expected_output'),
-    code_language: varchar('code_language'),
-    code_content: varchar('code_content'),
-  },
-  (columns) => ({
-    _orderIdx: index('challenges_submissions_order_idx').on(columns._order),
-    _parentIDIdx: index('challenges_submissions_parent_id_idx').on(columns._parentID),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [challenges.id],
-      name: 'challenges_submissions_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const challenges_code_test_cases = pgTable(
-  'challenges_code_test_cases',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-    input: varchar('input'),
-    expectedOutput: varchar('expected_output'),
-  },
-  (columns) => ({
-    _orderIdx: index('challenges_code_test_cases_order_idx').on(columns._order),
-    _parentIDIdx: index('challenges_code_test_cases_parent_id_idx').on(columns._parentID),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [challenges.id],
-      name: 'challenges_code_test_cases_parent_id_fk',
     }).onDelete('cascade'),
   }),
 )
@@ -1568,25 +1461,8 @@ export const challenges = pgTable(
     slug: varchar('slug'),
     difficulty: enum_challenges_difficulty('difficulty').default('medium'),
     baseExperience: numeric('base_experience'),
-    ratings_total: numeric('ratings_total').default('0'),
-    ratings_count: numeric('ratings_count').default('0'),
-    ratings_average: numeric('ratings_average'),
     description_statement: varchar('description_statement'),
-    description_submissionStats_acceptedSolutions: numeric(
-      'description_submission_stats_accepted_solutions',
-    ).default('0'),
-    description_submissionStats_failedSolutions: numeric(
-      'description_submission_stats_failed_solutions',
-    ).default('0'),
-    description_submissionStats_totalSubmissions: numeric(
-      'description_submission_stats_total_submissions',
-    ).default('0'),
-    description_submissionStats_acceptanceRate: numeric(
-      'description_submission_stats_acceptance_rate',
-    ),
     officialSolution_statement: varchar('official_solution_statement'),
-    code_language: varchar('code_language'),
-    code_initialCode: varchar('code_initial_code'),
     draft: boolean('draft').default(true),
     updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
       .defaultNow()
@@ -1600,64 +1476,6 @@ export const challenges = pgTable(
     challenges_updated_at_idx: index('challenges_updated_at_idx').on(columns.updatedAt),
     challenges_created_at_idx: index('challenges_created_at_idx').on(columns.createdAt),
     challenges__status_idx: index('challenges__status_idx').on(columns._status),
-  }),
-)
-
-export const challenges_rels = pgTable(
-  'challenges_rels',
-  {
-    id: serial('id').primaryKey(),
-    order: integer('order'),
-    parent: integer('parent_id').notNull(),
-    path: varchar('path').notNull(),
-    commentsID: integer('comments_id'),
-    'user-solutionsID': integer('user_solutions_id'),
-  },
-  (columns) => ({
-    order: index('challenges_rels_order_idx').on(columns.order),
-    parentIdx: index('challenges_rels_parent_idx').on(columns.parent),
-    pathIdx: index('challenges_rels_path_idx').on(columns.path),
-    challenges_rels_comments_id_idx: index('challenges_rels_comments_id_idx').on(
-      columns.commentsID,
-    ),
-    challenges_rels_user_solutions_id_idx: index('challenges_rels_user_solutions_id_idx').on(
-      columns['user-solutionsID'],
-    ),
-    parentFk: foreignKey({
-      columns: [columns['parent']],
-      foreignColumns: [challenges.id],
-      name: 'challenges_rels_parent_fk',
-    }).onDelete('cascade'),
-    commentsIdFk: foreignKey({
-      columns: [columns['commentsID']],
-      foreignColumns: [comments.id],
-      name: 'challenges_rels_comments_fk',
-    }).onDelete('cascade'),
-    'user-solutionsIdFk': foreignKey({
-      columns: [columns['user-solutionsID']],
-      foreignColumns: [user_solutions.id],
-      name: 'challenges_rels_user_solutions_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const _challenges_v_version_concepts = pgTable(
-  '_challenges_v_version_concepts',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: serial('id').primaryKey(),
-    concept: varchar('concept'),
-    _uuid: varchar('_uuid'),
-  },
-  (columns) => ({
-    _orderIdx: index('_challenges_v_version_concepts_order_idx').on(columns._order),
-    _parentIDIdx: index('_challenges_v_version_concepts_parent_id_idx').on(columns._parentID),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [_challenges_v.id],
-      name: '_challenges_v_version_concepts_parent_id_fk',
-    }).onDelete('cascade'),
   }),
 )
 
@@ -1708,84 +1526,6 @@ export const _challenges_v_version_description_similar_challenges = pgTable(
       columns: [columns['_parentID']],
       foreignColumns: [_challenges_v.id],
       name: '_challenges_v_version_description_similar_challenges_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const _challenges_v_version_submissions_last_expected_output = pgTable(
-  '_challenges_v_version_submissions_last_expected_output',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: serial('id').primaryKey(),
-    param: varchar('param'),
-    value: varchar('value'),
-    _uuid: varchar('_uuid'),
-  },
-  (columns) => ({
-    _orderIdx: index('_challenges_v_version_submissions_last_expected_output_order_idx').on(
-      columns._order,
-    ),
-    _parentIDIdx: index('_challenges_v_version_submissions_last_expected_output_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [_challenges_v_version_submissions.id],
-      name: '_challenges_v_version_submissions_last_expected_output_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const _challenges_v_version_submissions = pgTable(
-  '_challenges_v_version_submissions',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: serial('id').primaryKey(),
-    submissionType: enum__challenges_v_version_submissions_submission_type('submission_type'),
-    authorId: varchar('author_id'),
-    testsPassed: numeric('tests_passed'),
-    testsTotal: numeric('tests_total'),
-    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 }),
-    error: varchar('error'),
-    input: varchar('input'),
-    output: varchar('output'),
-    expectedOutput: varchar('expected_output'),
-    code_language: varchar('code_language'),
-    code_content: varchar('code_content'),
-    _uuid: varchar('_uuid'),
-  },
-  (columns) => ({
-    _orderIdx: index('_challenges_v_version_submissions_order_idx').on(columns._order),
-    _parentIDIdx: index('_challenges_v_version_submissions_parent_id_idx').on(columns._parentID),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [_challenges_v.id],
-      name: '_challenges_v_version_submissions_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const _challenges_v_version_code_test_cases = pgTable(
-  '_challenges_v_version_code_test_cases',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: serial('id').primaryKey(),
-    input: varchar('input'),
-    expectedOutput: varchar('expected_output'),
-    _uuid: varchar('_uuid'),
-  },
-  (columns) => ({
-    _orderIdx: index('_challenges_v_version_code_test_cases_order_idx').on(columns._order),
-    _parentIDIdx: index('_challenges_v_version_code_test_cases_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [_challenges_v.id],
-      name: '_challenges_v_version_code_test_cases_parent_id_fk',
     }).onDelete('cascade'),
   }),
 )
@@ -1846,25 +1586,8 @@ export const _challenges_v = pgTable(
     version_difficulty:
       enum__challenges_v_version_difficulty('version_difficulty').default('medium'),
     version_baseExperience: numeric('version_base_experience'),
-    version_ratings_total: numeric('version_ratings_total').default('0'),
-    version_ratings_count: numeric('version_ratings_count').default('0'),
-    version_ratings_average: numeric('version_ratings_average'),
     version_description_statement: varchar('version_description_statement'),
-    version_description_submissionStats_acceptedSolutions: numeric(
-      'version_description_submission_stats_accepted_solutions',
-    ).default('0'),
-    version_description_submissionStats_failedSolutions: numeric(
-      'version_description_submission_stats_failed_solutions',
-    ).default('0'),
-    version_description_submissionStats_totalSubmissions: numeric(
-      'version_description_submission_stats_total_submissions',
-    ).default('0'),
-    version_description_submissionStats_acceptanceRate: numeric(
-      'version_description_submission_stats_acceptance_rate',
-    ),
     version_officialSolution_statement: varchar('version_official_solution_statement'),
-    version_code_language: varchar('version_code_language'),
-    version_code_initialCode: varchar('version_code_initial_code'),
     version_draft: boolean('version_draft').default(true),
     version_updatedAt: timestamp('version_updated_at', {
       mode: 'string',
@@ -1902,44 +1625,6 @@ export const _challenges_v = pgTable(
   }),
 )
 
-export const _challenges_v_rels = pgTable(
-  '_challenges_v_rels',
-  {
-    id: serial('id').primaryKey(),
-    order: integer('order'),
-    parent: integer('parent_id').notNull(),
-    path: varchar('path').notNull(),
-    commentsID: integer('comments_id'),
-    'user-solutionsID': integer('user_solutions_id'),
-  },
-  (columns) => ({
-    order: index('_challenges_v_rels_order_idx').on(columns.order),
-    parentIdx: index('_challenges_v_rels_parent_idx').on(columns.parent),
-    pathIdx: index('_challenges_v_rels_path_idx').on(columns.path),
-    _challenges_v_rels_comments_id_idx: index('_challenges_v_rels_comments_id_idx').on(
-      columns.commentsID,
-    ),
-    _challenges_v_rels_user_solutions_id_idx: index('_challenges_v_rels_user_solutions_id_idx').on(
-      columns['user-solutionsID'],
-    ),
-    parentFk: foreignKey({
-      columns: [columns['parent']],
-      foreignColumns: [_challenges_v.id],
-      name: '_challenges_v_rels_parent_fk',
-    }).onDelete('cascade'),
-    commentsIdFk: foreignKey({
-      columns: [columns['commentsID']],
-      foreignColumns: [comments.id],
-      name: '_challenges_v_rels_comments_fk',
-    }).onDelete('cascade'),
-    'user-solutionsIdFk': foreignKey({
-      columns: [columns['user-solutionsID']],
-      foreignColumns: [user_solutions.id],
-      name: '_challenges_v_rels_user_solutions_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
 export const user_challenge_progression = pgTable(
   'user_challenge_progression',
   {
@@ -1974,193 +1659,6 @@ export const user_challenge_progression = pgTable(
     user_challenge_progression_created_at_idx: index(
       'user_challenge_progression_created_at_idx',
     ).on(columns.createdAt),
-  }),
-)
-
-export const comments_votes = pgTable(
-  'comments_votes',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-    userId: varchar('user_id').notNull(),
-    vote: enum_comments_votes_vote('vote').notNull(),
-  },
-  (columns) => ({
-    _orderIdx: index('comments_votes_order_idx').on(columns._order),
-    _parentIDIdx: index('comments_votes_parent_id_idx').on(columns._parentID),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [comments.id],
-      name: 'comments_votes_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const comments = pgTable(
-  'comments',
-  {
-    id: serial('id').primaryKey(),
-    content: varchar('content').notNull(),
-    authorId: varchar('author_id').notNull(),
-    isReply: boolean('is_reply').default(false),
-    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
-      .defaultNow()
-      .notNull(),
-    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
-      .defaultNow()
-      .notNull(),
-  },
-  (columns) => ({
-    comments_updated_at_idx: index('comments_updated_at_idx').on(columns.updatedAt),
-    comments_created_at_idx: index('comments_created_at_idx').on(columns.createdAt),
-  }),
-)
-
-export const comments_rels = pgTable(
-  'comments_rels',
-  {
-    id: serial('id').primaryKey(),
-    order: integer('order'),
-    parent: integer('parent_id').notNull(),
-    path: varchar('path').notNull(),
-    commentsID: integer('comments_id'),
-    'comments-reportsID': integer('comments_reports_id'),
-  },
-  (columns) => ({
-    order: index('comments_rels_order_idx').on(columns.order),
-    parentIdx: index('comments_rels_parent_idx').on(columns.parent),
-    pathIdx: index('comments_rels_path_idx').on(columns.path),
-    comments_rels_comments_id_idx: index('comments_rels_comments_id_idx').on(columns.commentsID),
-    comments_rels_comments_reports_id_idx: index('comments_rels_comments_reports_id_idx').on(
-      columns['comments-reportsID'],
-    ),
-    parentFk: foreignKey({
-      columns: [columns['parent']],
-      foreignColumns: [comments.id],
-      name: 'comments_rels_parent_fk',
-    }).onDelete('cascade'),
-    commentsIdFk: foreignKey({
-      columns: [columns['commentsID']],
-      foreignColumns: [comments.id],
-      name: 'comments_rels_comments_fk',
-    }).onDelete('cascade'),
-    'comments-reportsIdFk': foreignKey({
-      columns: [columns['comments-reportsID']],
-      foreignColumns: [comments_reports.id],
-      name: 'comments_rels_comments_reports_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const user_solutions_votes = pgTable(
-  'user_solutions_votes',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-    status: enum_user_solutions_votes_status('status').notNull(),
-    authorId: varchar('author_id').notNull(),
-  },
-  (columns) => ({
-    _orderIdx: index('user_solutions_votes_order_idx').on(columns._order),
-    _parentIDIdx: index('user_solutions_votes_parent_id_idx').on(columns._parentID),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [user_solutions.id],
-      name: 'user_solutions_votes_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const user_solutions_reports = pgTable(
-  'user_solutions_reports',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-    userId: varchar('user_id').notNull(),
-    reason: varchar('reason').notNull(),
-    details: varchar('details'),
-    createdAt: timestamp('created_at', {
-      mode: 'string',
-      withTimezone: true,
-      precision: 3,
-    }).notNull(),
-  },
-  (columns) => ({
-    _orderIdx: index('user_solutions_reports_order_idx').on(columns._order),
-    _parentIDIdx: index('user_solutions_reports_parent_id_idx').on(columns._parentID),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [user_solutions.id],
-      name: 'user_solutions_reports_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const user_solutions = pgTable(
-  'user_solutions',
-  {
-    id: serial('id').primaryKey(),
-    title: varchar('title').notNull(),
-    description: varchar('description').notNull(),
-    challenge: integer('challenge_id')
-      .notNull()
-      .references(() => challenges.id, {
-        onDelete: 'set null',
-      }),
-    authorId: varchar('author_id').notNull(),
-    views: numeric('views').default('0'),
-    content: varchar('content').notNull(),
-    status: enum_user_solutions_status('status').notNull().default('drafted'),
-    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
-      .defaultNow()
-      .notNull(),
-    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
-      .defaultNow()
-      .notNull(),
-  },
-  (columns) => ({
-    user_solutions_challenge_idx: index('user_solutions_challenge_idx').on(columns.challenge),
-    user_solutions_updated_at_idx: index('user_solutions_updated_at_idx').on(columns.updatedAt),
-    user_solutions_created_at_idx: index('user_solutions_created_at_idx').on(columns.createdAt),
-  }),
-)
-
-export const user_solutions_rels = pgTable(
-  'user_solutions_rels',
-  {
-    id: serial('id').primaryKey(),
-    order: integer('order'),
-    parent: integer('parent_id').notNull(),
-    path: varchar('path').notNull(),
-    tagsID: integer('tags_id'),
-    commentsID: integer('comments_id'),
-  },
-  (columns) => ({
-    order: index('user_solutions_rels_order_idx').on(columns.order),
-    parentIdx: index('user_solutions_rels_parent_idx').on(columns.parent),
-    pathIdx: index('user_solutions_rels_path_idx').on(columns.path),
-    user_solutions_rels_tags_id_idx: index('user_solutions_rels_tags_id_idx').on(columns.tagsID),
-    user_solutions_rels_comments_id_idx: index('user_solutions_rels_comments_id_idx').on(
-      columns.commentsID,
-    ),
-    parentFk: foreignKey({
-      columns: [columns['parent']],
-      foreignColumns: [user_solutions.id],
-      name: 'user_solutions_rels_parent_fk',
-    }).onDelete('cascade'),
-    tagsIdFk: foreignKey({
-      columns: [columns['tagsID']],
-      foreignColumns: [tags.id],
-      name: 'user_solutions_rels_tags_fk',
-    }).onDelete('cascade'),
-    commentsIdFk: foreignKey({
-      columns: [columns['commentsID']],
-      foreignColumns: [comments.id],
-      name: 'user_solutions_rels_comments_fk',
-    }).onDelete('cascade'),
   }),
 )
 
@@ -4034,30 +3532,6 @@ export const exercices = pgTable(
   }),
 )
 
-export const comments_reports = pgTable(
-  'comments_reports',
-  {
-    id: serial('id').primaryKey(),
-    comment: integer('comment_id').references(() => comments.id, {
-      onDelete: 'set null',
-    }),
-    userId: varchar('user_id').notNull(),
-    reason: varchar('reason').notNull(),
-    details: varchar('details'),
-    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
-      .defaultNow()
-      .notNull(),
-    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
-      .defaultNow()
-      .notNull(),
-  },
-  (columns) => ({
-    comments_reports_comment_idx: index('comments_reports_comment_idx').on(columns.comment),
-    comments_reports_updated_at_idx: index('comments_reports_updated_at_idx').on(columns.updatedAt),
-    comments_reports_created_at_idx: index('comments_reports_created_at_idx').on(columns.createdAt),
-  }),
-)
-
 export const payload_locked_documents = pgTable(
   'payload_locked_documents',
   {
@@ -4108,8 +3582,6 @@ export const payload_locked_documents_rels = pgTable(
     'user-achievement-progressID': integer('user_achievement_progress_id'),
     challengesID: integer('challenges_id'),
     userChallengeProgressionID: integer('user_challenge_progression_id'),
-    commentsID: integer('comments_id'),
-    'user-solutionsID': integer('user_solutions_id'),
     'challenge-submissionsID': integer('challenge_submissions_id'),
     notificationsID: integer('notifications_id'),
     'challenge-categoriesID': integer('challenge_categories_id'),
@@ -4152,7 +3624,6 @@ export const payload_locked_documents_rels = pgTable(
     'challenge-engagementID': integer('challenge_engagement_id'),
     'challenges-engagementID': integer('challenges_engagement_id'),
     exercicesID: integer('exercices_id'),
-    'comments-reportsID': integer('comments_reports_id'),
   },
   (columns) => ({
     order: index('payload_locked_documents_rels_order_idx').on(columns.order),
@@ -4212,12 +3683,6 @@ export const payload_locked_documents_rels = pgTable(
     payload_locked_documents_rels_user_challenge_progression_id_idx: index(
       'payload_locked_documents_rels_user_challenge_progression_id_idx',
     ).on(columns.userChallengeProgressionID),
-    payload_locked_documents_rels_comments_id_idx: index(
-      'payload_locked_documents_rels_comments_id_idx',
-    ).on(columns.commentsID),
-    payload_locked_documents_rels_user_solutions_id_idx: index(
-      'payload_locked_documents_rels_user_solutions_id_idx',
-    ).on(columns['user-solutionsID']),
     payload_locked_documents_rels_challenge_submissions_id_idx: index(
       'payload_locked_documents_rels_challenge_submissions_id_idx',
     ).on(columns['challenge-submissionsID']),
@@ -4344,9 +3809,6 @@ export const payload_locked_documents_rels = pgTable(
     payload_locked_documents_rels_exercices_id_idx: index(
       'payload_locked_documents_rels_exercices_id_idx',
     ).on(columns.exercicesID),
-    payload_locked_documents_rels_comments_reports_id_idx: index(
-      'payload_locked_documents_rels_comments_reports_id_idx',
-    ).on(columns['comments-reportsID']),
     parentFk: foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_locked_documents.id],
@@ -4441,16 +3903,6 @@ export const payload_locked_documents_rels = pgTable(
       columns: [columns['userChallengeProgressionID']],
       foreignColumns: [user_challenge_progression.id],
       name: 'payload_locked_documents_rels_user_challenge_progression_fk',
-    }).onDelete('cascade'),
-    commentsIdFk: foreignKey({
-      columns: [columns['commentsID']],
-      foreignColumns: [comments.id],
-      name: 'payload_locked_documents_rels_comments_fk',
-    }).onDelete('cascade'),
-    'user-solutionsIdFk': foreignKey({
-      columns: [columns['user-solutionsID']],
-      foreignColumns: [user_solutions.id],
-      name: 'payload_locked_documents_rels_user_solutions_fk',
     }).onDelete('cascade'),
     'challenge-submissionsIdFk': foreignKey({
       columns: [columns['challenge-submissionsID']],
@@ -4661,11 +4113,6 @@ export const payload_locked_documents_rels = pgTable(
       columns: [columns['exercicesID']],
       foreignColumns: [exercices.id],
       name: 'payload_locked_documents_rels_exercices_fk',
-    }).onDelete('cascade'),
-    'comments-reportsIdFk': foreignKey({
-      columns: [columns['comments-reportsID']],
-      foreignColumns: [comments_reports.id],
-      name: 'payload_locked_documents_rels_comments_reports_fk',
     }).onDelete('cascade'),
   }),
 )
@@ -5127,13 +4574,6 @@ export const relations_user_achievement_progress = relations(
     }),
   }),
 )
-export const relations_challenges_concepts = relations(challenges_concepts, ({ one }) => ({
-  _parentID: one(challenges, {
-    fields: [challenges_concepts._parentID],
-    references: [challenges.id],
-    relationName: 'concepts',
-  }),
-}))
 export const relations_challenges_description_hints = relations(
   challenges_description_hints,
   ({ one }) => ({
@@ -5156,39 +4596,6 @@ export const relations_challenges_description_similar_challenges = relations(
       fields: [challenges_description_similar_challenges.challenge],
       references: [challenges.id],
       relationName: 'challenge',
-    }),
-  }),
-)
-export const relations_challenges_submissions_last_expected_output = relations(
-  challenges_submissions_last_expected_output,
-  ({ one }) => ({
-    _parentID: one(challenges_submissions, {
-      fields: [challenges_submissions_last_expected_output._parentID],
-      references: [challenges_submissions.id],
-      relationName: 'lastExpectedOutput',
-    }),
-  }),
-)
-export const relations_challenges_submissions = relations(
-  challenges_submissions,
-  ({ one, many }) => ({
-    _parentID: one(challenges, {
-      fields: [challenges_submissions._parentID],
-      references: [challenges.id],
-      relationName: 'submissions',
-    }),
-    lastExpectedOutput: many(challenges_submissions_last_expected_output, {
-      relationName: 'lastExpectedOutput',
-    }),
-  }),
-)
-export const relations_challenges_code_test_cases = relations(
-  challenges_code_test_cases,
-  ({ one }) => ({
-    _parentID: one(challenges, {
-      fields: [challenges_code_test_cases._parentID],
-      references: [challenges.id],
-      relationName: 'code_testCases',
     }),
   }),
 )
@@ -5215,56 +4622,17 @@ export const relations_challenges_code_versions = relations(
     }),
   }),
 )
-export const relations_challenges_rels = relations(challenges_rels, ({ one }) => ({
-  parent: one(challenges, {
-    fields: [challenges_rels.parent],
-    references: [challenges.id],
-    relationName: '_rels',
-  }),
-  commentsID: one(comments, {
-    fields: [challenges_rels.commentsID],
-    references: [comments.id],
-    relationName: 'comments',
-  }),
-  'user-solutionsID': one(user_solutions, {
-    fields: [challenges_rels['user-solutionsID']],
-    references: [user_solutions.id],
-    relationName: 'user-solutions',
-  }),
-}))
 export const relations_challenges = relations(challenges, ({ many }) => ({
-  concepts: many(challenges_concepts, {
-    relationName: 'concepts',
-  }),
   description_hints: many(challenges_description_hints, {
     relationName: 'description_hints',
   }),
   description_similarChallenges: many(challenges_description_similar_challenges, {
     relationName: 'description_similarChallenges',
   }),
-  submissions: many(challenges_submissions, {
-    relationName: 'submissions',
-  }),
-  code_testCases: many(challenges_code_test_cases, {
-    relationName: 'code_testCases',
-  }),
   codeVersions: many(challenges_code_versions, {
     relationName: 'codeVersions',
   }),
-  _rels: many(challenges_rels, {
-    relationName: '_rels',
-  }),
 }))
-export const relations__challenges_v_version_concepts = relations(
-  _challenges_v_version_concepts,
-  ({ one }) => ({
-    _parentID: one(_challenges_v, {
-      fields: [_challenges_v_version_concepts._parentID],
-      references: [_challenges_v.id],
-      relationName: 'version_concepts',
-    }),
-  }),
-)
 export const relations__challenges_v_version_description_hints = relations(
   _challenges_v_version_description_hints,
   ({ one }) => ({
@@ -5287,39 +4655,6 @@ export const relations__challenges_v_version_description_similar_challenges = re
       fields: [_challenges_v_version_description_similar_challenges.challenge],
       references: [challenges.id],
       relationName: 'challenge',
-    }),
-  }),
-)
-export const relations__challenges_v_version_submissions_last_expected_output = relations(
-  _challenges_v_version_submissions_last_expected_output,
-  ({ one }) => ({
-    _parentID: one(_challenges_v_version_submissions, {
-      fields: [_challenges_v_version_submissions_last_expected_output._parentID],
-      references: [_challenges_v_version_submissions.id],
-      relationName: 'lastExpectedOutput',
-    }),
-  }),
-)
-export const relations__challenges_v_version_submissions = relations(
-  _challenges_v_version_submissions,
-  ({ one, many }) => ({
-    _parentID: one(_challenges_v, {
-      fields: [_challenges_v_version_submissions._parentID],
-      references: [_challenges_v.id],
-      relationName: 'version_submissions',
-    }),
-    lastExpectedOutput: many(_challenges_v_version_submissions_last_expected_output, {
-      relationName: 'lastExpectedOutput',
-    }),
-  }),
-)
-export const relations__challenges_v_version_code_test_cases = relations(
-  _challenges_v_version_code_test_cases,
-  ({ one }) => ({
-    _parentID: one(_challenges_v, {
-      fields: [_challenges_v_version_code_test_cases._parentID],
-      references: [_challenges_v.id],
-      relationName: 'version_code_testCases',
     }),
   }),
 )
@@ -5346,31 +4681,11 @@ export const relations__challenges_v_version_code_versions = relations(
     }),
   }),
 )
-export const relations__challenges_v_rels = relations(_challenges_v_rels, ({ one }) => ({
-  parent: one(_challenges_v, {
-    fields: [_challenges_v_rels.parent],
-    references: [_challenges_v.id],
-    relationName: '_rels',
-  }),
-  commentsID: one(comments, {
-    fields: [_challenges_v_rels.commentsID],
-    references: [comments.id],
-    relationName: 'comments',
-  }),
-  'user-solutionsID': one(user_solutions, {
-    fields: [_challenges_v_rels['user-solutionsID']],
-    references: [user_solutions.id],
-    relationName: 'user-solutions',
-  }),
-}))
 export const relations__challenges_v = relations(_challenges_v, ({ one, many }) => ({
   parent: one(challenges, {
     fields: [_challenges_v.parent],
     references: [challenges.id],
     relationName: 'parent',
-  }),
-  version_concepts: many(_challenges_v_version_concepts, {
-    relationName: 'version_concepts',
   }),
   version_description_hints: many(_challenges_v_version_description_hints, {
     relationName: 'version_description_hints',
@@ -5381,17 +4696,8 @@ export const relations__challenges_v = relations(_challenges_v, ({ one, many }) 
       relationName: 'version_description_similarChallenges',
     },
   ),
-  version_submissions: many(_challenges_v_version_submissions, {
-    relationName: 'version_submissions',
-  }),
-  version_code_testCases: many(_challenges_v_version_code_test_cases, {
-    relationName: 'version_code_testCases',
-  }),
   version_codeVersions: many(_challenges_v_version_code_versions, {
     relationName: 'version_codeVersions',
-  }),
-  _rels: many(_challenges_v_rels, {
-    relationName: '_rels',
   }),
 }))
 export const relations_user_challenge_progression = relations(
@@ -5404,85 +4710,6 @@ export const relations_user_challenge_progression = relations(
     }),
   }),
 )
-export const relations_comments_votes = relations(comments_votes, ({ one }) => ({
-  _parentID: one(comments, {
-    fields: [comments_votes._parentID],
-    references: [comments.id],
-    relationName: 'votes',
-  }),
-}))
-export const relations_comments_rels = relations(comments_rels, ({ one }) => ({
-  parent: one(comments, {
-    fields: [comments_rels.parent],
-    references: [comments.id],
-    relationName: '_rels',
-  }),
-  commentsID: one(comments, {
-    fields: [comments_rels.commentsID],
-    references: [comments.id],
-    relationName: 'comments',
-  }),
-  'comments-reportsID': one(comments_reports, {
-    fields: [comments_rels['comments-reportsID']],
-    references: [comments_reports.id],
-    relationName: 'comments-reports',
-  }),
-}))
-export const relations_comments = relations(comments, ({ many }) => ({
-  votes: many(comments_votes, {
-    relationName: 'votes',
-  }),
-  _rels: many(comments_rels, {
-    relationName: '_rels',
-  }),
-}))
-export const relations_user_solutions_votes = relations(user_solutions_votes, ({ one }) => ({
-  _parentID: one(user_solutions, {
-    fields: [user_solutions_votes._parentID],
-    references: [user_solutions.id],
-    relationName: 'votes',
-  }),
-}))
-export const relations_user_solutions_reports = relations(user_solutions_reports, ({ one }) => ({
-  _parentID: one(user_solutions, {
-    fields: [user_solutions_reports._parentID],
-    references: [user_solutions.id],
-    relationName: 'reports',
-  }),
-}))
-export const relations_user_solutions_rels = relations(user_solutions_rels, ({ one }) => ({
-  parent: one(user_solutions, {
-    fields: [user_solutions_rels.parent],
-    references: [user_solutions.id],
-    relationName: '_rels',
-  }),
-  tagsID: one(tags, {
-    fields: [user_solutions_rels.tagsID],
-    references: [tags.id],
-    relationName: 'tags',
-  }),
-  commentsID: one(comments, {
-    fields: [user_solutions_rels.commentsID],
-    references: [comments.id],
-    relationName: 'comments',
-  }),
-}))
-export const relations_user_solutions = relations(user_solutions, ({ one, many }) => ({
-  challenge: one(challenges, {
-    fields: [user_solutions.challenge],
-    references: [challenges.id],
-    relationName: 'challenge',
-  }),
-  votes: many(user_solutions_votes, {
-    relationName: 'votes',
-  }),
-  reports: many(user_solutions_reports, {
-    relationName: 'reports',
-  }),
-  _rels: many(user_solutions_rels, {
-    relationName: '_rels',
-  }),
-}))
 export const relations_challenge_submissions_last_expected_output = relations(
   challenge_submissions_last_expected_output,
   ({ one }) => ({
@@ -6091,13 +5318,6 @@ export const relations_exercices = relations(exercices, ({ many }) => ({
     relationName: 'languages',
   }),
 }))
-export const relations_comments_reports = relations(comments_reports, ({ one }) => ({
-  comment: one(comments, {
-    fields: [comments_reports.comment],
-    references: [comments.id],
-    relationName: 'comment',
-  }),
-}))
 export const relations_payload_locked_documents_rels = relations(
   payload_locked_documents_rels,
   ({ one }) => ({
@@ -6195,16 +5415,6 @@ export const relations_payload_locked_documents_rels = relations(
       fields: [payload_locked_documents_rels.userChallengeProgressionID],
       references: [user_challenge_progression.id],
       relationName: 'userChallengeProgression',
-    }),
-    commentsID: one(comments, {
-      fields: [payload_locked_documents_rels.commentsID],
-      references: [comments.id],
-      relationName: 'comments',
-    }),
-    'user-solutionsID': one(user_solutions, {
-      fields: [payload_locked_documents_rels['user-solutionsID']],
-      references: [user_solutions.id],
-      relationName: 'user-solutions',
     }),
     'challenge-submissionsID': one(challenge_submissions, {
       fields: [payload_locked_documents_rels['challenge-submissionsID']],
@@ -6416,11 +5626,6 @@ export const relations_payload_locked_documents_rels = relations(
       references: [exercices.id],
       relationName: 'exercices',
     }),
-    'comments-reportsID': one(comments_reports, {
-      fields: [payload_locked_documents_rels['comments-reportsID']],
-      references: [comments_reports.id],
-      relationName: 'comments-reports',
-    }),
   }),
 )
 export const relations_payload_locked_documents = relations(
@@ -6480,16 +5685,11 @@ type DatabaseSchema = {
   enum_quests_difficulty: typeof enum_quests_difficulty
   enum_achievements_tiers_name: typeof enum_achievements_tiers_name
   enum_achievements_type: typeof enum_achievements_type
-  enum_challenges_submissions_submission_type: typeof enum_challenges_submissions_submission_type
   enum_challenges_difficulty: typeof enum_challenges_difficulty
   enum_challenges_status: typeof enum_challenges_status
-  enum__challenges_v_version_submissions_submission_type: typeof enum__challenges_v_version_submissions_submission_type
   enum__challenges_v_version_difficulty: typeof enum__challenges_v_version_difficulty
   enum__challenges_v_version_status: typeof enum__challenges_v_version_status
   enum_user_challenge_progression_completion_status: typeof enum_user_challenge_progression_completion_status
-  enum_comments_votes_vote: typeof enum_comments_votes_vote
-  enum_user_solutions_votes_status: typeof enum_user_solutions_votes_status
-  enum_user_solutions_status: typeof enum_user_solutions_status
   enum_challenge_submissions_submission_type: typeof enum_challenge_submissions_submission_type
   enum_notifications_importance: typeof enum_notifications_importance
   enum_notifications_type: typeof enum_notifications_type
@@ -6555,34 +5755,17 @@ type DatabaseSchema = {
   achievements_tiers: typeof achievements_tiers
   achievements: typeof achievements
   user_achievement_progress: typeof user_achievement_progress
-  challenges_concepts: typeof challenges_concepts
   challenges_description_hints: typeof challenges_description_hints
   challenges_description_similar_challenges: typeof challenges_description_similar_challenges
-  challenges_submissions_last_expected_output: typeof challenges_submissions_last_expected_output
-  challenges_submissions: typeof challenges_submissions
-  challenges_code_test_cases: typeof challenges_code_test_cases
   challenges_code_versions_test_cases: typeof challenges_code_versions_test_cases
   challenges_code_versions: typeof challenges_code_versions
   challenges: typeof challenges
-  challenges_rels: typeof challenges_rels
-  _challenges_v_version_concepts: typeof _challenges_v_version_concepts
   _challenges_v_version_description_hints: typeof _challenges_v_version_description_hints
   _challenges_v_version_description_similar_challenges: typeof _challenges_v_version_description_similar_challenges
-  _challenges_v_version_submissions_last_expected_output: typeof _challenges_v_version_submissions_last_expected_output
-  _challenges_v_version_submissions: typeof _challenges_v_version_submissions
-  _challenges_v_version_code_test_cases: typeof _challenges_v_version_code_test_cases
   _challenges_v_version_code_versions_test_cases: typeof _challenges_v_version_code_versions_test_cases
   _challenges_v_version_code_versions: typeof _challenges_v_version_code_versions
   _challenges_v: typeof _challenges_v
-  _challenges_v_rels: typeof _challenges_v_rels
   user_challenge_progression: typeof user_challenge_progression
-  comments_votes: typeof comments_votes
-  comments: typeof comments
-  comments_rels: typeof comments_rels
-  user_solutions_votes: typeof user_solutions_votes
-  user_solutions_reports: typeof user_solutions_reports
-  user_solutions: typeof user_solutions
-  user_solutions_rels: typeof user_solutions_rels
   challenge_submissions_last_expected_output: typeof challenge_submissions_last_expected_output
   challenge_submissions: typeof challenge_submissions
   notifications: typeof notifications
@@ -6652,7 +5835,6 @@ type DatabaseSchema = {
   exercices_languages_test_cases: typeof exercices_languages_test_cases
   exercices_languages: typeof exercices_languages
   exercices: typeof exercices
-  comments_reports: typeof comments_reports
   payload_locked_documents: typeof payload_locked_documents
   payload_locked_documents_rels: typeof payload_locked_documents_rels
   payload_preferences: typeof payload_preferences
@@ -6698,34 +5880,17 @@ type DatabaseSchema = {
   relations_achievements_tiers: typeof relations_achievements_tiers
   relations_achievements: typeof relations_achievements
   relations_user_achievement_progress: typeof relations_user_achievement_progress
-  relations_challenges_concepts: typeof relations_challenges_concepts
   relations_challenges_description_hints: typeof relations_challenges_description_hints
   relations_challenges_description_similar_challenges: typeof relations_challenges_description_similar_challenges
-  relations_challenges_submissions_last_expected_output: typeof relations_challenges_submissions_last_expected_output
-  relations_challenges_submissions: typeof relations_challenges_submissions
-  relations_challenges_code_test_cases: typeof relations_challenges_code_test_cases
   relations_challenges_code_versions_test_cases: typeof relations_challenges_code_versions_test_cases
   relations_challenges_code_versions: typeof relations_challenges_code_versions
-  relations_challenges_rels: typeof relations_challenges_rels
   relations_challenges: typeof relations_challenges
-  relations__challenges_v_version_concepts: typeof relations__challenges_v_version_concepts
   relations__challenges_v_version_description_hints: typeof relations__challenges_v_version_description_hints
   relations__challenges_v_version_description_similar_challenges: typeof relations__challenges_v_version_description_similar_challenges
-  relations__challenges_v_version_submissions_last_expected_output: typeof relations__challenges_v_version_submissions_last_expected_output
-  relations__challenges_v_version_submissions: typeof relations__challenges_v_version_submissions
-  relations__challenges_v_version_code_test_cases: typeof relations__challenges_v_version_code_test_cases
   relations__challenges_v_version_code_versions_test_cases: typeof relations__challenges_v_version_code_versions_test_cases
   relations__challenges_v_version_code_versions: typeof relations__challenges_v_version_code_versions
-  relations__challenges_v_rels: typeof relations__challenges_v_rels
   relations__challenges_v: typeof relations__challenges_v
   relations_user_challenge_progression: typeof relations_user_challenge_progression
-  relations_comments_votes: typeof relations_comments_votes
-  relations_comments_rels: typeof relations_comments_rels
-  relations_comments: typeof relations_comments
-  relations_user_solutions_votes: typeof relations_user_solutions_votes
-  relations_user_solutions_reports: typeof relations_user_solutions_reports
-  relations_user_solutions_rels: typeof relations_user_solutions_rels
-  relations_user_solutions: typeof relations_user_solutions
   relations_challenge_submissions_last_expected_output: typeof relations_challenge_submissions_last_expected_output
   relations_challenge_submissions: typeof relations_challenge_submissions
   relations_notifications: typeof relations_notifications
@@ -6795,7 +5960,6 @@ type DatabaseSchema = {
   relations_exercices_languages_test_cases: typeof relations_exercices_languages_test_cases
   relations_exercices_languages: typeof relations_exercices_languages
   relations_exercices: typeof relations_exercices
-  relations_comments_reports: typeof relations_comments_reports
   relations_payload_locked_documents_rels: typeof relations_payload_locked_documents_rels
   relations_payload_locked_documents: typeof relations_payload_locked_documents
   relations_payload_preferences_rels: typeof relations_payload_preferences_rels

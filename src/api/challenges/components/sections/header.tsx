@@ -13,7 +13,7 @@ type WithChildren = {
 
 const ChallengeHeaderRoot: React.FC<WithChildren> = ({ children }) => {
   return (
-    <header className="flex-none py-3 px-4 bg-background">
+    <header className="flex-none py-3 px-4 bg-background border-b border-border">
       <div className="flex items-center justify-between w-full">{children}</div>
     </header>
   )
