@@ -17,7 +17,7 @@ export function Tab({ label, icon: Icon, href, active, locked, onClick }: TabPro
     locked ? 'opacity-50' : '',
   ].join(' ')
 
-    const IconToRender = locked ? Lock : Icon
+  const IconToRender = locked ? Lock : Icon
 
   const content = (
     <>

@@ -1,7 +1,15 @@
 import { Button } from '@/components/ui/button'
 import { ListIcon, Play } from 'lucide-react'
 
-import { CodeEditorContainer, CodeEditorHeaderContainer, CodeEditorHeaderLeftPart, CodeEditorHeaderRightPart } from './components/layout'
+import {
+  CodeEditorContainer,
+  CodeEditorHeaderContainer,
+  CodeEditorHeaderLeftPart,
+  CodeEditorHeaderRightPart,
+} from './components/layout'
+import { Footer } from './components/footer'
+import { ChallengeEditor, ChallengeEditorContainer } from './components/editor'
+import { FileExplorer, FileExplorerTrigger } from './components/file-explorer'
 
 export const RunCodeButton = () => {
   return (
@@ -21,11 +29,7 @@ export const RunCodeButton = () => {
 }
 
 export const FileSystemButton = () => {
-  return (
-    <Button variant="outline" size="sm">
-      <ListIcon className='h-4 w-4' />
-    </Button>
-  )
+  return <FileExplorerTrigger />
 }
 
 export const CodeEditor = {
@@ -36,9 +40,11 @@ export const CodeEditor = {
     RightPart: CodeEditorHeaderRightPart,
   },
   Editor: {
-    Container: undefined,
-    Content: undefined,
+    Container: ChallengeEditorContainer,
+    Content: ChallengeEditor,
   },
+  FileExplorer: FileExplorer,
+  Footer: Footer,
   RunButton: RunCodeButton,
   FileSystemButton: FileSystemButton,
 }

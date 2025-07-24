@@ -10,9 +10,5 @@ export const ChallengeProvider = ({
   children: React.ReactNode
   challenge: Challenge
 }) => {
-  return (
-    <ChallengeContext.Provider value={{ challenge }}>
-      {children}
-    </ChallengeContext.Provider>
-  )
+  return <ChallengeContext.Provider value={{ challenge }}>{children}</ChallengeContext.Provider>
 }
