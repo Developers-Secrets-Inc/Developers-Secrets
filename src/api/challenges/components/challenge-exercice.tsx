@@ -5,6 +5,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/componen
 import { CodeEditor } from '@/core/compiler/code-editor'
 import { useFileExplorerStore } from '@/core/compiler/code-editor/store/file-explorer-store'
 import { useEditorStore } from '@/core/compiler/code-editor/store/editor-store'
+import { useEditorTabsStore } from '@/core/compiler/code-editor/store/editor-tabs-store'
 import { FileSystemNode } from '@/core/compiler/code-editor/types'
 import { FileOutput, Beaker } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -50,6 +51,7 @@ const fileTree: FileSystemNode[] = [
         name: 'utils.js',
         content: 'export const a = 1;',
         language: 'javascript',
+        locked: true,
       },
     ],
   },
@@ -58,20 +60,17 @@ const fileTree: FileSystemNode[] = [
 export const ChallengeExercice = () => {
   const { isOpen, toggle } = useFileExplorerStore()
   const { setFileTree, setActiveFileId } = useEditorStore()
+  const { openTab } = useEditorTabsStore()
 
   useEffect(() => {
     setFileTree(fileTree)
     setActiveFileId('file-1')
-  }, [setFileTree, setActiveFileId])
+    // Ouvrir automatiquement un onglet pour le fichier actif
+    openTab('file-1', 'index.js', 'javascript')
+  }, [setFileTree, setActiveFileId, openTab])
 
   return (
     <CodeEditor.Container>
-      <CodeEditor.Header.Container>
-        <CodeEditor.Header.LeftPart>{''}</CodeEditor.Header.LeftPart>
-        <CodeEditor.Header.RightPart>
-          <CodeEditor.RunButton />
-        </CodeEditor.Header.RightPart>
-      </CodeEditor.Header.Container>
       <ResizablePanelGroup direction="horizontal" className="relative flex flex-1 overflow-hidden">
         <ResizablePanel
           className={cn(!isOpen && 'hidden')}
@@ -83,6 +82,15 @@ export const ChallengeExercice = () => {
         </ResizablePanel>
         <ResizableHandle className={cn(!isOpen && 'hidden')} />
         <ResizablePanel defaultSize={80}>
+          <CodeEditor.Header.Container>
+            <CodeEditor.Header.LeftPart>
+              <CodeEditor.Editor.Tabs />
+            </CodeEditor.Header.LeftPart>
+            <CodeEditor.Header.RightPart>
+              <CodeEditor.RunButton />
+            </CodeEditor.Header.RightPart>
+          </CodeEditor.Header.Container>
+          <CodeEditor.FileBreadcrumb />
           <CodeEditor.Editor.Container>
             <CodeEditor.Editor.Content />
           </CodeEditor.Editor.Container>

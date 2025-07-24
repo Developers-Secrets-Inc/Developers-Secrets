@@ -10,6 +10,8 @@ import {
 import { Footer } from './components/footer'
 import { ChallengeEditor, ChallengeEditorContainer } from './components/editor'
 import { FileExplorer, FileExplorerTrigger } from './components/file-explorer'
+import { FileBreadcrumb } from './components/file-breadcrumb'
+import EditorTabs from './components/tabs'
 
 export const RunCodeButton = () => {
   return (
@@ -41,9 +43,11 @@ export const CodeEditor = {
   },
   Editor: {
     Container: ChallengeEditorContainer,
+    Tabs: EditorTabs,
     Content: ChallengeEditor,
   },
   FileExplorer: FileExplorer,
+  FileBreadcrumb: FileBreadcrumb,
   Footer: Footer,
   RunButton: RunCodeButton,
   FileSystemButton: FileSystemButton,

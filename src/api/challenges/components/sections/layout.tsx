@@ -19,27 +19,35 @@ const ChallengeLayoutBody: React.FC<WithChildren> = ({ children }) => {
 }
 
 const ChallengeLayoutContent: React.FC<WithChildren> = ({ children }) => {
-  return <ResizablePanelGroup direction="horizontal">{children}</ResizablePanelGroup>
+  return (
+    <div className="p-1 h-full">
+      <ResizablePanelGroup direction="horizontal" className="gap-0.5">
+        {children}
+      </ResizablePanelGroup>
+    </div>
+  )
 }
 
 const ChallengeLayoutLeftPart: React.FC<WithChildren> = ({ children }) => {
   return (
-    <ResizablePanel defaultSize={50} minSize={40}>
-      <div className="flex flex-col h-full">{children}</div>
+    <ResizablePanel defaultSize={50} minSize={30}>
+      <div className="flex flex-col h-full border rounded-md ">{children}</div>
     </ResizablePanel>
   )
 }
 
 const ChallengeLayoutRightPart: React.FC<WithChildren> = ({ children }) => {
   return (
-    <ResizablePanel defaultSize={50} minSize={40} className="flex flex-col h-full">
-      {children}
+    <ResizablePanel defaultSize={50} minSize={40}>
+      <div className="flex flex-col h-full border rounded-md z-20">{children}</div>
     </ResizablePanel>
   )
 }
 
 const ChallengeLayoutContentSeparator: React.FC = () => {
-    return <ResizableHandle withHandle />
+  return (
+    <ResizableHandle className="w-1 bg-transparent hover:bg-border rounded-md transition-all duration-200" />
+  )
 }
 
 export const ChallengeLayout = {
@@ -49,5 +57,5 @@ export const ChallengeLayout = {
   Content: ChallengeLayoutContent,
   LeftPart: ChallengeLayoutLeftPart,
   RightPart: ChallengeLayoutRightPart,
-  ContentSeparator: ChallengeLayoutContentSeparator
+  ContentSeparator: ChallengeLayoutContentSeparator,
 }

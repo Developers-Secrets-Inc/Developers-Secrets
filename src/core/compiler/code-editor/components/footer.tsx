@@ -63,8 +63,8 @@ export const Footer = ({ tabs }: FooterProps) => {
             ))}
           </TabsList>
         </Tabs>
-        <Button variant="ghost" size="sm" onClick={togglePanel}>
-          {isOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+        <Button variant="ghost" size="icon" className='size-7' onClick={togglePanel}>
+          {isOpen ? <ChevronDown className='h-4 w-4' /> : <ChevronUp className='h-4 w-4' />}
         </Button>
       </div>
       <div

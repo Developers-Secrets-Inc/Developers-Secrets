@@ -37,7 +37,7 @@ export const ChallengeNavigationTabs = () => {
   })
   return (
     <>
-      <nav className="h-12.5 flex-none border-b bg-background">
+      <nav className="h-12 flex-none border-b bg-background rounded-t-md">
         <div className="flex h-full divide-x divide-border">
           {tabs.map((tab) => {
             const isLocked = tabsLockStatus ? tabsLockStatus[tab.id] : true

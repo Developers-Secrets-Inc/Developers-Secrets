@@ -6,15 +6,14 @@ import { User } from '@/types/user'
 import Link from 'next/link'
 import React from 'react'
 
-
 type WithChildren = {
   children: React.ReactNode
 }
 
 const ChallengeHeaderRoot: React.FC<WithChildren> = ({ children }) => {
   return (
-    <header className="flex-none py-3 px-4 bg-background border-b border-border">
-      <div className="flex items-center justify-between w-full">{children}</div>
+    <header className="flex-none py-2 px-4 bg-background border-b border-border h-14">
+      <div className="flex items-center justify-between w-full h-full">{children}</div>
     </header>
   )
 }

@@ -12,7 +12,7 @@ type TabProps = {
 
 export function Tab({ label, icon: Icon, href, active, locked, onClick }: TabProps) {
   const className = [
-    'flex flex-1 items-center justify-center gap-1.5 h-full px-4 transition-colors',
+    'flex flex-1 items-center justify-center text-base gap-1.5 h-full px-4 transition-colors',
     active ? 'bg-muted text-primary' : 'text-muted-foreground hover:bg-accent',
     locked ? 'opacity-50' : '',
   ].join(' ')
@@ -22,7 +22,7 @@ export function Tab({ label, icon: Icon, href, active, locked, onClick }: TabPro
   const content = (
     <>
       <IconToRender size={16} className="me-1.5 opacity-60" aria-hidden="true" />
-      <span>{label}</span>
+      <span className='truncate'>{label}</span>
     </>
   )
 
