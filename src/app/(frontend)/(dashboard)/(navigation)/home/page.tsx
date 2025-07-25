@@ -45,9 +45,7 @@ export default async function Home() {
     <HomeGrid>
       <HomeLeftColumn>
         <RecommendedChallenge userId={user.id} />
-
         <CurrentCourseCard />
-
         <RecommendedCourses />
       </HomeLeftColumn>
 
