@@ -27,7 +27,6 @@ const TERMINAL_STYLE = {
   backgroundColor: '#1a1b26',
   color: '#ffffff',
   fontFamily: 'monospace',
-  padding: '12px',
   height: '100%',
   overflow: 'auto',
   whiteSpace: 'pre-wrap' as const,
@@ -75,7 +74,7 @@ export const Footer = ({ tabs }: FooterProps) => {
       >
         {activeTab && (
           <Tabs value={activeTabId ?? undefined} className='h-full'>
-            <TabsContent value={activeTabId ?? ''} style={TERMINAL_STYLE} className='h-full'>
+            <TabsContent value={activeTabId ?? ''} style={TERMINAL_STYLE} className='h-full p-0'>
               {activeTab.content}
             </TabsContent>
           </Tabs>

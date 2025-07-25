@@ -32,7 +32,7 @@ export const ChallengeNavigationTabs = () => {
     isUnlocking,
   } = useChallengeTabsLockStatus({
     tabs,
-    challengeSlug: challenge.slug,
+    challengeId: challenge.id,
     userId: user.id,
   })
   return (

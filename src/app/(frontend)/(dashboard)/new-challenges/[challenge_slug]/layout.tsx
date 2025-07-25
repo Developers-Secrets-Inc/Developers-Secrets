@@ -4,7 +4,7 @@ import { ChallengeExercice } from '@/api/challenges/components/challenge-exercic
 import { ChallengeLayout } from '@/api/challenges/components/sections/layout'
 import { ChallengeProvider } from '@/api/challenges/contexts/components/challenge-provider'
 import { ChallengeNavigationTabs } from '@/api/challenges/navigation/components/navigation-tabs'
-import { getExerciceById } from '@/api/exercices'
+import { getRemainingMessagesForToday } from '@/core/ai/quotas/actions'
 import { getOrCreateChat, loadChat } from '@/core/challenges/ai-chat'
 import { getUser } from '@/core/users'
 import { isNone, isSome } from '@/lib/maybe'
@@ -47,9 +47,10 @@ const Layout = async ({
     challenge: challenge.value.id,
   })
   const messages = await loadChat({ chatId: challengeAIChat.id })
+  const quotas = await getRemainingMessagesForToday(user.value.id)
 
   return (
-    <ChallengeProvider challenge={challenge.value}>
+    <ChallengeProvider challenge={challenge.value} metadata={{challengeAiChat: challengeAIChat, messages, quotas}}>
       <ChallengeLayout.Root>
         <ChallengeLayout.Header />
 
@@ -59,7 +60,7 @@ const Layout = async ({
             <ChallengeLayout.LeftPart>
               <ChallengeNavigationTabs />
               <ChallengeLayout.MainContainer>
-                <ChallengeViewManager challengeAIChat={challengeAIChat} messages={messages}>
+                <ChallengeViewManager>
                   <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
                 </ChallengeViewManager>
               </ChallengeLayout.MainContainer>

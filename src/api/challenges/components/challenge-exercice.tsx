@@ -11,7 +11,8 @@ import { FileOutput, Beaker } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AiExercice, Exercice } from '@/payload-types'
 import { OutputContent } from '@/core/compiler/code-editor/components/output-content'
-
+import { SubmitButton } from './submit-button'
+import { TestResults } from '../submissions/components/test-results'
 // Types pour la nouvelle structure de fichiers (alignés avec Payload CMS)
 type FileStructureItem = {
   id?: string | null
@@ -94,6 +95,7 @@ function transformFileStructureToFileTree(fileStructure: FileStructureItem[]): F
   return buildTree()
 }
 
+// Fonction pour créer les onglets du footer avec les tests de l'exercice
 const footerTabs = [
   {
     id: 'output',
@@ -104,11 +106,10 @@ const footerTabs = [
   {
     id: 'tests',
     title: 'Tests',
-    content: <div>Tests Content</div>,
+    content: <TestResults />,
     icon: 'beaker',
   },
 ]
-
 // Fonction pour obtenir le langage par défaut (premier langage disponible)
 function getDefaultLanguage(exercice: Exercice | AiExercice): string {
   return exercice.languages?.[0]?.language || 'javascript'
@@ -183,6 +184,7 @@ export const ChallengeExercice = ({ exercice }: { exercice: Exercice | AiExercic
             </CodeEditor.Header.LeftPart>
             <CodeEditor.Header.RightPart>
               <CodeEditor.RunButton />
+              <SubmitButton />
             </CodeEditor.Header.RightPart>
           </CodeEditor.Header.Container>
           <CodeEditor.FileBreadcrumb />

@@ -14,36 +14,34 @@ import { QuotaBadge } from '@/core/ai/quotas/components/quota-badge'
 import { useAIQuota } from '@/core/ai/quotas/hooks/use-ai-quota'
 import { Message } from 'ai'
 import { useChallenge } from '@/api/challenges/contexts/challenge-context'
+import { useUser } from '@/core/users/contexts/user-context'
 
 interface SheetPearlViewProps {
-  challengeAIChat: ChallengeAiChat
   isOpen: boolean
   onClose: () => void
-  messages: Message[]
 }
 
 export function SheetPearlView({
-  challengeAIChat,
   isOpen,
   onClose,
-  messages,
 }: SheetPearlViewProps) {
   const { viewMode, setViewMode } = useChallengeUIStore()
-  const { challenge } = useChallenge()
+  const { challenge, metadata } = useChallenge()
+  const { user } = useUser()
 
   const { currentLanguage, codeByLanguage } = useChallengeEditorStore()
   const currentCode = codeByLanguage[currentLanguage] || ''
   const { data: isSolutionUnlocked = false } = useSolutionUnlockStatus(
-    challengeAIChat.userId,
+    metadata.challengeAiChat.userId,
     challenge.id,
   )
 
   const { messages: clientMessages, input, handleInputChange, handleSubmit, reset } = usePearlChat({
-    challengeAIChat,
-    initialMessages: messages,
+    challengeAIChat: metadata.challengeAiChat,
+    initialMessages: metadata.messages,
   })
 
-  const { canSend, isLoading: isQuotaLoading, increment } = useAIQuota()
+  const { canSend, isLoading: isQuotaLoading, increment } = useAIQuota(user.id, metadata.quotas)
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (!canSend) {
@@ -87,7 +85,7 @@ export function SheetPearlView({
             <SheetTitle>Pearl</SheetTitle>
           </div>
           <div className="flex items-center gap-2">
-            <QuotaBadge />
+            <QuotaBadge userId={user.id} quotas={metadata.quotas}/>
           </div>
         </SheetHeader>
         <PearlChatInterface

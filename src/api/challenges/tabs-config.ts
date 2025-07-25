@@ -1,4 +1,5 @@
 // challenge-tabs.config.ts
+import { canAccessSolution } from '@/core/challenges/user-progression/completion-status'
 import { FileTextIcon, UsersIcon, ListChecksIcon, LucideIcon, Award, Lock } from 'lucide-react'
 
 export type TabConfig = {
@@ -8,13 +9,13 @@ export type TabConfig = {
   icon: LucideIcon
   active: boolean
   lock?: {
-    isLocked: (challengeSlug: string, userId: string) => Promise<boolean>
+    isLocked: (challengeId: number, userId: string) => Promise<boolean>
     dialog: {
       title: string
       description: string
       confirmLabel: string
     }
-    onConfirm: (challengeSlug: string, userId: string) => Promise<void>
+    onConfirm: (challengeId: number, userId: string) => Promise<void>
   }
 }
 
@@ -33,18 +34,15 @@ export const challengeTabs = (slug: string, pathname: string): TabConfig[] => [
     icon: Award,
     active: pathname === `/challenges/${slug}/official-solution`,
     lock: {
-      isLocked: async (challengeSlug, userId) => {
-        console.log('Checking lock status for official solution', challengeSlug, userId)
-        // Replace with actual database check
-        return Promise.resolve(true)
+      isLocked: async (challengeId, userId) => {
+        return !(await canAccessSolution(userId, challengeId))
       },
       dialog: {
         title: 'Unlock Official Solution',
         description: 'Unlock the official solution to see how the challenge creator solved it.',
         confirmLabel: 'Unlock',
       },
-      onConfirm: async (challengeSlug, userId) => {
-        console.log('Unlocking official solution for', challengeSlug, userId)
+      onConfirm: async (challengeId, userId) => {
         // Replace with actual backend action
         return Promise.resolve()
       },
@@ -57,18 +55,15 @@ export const challengeTabs = (slug: string, pathname: string): TabConfig[] => [
     icon: UsersIcon,
     active: pathname.startsWith(`/challenges/${slug}/solutions`),
     lock: {
-      isLocked: async (challengeSlug, userId) => {
-        console.log('Checking lock status for community solutions', challengeSlug, userId)
-        // Replace with actual database check
-        return Promise.resolve(true)
+      isLocked: async (challengeId, userId) => {
+        return !(await canAccessSolution(userId, challengeId))
       },
       dialog: {
         title: 'Unlock Community Solutions',
         description: 'Unlock community solutions to see how others have solved this challenge.',
         confirmLabel: 'Unlock',
       },
-      onConfirm: async (challengeSlug, userId) => {
-        console.log('Unlocking community solutions for', challengeSlug, userId)
+      onConfirm: async (challengeId, userId) => {
         // Replace with actual backend action
         return Promise.resolve()
       },

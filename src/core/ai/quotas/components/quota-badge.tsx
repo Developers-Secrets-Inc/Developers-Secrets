@@ -8,8 +8,8 @@ import { Bot, InfinityIcon } from 'lucide-react'
 import React from 'react'
 import { useAIQuota } from '../hooks/use-ai-quota'
 
-export const QuotaBadge = () => {
-  const { remaining, role, isLoading } = useAIQuota()
+export const QuotaBadge = ({ userId, quotas }: { userId: string, quotas: number}) => {
+  const { remaining, role, isLoading } = useAIQuota(userId, quotas)
 
   console.log(role, remaining)
 

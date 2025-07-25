@@ -30,6 +30,7 @@ export const getCompletionStatus = async (
 ): Promise<CompletionStatus> => {
   const payload = await getPayload({ config })
 
+  console.log(userId, challengeId)
   const userProgression = await payload.find({
     collection: 'userChallengeCompletionStatus',
     where: {
@@ -40,9 +41,8 @@ export const getCompletionStatus = async (
         equals: challengeId,
       },
     },
-    select: {
-      completionStatus: true,
-    },
+    limit: 1,
+    depth: 0
   })
 
   const doc = userProgression.docs[0]
@@ -61,10 +61,8 @@ export const setCompletionStatus = async (
 ): Promise<void> => {
   const payload = await getPayload({ config })
 
-  console.log('Getting current completion status')
   const userProgression = await getCompletionStatus(userId, challengeId)
 
-  console.log('Current completion status', userProgression)
 
   if (!userProgression || userProgression === 'not_started') {
     await createCompletionStatus(userId, challengeId)

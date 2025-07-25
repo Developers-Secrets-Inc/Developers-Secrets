@@ -7,14 +7,20 @@ import { ChallengeDescriptionContent } from '../../../challenges/[challenge_slug
 import { ChallengeHeader } from '../../../challenges/[challenge_slug]/components/challenge-header'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SimilarChallengesCards } from '@/api/challenges/components/similar-challenges'
+import { getCompletionStatus } from '@/core/challenges/user-progression/completion-status'
+import { isFailure } from '@/lib/result'
 
-export default async function Page({ params }: { params: Promise<{ challenge_slug: string }> }) {
+export default async function ChallengeDescriptionPage({
+  params,
+}: {
+  params: Promise<{ challenge_slug: string }>
+}) {
   const { challenge_slug } = await params
 
   const challenge = await getChallengeBySlug({ slug: challenge_slug })
   const user = await getUser()
 
-  if (!user) {
+  if (isFailure(user)) {
     redirect('/auth/login')
   }
 
@@ -30,9 +36,6 @@ export default async function Page({ params }: { params: Promise<{ challenge_slu
           slug={challenge_slug}
           initialDescription={challenge.value.description?.statement || 'No description available.'}
         />
-        <div className="mt-8">
-          <SimilarChallengesCards challenges={challenge.value.description.similarChallenges} />
-        </div>
       </Suspense>
       {/* <Suspense fallback={<ChallengeDescriptionFooterSkeleton />}>
           <ChallengeDescriptionFooter challenge={challenge} />

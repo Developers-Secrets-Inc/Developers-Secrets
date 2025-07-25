@@ -14,7 +14,7 @@ export const OutputContent = () => {
   }
 
   return (
-    <div className="overflow-auto" style={{ height: 'calc(100% - 24px)' }}>
+    <div className="overflow-auto p-4" style={{ height: 'calc(100% - 24px)' }}>
       <pre className="whitespace-pre-wrap font-mono text-sm">
         {executionOutput}
       </pre>

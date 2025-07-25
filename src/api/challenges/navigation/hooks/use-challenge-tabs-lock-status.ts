@@ -9,32 +9,32 @@ type TabLockStatus = {
 
 type UseChallengeTabsLockStatusProps = {
   tabs: TabConfig[]
-  challengeSlug: string
+  challengeId: number
   userId: string
 }
 
-const getQueryKey = (challengeSlug: string, userId: string) => [
+const getQueryKey = (challengeId: number, userId: string) => [
   'challenge-tabs-lock-status',
-  challengeSlug,
+  challengeId,
   userId,
 ]
 
 export function useChallengeTabsLockStatus({
   tabs,
-  challengeSlug,
+  challengeId,
   userId,
 }: UseChallengeTabsLockStatusProps) {
   const queryClient = useQueryClient()
 
   const query = useQuery({
-    queryKey: getQueryKey(challengeSlug, userId),
+    queryKey: getQueryKey(challengeId, userId),
     queryFn: async () => {
       const lockedTabs: TabLockStatus = {}
 
       await Promise.all(
         tabs.map(async (tab) => {
           if (tab.lock?.isLocked) {
-            lockedTabs[tab.id] = await tab.lock.isLocked(challengeSlug, userId)
+            lockedTabs[tab.id] = await tab.lock.isLocked(challengeId, userId)
           } else {
             lockedTabs[tab.id] = false
           }
@@ -51,11 +51,11 @@ export function useChallengeTabsLockStatus({
       if (!tab || !tab.lock?.onConfirm) {
         throw new Error('Tab or lock configuration not found')
       }
-      return tab.lock.onConfirm(challengeSlug, userId)
+      return tab.lock.onConfirm(challengeId, userId)
     },
     onSuccess: () => {
       return queryClient.invalidateQueries({
-        queryKey: getQueryKey(challengeSlug, userId),
+        queryKey: getQueryKey(challengeId, userId),
       })
     },
   })

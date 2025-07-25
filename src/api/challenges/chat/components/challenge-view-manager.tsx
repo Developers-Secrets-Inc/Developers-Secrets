@@ -1,25 +1,19 @@
 'use client'
 
-import type { ChallengeAiChat } from '@/payload-types'
 import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
 
 import { useChallengeUIStore } from '@/api/challenges/stores/challenge-ui-store'
-import { Message } from 'ai'
 import { ChallengeDescriptionView } from './challenge-description-view'
 import { Pearl } from './pearl'
 
 
 interface ChallengeViewManagerProps {
   children: React.ReactNode
-  challengeAIChat: ChallengeAiChat
-  messages: Message[]
 }
 
 export function ChallengeViewManager({
   children,
-  challengeAIChat,
-  messages,
 }: ChallengeViewManagerProps) {
   const { isChatActive, viewMode, hideChat } = useChallengeUIStore()
 
@@ -35,9 +29,7 @@ export function ChallengeViewManager({
           className="h-full"
         >
           <Pearl.InlineView
-            challengeAIChat={challengeAIChat}
             onClose={hideChat}
-            messages={messages}
           />
         </motion.div>
       </AnimatePresence>
@@ -51,8 +43,6 @@ export function ChallengeViewManager({
         <Pearl.SheetView
           isOpen={isChatActive}
           onClose={hideChat}
-          challengeAIChat={challengeAIChat}
-          messages={messages}
         />
       )}
     </>

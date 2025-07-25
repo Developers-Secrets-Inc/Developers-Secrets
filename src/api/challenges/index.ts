@@ -64,3 +64,18 @@ export const getChallengeBySlug = query({
   },
   revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY,
 })
+
+
+export const getChallengeById = query({
+  name: 'challenge-by-id',
+  args: z.object({ id: z.number() }),
+  handler: async (ctx, args): Promise<Maybe<Challenge>> => {
+    const challenge = await ctx.payload.findByID({
+      collection: 'challenges',
+      id: args.id,
+    })
+
+    return challenge ? some(challenge) : none()
+  },
+  revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY,
+})

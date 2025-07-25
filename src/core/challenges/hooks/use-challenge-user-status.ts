@@ -6,12 +6,9 @@ import {
   setCompletionStatus,
 } from '@/core/challenges/user-progression/completion-status'
 import { CompletionStatus } from '../user-progression/types'
-import { useSessionUser } from '@/core/user/hooks/use-user'
 
-export const useChallengeUserStatus = (challengeId: number) => {
+export const useChallengeUserStatus = (challengeId: number, userId: string) => {
   const queryClient = useQueryClient()
-  const { user } = useSessionUser()
-  const userId = user?.id
 
   const {
     data: status,
@@ -20,13 +17,13 @@ export const useChallengeUserStatus = (challengeId: number) => {
   } = useQuery({
     queryKey: ['challengeStatus', userId, challengeId],
     queryFn: () => {
+      console.log(userId, challengeId)
       if (!userId || !challengeId) {
         throw new Error('User ID or Challenge ID is undefined in queryFn.')
       }
       return getCompletionStatus(userId, challengeId)
     },
     // enabled: !!userId && !!challengeId,
-    initialData: 'not_started' as CompletionStatus,
   })
 
   const { mutateAsync: updateStatus } = useMutation({

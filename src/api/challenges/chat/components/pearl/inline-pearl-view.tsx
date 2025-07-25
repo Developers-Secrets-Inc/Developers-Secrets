@@ -12,16 +12,17 @@ import React from 'react'
 import { usePearlChat } from '../../hooks/use-pearl-chat'
 import { PearlChatInterface } from './pearl-chat-interface'
 import { ChatParameters } from './pearl-chat-parameters'
+import { useUser } from '@/core/users/contexts/user-context'
 
 interface InlinePearlViewProps {
-  challengeAIChat: ChallengeAiChat
   onClose?: () => void
-  messages: Message[]
 }
 
-export function InlinePearlView({ challengeAIChat, onClose, messages }: InlinePearlViewProps) {
+export function InlinePearlView({ onClose }: InlinePearlViewProps) {
   const { viewMode, setViewMode } = useChallengeUIStore()
-  const { challenge } = useChallenge()
+  const { challenge, metadata } = useChallenge()
+  const { user } = useUser()
+
 
   // const { currentLanguage, codeByLanguage } = useChallengeEditorStore()
   // const currentCode = codeByLanguage[currentLanguage] || ''
@@ -31,11 +32,11 @@ export function InlinePearlView({ challengeAIChat, onClose, messages }: InlinePe
   // )
 
   const { messages: clientMessages, input, handleInputChange, handleSubmit, reset } = usePearlChat({
-    challengeAIChat,
-    initialMessages: messages,
+    challengeAIChat: metadata.challengeAiChat,
+    initialMessages: metadata.messages,
   })
 
-  const { canSend, isLoading: isQuotaLoading, increment } = useAIQuota()
+  const { canSend, isLoading: isQuotaLoading, increment } = useAIQuota(user.id, metadata.quotas)
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (!canSend) {
@@ -69,7 +70,7 @@ export function InlinePearlView({ challengeAIChat, onClose, messages }: InlinePe
           <h3 className="font-semibold">Pearl</h3>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
-          <QuotaBadge />
+          <QuotaBadge userId={user.id} quotas={metadata.quotas}/>
           <ChatParameters viewMode={viewMode} onViewModeChange={setViewMode} onResetChat={reset} />
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
             <X size={18} />
