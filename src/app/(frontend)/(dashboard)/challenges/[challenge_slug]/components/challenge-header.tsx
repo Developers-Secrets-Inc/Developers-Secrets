@@ -12,7 +12,7 @@ type ChallengeHeaderProps = {
 
 export const ChallengeHeader = ({ challenge }: ChallengeHeaderProps) => {
   return (
-    <div className="mb-6 border-b pb-4">
+    <div className="mb-6 border-b">
       <div className="flex justify-between items-center mb-4">
         <ChallengeTitle title={challenge.title} />
         <div className="flex items-center gap-2">

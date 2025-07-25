@@ -4,6 +4,7 @@ import { ChallengeExercice } from '@/api/challenges/components/challenge-exercic
 import { ChallengeLayout } from '@/api/challenges/components/sections/layout'
 import { ChallengeProvider } from '@/api/challenges/contexts/components/challenge-provider'
 import { ChallengeNavigationTabs } from '@/api/challenges/navigation/components/navigation-tabs'
+import { getExerciceById } from '@/api/exercices'
 import { getOrCreateChat, loadChat } from '@/core/challenges/ai-chat'
 import { getUser } from '@/core/users'
 import { isNone, isSome } from '@/lib/maybe'
@@ -14,6 +15,7 @@ import { Suspense } from 'react'
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
 }
+
 
 const Layout = async ({
   children,
@@ -36,6 +38,9 @@ const Layout = async ({
     return notFound()
   }
 
+  const exercice = challenge.value.exercice.value
+
+
   // ! Should be a new version
   const challengeAIChat = await getOrCreateChat({
     userId: user.value.id,
@@ -50,6 +55,7 @@ const Layout = async ({
 
         <ChallengeLayout.Body>
           <ChallengeLayout.Content>
+            
             <ChallengeLayout.LeftPart>
               <ChallengeNavigationTabs />
               <ChallengeLayout.MainContainer>
@@ -62,7 +68,8 @@ const Layout = async ({
             <ChallengeLayout.ContentSeparator />
 
             <ChallengeLayout.RightPart>
-              <ChallengeExercice />
+              {/* The error is normal, it's because exercices should not be optional but are during the migration */}
+              <ChallengeExercice exercice={exercice} />
             </ChallengeLayout.RightPart>
           </ChallengeLayout.Content>
         </ChallengeLayout.Body>

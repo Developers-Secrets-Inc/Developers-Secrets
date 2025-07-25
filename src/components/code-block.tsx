@@ -13,16 +13,16 @@ export type CodeBlockProps = {
 
 function CodeBlock({ children, className, ...props }: CodeBlockProps) {
   return (
-    <div
+    <figure
       className={cn(
-        'not-prose flex w-full flex-col overflow-clip border',
-        'border-border bg-background text-foreground rounded-md shadow-sm my-6',
+        'my-4 rounded-xl bg-fd-card p-1 relative border outline-none not-prose overflow-hidden text-sm',
         className,
       )}
+      tabIndex={0}
       {...props}
     >
       {children}
-    </div>
+    </figure>
   )
 }
 
@@ -58,23 +58,22 @@ function CodeBlockCode({
   }
 
   const classNames = cn(
-    'w-full overflow-x-auto text-[14px] [&>pre]:px-4 [&>pre]:py-4 font-mono',
-    '[&>pre]:bg-transparent [&>pre]:rounded-md',
+    'bg-muted rounded-lg border text-[14px] py-3.5 overflow-auto max-h-[600px] [&>pre]:!bg-transparent',
     className,
   )
 
   // SSR fallback: render plain code if not hydrated yet
   return (
-    <div className="relative group">
-      <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 bg-background/80 hover:bg-background"
+    <>
+      <div className="empty:hidden absolute top-1 right-1 z-2 bg-fd-card rounded-bl-lg border-l border-b text-fd-muted-foreground">
+        <button
+          type="button"
+          className="inline-flex items-center justify-center rounded-md p-2 text-sm font-medium transition-colors duration-100 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none hover:bg-fd-accent hover:text-fd-accent-foreground [&_svg]:size-3.5"
+          aria-label="Copy Text"
           onClick={handleCopy}
         >
-          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-        </Button>
+          {copied ? <Check /> : <Copy />}
+        </button>
       </div>
       {highlightedHtml ? (
         <div
@@ -84,12 +83,12 @@ function CodeBlockCode({
         />
       ) : (
         <div className={classNames} {...props}>
-          <pre className='text-base'>
+          <pre className="min-w-full w-max *:flex *:flex-col">
             <code>{code}</code>
           </pre>
         </div>
       )}
-    </div>
+    </>
   )
 }
 

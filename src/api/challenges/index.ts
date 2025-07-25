@@ -54,10 +54,13 @@ export const getChallengeBySlug = query({
   name: 'challenge-by-slug',
   args: z.object({ slug: z.string() }),
   handler: async (ctx, args): Promise<Maybe<Challenge>> => {
-    const db = ctx.drizzle
-    const result = await db.select().from(challenges).where(eq(challenges.slug, args.slug)).limit(1)
+    const documents = await ctx.payload.find({
+      collection: 'challenges',
+      where: { slug: { equals: args.slug } },
+      limit: 1,
+    })
 
-    return result[0] ? some(result[0]) : none()
+    return documents.docs[0]? some(documents.docs[0]) : none()
   },
-  revalidate: TIME.ONE_DAY,
+  revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY,
 })

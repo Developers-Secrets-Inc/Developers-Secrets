@@ -1,7 +1,11 @@
 import type { CollectionConfig } from 'payload'
 
-export const Exercices: CollectionConfig = {
-  slug: 'exercices',
+const AIExercices: CollectionConfig = {
+  slug: 'ai-exercices',
+  labels: {
+    singular: 'AI Exercice',
+    plural: 'AI Exercices',
+  },
   admin: {
     useAsTitle: 'title',
   },
@@ -12,7 +16,7 @@ export const Exercices: CollectionConfig = {
       type: 'text',
       required: true,
       admin: {
-        description: 'The title of the exercice',
+        description: 'The title of the AI exercice',
       },
     },
     {
@@ -29,7 +33,7 @@ export const Exercices: CollectionConfig = {
       required: true,
       defaultValue: 'medium',
       admin: {
-        description: 'The difficulty level of the exercice',
+        description: 'The difficulty level of the AI exercice',
         position: 'sidebar',
       },
     },
@@ -38,7 +42,7 @@ export const Exercices: CollectionConfig = {
       label: 'Hints',
       type: 'array',
       admin: {
-        description: 'Helpful hints for solving the exercice',
+        description: 'Helpful hints for solving the AI exercice',
       },
       fields: [
         {
@@ -55,7 +59,7 @@ export const Exercices: CollectionConfig = {
       type: 'array',
       required: true,
       admin: {
-        description: 'Supported languages for this exercice',
+        description: 'Supported languages for this AI exercice',
       },
       fields: [
         {
@@ -199,4 +203,7 @@ export const Exercices: CollectionConfig = {
       ],
     },
   ],
+  timestamps: true,
 }
+
+export default AIExercices

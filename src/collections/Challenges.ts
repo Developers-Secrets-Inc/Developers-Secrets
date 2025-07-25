@@ -1,5 +1,4 @@
 import type { CollectionConfig } from 'payload'
-import { revalidateTag } from 'next/cache'
 
 // Fonction pour calculer l'expérience basée sur la difficulté
 const calculateExperience = (difficulty: string): number => {
@@ -41,6 +40,16 @@ export const Challenges: CollectionConfig = {
       required: true,
       admin: {
         description: 'URL-friendly identifier for this challenge. Will be used in the URL.',
+      },
+    },
+    {
+      name: 'exercice',
+      label: 'Exercice',
+      type: 'relationship',
+      relationTo: ['exercices', 'ai-exercices'],
+      admin: {
+        description: 'Linked exercice (AI or classic)',
+        position: 'sidebar',
       },
     },
     {

@@ -74,8 +74,8 @@ export const Footer = ({ tabs }: FooterProps) => {
         )}
       >
         {activeTab && (
-          <Tabs value={activeTabId ?? undefined}>
-            <TabsContent value={activeTabId ?? ''} style={TERMINAL_STYLE}>
+          <Tabs value={activeTabId ?? undefined} className='h-full'>
+            <TabsContent value={activeTabId ?? ''} style={TERMINAL_STYLE} className='h-full'>
               {activeTab.content}
             </TabsContent>
           </Tabs>

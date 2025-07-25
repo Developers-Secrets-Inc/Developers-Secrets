@@ -127,6 +127,7 @@ export interface Config {
     'challenge-engagement': ChallengeEngagement;
     'challenges-engagement': ChallengesEngagement;
     exercices: Exercice;
+    'ai-exercices': AiExercice;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -193,6 +194,7 @@ export interface Config {
     'challenge-engagement': ChallengeEngagementSelect<false> | ChallengeEngagementSelect<true>;
     'challenges-engagement': ChallengesEngagementSelect<false> | ChallengesEngagementSelect<true>;
     exercices: ExercicesSelect<false> | ExercicesSelect<true>;
+    'ai-exercices': AiExercicesSelect<false> | AiExercicesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -918,6 +920,18 @@ export interface Challenge {
    */
   slug: string;
   /**
+   * Linked exercice (AI or classic)
+   */
+  exercice?:
+    | ({
+        relationTo: 'exercices';
+        value: number | Exercice;
+      } | null)
+    | ({
+        relationTo: 'ai-exercices';
+        value: number | AiExercice;
+      } | null);
+  /**
    * The difficulty level of the challenge
    */
   difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible';
@@ -1003,6 +1017,180 @@ export interface Challenge {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exercices".
+ */
+export interface Exercice {
+  id: number;
+  /**
+   * The title of the exercice
+   */
+  title: string;
+  /**
+   * The difficulty level of the exercice
+   */
+  difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible';
+  /**
+   * Helpful hints for solving the exercice
+   */
+  hints?:
+    | {
+        content: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Supported languages for this exercice
+   */
+  languages: {
+    language: 'python' | 'javascript' | 'typescript';
+    /**
+     * Files and folders structure for this language
+     */
+    fileStructure?:
+      | {
+          /**
+           * Whether this is a folder or a file
+           */
+          type: 'folder' | 'file';
+          /**
+           * Name of the file or folder
+           */
+          name: string;
+          /**
+           * ID of the parent folder (leave empty for root level)
+           */
+          parentId?: string | null;
+          /**
+           * Programming language of the file
+           */
+          language?: ('python' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'markdown' | 'text') | null;
+          /**
+           * Initial content of the file
+           */
+          content?: string | null;
+          /**
+           * Whether this file is read-only
+           */
+          isReadOnly?: boolean | null;
+          /**
+           * Whether this file is hidden from the user
+           */
+          isHidden?: boolean | null;
+          /**
+           * Whether this is the main file where users write their solution
+           */
+          isMainFile?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Test cases for validating solutions in this language
+     */
+    testCases: {
+      /**
+       * Input data for the test case
+       */
+      input: string;
+      /**
+       * Expected output for this test case
+       */
+      expectedOutput: string;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-exercices".
+ */
+export interface AiExercice {
+  id: number;
+  /**
+   * The title of the AI exercice
+   */
+  title: string;
+  /**
+   * The difficulty level of the AI exercice
+   */
+  difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible';
+  /**
+   * Helpful hints for solving the AI exercice
+   */
+  hints?:
+    | {
+        content: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Supported languages for this AI exercice
+   */
+  languages: {
+    language: 'python' | 'javascript' | 'typescript';
+    /**
+     * Files and folders structure for this language
+     */
+    fileStructure?:
+      | {
+          /**
+           * Whether this is a folder or a file
+           */
+          type: 'folder' | 'file';
+          /**
+           * Name of the file or folder
+           */
+          name: string;
+          /**
+           * ID of the parent folder (leave empty for root level)
+           */
+          parentId?: string | null;
+          /**
+           * Programming language of the file
+           */
+          language?: ('python' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'markdown' | 'text') | null;
+          /**
+           * Initial content of the file
+           */
+          content?: string | null;
+          /**
+           * Whether this file is read-only
+           */
+          isReadOnly?: boolean | null;
+          /**
+           * Whether this file is hidden from the user
+           */
+          isHidden?: boolean | null;
+          /**
+           * Whether this is the main file where users write their solution
+           */
+          isMainFile?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Test cases for validating solutions in this language
+     */
+    testCases: {
+      /**
+       * Input data for the test case
+       */
+      input: string;
+      /**
+       * Expected output for this test case
+       */
+      expectedOutput: string;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2154,57 +2342,6 @@ export interface ChallengesEngagement {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "exercices".
- */
-export interface Exercice {
-  id: number;
-  /**
-   * The title of the exercice
-   */
-  title: string;
-  /**
-   * The difficulty level of the exercice
-   */
-  difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible';
-  /**
-   * Helpful hints for solving the exercice
-   */
-  hints?:
-    | {
-        content: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Supported languages for this exercice
-   */
-  languages: {
-    language: 'python' | 'javascript' | 'typescript';
-    /**
-     * Initial code provided to users (optional)
-     */
-    initialCode?: string | null;
-    /**
-     * Test cases for validating solutions in this language
-     */
-    testCases: {
-      /**
-       * Input data for the test case
-       */
-      input: string;
-      /**
-       * Expected output for this test case
-       */
-      expectedOutput: string;
-      id?: string | null;
-    }[];
-    id?: string | null;
-  }[];
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -2449,6 +2586,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'exercices';
         value: number | Exercice;
+      } | null)
+    | ({
+        relationTo: 'ai-exercices';
+        value: number | AiExercice;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2842,6 +2983,7 @@ export interface UserAchievementProgressSelect<T extends boolean = true> {
 export interface ChallengesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
+  exercice?: T;
   difficulty?: T;
   baseExperience?: T;
   description?:
@@ -3609,7 +3751,61 @@ export interface ExercicesSelect<T extends boolean = true> {
     | T
     | {
         language?: T;
-        initialCode?: T;
+        fileStructure?:
+          | T
+          | {
+              type?: T;
+              name?: T;
+              parentId?: T;
+              language?: T;
+              content?: T;
+              isReadOnly?: T;
+              isHidden?: T;
+              isMainFile?: T;
+              id?: T;
+            };
+        testCases?:
+          | T
+          | {
+              input?: T;
+              expectedOutput?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-exercices_select".
+ */
+export interface AiExercicesSelect<T extends boolean = true> {
+  title?: T;
+  difficulty?: T;
+  hints?:
+    | T
+    | {
+        content?: T;
+        id?: T;
+      };
+  languages?:
+    | T
+    | {
+        language?: T;
+        fileStructure?:
+          | T
+          | {
+              type?: T;
+              name?: T;
+              parentId?: T;
+              language?: T;
+              content?: T;
+              isReadOnly?: T;
+              isHidden?: T;
+              isMainFile?: T;
+              id?: T;
+            };
         testCases?:
           | T
           | {

@@ -62,8 +62,8 @@ export function InlinePearlView({ challengeAIChat, onClose, messages }: InlinePe
   }
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      <header className="p-4 border-b flex items-center justify-between">
+    <div className="flex flex-col h-full bg-background rounded-md">
+      <header className="px-2 h-12 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bot size={18} />
           <h3 className="font-semibold">Pearl</h3>

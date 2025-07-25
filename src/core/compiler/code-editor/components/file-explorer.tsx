@@ -74,8 +74,6 @@ export function FileExplorer() {
   const [parentId, setParentId] = React.useState<string | null>(null)
   const [name, setName] = React.useState('')
 
-  console.log(fileTree)
-
   // External state management for tree re-rendering
   const [expandedItems, setExpandedItems] = React.useState<string[]>(['root'])
   const [focusedItem, setFocusedItem] = React.useState<string | null>(null)
@@ -97,7 +95,6 @@ export function FileExplorer() {
     return flatTree
   }, [fileTree])
 
-  console.log('Items', items)
 
   // Fonction utilitaire pour déterminer le langage basé sur l'extension
   const getLanguageFromExtension = (extension: string): string => {
@@ -214,7 +211,6 @@ export function FileExplorer() {
     }
   }, [fileTree, tree])
 
-  console.log(tree.getItems())
 
   // Ne pas rendre le composant si fileTree est vide
   if (!fileTree || fileTree.length === 0) {

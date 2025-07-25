@@ -12,23 +12,9 @@ import { ChallengeEditor, ChallengeEditorContainer } from './components/editor'
 import { FileExplorer, FileExplorerTrigger } from './components/file-explorer'
 import { FileBreadcrumb } from './components/file-breadcrumb'
 import EditorTabs from './components/tabs'
+import { RunCodeButton } from './components/run-button'
 
-export const RunCodeButton = () => {
-  return (
-    <Button
-      variant="secondary"
-      size="sm"
-      className="h-8"
-      //   onClick={onRun}
-      //   disabled={isRunning || isDisabled}
-    >
-      {/* <LoadingIcon isLoading={isRunning}> */}
-      <Play size={14} className="mr-1" />
-      {/* </LoadingIcon> */}
-      Run
-    </Button>
-  )
-}
+
 
 export const FileSystemButton = () => {
   return <FileExplorerTrigger />
