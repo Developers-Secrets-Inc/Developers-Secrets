@@ -50,6 +50,22 @@ const ChallengeLayoutContentSeparator: React.FC = () => {
   )
 }
 
+export const ChallengeFooterContainer: React.FC<WithChildren> = ({ children }) => {
+  return (
+    <div className="flex-none p-4 bg-background sticky bottom-0 shadow-[0_-1px_2px_rgba(0,0,0,0.1)] rounded-b-md relative z-50">
+      {children}
+    </div>
+  )
+}
+
+export const ChallengeFooterLeftPart: React.FC<WithChildren> = ({ children }) => {
+  return <div className="flex items-center justify-between gap-3 mb-3">{children}</div>
+}
+
+export const ChallengeMainContainer: React.FC<WithChildren> = ({ children }) => {
+  return <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">{children}</div>
+}
+
 export const ChallengeLayout = {
   Root: ChallengeLayoutRoot,
   Header: DefaultChallengeHeader,
@@ -58,4 +74,7 @@ export const ChallengeLayout = {
   LeftPart: ChallengeLayoutLeftPart,
   RightPart: ChallengeLayoutRightPart,
   ContentSeparator: ChallengeLayoutContentSeparator,
+  FooterContainer: ChallengeFooterContainer,
+  FooterLeftPart: ChallengeFooterLeftPart,
+  MainContainer: ChallengeMainContainer
 }

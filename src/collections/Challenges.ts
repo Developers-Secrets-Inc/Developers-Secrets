@@ -21,12 +21,8 @@ export const Challenges: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'difficulty', 'baseExperience', 'engagement', 'createdAt'],
   },
-  // Enable version system with drafts
   versions: {
     drafts: true,
-  },
-  access: {
-    // create: () => { return true }
   },
   fields: [
     {
