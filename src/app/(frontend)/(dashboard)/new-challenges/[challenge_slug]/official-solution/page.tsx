@@ -1,11 +1,10 @@
 import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges/challenge-queries'
-import { ChallengeHeader } from '../components/challenge-header'
-import { OfficialSolutionComments } from '../components/comments/official-solution-comments'
 import { SolutionContent } from './components/solution-content'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
 import { canAccessSolution } from '@/core/challenges/user-progression/completion-status'
+import { ChallengeHeader } from '../../../challenges/[challenge_slug]/components/challenge-header'
 
 export default async function OfficialSolutionPage({
   params,
@@ -38,10 +37,10 @@ export default async function OfficialSolutionPage({
         initialSolution={challenge.officialSolution?.statement || 'No official solution available.'}
       />
 
-      <div className="mt-8 border-t pt-6">
+      {/* <div className="mt-8 border-t pt-6">
         <h3 className="text-lg font-semibold mb-4">Comments</h3>
         <OfficialSolutionComments challenge={challenge} />
-      </div>
+      </div> */}
     </div>
   )
 }

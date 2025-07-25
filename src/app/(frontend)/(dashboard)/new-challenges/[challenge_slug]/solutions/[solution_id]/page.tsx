@@ -5,8 +5,8 @@ import { commentContexts } from '@/core/comments/types'
 import { getUser } from '@/core/user'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
-import { SolutionDetail } from '../../components/solution-detail'
 import { getAllChallenges } from '@/core/challenges/challenge-queries'
+import { SolutionDetail } from '@/app/(frontend)/(dashboard)/challenges/[challenge_slug]/components/solution-detail'
 
 
 

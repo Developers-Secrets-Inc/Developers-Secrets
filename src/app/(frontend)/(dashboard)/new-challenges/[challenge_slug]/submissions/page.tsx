@@ -1,7 +1,7 @@
 import { getUser } from '@/core/user'
-import { SubmissionsList } from '../components/submissions-list'
 import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { redirect } from 'next/navigation'
+import { SubmissionsList } from '../../../challenges/[challenge_slug]/components/submissions-list'
 
 export default async function SubmissionsPage({
   params,
