@@ -16,7 +16,7 @@ function buildChallengeSystemPrompt(context: any): string {
   }
 
   const { title, difficulty, description, hints, officialSolution } = challengeContext
-  const { currentCode, currentLanguage, isSolutionUnlocked } = userContext
+  const { fileTree } = userContext
 
   const getDescriptionText = (desc: any): string => {
     let text = 'N/A'
@@ -46,11 +46,11 @@ function buildChallengeSystemPrompt(context: any): string {
   }
 
   prompt += `## User's Current State ##\\n`
-  prompt += `Language: ${currentLanguage || 'N/A'}\\n`
-  prompt += `Code:\\n\\\`\\\`\\\`${currentLanguage || ''}\\n${currentCode || ''}\\n\\\`\\\`\\\`\\n\\n`
+  // prompt += `Language: ${currentLanguage || 'N/A'}\\n`
+  prompt += `This current file tree structure of the user's current code:\\n${fileTree}\\n\\n. This is the user code, when he asks questions, take this code as a reference.\\n`
 
   prompt += `## Official Solution Context ##\\n`
-  prompt += `Solution Unlocked by User: ${isSolutionUnlocked}\\n`
+  // prompt += `Solution Unlocked by User: ${isSolutionUnlocked}\\n`
   prompt += `Official Solution Explanation/Code:\\n${getDescriptionText(officialSolution)}\\n\\n`
 
   prompt += `## Your Instructions ##\\n`

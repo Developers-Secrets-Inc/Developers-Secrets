@@ -15,6 +15,7 @@ import { useAIQuota } from '@/core/ai/quotas/hooks/use-ai-quota'
 import { Message } from 'ai'
 import { useChallenge } from '@/api/challenges/contexts/challenge-context'
 import { useUser } from '@/core/users/contexts/user-context'
+import { useEditorStore } from '@/core/compiler/code-editor/store/editor-store'
 
 interface SheetPearlViewProps {
   isOpen: boolean
@@ -29,12 +30,13 @@ export function SheetPearlView({
   const { challenge, metadata } = useChallenge()
   const { user } = useUser()
 
-  const { currentLanguage, codeByLanguage } = useChallengeEditorStore()
-  const currentCode = codeByLanguage[currentLanguage] || ''
-  const { data: isSolutionUnlocked = false } = useSolutionUnlockStatus(
-    metadata.challengeAiChat.userId,
-    challenge.id,
-  )
+  // const { currentLanguage, codeByLanguage } = useChallengeEditorStore()
+  const { fileTree } = useEditorStore()
+  // const currentCode = codeByLanguage[currentLanguage] || ''
+  // const { data: isSolutionUnlocked = false } = useSolutionUnlockStatus(
+  //   challengeAIChat.userId,
+  //   challenge.id,
+  // )
 
   const { messages: clientMessages, input, handleInputChange, handleSubmit, reset } = usePearlChat({
     challengeAIChat: metadata.challengeAiChat,
@@ -59,9 +61,8 @@ export function SheetPearlView({
           officialSolution: challenge.officialSolution,
         },
         userContext: {
-          currentCode,
-          currentLanguage,
-          isSolutionUnlocked,
+          fileTree: fileTree,
+          // isSolutionUnlocked: 'isSolutionUnlocked',
         },
       },
     })

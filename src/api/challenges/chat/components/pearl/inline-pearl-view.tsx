@@ -13,6 +13,7 @@ import { usePearlChat } from '../../hooks/use-pearl-chat'
 import { PearlChatInterface } from './pearl-chat-interface'
 import { ChatParameters } from './pearl-chat-parameters'
 import { useUser } from '@/core/users/contexts/user-context'
+import { useEditorStore } from '@/core/compiler/code-editor/store/editor-store'
 
 interface InlinePearlViewProps {
   onClose?: () => void
@@ -25,6 +26,7 @@ export function InlinePearlView({ onClose }: InlinePearlViewProps) {
 
 
   // const { currentLanguage, codeByLanguage } = useChallengeEditorStore()
+  const { fileTree } = useEditorStore()
   // const currentCode = codeByLanguage[currentLanguage] || ''
   // const { data: isSolutionUnlocked = false } = useSolutionUnlockStatus(
   //   challengeAIChat.userId,
@@ -54,9 +56,8 @@ export function InlinePearlView({ onClose }: InlinePearlViewProps) {
           officialSolution: challenge.officialSolution,
         },
         userContext: {
-          currentCode: 'currentCode',
-          currentLanguage: 'currentLanguage',
-          isSolutionUnlocked: 'isSolutionUnlocked',
+          fileTree: JSON.stringify(fileTree),
+          // isSolutionUnlocked: 'isSolutionUnlocked',
         },
       },
     })

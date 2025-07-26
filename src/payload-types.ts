@@ -128,6 +128,7 @@ export interface Config {
     'challenges-engagement': ChallengesEngagement;
     exercices: Exercice;
     'ai-exercices': AiExercice;
+    'challenge-tags': ChallengeTag;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -195,6 +196,7 @@ export interface Config {
     'challenges-engagement': ChallengesEngagementSelect<false> | ChallengesEngagementSelect<true>;
     exercices: ExercicesSelect<false> | ExercicesSelect<true>;
     'ai-exercices': AiExercicesSelect<false> | AiExercicesSelect<true>;
+    'challenge-tags': ChallengeTagsSelect<false> | ChallengeTagsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -2341,6 +2343,49 @@ export interface ChallengesEngagement {
   createdAt: string;
 }
 /**
+ * Associates a unique concept with a set of challenges, creating conceptual tags for challenge organization.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-tags".
+ */
+export interface ChallengeTag {
+  id: number;
+  /**
+   * Display name for this challenge tag (e.g., "Loops Challenges", "OOP Fundamentals")
+   */
+  name: string;
+  /**
+   * URL-friendly identifier for this tag. Will be used in the URL.
+   */
+  slug: string;
+  /**
+   * The unique concept that this tag represents. Each concept can only have one tag.
+   */
+  concept: number | Concept;
+  /**
+   * Challenges that belong to this conceptual tag.
+   */
+  challenges?: (number | Challenge)[] | null;
+  /**
+   * Optional description explaining what challenges in this tag focus on.
+   */
+  description?: string | null;
+  /**
+   * Whether this tag is currently active and visible to users.
+   */
+  isActive?: boolean | null;
+  /**
+   * Number of challenges in this tag (updated automatically).
+   */
+  challengeCount?: number | null;
+  /**
+   * Order for displaying tags (lower numbers appear first).
+   */
+  displayOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -2590,6 +2635,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'ai-exercices';
         value: number | AiExercice;
+      } | null)
+    | ({
+        relationTo: 'challenge-tags';
+        value: number | ChallengeTag;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -3815,6 +3864,22 @@ export interface AiExercicesSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-tags_select".
+ */
+export interface ChallengeTagsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  concept?: T;
+  challenges?: T;
+  description?: T;
+  isActive?: T;
+  challengeCount?: T;
+  displayOrder?: T;
   updatedAt?: T;
   createdAt?: T;
 }

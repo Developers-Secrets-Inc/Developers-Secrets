@@ -72,6 +72,7 @@ import { ChallengeEngagement } from './collections/ChallengeEngagement'
 import { ChallengesEngagement } from './collections/ChallengesEngagement'
 import { Exercices } from './collections/Exercices'
 import AIExercices from './collections/AIExercices'
+import { ChallengeTag } from './collections/ChallengeTag'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -147,6 +148,7 @@ export default buildConfig({
     ChallengesEngagement,
     Exercices,
     AIExercices,
+    ChallengeTag,
     // CommentsReports,
   ],
   editor: lexicalEditor(),
