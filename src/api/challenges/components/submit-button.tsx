@@ -86,6 +86,9 @@ export const SubmitButton = () => {
         if (!isAlreadyCompleted) {
           // openCompletionDialog()
           openCompletionDialog()
+          queryClient.invalidateQueries({
+            queryKey: getQueryKey(challenge.id, user.id, challenge.slug),
+          })
           progressQuest({ eventType: 'challengesCompleted', userId: user.id })
 
           const solutionUnlocked = await isSolutionUnlocked(user.id, challenge.id)
@@ -102,11 +105,8 @@ export const SubmitButton = () => {
 
           // On n'a plus besoin de récupérer le résultat ici
           await Promise.all(gamificationPromises)
-          
+
           // Invalider le cache pour que les onglets se mettent à jour
-          queryClient.invalidateQueries({
-            queryKey: getQueryKey(challenge.id, user.id, challenge.slug),
-          })
         }
       }
 

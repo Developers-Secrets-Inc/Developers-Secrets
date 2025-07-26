@@ -1,12 +1,14 @@
-import { getAllChallengesSlugs, getChallengeBySlug } from '@/core/challenges/challenge-queries'
-import { ChallengeHeader } from '../components/challenge-header'
-import { ChallengeDescriptionContent } from './components/challenge-description-content'
-import { ChallengeDescriptionFooter } from './components/challenge-description-footer'
+import { getChallengeBySlug } from '@/api/challenges'
+import { getUser } from '@/core/users'
+import { isNone, isSome } from '@/lib/maybe'
+import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getUser } from '@/core/user'
-import { getUserCompletionStatus } from '@/core/challenges/user-progression'
-import { redirect } from 'next/navigation'
+import { SimilarChallengesCards } from '@/api/challenges/components/similar-challenges'
+import { getCompletionStatus } from '@/core/challenges/user-progression/completion-status'
+import { isFailure } from '@/lib/result'
+import { ChallengeHeader } from '../components/challenge-header'
+import { ChallengeDescriptionContent } from './components/challenge-description-content'
 
 export default async function ChallengeDescriptionPage({
   params,
@@ -15,32 +17,31 @@ export default async function ChallengeDescriptionPage({
 }) {
   const { challenge_slug } = await params
 
-  try {
-    const challenge = await getChallengeBySlug(challenge_slug)
-    const user = await getUser()
+  const challenge = await getChallengeBySlug({ slug: challenge_slug })
+  const user = await getUser()
 
-    if (!user) {
-      redirect('/auth/login')
-    }
+  if (isFailure(user)) {
+    redirect('/auth/login')
+  }
 
-    return (
-      <div className="p-6">
-        <Suspense fallback={<ChallengeDescriptionSkeleton />}>
-          <ChallengeHeader challenge={challenge} />
-          <ChallengeDescriptionContent
-            slug={challenge_slug}
-            initialDescription={challenge.description?.statement || 'No description available.'}
-          />
-        </Suspense>
-        {/* <Suspense fallback={<ChallengeDescriptionFooterSkeleton />}>
+  if (isNone(challenge) || (isSome(challenge) && challenge.value.draft)) {
+    return notFound()
+  }
+
+  return (
+    <div className="p-6">
+      <Suspense fallback={<ChallengeDescriptionSkeleton />}>
+        <ChallengeHeader challenge={challenge.value} />
+        <ChallengeDescriptionContent
+          slug={challenge_slug}
+          initialDescription={challenge.value.description?.statement || 'No description available.'}
+        />
+      </Suspense>
+      {/* <Suspense fallback={<ChallengeDescriptionFooterSkeleton />}>
           <ChallengeDescriptionFooter challenge={challenge} />
         </Suspense> */}
-      </div>
-    )
-  } catch (error) {
-    console.error('Error fetching challenge:', error)
-    return <ChallengeNotFound challengeSlug={challenge_slug} />
-  }
+    </div>
+  )
 }
 
 const ChallengeDescriptionSkeleton = () => {
@@ -52,27 +53,6 @@ const ChallengeDescriptionSkeleton = () => {
       <Skeleton className="h-4 w-4/6" />
       <Skeleton className="h-4 w-5/6" />
       <Skeleton className="h-4 w-3/4" />
-    </div>
-  )
-}
-
-const ChallengeDescriptionFooterSkeleton = () => {
-  return (
-    <div className="mt-8 border-t pt-6">
-      <Skeleton className="h-6 w-24 mb-4" />
-      <div className="space-y-4">
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-20 w-full" />
-      </div>
-    </div>
-  )
-}
-
-const ChallengeNotFound = ({ challengeSlug }: { challengeSlug: string }) => {
-  return (
-    <div>
-      <h1>Challenge not found</h1>
-      <p>The challenge with slug {challengeSlug} was not found.</p>
     </div>
   )
 }

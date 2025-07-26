@@ -1,28 +1,26 @@
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
-import { getOrCreateChat, loadChat } from '@/core/challenges/ai-chat'
-import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
-import { ChallengeSettingsBubble } from '@/core/challenges/components/admin/challenge-settings-bubble'
-import { ChallengeStatusProvider } from '@/core/challenges/components/challenge-status-provider'
-import { ChallengeStoreHydrator } from '@/core/challenges/components/challenge-store-hydrator'
-import { ChallengeTimerStarter } from '@/core/challenges/components/challenge-timer-starter'
-import { ChallengeViewManager } from '@/core/challenges/components/challenge-view-manager'
-import { NewCompletionDialog } from '@/core/challenges/components/completion/new-completion-dialog'
-import { ChallengeNavigation } from '@/core/challenges/components/navigation/challenge-navigation'
-import { ChallengeProvider } from '@/core/challenges/contexts/challenge-context'
-import { ChallengeEditorProvider } from '@/core/challenges/contexts/challenge-editor-context'
-import { getUserCompletionStatus } from '@/core/challenges/user-progression'
-import { ChallengeIDE } from '@/core/compiler/challenge-editor'
-import { getUser } from '@/core/user'
-import { AdminComponent } from '@/core/user/components/admin-component'
-import { Challenge } from '@/payload-types'
-import { redirect } from 'next/navigation'
-import { Suspense } from 'react'
-import { DraftRedirect } from './components/draft-redirect'
-import { ChallengeLayoutHeader } from './components/header'
+import { getChallengeBySlug } from '@/api/challenges'
+import { ChallengeViewManager } from '@/api/challenges/chat/components/challenge-view-manager'
+import { ChallengeSettingsBubble } from '@/api/challenges/components/admin/challenge-settings-bubble'
+import { ChallengeExercice } from '@/api/challenges/components/challenge-exercice'
+import { ChallengeLayout } from '@/api/challenges/components/sections/layout'
+import { ChallengeProvider } from '@/api/challenges/contexts/components/challenge-provider'
 import {
-  ChallengeHeader,
-  DefaultChallengeHeader,
-} from '@/api/challenges/components/sections/header'
+  getNextChallenge,
+  getPreviousChallenge,
+  getRandomChallenge,
+} from '@/api/challenges/navigation'
+import { ChallengeNavigationTabs } from '@/api/challenges/navigation/components/navigation-tabs'
+import { getRemainingMessagesForToday } from '@/core/ai/quotas/actions'
+import { getOrCreateChat, loadChat } from '@/core/challenges/ai-chat'
+import { ChallengeTimerStarter } from '@/core/challenges/components/challenge-timer-starter'
+import { NewCompletionDialog } from '@/core/challenges/components/completion/new-completion-dialog'
+import { AdminComponent } from '@/core/user/components/admin-component'
+import { getUser } from '@/core/users'
+import { isNone, isSome } from '@/lib/maybe'
+import { isFailure } from '@/lib/result'
+import { Challenge } from '@/payload-types'
+import { notFound, redirect } from 'next/navigation'
+import { Suspense } from 'react'
 
 const getCurrencyOnCompletion = (challenge: Challenge): number => {
   const baseExp = challenge.baseExperience ?? 50
@@ -35,117 +33,89 @@ function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
 }
 
-export default async function ChallengeLayout({
+const Layout = async ({
   children,
   params,
 }: {
   children: React.ReactNode
   params: Promise<{ challenge_slug: string }>
-}) {
+}) => {
   const { challenge_slug } = await params
-
-  const [challenge, user] = await Promise.all([getChallengeBySlug(challenge_slug), getUser()])
-
-  if (!user) {
-    redirect('/auth/login?redirect=' + encodeURIComponent('/challenges/' + challenge_slug))
-  }
-
-  const initialCodeVersions =
-    challenge.codeVersions?.reduce(
-      (acc, version) => {
-        acc[version.language] = version.initialCode
-        return acc
-      },
-      {} as Record<string, string>,
-    ) || {}
-
-  const initialLanguage = challenge.codeVersions?.[0]?.language || 'javascript'
-
-  const [initialStatus, challengeAIChat] = await Promise.all([
-    getUserCompletionStatus(user.id, challenge.id),
-    getOrCreateChat({ userId: user.id, challenge: challenge.id }),
+  const [challenge, user] = await Promise.all([
+    getChallengeBySlug({ slug: challenge_slug }),
+    getUser(),
   ])
 
-  const messages = await loadChat({ chatId: challengeAIChat.id })
-  const currencyOnCompletion = getCurrencyOnCompletion(challenge)
+  if (isFailure(user)) {
+    return redirect('/auth/login')
+  }
+
+  if (isNone(challenge) || (isSome(challenge) && challenge.value.draft)) {
+    return notFound()
+  }
+
+  const exercice = challenge.value.exercice.value
+
+  // ! Should be a new version
+  const challengeAIChat = await getOrCreateChat({
+    userId: user.value.id,
+    challenge: challenge.value.id,
+  })
+
+  const [messages, quotas, previousChallenge, nextChallenge, randomChallenge] = await Promise.all([
+    loadChat({ chatId: challengeAIChat.id }),
+    getRemainingMessagesForToday(user.value.id),
+    getPreviousChallenge({ challengeId: challenge.value.id }),
+    getNextChallenge({ challengeId: challenge.value.id }),
+    getRandomChallenge({ challengeId: challenge.value.id }),
+  ])
+
+  console.log(previousChallenge, nextChallenge, randomChallenge)
+  if (isNone(previousChallenge) || isNone(nextChallenge) || isNone(randomChallenge))
+    throw new Error('Navigation challenges not found')
+
 
   return (
-    <DraftRedirect challenge={challenge} user={user}>
-      <ChallengeStoreHydrator
-        challenge={challenge}
-        user={user}
-        currencyOnCompletion={currencyOnCompletion}
-      >
-        <ChallengeProvider challenge={challenge}>
-          <ChallengeStatusProvider
-            challengeId={challenge.id}
-            userId={user.id}
-            initialStatus={initialStatus}
-          >
-            <div className="flex h-screen min-h-0">
-              <div className="flex flex-col h-full flex-1 min-w-0 min-h-0">
-                <DefaultChallengeHeader />
+    <ChallengeProvider
+      challenge={challenge.value}
+      metadata={{ challengeAiChat: challengeAIChat, messages, quotas, completionCurrency: getCurrencyOnCompletion(challenge.value) }}
+    >
+      <ChallengeLayout.Root>
+        <ChallengeLayout.Header
+          navigationChallenges={{
+            previousChallenge: previousChallenge.value,
+            nextChallenge: nextChallenge.value,
+            randomChallenge: randomChallenge.value,
+          }}
+        />
 
-                <div className="flex-1 overflow-hidden">
-                  <ChallengeEditorProvider
-                    initialLanguage={initialLanguage}
-                    initialCodePerLanguage={initialCodeVersions}
-                  >
-                    <ResizablePanelGroup direction="horizontal">
-                      <ResizablePanel defaultSize={50} minSize={40}>
-                        <div className="flex flex-col h-full">
-                          <ChallengeNavigation />
-                          <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
-                            <ChallengeViewManager
-                              challenge={challenge}
-                              user={user}
-                              challengeAIChat={challengeAIChat}
-                              messages={messages}
-                            >
-                              <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
-                            </ChallengeViewManager>
-                          </div>
-                        </div>
-                      </ResizablePanel>
+        <ChallengeLayout.Body>
+          <ChallengeLayout.Content>
+            <ChallengeLayout.LeftPart>
+              <ChallengeNavigationTabs />
+              <ChallengeLayout.MainContainer>
+                <ChallengeViewManager>
+                  <Suspense fallback={<LoadingPlaceholder />}>{children}</Suspense>
+                </ChallengeViewManager>
+              </ChallengeLayout.MainContainer>
+            </ChallengeLayout.LeftPart>
 
-                      <ResizableHandle withHandle />
+            <ChallengeLayout.ContentSeparator />
 
-                      <ResizablePanel
-                        defaultSize={50}
-                        minSize={40}
-                        className="flex flex-col h-full"
-                      >
-                        <ChallengeIDE
-                          challenge={challenge}
-                          userId={user.id}
-                          codeVersions={
-                            challenge.codeVersions?.map((v) => ({
-                              language: v.language,
-                              initialCode: v.initialCode,
-                              testCases:
-                                v.testCases?.map((t) => ({
-                                  input: t.input,
-                                  expectedOutput: t.expectedOutput,
-                                })) || [],
-                            })) || []
-                          }
-                        />
-                      </ResizablePanel>
-                    </ResizablePanelGroup>
-                  </ChallengeEditorProvider>
-                  <AdminComponent>
-                    <ChallengeSettingsBubble challenge={challenge} />
-                  </AdminComponent>
-                </div>
-              </div>
-            </div>
-            {/* <CompletionDialog userId={user.id} challenge={challenge} /> */}
-            <ChallengeTimerStarter challengeId={challenge.id} />
-            <NewCompletionDialog userId={user.id} challengeId={challenge.id} />
-            {/* <OnboardingDialog /> */}
-          </ChallengeStatusProvider>
-        </ChallengeProvider>
-      </ChallengeStoreHydrator>
-    </DraftRedirect>
+            <ChallengeLayout.RightPart>
+              {/* The error is normal, it's because exercices should not be optional but are during the migration */}
+              <ChallengeExercice exercice={exercice} />
+            </ChallengeLayout.RightPart>
+          </ChallengeLayout.Content>
+        </ChallengeLayout.Body>
+      </ChallengeLayout.Root>
+      <AdminComponent>
+        <ChallengeSettingsBubble />
+      </AdminComponent>
+      <ChallengeTimerStarter />
+      <NewCompletionDialog userId={user.value.id} challenge={challenge.value} />
+    </ChallengeProvider>
   )
 }
+
+export default Layout
