@@ -1,5 +1,6 @@
 import { getChallengeBySlug } from '@/api/challenges'
 import { ChallengeViewManager } from '@/api/challenges/chat/components/challenge-view-manager'
+import { ChallengeSettingsBubble } from '@/api/challenges/components/admin/challenge-settings-bubble'
 import { ChallengeExercice } from '@/api/challenges/components/challenge-exercice'
 import { ChallengeLayout } from '@/api/challenges/components/sections/layout'
 import { ChallengeProvider } from '@/api/challenges/contexts/components/challenge-provider'
@@ -11,11 +12,21 @@ import {
 import { ChallengeNavigationTabs } from '@/api/challenges/navigation/components/navigation-tabs'
 import { getRemainingMessagesForToday } from '@/core/ai/quotas/actions'
 import { getOrCreateChat, loadChat } from '@/core/challenges/ai-chat'
+import { ChallengeTimerStarter } from '@/core/challenges/components/challenge-timer-starter'
+import { NewCompletionDialog } from '@/core/challenges/components/completion/new-completion-dialog'
+import { AdminComponent } from '@/core/user/components/admin-component'
 import { getUser } from '@/core/users'
 import { isNone, isSome } from '@/lib/maybe'
 import { isFailure } from '@/lib/result'
 import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
+
+const getCurrencyOnCompletion = (challenge: Challenge): number => {
+  const baseExp = challenge.baseExperience ?? 50
+  const min = Math.floor(baseExp * 0.5)
+  const max = Math.ceil(baseExp * 1.5)
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
 
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
@@ -59,12 +70,14 @@ const Layout = async ({
   ])
 
   console.log(previousChallenge, nextChallenge, randomChallenge)
-  if (isNone(previousChallenge) || isNone(nextChallenge) || isNone(randomChallenge)) throw new Error('Navigation challenges not found')
+  if (isNone(previousChallenge) || isNone(nextChallenge) || isNone(randomChallenge))
+    throw new Error('Navigation challenges not found')
+
 
   return (
     <ChallengeProvider
       challenge={challenge.value}
-      metadata={{ challengeAiChat: challengeAIChat, messages, quotas }}
+      metadata={{ challengeAiChat: challengeAIChat, messages, quotas, completionCurrency: getCurrencyOnCompletion(challenge.value) }}
     >
       <ChallengeLayout.Root>
         <ChallengeLayout.Header
@@ -95,6 +108,11 @@ const Layout = async ({
           </ChallengeLayout.Content>
         </ChallengeLayout.Body>
       </ChallengeLayout.Root>
+      <AdminComponent>
+        <ChallengeSettingsBubble />
+      </AdminComponent>
+      <ChallengeTimerStarter />
+      <NewCompletionDialog userId={user.value.id} challenge={challenge.value} />
     </ChallengeProvider>
   )
 }

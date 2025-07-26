@@ -1,16 +1,15 @@
 'use client'
 
 import { SettingsBubbleMenu } from '@/core/challenges/components/admin/settings-bubble-menu'
-import { Challenge } from '@/payload-types'
 import { motion } from 'framer-motion'
 import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Settings } from 'lucide-react'
+import { useChallenge } from '../../contexts/challenge-context'
 
-
-
-export function ChallengeSettingsBubble({ challenge }: ChallengeSettingsBubbleProps) {
+export function ChallengeSettingsBubble() {
+  const { challenge } = useChallenge()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const isDraggingRef = useRef(false)
 
@@ -24,7 +23,7 @@ export function ChallengeSettingsBubble({ challenge }: ChallengeSettingsBubblePr
   return (
     <DropdownMenu open={isMenuOpen} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
-      <motion.div
+        <motion.div
           drag
           dragMomentum={false}
           onDragStart={() => {

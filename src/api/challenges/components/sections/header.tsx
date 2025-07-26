@@ -36,9 +36,9 @@ export const ChallengeHeader = {
 
 export const DefaultChallengeHeader = ({ navigationChallenges }: {
   navigationChallenges: {
-    previousChallenge: Challenge
-    nextChallenge: Challenge
-    randomChallenge: Challenge
+    previousChallenge: {id: number, slug: string}
+    nextChallenge: {id: number, slug: string}
+    randomChallenge: {id: number, slug: string}
   }
 }) => {
   return (

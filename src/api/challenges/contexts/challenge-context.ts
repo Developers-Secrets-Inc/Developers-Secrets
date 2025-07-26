@@ -10,6 +10,7 @@ export type ChallengeContextType = {
     challengeAiChat: ChallengeAiChat
     messages: Message[]
     quotas: number
+    completionCurrency: number
   }
 }
 

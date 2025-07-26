@@ -20,6 +20,7 @@ import { trackAchievementProgress } from '@/core/gamification/achievements/actio
 import { useUser } from '@/core/users/contexts/user-context'
 import { useQuestActions } from '@/core/gamification/quests/hooks/use-quests'
 import { useQueryClient } from '@tanstack/react-query'
+import { useChallengeUIStore } from '../stores/challenge-ui-store'
 
 const LoadingIcon = ({
   isLoading,
@@ -44,6 +45,7 @@ export const SubmitButton = () => {
 
   const { setSubmissionResult, setTestResults, setIsSubmitting, clearResults } =
     useSubmissionResultsStore()
+  const { openCompletionDialog } = useChallengeUIStore()
 
   const handleSubmit = async () => {
     try {
@@ -81,7 +83,7 @@ export const SubmitButton = () => {
 
         if (!isAlreadyCompleted) {
           // openCompletionDialog()
-          console.log("challenge completed")
+          openCompletionDialog()
           progressQuest({ eventType: 'challengesCompleted', userId: user.id })
 
           const solutionUnlocked = await isSolutionUnlocked(user.id, challenge.id)

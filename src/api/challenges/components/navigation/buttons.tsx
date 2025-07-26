@@ -92,9 +92,9 @@ export const ChallengeNavigationButtons = ({
   nextChallenge,
   randomChallenge,
 }: {
-  previousChallenge: Challenge
-  nextChallenge: Challenge
-  randomChallenge: Challenge
+  previousChallenge: {id: number, slug: string}
+  nextChallenge: {id: number, slug: string}
+  randomChallenge: {id: number, slug: string}
 }) => (
   <div className="inline-flex -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
     <ListChallengesButton />

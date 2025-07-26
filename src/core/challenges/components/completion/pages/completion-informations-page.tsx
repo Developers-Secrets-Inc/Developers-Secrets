@@ -15,6 +15,8 @@ import { animate, motion, useMotionValue } from 'framer-motion'
 // Imports nécessaires pour le Tooltip
 import { CoinIcon } from '@/components/icons/coin'
 import { useChallengeStore } from '@/core/challenges/store'
+import { useChallenge } from '@/api/challenges/contexts/challenge-context'
+import { useChallengeUIStore } from '@/api/challenges/stores/challenge-ui-store'
 
 const AnimatedNumber = ({
   value,
@@ -228,22 +230,22 @@ export const ChallengeCompletionInformations = ({
 }) => {
   const { paginationData, isLoading } = useChallengeSubmissions(challengeId)
   const { getTimeSpent } = useChallengeTimer(challengeId)
-  const { showCompletionDialog } = useChallengeEditorStore()
+  const { isCompletionDialogOpen } = useChallengeUIStore()
   const submissionsCount = paginationData?.docs?.length ?? 0
   const [timeSpent, setTimeSpent] = useState('00:00:00')
-  const { currencyOnCompletion, challenge } = useChallengeStore()
+  const { challenge, metadata } = useChallenge()
 
-  const isLucky = currencyOnCompletion >= (challenge?.baseExperience ?? 0) * 0.8
-  const isUnlucky = currencyOnCompletion <= (challenge?.baseExperience ?? 0) * 0.2
+  const isLucky = metadata.completionCurrency >= (challenge?.baseExperience ?? 0) * 0.8
+  const isUnlucky = metadata.completionCurrency <= (challenge?.baseExperience ?? 0) * 0.2
 
   useEffect(() => {
-    if (showCompletionDialog) {
+    if (isCompletionDialogOpen) {
       const time = getTimeSpent()
       if (time) {
         setTimeSpent(time.formatted)
       }
     }
-  }, [showCompletionDialog, getTimeSpent])
+  }, [isCompletionDialogOpen, getTimeSpent])
 
   if (isLoading) return <div>Loading...</div>
  
@@ -252,7 +254,7 @@ export const ChallengeCompletionInformations = ({
     {
       key: 'coins',
       render: (animate: boolean) => (
-        <CompletedChallengeCoins coins={currencyOnCompletion} animate={animate} comment={isLucky ? 'Feeling lucky!' : isUnlucky ? 'Feeling unlucky...' : undefined} />
+        <CompletedChallengeCoins coins={metadata.completionCurrency} animate={animate} comment={isLucky ? 'Feeling lucky!' : isUnlucky ? 'Feeling unlucky...' : undefined} />
       ),
     },
     {

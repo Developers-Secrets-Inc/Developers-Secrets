@@ -15,6 +15,7 @@ export const ChallengeProvider = ({
     challengeAiChat: ChallengeAiChat
     messages: Message[]
     quotas: number
+    completionCurrency: number
   }
 }) => {
   return <ChallengeContext.Provider value={{ challenge, metadata }}>{children}</ChallengeContext.Provider>
