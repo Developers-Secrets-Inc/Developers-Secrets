@@ -24,7 +24,13 @@ const ChallengeNavigationButton = ({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button {...props} variant={'outline'} asChild>
+        <Button 
+          {...props} 
+          variant="outline" 
+          size="icon"
+          className="size-9 rounded-none shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10"
+          asChild
+        >
           {children}
         </Button>
       </TooltipTrigger>
@@ -39,48 +45,44 @@ export const PreviousChallengeButton = ({
   previousChallenge: Challenge
 }) => (
   <ChallengeNavigationButton
-    className="rounded-none border-x-0 px-3"
     aria-label="Previous challenge"
     tooltipText="Previous challenge"
   >
-    <Link href={`/challenges/${previousChallenge.slug}`} prefetch={true}>
-      <ArrowLeft size={16} />
+    <Link href={`/challenges/${previousChallenge.slug}/description`}>
+      <ArrowLeft size={16} aria-hidden="true" />
     </Link>
   </ChallengeNavigationButton>
 )
 
 export const NextChallengeButton = ({ nextChallenge }: { nextChallenge: Challenge }) => (
   <ChallengeNavigationButton
-    className="rounded-l-none border-l-0 px-3"
     aria-label="Next challenge"
     tooltipText="Next challenge"
   >
-    <Link href={`/challenges/${nextChallenge.slug}`} prefetch={true}>
-      <ArrowRight size={16} />
+    <Link href={`/challenges/${nextChallenge.slug}/description`}>
+      <ArrowRight size={16} aria-hidden="true" />
     </Link>
   </ChallengeNavigationButton>
 )
 
 export const RandomChallengeButton = ({ randomChallenge }: { randomChallenge: Challenge }) => (
   <ChallengeNavigationButton
-    className="rounded-none border-x-0 px-3"
     aria-label="Random challenge"
     tooltipText="Random challenge"
   >
-    <Link href={`/challenges/${randomChallenge.slug}`} prefetch={true}>
-      <Shuffle size={16} />
+    <Link href={`/challenges/${randomChallenge.slug}/description`}>
+      <Shuffle size={16} aria-hidden="true" />
     </Link>
   </ChallengeNavigationButton>
 )
 
 export const ListChallengesButton = () => (
   <ChallengeNavigationButton
-    className="rounded-r-none border-r-0 px-3"
     aria-label="Back to challenges"
     tooltipText="Back to challenges"
   >
     <Link href="/challenges">
-      <List size={16} />
+      <List size={16} aria-hidden="true" />
     </Link>
   </ChallengeNavigationButton>
 )
@@ -94,10 +96,10 @@ export const ChallengeNavigationButtons = ({
   nextChallenge: Challenge
   randomChallenge: Challenge
 }) => (
-  <>
+  <div className="inline-flex -space-x-px rounded-md shadow-xs rtl:space-x-reverse">
     <ListChallengesButton />
     <PreviousChallengeButton previousChallenge={previousChallenge} />
     <RandomChallengeButton randomChallenge={randomChallenge} />
     <NextChallengeButton nextChallenge={nextChallenge} />
-  </>
+  </div>
 )

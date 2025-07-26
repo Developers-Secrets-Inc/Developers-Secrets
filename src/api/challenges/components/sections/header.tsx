@@ -2,9 +2,11 @@ import { HomeLink } from '@/components/common/home-link'
 import { NotificationButton } from '@/components/sidebars/home-sidebar/notification-button'
 import { Button } from '@/components/ui/button'
 import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
+import { Challenge } from '@/payload-types'
 import { User } from '@/types/user'
 import Link from 'next/link'
 import React from 'react'
+import { ChallengeNavigationButtons } from '../navigation/buttons'
 
 type WithChildren = {
   children: React.ReactNode
@@ -32,11 +34,22 @@ export const ChallengeHeader = {
   RightPart: ChallengeHeaderRightPart,
 }
 
-export const DefaultChallengeHeader = () => {
+export const DefaultChallengeHeader = ({ navigationChallenges }: {
+  navigationChallenges: {
+    previousChallenge: Challenge
+    nextChallenge: Challenge
+    randomChallenge: Challenge
+  }
+}) => {
   return (
     <ChallengeHeader.Root>
       <ChallengeHeader.LeftPart>
         <HomeLink />
+        <ChallengeNavigationButtons 
+          previousChallenge={navigationChallenges.previousChallenge}
+          nextChallenge={navigationChallenges.nextChallenge}
+          randomChallenge={navigationChallenges.randomChallenge}
+        />
       </ChallengeHeader.LeftPart>
       <ChallengeHeader.RightPart>
         <NotificationButton />

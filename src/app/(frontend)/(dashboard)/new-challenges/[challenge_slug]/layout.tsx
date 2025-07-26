@@ -3,6 +3,11 @@ import { ChallengeViewManager } from '@/api/challenges/chat/components/challenge
 import { ChallengeExercice } from '@/api/challenges/components/challenge-exercice'
 import { ChallengeLayout } from '@/api/challenges/components/sections/layout'
 import { ChallengeProvider } from '@/api/challenges/contexts/components/challenge-provider'
+import {
+  getNextChallenge,
+  getPreviousChallenge,
+  getRandomChallenge,
+} from '@/api/challenges/navigation'
 import { ChallengeNavigationTabs } from '@/api/challenges/navigation/components/navigation-tabs'
 import { getRemainingMessagesForToday } from '@/core/ai/quotas/actions'
 import { getOrCreateChat, loadChat } from '@/core/challenges/ai-chat'
@@ -15,7 +20,6 @@ import { Suspense } from 'react'
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
 }
-
 
 const Layout = async ({
   children,
@@ -40,23 +44,39 @@ const Layout = async ({
 
   const exercice = challenge.value.exercice.value
 
-
   // ! Should be a new version
   const challengeAIChat = await getOrCreateChat({
     userId: user.value.id,
     challenge: challenge.value.id,
   })
-  const messages = await loadChat({ chatId: challengeAIChat.id })
-  const quotas = await getRemainingMessagesForToday(user.value.id)
+
+  const [messages, quotas, previousChallenge, nextChallenge, randomChallenge] = await Promise.all([
+    loadChat({ chatId: challengeAIChat.id }),
+    getRemainingMessagesForToday(user.value.id),
+    getPreviousChallenge({ challengeId: challenge.value.id }),
+    getNextChallenge({ challengeId: challenge.value.id }),
+    getRandomChallenge({ challengeId: challenge.value.id }),
+  ])
+
+  console.log(previousChallenge, nextChallenge, randomChallenge)
+  if (isNone(previousChallenge) || isNone(nextChallenge) || isNone(randomChallenge)) throw new Error('Navigation challenges not found')
 
   return (
-    <ChallengeProvider challenge={challenge.value} metadata={{challengeAiChat: challengeAIChat, messages, quotas}}>
+    <ChallengeProvider
+      challenge={challenge.value}
+      metadata={{ challengeAiChat: challengeAIChat, messages, quotas }}
+    >
       <ChallengeLayout.Root>
-        <ChallengeLayout.Header />
+        <ChallengeLayout.Header
+          navigationChallenges={{
+            previousChallenge: previousChallenge.value,
+            nextChallenge: nextChallenge.value,
+            randomChallenge: randomChallenge.value,
+          }}
+        />
 
         <ChallengeLayout.Body>
           <ChallengeLayout.Content>
-            
             <ChallengeLayout.LeftPart>
               <ChallengeNavigationTabs />
               <ChallengeLayout.MainContainer>
