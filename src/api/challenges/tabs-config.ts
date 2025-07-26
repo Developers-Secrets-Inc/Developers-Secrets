@@ -43,8 +43,8 @@ export const challengeTabs = (slug: string, pathname: string): TabConfig[] => [
         confirmLabel: 'Unlock',
       },
       onConfirm: async (challengeId, userId) => {
-        // Replace with actual backend action
-        return Promise.resolve()
+        // Cette fonction sera appelée par unlockTab du hook
+        // qui gère automatiquement l'invalidation du cache
       },
     },
   },
@@ -64,8 +64,8 @@ export const challengeTabs = (slug: string, pathname: string): TabConfig[] => [
         confirmLabel: 'Unlock',
       },
       onConfirm: async (challengeId, userId) => {
-        // Replace with actual backend action
-        return Promise.resolve()
+        // Cette fonction sera appelée par unlockTab du hook
+        // qui gère automatiquement l'invalidation du cache
       },
     },
   },

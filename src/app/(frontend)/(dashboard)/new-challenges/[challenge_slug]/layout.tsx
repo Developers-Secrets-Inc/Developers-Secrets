@@ -18,6 +18,7 @@ import { AdminComponent } from '@/core/user/components/admin-component'
 import { getUser } from '@/core/users'
 import { isNone, isSome } from '@/lib/maybe'
 import { isFailure } from '@/lib/result'
+import { Challenge } from '@/payload-types'
 import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 

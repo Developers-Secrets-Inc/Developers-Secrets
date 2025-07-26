@@ -1,7 +1,6 @@
 'use client'
 
-import { challengeTabs, TabConfig } from '../../tabs-config'
-import { usePathname } from 'next/navigation'
+import { TabConfig } from '../../tabs-config'
 import { useState } from 'react'
 import { Tab } from './tab'
 import { useChallengeTabsLockStatus } from '../hooks/use-challenge-tabs-lock-status'
@@ -15,26 +14,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { useChallenge } from '../../contexts/challenge-context'
-import { useUser } from '@/core/users/contexts/user-context'
 
 export const ChallengeNavigationTabs = () => {
-  const pathname = usePathname()
   const [openDialog, setOpenDialog] = useState<string | null>(null)
-  const { challenge } = useChallenge()
-  const { user } = useUser()
-
-  const tabs = challengeTabs(challenge.slug, pathname)
 
   const {
     data: tabsLockStatus,
+    tabs,
+    pathname,
     unlockTab,
     isUnlocking,
-  } = useChallengeTabsLockStatus({
-    tabs,
-    challengeId: challenge.id,
-    userId: user.id,
-  })
+  } = useChallengeTabsLockStatus()
   return (
     <>
       <nav className="h-12 flex-none border-b bg-background rounded-t-md">

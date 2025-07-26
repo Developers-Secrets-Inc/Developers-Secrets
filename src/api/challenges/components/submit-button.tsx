@@ -21,6 +21,7 @@ import { useUser } from '@/core/users/contexts/user-context'
 import { useQuestActions } from '@/core/gamification/quests/hooks/use-quests'
 import { useQueryClient } from '@tanstack/react-query'
 import { useChallengeUIStore } from '../stores/challenge-ui-store'
+import { getQueryKey } from '../navigation/hooks/use-challenge-tabs-lock-status'
 
 const LoadingIcon = ({
   isLoading,
@@ -38,6 +39,7 @@ export const SubmitButton = () => {
   const { fileTree } = useEditorStore()
   const queryClient = useQueryClient()
   const { progressQuest } = useQuestActions()
+  // Le déblocage des onglets se fait maintenant via les dialogs de confirmation
 
   const { setActiveTab, openPanel } = useFooterStore()
   const { submitCode, isLoadingSubmit } = useSubmitCode()
@@ -100,8 +102,10 @@ export const SubmitButton = () => {
 
           // On n'a plus besoin de récupérer le résultat ici
           await Promise.all(gamificationPromises)
+          
+          // Invalider le cache pour que les onglets se mettent à jour
           queryClient.invalidateQueries({
-            queryKey: ['challengeTabsLockStatus', challenge.id, user.id],
+            queryKey: getQueryKey(challenge.id, user.id, challenge.slug),
           })
         }
       }
