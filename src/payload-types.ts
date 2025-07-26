@@ -85,6 +85,8 @@ export interface Config {
     'user-achievement-progress': UserAchievementProgress;
     challenges: Challenge;
     userChallengeProgression: UserChallengeProgression;
+    comments: Comment;
+    'user-solutions': UserSolution;
     'challenge-submissions': ChallengeSubmission;
     notifications: Notification;
     'challenge-categories': ChallengeCategory;
@@ -129,6 +131,7 @@ export interface Config {
     exercices: Exercice;
     'ai-exercices': AiExercice;
     'challenge-tags': ChallengeTag;
+    'comments-reports': CommentsReport;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -153,6 +156,8 @@ export interface Config {
     'user-achievement-progress': UserAchievementProgressSelect<false> | UserAchievementProgressSelect<true>;
     challenges: ChallengesSelect<false> | ChallengesSelect<true>;
     userChallengeProgression: UserChallengeProgressionSelect<false> | UserChallengeProgressionSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
+    'user-solutions': UserSolutionsSelect<false> | UserSolutionsSelect<true>;
     'challenge-submissions': ChallengeSubmissionsSelect<false> | ChallengeSubmissionsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'challenge-categories': ChallengeCategoriesSelect<false> | ChallengeCategoriesSelect<true>;
@@ -197,6 +202,7 @@ export interface Config {
     exercices: ExercicesSelect<false> | ExercicesSelect<true>;
     'ai-exercices': AiExercicesSelect<false> | AiExercicesSelect<true>;
     'challenge-tags': ChallengeTagsSelect<false> | ChallengeTagsSelect<true>;
+    'comments-reports': CommentsReportsSelect<false> | CommentsReportsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -1228,6 +1234,140 @@ export interface UserChallengeProgression {
    * Whether the solution has been unlocked by the user
    */
   isSolutionUnlocked?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: number;
+  /**
+   * The content of the comment
+   */
+  content: string;
+  /**
+   * The ID of the user who created the comment
+   */
+  authorId: string;
+  /**
+   * The votes for this comment
+   */
+  votes?:
+    | {
+        /**
+         * The ID of the user who voted
+         */
+        userId: string;
+        /**
+         * The type of vote
+         */
+        vote: 'upvote' | 'downvote';
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Whether this comment is a reply
+   */
+  isReply?: boolean | null;
+  /**
+   * Replies to this comment
+   */
+  replies?: (number | Comment)[] | null;
+  /**
+   * Reports for this comment
+   */
+  reports?: (number | CommentsReport)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments-reports".
+ */
+export interface CommentsReport {
+  id: number;
+  /**
+   * Comment of this report
+   */
+  comment?: (number | null) | Comment;
+  userId: string;
+  reason: string;
+  details?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-solutions".
+ */
+export interface UserSolution {
+  id: number;
+  /**
+   * The title of the solution
+   */
+  title: string;
+  /**
+   * A brief description of the solution
+   */
+  description: string;
+  /**
+   * The challenge this solution is for
+   */
+  challenge: number | Challenge;
+  /**
+   * The ID of the user who created the solution
+   */
+  authorId: string;
+  /**
+   * The votes for this solution
+   */
+  votes?:
+    | {
+        /**
+         * The type of vote
+         */
+        status: 'upvote' | 'downvote';
+        /**
+         * The ID of the user who voted
+         */
+        authorId: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Number of times this solution has been viewed
+   */
+  views?: number | null;
+  /**
+   * Tags associated with this solution
+   */
+  tags?: (number | Tag)[] | null;
+  /**
+   * The main content of the solution
+   */
+  content: string;
+  /**
+   * Comments on this solution
+   */
+  comments?: (number | Comment)[] | null;
+  /**
+   * Reports made against this solution
+   */
+  reports?:
+    | {
+        userId: string;
+        reason: string;
+        details?: string | null;
+        createdAt: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * The current status of the solution.
+   */
+  status: 'drafted' | 'published';
   updatedAt: string;
   createdAt: string;
 }
@@ -2465,6 +2605,14 @@ export interface PayloadLockedDocument {
         value: number | UserChallengeProgression;
       } | null)
     | ({
+        relationTo: 'comments';
+        value: number | Comment;
+      } | null)
+    | ({
+        relationTo: 'user-solutions';
+        value: number | UserSolution;
+      } | null)
+    | ({
         relationTo: 'challenge-submissions';
         value: number | ChallengeSubmission;
       } | null)
@@ -2639,6 +2787,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'challenge-tags';
         value: number | ChallengeTag;
+      } | null)
+    | ({
+        relationTo: 'comments-reports';
+        value: number | CommentsReport;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -3088,6 +3240,59 @@ export interface UserChallengeProgressionSelect<T extends boolean = true> {
   rating?: T;
   completionStatus?: T;
   isSolutionUnlocked?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  content?: T;
+  authorId?: T;
+  votes?:
+    | T
+    | {
+        userId?: T;
+        vote?: T;
+        id?: T;
+      };
+  isReply?: T;
+  replies?: T;
+  reports?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-solutions_select".
+ */
+export interface UserSolutionsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  challenge?: T;
+  authorId?: T;
+  votes?:
+    | T
+    | {
+        status?: T;
+        authorId?: T;
+        id?: T;
+      };
+  views?: T;
+  tags?: T;
+  content?: T;
+  comments?: T;
+  reports?:
+    | T
+    | {
+        userId?: T;
+        reason?: T;
+        details?: T;
+        createdAt?: T;
+        id?: T;
+      };
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3880,6 +4085,18 @@ export interface ChallengeTagsSelect<T extends boolean = true> {
   isActive?: T;
   challengeCount?: T;
   displayOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments-reports_select".
+ */
+export interface CommentsReportsSelect<T extends boolean = true> {
+  comment?: T;
+  userId?: T;
+  reason?: T;
+  details?: T;
   updatedAt?: T;
   createdAt?: T;
 }

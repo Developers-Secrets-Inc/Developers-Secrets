@@ -70,7 +70,6 @@ const Layout = async ({
     getRandomChallenge({ challengeId: challenge.value.id }),
   ])
 
-  console.log(previousChallenge, nextChallenge, randomChallenge)
   if (isNone(previousChallenge) || isNone(nextChallenge) || isNone(randomChallenge))
     throw new Error('Navigation challenges not found')
 
