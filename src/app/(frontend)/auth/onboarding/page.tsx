@@ -4,9 +4,8 @@ import {
   GoalsAndTechnologiesCard,
 } from '@/core/onboarding/components'
 import { getUser } from '@/core/user'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
-// Import necessary components for the button and tooltip
 import { DialogTooltip } from './components/dialog-tooltip'
 
 export default async function OnboardingPage({
@@ -18,7 +17,7 @@ export default async function OnboardingPage({
   const user = await getUser()
 
   if (!user) {
-    return notFound() // TODO: Redirect to login page (/auth/login || /auth/signup)
+    return redirect('/auth/login') // TODO: Redirect to login page (/auth/login || /auth/signup)
   }
 
   const stepCards: Record<number, React.ReactNode> = {

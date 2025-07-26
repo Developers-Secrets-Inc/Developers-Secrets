@@ -11,7 +11,7 @@ export const DialogTooltip = ({ userId }: { userId: string }) => {
         variant="outline"
         size="icon"
         aria-label="Skip onboarding"
-        className="absolute top-4 right-4"
+        className="absolute size-8 top-2 right-2"
       >
         <TooltipProvider>
           <Tooltip>
@@ -20,7 +20,7 @@ export const DialogTooltip = ({ userId }: { userId: string }) => {
                 <LogOutIcon size={16} aria-hidden="true" className="text-muted-foreground" />
               </span>
             </TooltipTrigger>
-            <TooltipContentCustom className="px-2 py-1 text-xs z-20" side="left">
+            <TooltipContentCustom className="text-xs z-20" side="bottom">
               Skip Onboarding
             </TooltipContentCustom>
           </Tooltip>
