@@ -1197,6 +1197,22 @@ export interface AiExercice {
     }[];
     id?: string | null;
   }[];
+  /**
+   * Prompts for the AI exercice
+   */
+  prompts?:
+    | {
+        /**
+         * Title of the prompt
+         */
+        title: string;
+        /**
+         * Content of the prompt
+         */
+        content: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -4067,6 +4083,13 @@ export interface AiExercicesSelect<T extends boolean = true> {
               expectedOutput?: T;
               id?: T;
             };
+        id?: T;
+      };
+  prompts?:
+    | T
+    | {
+        title?: T;
+        content?: T;
         id?: T;
       };
   updatedAt?: T;

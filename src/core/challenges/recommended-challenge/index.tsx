@@ -1,11 +1,8 @@
-import { LinkButton } from '@/components/common/link-button'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
-import { ChallengeDifficultyBadge } from './difficulty-badge'
-import { Trophy } from 'lucide-react'
 // import { getRandomUncompletedChallenge } from '@/core/skills/recommendations'
+import { getRandomUncompletedChallenge } from '@/api/challenges'
 import { Skeleton } from '@/components/ui/skeleton'
 import { RecommendedChallengeClient } from './recommended-challenge.client'
-import { getRandomUncompletedChallenge } from '@/api/challenges'
 
 export const RecommendedChallengeCard = ({ children }: { children: React.ReactNode }) => {
   return (

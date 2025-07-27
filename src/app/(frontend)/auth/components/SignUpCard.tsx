@@ -124,7 +124,7 @@ export function SignUpCard({ onSubmit }: SignUpCardProps) {
         setErrorToastOpen(true)
       } else {
         await queryClient.invalidateQueries({ queryKey: ['sessionUser'] })
-        router.push('/home')
+        router.push('/challenges')
       }
     } catch (error: any) {
       if (!error.digest?.startsWith('NEXT_REDIRECT')) {

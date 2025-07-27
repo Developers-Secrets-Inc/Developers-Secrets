@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { AiExercice, Exercice } from '@/payload-types'
 import { OutputContent } from '@/core/compiler/code-editor/components/output-content'
 import { SubmitButton } from './submit-button'
+import { SubmitButton as AISubmitButton } from '@/api/exercices/ai/components/ai-exercice-submit-button'
 import { TestResults } from '../submissions/components/test-results'
 // Types pour la nouvelle structure de fichiers (alignés avec Payload CMS)
 type FileStructureItem = {
@@ -184,7 +185,7 @@ export const ChallengeExercice = ({ exercice }: { exercice: Exercice | AiExercic
             </CodeEditor.Header.LeftPart>
             <CodeEditor.Header.RightPart>
               <CodeEditor.RunButton />
-              <SubmitButton />
+              {'prompts' in exercice ? <AISubmitButton /> : <SubmitButton />}
             </CodeEditor.Header.RightPart>
           </CodeEditor.Header.Container>
           <CodeEditor.FileBreadcrumb />

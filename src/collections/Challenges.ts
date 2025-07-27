@@ -23,6 +23,11 @@ export const Challenges: CollectionConfig = {
   versions: {
     drafts: true,
   },
+  access: {
+    read: () => true,
+    create: () => true
+
+  },
   fields: [
     {
       name: 'title',

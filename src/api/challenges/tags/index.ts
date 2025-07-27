@@ -2,6 +2,7 @@
 
 import { query } from '@/core/functions'
 import { none, some } from '@/lib/maybe'
+import { TIME } from '@/lib/time'
 import 'server-only'
 import z from 'zod'
 
@@ -19,6 +20,7 @@ export const getChallengeTagBySlug = query({
 
         return documents.docs[0] ? some(documents.docs[0]) : none()
     },
+    revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY
 }) 
 
 export const getChallengeTagProgression = query({
@@ -28,3 +30,16 @@ export const getChallengeTagProgression = query({
         // get all challenges from tag and get their progression status
     },
 }) 
+
+
+export const getTagsLinkInformations = query({
+    name: 'tags-link-informations',
+    handler: async (ctx, _) => {
+        const documents = await ctx.payload.find({
+            collection: 'challenge-tags',
+            select: {name: true, slug: true, challengeCount: true}
+        })
+
+        return documents.docs
+    }
+})

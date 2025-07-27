@@ -1,4 +1,5 @@
 import { RecommendedChallenge } from '@/core/challenges/recommended-challenge'
+import { DevSettingsBubble } from '@/core/dev/components/settings'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
@@ -6,10 +7,9 @@ import { ChallengeCategories } from './components/challenge-categories'
 import { DivisionLeaderboardCard } from './components/challenges-leaderboard'
 import { ChallengesTable, TableSkeleton } from './components/challenges-table'
 import { UserProfile, UserProfileCardSkeleton } from './components/user-profile'
-import { DevSettingsBubble } from '@/core/dev/components/settings'
-import { getRandomChallengeId } from '@/api/challenges/recommandations'
-
-
+import { getTagsLinkInformations } from '@/api/challenges/tags'
+import { TagsLists } from '@/api/challenges/tags/components/tags-list'
+import { AdminComponent } from '@/core/user/components/admin-component'
 
 export default async function ChallengesPage() {
   const user = await getUser()
@@ -18,7 +18,7 @@ export default async function ChallengesPage() {
     redirect('/auth/login')
   }
 
-  console.log("Here's a random challenge", await getRandomChallengeId())
+  const tags = await getTagsLinkInformations()
 
   return (
     <>
@@ -26,7 +26,9 @@ export default async function ChallengesPage() {
         <div className="flex gap-6 p-6 h-full">
           <div className="flex-1 flex flex-col gap-6 max-w-[800px]">
             <RecommendedChallenge userId={user.id} />
-            {/* {process.env.NODE_ENV === 'development' && <LearningPathCarousel />} */}
+            <AdminComponent>
+              <TagsLists tags={tags} />
+            </AdminComponent>
             <ChallengeCategories />
             <Suspense fallback={<TableSkeleton />}>
               <ChallengesTable userId={user.id} />
@@ -38,8 +40,6 @@ export default async function ChallengesPage() {
             </Suspense>
             <DivisionLeaderboardCard />
           </div>
-      {/* <QuestCompletionSonner /> */}
-
         </div>
       </div>
       <DevSettingsBubble />

@@ -46,6 +46,7 @@ const Layout = async ({
     getUser(),
   ])
 
+
   if (isFailure(user)) {
     return redirect('/auth/login')
   }
