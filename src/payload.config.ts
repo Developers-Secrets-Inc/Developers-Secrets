@@ -14,6 +14,7 @@ import { ChallengeCategory } from './collections/ChallengeCategory'
 import { Challenges } from './collections/Challenges'
 import { ChallengeSubmissions } from './collections/ChallengeSubmissions'
 import { Comments } from './collections/Comments'
+import { CommentsReports } from './collections/CommentsReports'
 import { Concepts } from './collections/Concepts'
 import { Divisions } from './collections/Divisions'
 import { ExperienceLogs } from './collections/ExperienceLogs'
@@ -65,6 +66,13 @@ import { UserAIUsage } from './collections/UserAIUsage'
 import { UserAICredits } from './collections/UserAICredits'
 import { ChatHistories } from './collections/ChatHistories'
 import { s3Storage } from '@payloadcms/storage-s3'
+import { ChallengeRating } from './collections/ChallengeRating'
+import { ChallengesRatings } from './collections/ChallengeRatings'
+import { ChallengeEngagement } from './collections/ChallengeEngagement'
+import { ChallengesEngagement } from './collections/ChallengesEngagement'
+import { Exercices } from './collections/Exercices'
+import AIExercices from './collections/AIExercices'
+import { ChallengeTag } from './collections/ChallengeTag'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -134,6 +142,14 @@ export default buildConfig({
     UserAIUsage,
     UserAICredits,
     ChatHistories,
+    ChallengeRating,
+    ChallengesRatings,
+    ChallengeEngagement,
+    ChallengesEngagement,
+    Exercices,
+    AIExercices,
+    ChallengeTag,
+    CommentsReports,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

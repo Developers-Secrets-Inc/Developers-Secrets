@@ -7,6 +7,9 @@ import { DivisionLeaderboardCard } from './components/challenges-leaderboard'
 import { ChallengesTable, TableSkeleton } from './components/challenges-table'
 import { UserProfile, UserProfileCardSkeleton } from './components/user-profile'
 import { DevSettingsBubble } from '@/core/dev/components/settings'
+import { getRandomChallengeId } from '@/api/challenges/recommandations'
+
+
 
 export default async function ChallengesPage() {
   const user = await getUser()
@@ -14,6 +17,8 @@ export default async function ChallengesPage() {
   if (!user) {
     redirect('/auth/login')
   }
+
+  console.log("Here's a random challenge", await getRandomChallengeId())
 
   return (
     <>

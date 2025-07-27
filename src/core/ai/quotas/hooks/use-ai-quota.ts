@@ -16,14 +16,13 @@ const quotaKeys = {
   role: (userId: string) => [...quotaKeys.all, userId, 'role'],
 }
 
-export const useAIQuota = () => {
-  const { user } = useSessionUser()
-  const userId = user?.id
+export const useAIQuota = (userId: string, initialData: number) => {
   const queryClient = useQueryClient()
 
   const { data: remaining, isLoading: isLoadingRemaining } = useQuery({
     queryKey: quotaKeys.details(userId!),
     queryFn: () => getRemainingMessagesForToday(userId!),
+    initialData: initialData,
     enabled: !!userId,
   })
 

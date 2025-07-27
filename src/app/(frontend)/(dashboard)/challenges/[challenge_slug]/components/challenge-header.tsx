@@ -12,7 +12,7 @@ type ChallengeHeaderProps = {
 
 export const ChallengeHeader = ({ challenge }: ChallengeHeaderProps) => {
   return (
-    <div className="mb-6 border-b pb-4">
+    <div className="mb-6 border-b">
       <div className="flex justify-between items-center mb-4">
         <ChallengeTitle title={challenge.title} />
         <div className="flex items-center gap-2">
@@ -27,7 +27,7 @@ export const ChallengeHeader = ({ challenge }: ChallengeHeaderProps) => {
 
 const ChallengeHeaderTags = async ({ challenge }: { challenge: PayloadChallenge }) => {
   const concepts = await getChallengeConcepts(challenge.id)
-  const conceptProgressions = concepts.conceptProgressions ?? []
+  const conceptProgressions = concepts?.conceptProgressions ?? []
 
   return (
     <div className="flex justify-between items-center flex-wrap mb-4">

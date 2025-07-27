@@ -1,4 +1,5 @@
 import { toast } from 'sonner'
+import { FileStructureForExecution, FileInfo } from './utils/file-structure'
 
 // Types
 export type CompilationResult = {
@@ -207,7 +208,6 @@ export const testCode = async (code: Code, tests: Test[]): Promise<TestResult[]>
 
   for (const test of tests) {
     const mergedCode = mergeCode(code, test.input)
-    console.log(mergedCode)
     const result = await compileCode(mergedCode.content, mergedCode.language)
 
     results.push({
@@ -217,4 +217,151 @@ export const testCode = async (code: Code, tests: Test[]): Promise<TestResult[]>
   }
 
   return results
+}
+
+// Python compilation with file structure using Pyodide
+const compilePythonWithFileStructure = async (
+  fileStructure: FileStructureForExecution,
+): Promise<CompilationResult> => {
+  if (!isBrowser) {
+    return {
+      success: false,
+      output: '',
+      error: 'Python execution is only available in the browser',
+    }
+  }
+
+  try {
+    // Load a new Pyodide instance for each run to ensure a clean state
+    // @ts-expect-error - loadPyodide is not defined on globalThis in TS context, but it will be at runtime
+    const pyodide = await globalThis.loadPyodide({
+      indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/',
+    })
+
+    // Redirect stdout to capture print statements
+    pyodide.setStdout({
+      batched: (output: string) => {
+        ;(pyodide as any)._capturedOutput = (pyodide as any)._capturedOutput
+          ? (pyodide as any)._capturedOutput + output + '\n'
+          : output + '\n'
+      },
+    })
+
+    // Create all files in the virtual file system
+    for (const file of fileStructure.files) {
+      
+      // Ensure directory exists
+      const pathParts = file.path.split('/')
+      const fileName = pathParts.pop()
+      const dirPath = pathParts.join('/')
+
+      if (dirPath && dirPath !== '/') {
+        try {
+          // Create directory recursively
+          pyodide.FS.mkdirTree(dirPath)
+        } catch (e) {
+          // Directory might already exist, ignore error
+        }
+      }
+
+      // Write file content
+      pyodide.FS.writeFile(file.path, file.content)
+    }
+    
+    // List files to verify they were created
+
+    // Change to root directory to ensure modules can be found
+    pyodide.FS.chdir('/')
+
+    // Execute the main file
+    if (fileStructure.mainFile) {
+
+      // Execute the main file using exec with proper file context
+      const mainFileContent = pyodide.FS.readFile(fileStructure.mainFile.path, { encoding: 'utf8' })
+      
+      // Set __file__ variable to help Python resolve imports
+      await pyodide.runPythonAsync(`
+import sys
+sys.path.insert(0, '/')
+__file__ = '${fileStructure.mainFile.path}'
+exec('''${mainFileContent.replace(/'/g, "\\'").replace(/\\/g, "\\\\")}''')
+`)
+    } else {
+      // If no main file, execute the first Python file
+      const firstPythonFile = fileStructure.files.find((f) => f.path.endsWith('.py'))
+      if (firstPythonFile) {
+        await pyodide.runPythonAsync(firstPythonFile.content)
+      } else {
+        throw new Error('No Python files found to execute')
+      }
+    }
+
+    // Get the captured stdout
+    let output: string = (pyodide as any)._capturedOutput || ''
+    output = output.trim()
+
+    return {
+      success: true,
+      output,
+    }
+  } catch (error) {
+    let errorMessage = error instanceof Error ? error.message : String(error)
+
+    if (errorMessage.includes('PythonError:')) {
+      const errorLines = errorMessage.split('\n')
+      const pythonErrorLine = errorLines.find(
+        (line) => line.includes('PythonError:') && !line.includes('Traceback'),
+      )
+      if (pythonErrorLine) {
+        errorMessage = pythonErrorLine.replace('PythonError:', '').trim()
+      }
+    }
+
+    return {
+      success: false,
+      output: '',
+      error: errorMessage,
+    }
+  }
+}
+
+// Main function to compile file structure
+export async function compileFileStructure(
+  fileStructure: FileStructureForExecution,
+): Promise<CompilationResult> {
+  if (!isBrowser) {
+    return {
+      success: false,
+      output: '',
+      error: 'Code compilation is only available in the browser',
+    }
+  }
+
+  try {
+    // Determine the primary language from the main file or first file
+    const mainFile = fileStructure.mainFile || fileStructure.files[0]
+    if (!mainFile) {
+      return {
+        success: false,
+        output: '',
+        error: 'No files provided for execution',
+      }
+    }
+
+    // For now, only support Python with file structures
+    // JavaScript and TypeScript multi-file support can be added later
+    if (mainFile.language === 'python' || mainFile.path.endsWith('.py')) {
+      return await compilePythonWithFileStructure(fileStructure)
+    } else {
+      // Fallback to single file compilation for other languages
+      return await compileCode(mainFile.content, mainFile.language || 'python')
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    return {
+      success: false,
+      output: '',
+      error: errorMessage,
+    }
+  }
 }

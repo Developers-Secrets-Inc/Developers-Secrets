@@ -7,6 +7,7 @@ import { RootProvider } from 'fumadocs-ui/provider'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {

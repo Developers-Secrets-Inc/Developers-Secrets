@@ -1,0 +1,102 @@
+'use client'
+
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import type { Challenge } from '@/payload-types'
+import type { ChallengeAiChat } from '@/payload-types'
+import { PearlChatInterface } from './pearl-chat-interface'
+import { useChallengeUIStore } from '@/core/challenges/stores/challenge-ui-store'
+import { ChatParameters } from './pearl-chat-parameters'
+import { usePearlChat } from '../../hooks/use-pearl-chat'
+import { useChallengeEditorStore } from '@/core/compiler/challenge-editor/store'
+import { useSolutionUnlockStatus } from '@/core/challenges/hooks/use-solution-queries'
+import React from 'react'
+import { QuotaBadge } from '@/core/ai/quotas/components/quota-badge'
+import { useAIQuota } from '@/core/ai/quotas/hooks/use-ai-quota'
+import { Message } from 'ai'
+import { useChallenge } from '@/api/challenges/contexts/challenge-context'
+import { useUser } from '@/core/users/contexts/user-context'
+import { useEditorStore } from '@/core/compiler/code-editor/store/editor-store'
+
+interface SheetPearlViewProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function SheetPearlView({
+  isOpen,
+  onClose,
+}: SheetPearlViewProps) {
+  const { viewMode, setViewMode } = useChallengeUIStore()
+  const { challenge, metadata } = useChallenge()
+  const { user } = useUser()
+
+  // const { currentLanguage, codeByLanguage } = useChallengeEditorStore()
+  const { fileTree } = useEditorStore()
+  // const currentCode = codeByLanguage[currentLanguage] || ''
+  // const { data: isSolutionUnlocked = false } = useSolutionUnlockStatus(
+  //   challengeAIChat.userId,
+  //   challenge.id,
+  // )
+
+  const { messages: clientMessages, input, handleInputChange, handleSubmit, reset } = usePearlChat({
+    challengeAIChat: metadata.challengeAiChat,
+    initialMessages: metadata.messages,
+  })
+
+  const { canSend, isLoading: isQuotaLoading, increment } = useAIQuota(user.id, metadata.quotas)
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!canSend) {
+      e.preventDefault()
+      return
+    }
+    increment()
+    handleSubmit(e, {
+      body: {
+        challengeContext: {
+          title: challenge.title,
+          difficulty: challenge.difficulty,
+          description: challenge.description,
+          hints: challenge.description?.hints,
+          officialSolution: challenge.officialSolution,
+        },
+        userContext: {
+          fileTree: fileTree,
+          // isSolutionUnlocked: 'isSolutionUnlocked',
+        },
+      },
+    })
+  }
+
+  return (
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
+    >
+      <SheetContent side="right" className="p-0 flex flex-col h-full max-w-lg w-full min-w-lg">
+        <SheetHeader className="p-4 border-b flex flex-row items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ChatParameters
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              onResetChat={reset}
+            />
+            <SheetTitle>Pearl</SheetTitle>
+          </div>
+          <div className="flex items-center gap-2">
+            <QuotaBadge userId={user.id} quotas={metadata.quotas}/>
+          </div>
+        </SheetHeader>
+        <PearlChatInterface
+          messages={clientMessages}
+          input={input}
+          handleInputChange={handleInputChange}
+          handleFormSubmit={handleFormSubmit}
+          isDisabled={!canSend || isQuotaLoading}
+        />
+      </SheetContent>
+    </Sheet>
+  )
+}

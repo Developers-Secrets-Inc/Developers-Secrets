@@ -53,5 +53,4 @@ export function ConfirmationDialog({ title, description, onConfirm, onCancel }: 
   )
 }
 
-
 // TODO: This component is not challenge navigation specific. It should be extracted as a common component.

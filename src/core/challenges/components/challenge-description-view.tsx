@@ -12,6 +12,8 @@ import {
 import { ChallengeReactionButtons } from '@/core/challenges/components/reaction-buttons'
 import { RatingText } from '@/components/rating-dialog'
 import { PearlToggleButton } from '@/core/challenges/components/pearl/pearl-toggle-button'
+import { useChallengeStore } from '../store'
+import { EngagementButtons } from '@/api/challenges/engagement/components/engagement-buttons'
 
 function LoadingPlaceholder() {
   return <div className="animate-pulse p-6 bg-background/50 rounded-md h-[200px]"></div>
@@ -22,6 +24,8 @@ interface ChallengeDescriptionViewProps {
 }
 
 export function ChallengeDescriptionView({ children }: ChallengeDescriptionViewProps) {
+  const { user, challenge } = useChallengeStore()
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">
@@ -30,8 +34,12 @@ export function ChallengeDescriptionView({ children }: ChallengeDescriptionViewP
 
       <ChallengeFooterContainer>
         <ChallengeFooterLeftPart>
-          <ChallengeReactionButtons />
-          <RatingText />
+          {user && challenge && (
+            <>
+              {/* <EngagementButtons userId={user.id} challengeId={challenge.id} /> */}
+              <RatingText />
+            </>
+          )}
         </ChallengeFooterLeftPart>
         <PearlToggleButton />
       </ChallengeFooterContainer>

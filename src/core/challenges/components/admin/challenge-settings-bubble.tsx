@@ -8,9 +8,7 @@ import { cn } from '@/lib/utils'
 import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Settings } from 'lucide-react'
 
-interface ChallengeSettingsBubbleProps {
-  challenge: Challenge
-}
+
 
 export function ChallengeSettingsBubble({ challenge }: ChallengeSettingsBubbleProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)

@@ -1,13 +1,12 @@
 'use client'
 
+import { DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { Challenge } from '@/payload-types'
 import { useState } from 'react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
-import { Settings } from 'lucide-react'
 import { ChallengeDescriptionDialog } from './challenge-description-dialog'
 import { ChallengeSolutionDialog } from './challenge-solution-dialog'
 import { ChallengeTestsDialog } from './challenge-tests-dialog'
-import { Challenge } from '@/payload-types'
+import { useChallengeUIStore } from '@/api/challenges/stores/challenge-ui-store'
 
 interface SettingsBubbleMenuProps {
   challenge: Challenge
@@ -17,16 +16,7 @@ export function SettingsBubbleMenu({ challenge }: SettingsBubbleMenuProps) {
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false)
   const [isSolutionDialogOpen, setIsSolutionDialogOpen] = useState(false)
   const [isTestsDialogOpen, setIsTestsDialogOpen] = useState(false)
-
-  const handleSaveDescription = (newDescription: string) => {
-    // Logic to save description (will be handled by the hook in the dialog)
-    console.log('Saving new description:', newDescription)
-  }
-
-  const handleSaveSolution = (newSolution: string) => {
-    // Logic to save solution (will be handled by the hook in the dialog)
-    console.log('Saving new solution:', newSolution)
-  }
+  const { openCompletionDialog } = useChallengeUIStore()
 
   return (
     <>
@@ -51,6 +41,12 @@ export function SettingsBubbleMenu({ challenge }: SettingsBubbleMenuProps) {
               setIsTestsDialogOpen(true)
             }}>
               Edit Tests
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={(event) => {
+              event.preventDefault()
+              openCompletionDialog()
+            }}>
+              Open completion dialog
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>

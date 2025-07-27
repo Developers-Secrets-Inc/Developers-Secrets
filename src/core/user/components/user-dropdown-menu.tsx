@@ -11,15 +11,34 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { UserAvatar } from '@/core/user/components/user-avatar'
+import { useUser } from '@/core/users/hooks/use-user'
 import { User } from '@/types/user'
 import { LockIcon, LogOutIcon, PinIcon, UserPenIcon } from 'lucide-react'
 import { useState } from 'react'
 import { LogoutConfirmationDialog } from './dialogs/logout-confirmation-dialog'
 import { SettingsDialog } from './dialogs/settings-dialog'
 
-export const UserDropdownMenu = ({ user }: { user: User }) => {
+export const UserDropdownMenu = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [showSettingsDialog, setShowSettingsDialog] = useState(false)
+
+  const { user, isLoading, isError, error } = useUser()
+
+  if (isLoading) {
+    return (
+      <Button variant="ghost" className="h-auto p-0 hover:bg-transparent" disabled>
+        <span className="animate-pulse w-8 h-8 rounded-full bg-muted" />
+      </Button>
+    )
+  }
+
+  if (isError || !user) {
+    return (
+      <Button variant="ghost" className="h-auto p-0 hover:bg-transparent" disabled>
+        <span className="text-xs text-muted-foreground">User unavailable</span>
+      </Button>
+    )
+  }
 
   return (
     <>
@@ -28,8 +47,8 @@ export const UserDropdownMenu = ({ user }: { user: User }) => {
           <Button variant="ghost" className="h-auto p-0 hover:bg-transparent">
             <UserAvatar
               user={{
-                avatarUrl: user.informations.avatar,
-                initials: user.informations.initials,
+                avatarUrl: user.informations.avatar ?? '',
+                initials: user.informations.initials ?? '',
               }}
               className="cursor-pointer"
             />
@@ -40,7 +59,9 @@ export const UserDropdownMenu = ({ user }: { user: User }) => {
             <span className="text-foreground truncate text-sm font-medium">
               {user.informations.name}
             </span>
-            <span className="text-muted-foreground truncate text-xs font-normal">{user.email}</span>
+            <span className="text-muted-foreground truncate text-xs font-normal">
+              {user.email ?? ''}
+            </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
@@ -73,11 +94,14 @@ export const UserDropdownMenu = ({ user }: { user: User }) => {
         setShowLogoutDialog={setShowLogoutDialog}
       />
 
-      <SettingsDialog
+      {/* <SettingsDialog
         showSettingsDialog={showSettingsDialog}
         setShowSettingsDialog={setShowSettingsDialog}
         user={user}
-      />
+      /> */}
     </>
   )
 }
+
+
+

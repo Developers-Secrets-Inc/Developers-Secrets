@@ -4,6 +4,8 @@ import { useChallengeUserStatus } from '@/core/challenges/hooks/use-challenge-us
 import { CheckCircle, Circle, CircleDot } from 'lucide-react'
 import { CompletionStatus } from '@/core/challenges/user-progression/types'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useUser } from '@/core/users/contexts/user-context'
+import { getCompletionStatus } from '@/core/challenges/user-progression/completion-status'
 
 const statusConfig: Record<
   CompletionStatus,
@@ -26,13 +28,16 @@ const statusConfig: Record<
   },
 }
 export const ChallengeStatus = ({ challengeId }: { challengeId: number }) => {
-  const { status: visualStatus, isLoading: isLoadingStatus } = useChallengeUserStatus(challengeId)
+  const { user } = useUser()
+  const { status: visualStatus, isLoading: isLoadingStatus } = useChallengeUserStatus(challengeId, user.id)
+
+  console.log(visualStatus)
 
   if (isLoadingStatus) {
     return <Skeleton className="h-5 w-24" />
   }
 
-  const { icon, color, label } = statusConfig[visualStatus]
+  const { icon, color, label } = statusConfig[visualStatus ?? 'not_started']
 
   return (
     <div className={`flex items-center gap-1.5 text-${color}-500`}>

@@ -1,9 +1,8 @@
 'use client'
 
-import { useChallengeEditorStore } from '@/core/compiler/challenge-editor/store'
-
 import { DialogPage, MultiPageDialog } from '@/components/multi-pages-dialog'
 import { useChallengeTimer } from '../../hooks/use-challenge-timer'
+import { useChallengeUIStore } from '@/api/challenges/stores/challenge-ui-store'
 
 
 
@@ -14,7 +13,7 @@ export function NewChallengeSuccessDialog({
   challengeId: number
   pages: DialogPage[]
 }) {
-  const { showCompletionDialog, closeCompletionDialog } = useChallengeEditorStore()
+  const { isCompletionDialogOpen, closeCompletionDialog } = useChallengeUIStore()
   const { stopTimer } = useChallengeTimer(challengeId)
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -27,6 +26,6 @@ export function NewChallengeSuccessDialog({
 
 
   return (
-    <MultiPageDialog open={showCompletionDialog} onOpenChange={handleOpenChange} pages={pages} />
+    <MultiPageDialog open={isCompletionDialogOpen} onOpenChange={handleOpenChange} pages={pages} />
   )
 }

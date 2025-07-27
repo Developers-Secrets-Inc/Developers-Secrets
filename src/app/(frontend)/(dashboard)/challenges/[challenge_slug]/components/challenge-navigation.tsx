@@ -23,8 +23,6 @@ type Tab = {
   requiresConfirmation: boolean
 }
 
-
-
 function useTabsConfiguration(challengeSlug: string, pathname: string, unlockedPaths: string[]) {
   return useMemo(
     () => [

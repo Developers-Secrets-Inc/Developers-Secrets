@@ -19,8 +19,6 @@ export default async function BlogPage() {
       <HomeHeader />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Blog</h1>
-
-        {articles.length === 0 ? (
           <Card className="col-span-full flex flex-col items-center justify-center border-dashed p-12 text-center">
             <div className="rounded-full bg-primary/10 p-4">
               <PlusIcon className="h-8 w-8 text-primary" />
@@ -42,9 +40,7 @@ export default async function BlogPage() {
               </div>
             )}
           </Card>
-        ) : (
-          <ArticlesGrid articles={articles} />
-        )}
+        
       </div>
     </div>
   )

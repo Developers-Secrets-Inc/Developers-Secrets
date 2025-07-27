@@ -124,6 +124,14 @@ export interface Config {
     'user-ai-usage': UserAiUsage;
     'user-ai-credits': UserAiCredit;
     'chat-histories': ChatHistory;
+    'challenge-rating': ChallengeRating;
+    'challenges-ratings': ChallengesRating;
+    'challenge-engagement': ChallengeEngagement;
+    'challenges-engagement': ChallengesEngagement;
+    exercices: Exercice;
+    'ai-exercices': AiExercice;
+    'challenge-tags': ChallengeTag;
+    'comments-reports': CommentsReport;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -187,6 +195,14 @@ export interface Config {
     'user-ai-usage': UserAiUsageSelect<false> | UserAiUsageSelect<true>;
     'user-ai-credits': UserAiCreditsSelect<false> | UserAiCreditsSelect<true>;
     'chat-histories': ChatHistoriesSelect<false> | ChatHistoriesSelect<true>;
+    'challenge-rating': ChallengeRatingSelect<false> | ChallengeRatingSelect<true>;
+    'challenges-ratings': ChallengesRatingsSelect<false> | ChallengesRatingsSelect<true>;
+    'challenge-engagement': ChallengeEngagementSelect<false> | ChallengeEngagementSelect<true>;
+    'challenges-engagement': ChallengesEngagementSelect<false> | ChallengesEngagementSelect<true>;
+    exercices: ExercicesSelect<false> | ExercicesSelect<true>;
+    'ai-exercices': AiExercicesSelect<false> | AiExercicesSelect<true>;
+    'challenge-tags': ChallengeTagsSelect<false> | ChallengeTagsSelect<true>;
+    'comments-reports': CommentsReportsSelect<false> | CommentsReportsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -912,6 +928,18 @@ export interface Challenge {
    */
   slug: string;
   /**
+   * Linked exercice (AI or classic)
+   */
+  exercice?:
+    | ({
+        relationTo: 'exercices';
+        value: number | Exercice;
+      } | null)
+    | ({
+        relationTo: 'ai-exercices';
+        value: number | AiExercice;
+      } | null);
+  /**
    * The difficulty level of the challenge
    */
   difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible';
@@ -920,45 +948,6 @@ export interface Challenge {
    */
   baseExperience?: number | null;
   /**
-   * User ratings for this challenge
-   */
-  ratings?: {
-    /**
-     * Sum of all rating points
-     */
-    total?: number | null;
-    /**
-     * Number of ratings received
-     */
-    count?: number | null;
-    /**
-     * Average rating (0-5)
-     */
-    average?: number | null;
-  };
-  /**
-   * Programming concepts covered by this challenge
-   */
-  concepts?:
-    | {
-        concept: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Challenge engagement metrics
-   */
-  engagement?: {
-    /**
-     * Number of likes received
-     */
-    likes?: number | null;
-    /**
-     * Number of dislikes received
-     */
-    dislikes?: number | null;
-  };
-  /**
    * Challenge description and problem statement
    */
   description: {
@@ -966,27 +955,6 @@ export interface Challenge {
      * Problem statement and challenge description
      */
     statement: string;
-    /**
-     * Statistics about challenge submissions
-     */
-    submissionStats?: {
-      /**
-       * Number of accepted solutions
-       */
-      acceptedSolutions?: number | null;
-      /**
-       * Number of failed solutions
-       */
-      failedSolutions?: number | null;
-      /**
-       * Total number of submissions
-       */
-      totalSubmissions?: number | null;
-      /**
-       * Percentage of accepted submissions (0-100)
-       */
-      acceptanceRate?: number | null;
-    };
     /**
      * Helpful hints for solving the challenge
      */
@@ -1008,10 +976,6 @@ export interface Challenge {
           id?: string | null;
         }[]
       | null;
-    /**
-     * Comments on this challenge description
-     */
-    comments?: (number | Comment)[] | null;
   };
   /**
    * The official solution for this challenge
@@ -1021,110 +985,6 @@ export interface Challenge {
      * The content of the official solution
      */
     statement: string;
-    /**
-     * Comments on this official solution
-     */
-    comments?: (number | Comment)[] | null;
-  };
-  /**
-   * Solutions submitted by users for this challenge
-   */
-  userSolutions?: (number | UserSolution)[] | null;
-  /**
-   * Submissions made by users for this challenge
-   */
-  submissions?:
-    | {
-        /**
-         * Type of submission result
-         */
-        submissionType: 'accepted' | 'runtimeError' | 'wrongAnswer' | 'timeLimitExceeded';
-        /**
-         * ID of the user who made this submission
-         */
-        authorId: string;
-        /**
-         * Number of test cases passed
-         */
-        testsPassed: number;
-        /**
-         * Total number of test cases
-         */
-        testsTotal: number;
-        /**
-         * When this submission was made
-         */
-        createdAt?: string | null;
-        /**
-         * Error message (for Runtime Error submissions)
-         */
-        error?: string | null;
-        /**
-         * Test case input (for Wrong Answer submissions)
-         */
-        input?: string | null;
-        /**
-         * User's output (for Wrong Answer submissions)
-         */
-        output?: string | null;
-        /**
-         * Expected output (for Wrong Answer submissions)
-         */
-        expectedOutput?: string | null;
-        /**
-         * Last expected output parameters (for Runtime Error and Time Limit Exceeded submissions)
-         */
-        lastExpectedOutput?:
-          | {
-              param: string;
-              value: string;
-              id?: string | null;
-            }[]
-          | null;
-        /**
-         * The submitted code
-         */
-        code: {
-          /**
-           * Programming language of the submission
-           */
-          language: string;
-          /**
-           * The code content
-           */
-          content: string;
-        };
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Code related information for this challenge (Legacy field - Use codeVersions instead)
-   */
-  code?: {
-    /**
-     * Default programming language for the challenge
-     */
-    language?: string | null;
-    /**
-     * Initial code provided to users
-     */
-    initialCode?: string | null;
-    /**
-     * Test cases for validating solutions
-     */
-    testCases?:
-      | {
-          /**
-           * Input data for the test case
-           */
-          input: string;
-          /**
-           * Expected output for this test case
-           */
-          expectedOutput: string;
-          id?: string | null;
-        }[]
-      | null;
   };
   /**
    * Different programming language versions of this challenge
@@ -1168,6 +1028,217 @@ export interface Challenge {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exercices".
+ */
+export interface Exercice {
+  id: number;
+  /**
+   * The title of the exercice
+   */
+  title: string;
+  /**
+   * The difficulty level of the exercice
+   */
+  difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible';
+  /**
+   * Helpful hints for solving the exercice
+   */
+  hints?:
+    | {
+        content: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Supported languages for this exercice
+   */
+  languages: {
+    language: 'python' | 'javascript' | 'typescript';
+    /**
+     * Files and folders structure for this language
+     */
+    fileStructure?:
+      | {
+          /**
+           * Whether this is a folder or a file
+           */
+          type: 'folder' | 'file';
+          /**
+           * Name of the file or folder
+           */
+          name: string;
+          /**
+           * ID of the parent folder (leave empty for root level)
+           */
+          parentId?: string | null;
+          /**
+           * Programming language of the file
+           */
+          language?: ('python' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'markdown' | 'text') | null;
+          /**
+           * Initial content of the file
+           */
+          content?: string | null;
+          /**
+           * Whether this file is read-only
+           */
+          isReadOnly?: boolean | null;
+          /**
+           * Whether this file is hidden from the user
+           */
+          isHidden?: boolean | null;
+          /**
+           * Whether this is the main file where users write their solution
+           */
+          isMainFile?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Test cases for validating solutions in this language
+     */
+    testCases: {
+      /**
+       * Input data for the test case
+       */
+      input: string;
+      /**
+       * Expected output for this test case
+       */
+      expectedOutput: string;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-exercices".
+ */
+export interface AiExercice {
+  id: number;
+  /**
+   * The title of the AI exercice
+   */
+  title: string;
+  /**
+   * The difficulty level of the AI exercice
+   */
+  difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'horrible';
+  /**
+   * Helpful hints for solving the AI exercice
+   */
+  hints?:
+    | {
+        content: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Supported languages for this AI exercice
+   */
+  languages: {
+    language: 'python' | 'javascript' | 'typescript';
+    /**
+     * Files and folders structure for this language
+     */
+    fileStructure?:
+      | {
+          /**
+           * Whether this is a folder or a file
+           */
+          type: 'folder' | 'file';
+          /**
+           * Name of the file or folder
+           */
+          name: string;
+          /**
+           * ID of the parent folder (leave empty for root level)
+           */
+          parentId?: string | null;
+          /**
+           * Programming language of the file
+           */
+          language?: ('python' | 'javascript' | 'typescript' | 'html' | 'css' | 'json' | 'markdown' | 'text') | null;
+          /**
+           * Initial content of the file
+           */
+          content?: string | null;
+          /**
+           * Whether this file is read-only
+           */
+          isReadOnly?: boolean | null;
+          /**
+           * Whether this file is hidden from the user
+           */
+          isHidden?: boolean | null;
+          /**
+           * Whether this is the main file where users write their solution
+           */
+          isMainFile?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Test cases for validating solutions in this language
+     */
+    testCases: {
+      /**
+       * Input data for the test case
+       */
+      input: string;
+      /**
+       * Expected output for this test case
+       */
+      expectedOutput: string;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userChallengeProgression".
+ */
+export interface UserChallengeProgression {
+  id: number;
+  /**
+   * ID of the user
+   */
+  userId: string;
+  /**
+   * Related challenge
+   */
+  challenge: number | Challenge;
+  /**
+   * Whether the user has liked this challenge
+   */
+  hasLiked?: boolean | null;
+  /**
+   * Whether the user has disliked this challenge
+   */
+  hasDisliked?: boolean | null;
+  /**
+   * User rating for this challenge (1-5)
+   */
+  rating?: number | null;
+  /**
+   * Current completion status of the challenge
+   */
+  completionStatus: 'not_started' | 'in_progress' | 'completed';
+  /**
+   * Whether the solution has been unlocked by the user
+   */
+  isSolutionUnlocked?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "comments".
  */
 export interface Comment {
@@ -1205,17 +1276,25 @@ export interface Comment {
    */
   replies?: (number | Comment)[] | null;
   /**
-   * Reports made against this comment
+   * Reports for this comment
    */
-  reports?:
-    | {
-        userId: string;
-        reason: string;
-        details?: string | null;
-        createdAt: string;
-        id?: string | null;
-      }[]
-    | null;
+  reports?: (number | CommentsReport)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments-reports".
+ */
+export interface CommentsReport {
+  id: number;
+  /**
+   * Comment of this report
+   */
+  comment?: (number | null) | Comment;
+  userId: string;
+  reason: string;
+  details?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1289,43 +1368,6 @@ export interface UserSolution {
    * The current status of the solution.
    */
   status: 'drafted' | 'published';
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "userChallengeProgression".
- */
-export interface UserChallengeProgression {
-  id: number;
-  /**
-   * ID of the user
-   */
-  userId: string;
-  /**
-   * Related challenge
-   */
-  challenge: number | Challenge;
-  /**
-   * Whether the user has liked this challenge
-   */
-  hasLiked?: boolean | null;
-  /**
-   * Whether the user has disliked this challenge
-   */
-  hasDisliked?: boolean | null;
-  /**
-   * User rating for this challenge (1-5)
-   */
-  rating?: number | null;
-  /**
-   * Current completion status of the challenge
-   */
-  completionStatus: 'not_started' | 'in_progress' | 'completed';
-  /**
-   * Whether the solution has been unlocked by the user
-   */
-  isSolutionUnlocked?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2354,6 +2396,137 @@ export interface UserAiCredit {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-rating".
+ */
+export interface ChallengeRating {
+  id: number;
+  /**
+   * The challenge being rated
+   */
+  challenge: number | Challenge;
+  /**
+   * The user who gave the rating
+   */
+  userId: string;
+  /**
+   * Rating value (1-5)
+   */
+  rating: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenges-ratings".
+ */
+export interface ChallengesRating {
+  id: number;
+  /**
+   * The challenge this rating aggregate is for
+   */
+  challenge: number | Challenge;
+  /**
+   * Sum of all rating points
+   */
+  total?: number | null;
+  /**
+   * Number of ratings received
+   */
+  count?: number | null;
+  /**
+   * Average rating (0-5)
+   */
+  average?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-engagement".
+ */
+export interface ChallengeEngagement {
+  id: number;
+  /**
+   * The challenge being engaged with
+   */
+  challenge: number | Challenge;
+  /**
+   * The user who liked/disliked
+   */
+  userId: string;
+  /**
+   * Type of engagement (like or dislike)
+   */
+  type: 'like' | 'dislike';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenges-engagement".
+ */
+export interface ChallengesEngagement {
+  id: number;
+  /**
+   * The challenge for which engagement stats are tracked
+   */
+  challenge: number | Challenge;
+  /**
+   * Number of likes
+   */
+  likes?: number | null;
+  /**
+   * Number of dislikes
+   */
+  dislikes?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Associates a unique concept with a set of challenges, creating conceptual tags for challenge organization.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-tags".
+ */
+export interface ChallengeTag {
+  id: number;
+  /**
+   * Display name for this challenge tag (e.g., "Loops Challenges", "OOP Fundamentals")
+   */
+  name: string;
+  /**
+   * URL-friendly identifier for this tag. Will be used in the URL.
+   */
+  slug: string;
+  /**
+   * The unique concept that this tag represents. Each concept can only have one tag.
+   */
+  concept: number | Concept;
+  /**
+   * Challenges that belong to this conceptual tag.
+   */
+  challenges?: (number | Challenge)[] | null;
+  /**
+   * Optional description explaining what challenges in this tag focus on.
+   */
+  description?: string | null;
+  /**
+   * Whether this tag is currently active and visible to users.
+   */
+  isActive?: boolean | null;
+  /**
+   * Number of challenges in this tag (updated automatically).
+   */
+  challengeCount?: number | null;
+  /**
+   * Order for displaying tags (lower numbers appear first).
+   */
+  displayOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -2586,6 +2759,38 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'chat-histories';
         value: number | ChatHistory;
+      } | null)
+    | ({
+        relationTo: 'challenge-rating';
+        value: number | ChallengeRating;
+      } | null)
+    | ({
+        relationTo: 'challenges-ratings';
+        value: number | ChallengesRating;
+      } | null)
+    | ({
+        relationTo: 'challenge-engagement';
+        value: number | ChallengeEngagement;
+      } | null)
+    | ({
+        relationTo: 'challenges-engagement';
+        value: number | ChallengesEngagement;
+      } | null)
+    | ({
+        relationTo: 'exercices';
+        value: number | Exercice;
+      } | null)
+    | ({
+        relationTo: 'ai-exercices';
+        value: number | AiExercice;
+      } | null)
+    | ({
+        relationTo: 'challenge-tags';
+        value: number | ChallengeTag;
+      } | null)
+    | ({
+        relationTo: 'comments-reports';
+        value: number | CommentsReport;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2979,39 +3184,13 @@ export interface UserAchievementProgressSelect<T extends boolean = true> {
 export interface ChallengesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
+  exercice?: T;
   difficulty?: T;
   baseExperience?: T;
-  ratings?:
-    | T
-    | {
-        total?: T;
-        count?: T;
-        average?: T;
-      };
-  concepts?:
-    | T
-    | {
-        concept?: T;
-        id?: T;
-      };
-  engagement?:
-    | T
-    | {
-        likes?: T;
-        dislikes?: T;
-      };
   description?:
     | T
     | {
         statement?: T;
-        submissionStats?:
-          | T
-          | {
-              acceptedSolutions?: T;
-              failedSolutions?: T;
-              totalSubmissions?: T;
-              acceptanceRate?: T;
-            };
         hints?:
           | T
           | {
@@ -3024,54 +3203,11 @@ export interface ChallengesSelect<T extends boolean = true> {
               challenge?: T;
               id?: T;
             };
-        comments?: T;
       };
   officialSolution?:
     | T
     | {
         statement?: T;
-        comments?: T;
-      };
-  userSolutions?: T;
-  submissions?:
-    | T
-    | {
-        submissionType?: T;
-        authorId?: T;
-        testsPassed?: T;
-        testsTotal?: T;
-        createdAt?: T;
-        error?: T;
-        input?: T;
-        output?: T;
-        expectedOutput?: T;
-        lastExpectedOutput?:
-          | T
-          | {
-              param?: T;
-              value?: T;
-              id?: T;
-            };
-        code?:
-          | T
-          | {
-              language?: T;
-              content?: T;
-            };
-        id?: T;
-      };
-  code?:
-    | T
-    | {
-        language?: T;
-        initialCode?: T;
-        testCases?:
-          | T
-          | {
-              input?: T;
-              expectedOutput?: T;
-              id?: T;
-            };
       };
   codeVersions?:
     | T
@@ -3123,15 +3259,7 @@ export interface CommentsSelect<T extends boolean = true> {
       };
   isReply?: T;
   replies?: T;
-  reports?:
-    | T
-    | {
-        userId?: T;
-        reason?: T;
-        details?: T;
-        createdAt?: T;
-        id?: T;
-      };
+  reports?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3814,6 +3942,163 @@ export interface ChatHistoriesSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-rating_select".
+ */
+export interface ChallengeRatingSelect<T extends boolean = true> {
+  challenge?: T;
+  userId?: T;
+  rating?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenges-ratings_select".
+ */
+export interface ChallengesRatingsSelect<T extends boolean = true> {
+  challenge?: T;
+  total?: T;
+  count?: T;
+  average?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-engagement_select".
+ */
+export interface ChallengeEngagementSelect<T extends boolean = true> {
+  challenge?: T;
+  userId?: T;
+  type?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenges-engagement_select".
+ */
+export interface ChallengesEngagementSelect<T extends boolean = true> {
+  challenge?: T;
+  likes?: T;
+  dislikes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exercices_select".
+ */
+export interface ExercicesSelect<T extends boolean = true> {
+  title?: T;
+  difficulty?: T;
+  hints?:
+    | T
+    | {
+        content?: T;
+        id?: T;
+      };
+  languages?:
+    | T
+    | {
+        language?: T;
+        fileStructure?:
+          | T
+          | {
+              type?: T;
+              name?: T;
+              parentId?: T;
+              language?: T;
+              content?: T;
+              isReadOnly?: T;
+              isHidden?: T;
+              isMainFile?: T;
+              id?: T;
+            };
+        testCases?:
+          | T
+          | {
+              input?: T;
+              expectedOutput?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-exercices_select".
+ */
+export interface AiExercicesSelect<T extends boolean = true> {
+  title?: T;
+  difficulty?: T;
+  hints?:
+    | T
+    | {
+        content?: T;
+        id?: T;
+      };
+  languages?:
+    | T
+    | {
+        language?: T;
+        fileStructure?:
+          | T
+          | {
+              type?: T;
+              name?: T;
+              parentId?: T;
+              language?: T;
+              content?: T;
+              isReadOnly?: T;
+              isHidden?: T;
+              isMainFile?: T;
+              id?: T;
+            };
+        testCases?:
+          | T
+          | {
+              input?: T;
+              expectedOutput?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "challenge-tags_select".
+ */
+export interface ChallengeTagsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  concept?: T;
+  challenges?: T;
+  description?: T;
+  isActive?: T;
+  challengeCount?: T;
+  displayOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments-reports_select".
+ */
+export interface CommentsReportsSelect<T extends boolean = true> {
+  comment?: T;
+  userId?: T;
+  reason?: T;
+  details?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -17,8 +17,5 @@ export const getChallengeConcepts = async (
     })
 
     const challengeConcept = challengeConceptDocuments.docs[0]
-    console.log(challengeConcept)
-    
-    if (!challengeConcept) throw new Error(`Could not find a challenge with ID ${challengeId}`)
     return challengeConcept
 }

@@ -1,46 +1,92 @@
 'use server'
 
+import { query } from '@/core/functions'
+import { isNone, Maybe, none, some } from '@/lib/maybe'
+import { TIME } from '@/lib/time'
 import { Challenge } from '@/payload-types'
 import 'server-only'
-import { find } from '..'
+import z from 'zod'
 
-export const getRandomUncompletedChallenge = async (
-  userId: string,
-): Promise<{
-  id: number
-  title: string
-  slug: string
-  difficulty: Challenge['difficulty']
-  baseExperience?: number | null
-}> => {
-  const completedChallengeDocs = await find({
-    collection: 'userChallengeProgression',
-    where: {
-      userId: { equals: userId },
-      completionStatus: { equals: 'completed' },
-    },
-    select: { challenge: true },
-  })
+export const getChallengesWithoutCompleted = query({
+  name: 'challenges-without-completed',
+  args: z.object({ completedChallengesIds: z.array(z.number()) }),
+  handler: async (ctx, args): Promise<Maybe<Challenge[]>> => {
+    const documents = await ctx.payload.find({
+      collection: 'challenges',
+      where: { id: { not_in: args.completedChallengesIds } },
+    })
 
-  const completedChallengeIds = completedChallengeDocs.docs.map((progression) =>
-    typeof progression.challenge === 'number' ? progression.challenge : progression.challenge.id,
-  )
+    return some(documents.docs)
+  },
+})
 
-  const challengeDocs = await find({
-    collection: 'challenges',
-    where: { id: { not_in: completedChallengeIds } },
-    select: {
-        title: true,
-        slug: true,
-        difficulty: true, 
-        baseExperience: true
-    }
-  })
-  const uncompletedChallenges = challengeDocs.docs
+export const getChallenges = query({
+  name: 'challenges',
+  handler: async (ctx, _) => {
+    const documents = await ctx.payload.find({
+      collection: 'challenges',
+    })
 
-  const randomIndex = Math.floor(Math.random() * uncompletedChallenges.length)
-  const randomChallenge = uncompletedChallenges[randomIndex]
+    return some(documents.docs)
+  },
+})
 
-  return randomChallenge
-  
-}
+export const getChallengeBySlug = query({
+  name: 'challenge-by-slug',
+  args: z.object({ slug: z.string() }),
+  handler: async (ctx, args): Promise<Maybe<Challenge>> => {
+    const documents = await ctx.payload.find({
+      collection: 'challenges',
+      where: { slug: { equals: args.slug } },
+      limit: 1,
+    })
+
+    return documents.docs[0] ? some(documents.docs[0]) : none()
+  },
+  revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY,
+})
+
+export const getChallengeById = query({
+  name: 'challenge-by-id',
+  args: z.object({ id: z.number() }),
+  handler: async (ctx, args): Promise<Maybe<Challenge>> => {
+    const challenge = await ctx.payload.findByID({
+      collection: 'challenges',
+      id: args.id,
+    })
+
+    return challenge ? some(challenge) : none()
+  },
+  revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY,
+})
+
+export const getRandomUncompletedChallenge = query({
+  name: 'random-uncompleted-challenge',
+  args: z.object({ userId: z.string() }),
+  handler: async (ctx, args): Promise<Challenge> => {
+    const completedChallengeDocs = await ctx.payload.find({
+      collection: 'userChallengeProgression',
+      where: {
+        userId: { equals: args.userId },
+        completionStatus: { equals: 'completed' },
+      },
+      select: { challenge: true },
+    })
+
+    const completedChallengesIds = completedChallengeDocs.docs.map((progression) =>
+      typeof progression.challenge === 'number' ? progression.challenge : progression.challenge.id,
+    )
+
+    const uncompletedChallenges = await getChallengesWithoutCompleted({
+      completedChallengesIds,
+    })
+
+    if (isNone(uncompletedChallenges)) throw new Error('No uncompleted challenges found')
+
+    const randomIndex = Math.floor(Math.random() * uncompletedChallenges.value.length)
+    const randomChallenge = uncompletedChallenges.value[randomIndex]
+
+    return randomChallenge
+  },
+})
+

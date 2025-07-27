@@ -73,32 +73,12 @@ export const Comments: CollectionConfig = {
     },
     {
       name: 'reports',
-      type: 'array',
+      type: 'relationship',
+      relationTo: 'comments-reports',
+      hasMany: true,
       admin: {
-        description: 'Reports made against this comment',
+        description: 'Reports for this comment',
       },
-      fields: [
-        {
-          name: 'userId',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'reason',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'details',
-          type: 'text',
-          required: false,
-        },
-        {
-          name: 'createdAt',
-          type: 'date',
-          required: true,
-        },
-      ],
     },
   ],
 }

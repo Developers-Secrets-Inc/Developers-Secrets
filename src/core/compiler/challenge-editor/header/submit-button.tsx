@@ -148,7 +148,7 @@ export const SubmitButton = ({
       }
 
       await setCompleted()
-      await dispatch('challenge.completed', { challengeId: challenge.id, userId: userId })
+      // await dispatch('challenge.completed', { challenge: challenge, userId: userId })
       queryClient.invalidateQueries({
         queryKey: solutionQueryKeys.solutionUnlock(userId, challenge.id),
       })
