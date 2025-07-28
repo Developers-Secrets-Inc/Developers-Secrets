@@ -7,27 +7,6 @@ export const Courses: CollectionConfig = {
     defaultColumns: ['name', 'slug', 'difficulty', 'updatedAt'],
     group: 'Courses',
   },
-  access: {
-    read: () => true,
-    create: () => {
-      if (process.env.NODE_ENV === 'development') {
-        return true
-      }
-      return false
-    },
-    update: () => {
-      if (process.env.NODE_ENV === 'development') {
-        return true
-      }
-      return false
-    },
-    delete: () => {
-      if (process.env.NODE_ENV === 'development') {
-        return true
-      }
-      return false
-    },
-  },
   fields: [
     {
       type: 'tabs',

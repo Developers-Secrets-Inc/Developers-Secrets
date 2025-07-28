@@ -7,27 +7,6 @@ export const Chapters: CollectionConfig = {
     defaultColumns: ['name', 'slug', 'course', 'updatedAt'],
     group: 'Courses', // Group with Courses
   },
-  access: {
-    read: () => true,
-    create: () => {
-      if (process.env.NODE_ENV === 'development') {
-        return true
-      }
-      return false
-    },
-    update: () => {
-      if (process.env.NODE_ENV === 'development') {
-        return true
-      }
-      return false
-    },
-    delete: () => {
-      if (process.env.NODE_ENV === 'development') {
-        return true
-      }
-      return false
-    },
-  },
   fields: [
     {
       name: 'name',

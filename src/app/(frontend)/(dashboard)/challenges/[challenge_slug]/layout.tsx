@@ -46,7 +46,6 @@ const Layout = async ({
     getUser(),
   ])
 
-
   if (isFailure(user)) {
     return redirect('/auth/login')
   }
@@ -74,11 +73,15 @@ const Layout = async ({
   if (isNone(previousChallenge) || isNone(nextChallenge) || isNone(randomChallenge))
     throw new Error('Navigation challenges not found')
 
-
   return (
     <ChallengeProvider
       challenge={challenge.value}
-      metadata={{ challengeAiChat: challengeAIChat, messages, quotas, completionCurrency: getCurrencyOnCompletion(challenge.value) }}
+      metadata={{
+        challengeAiChat: challengeAIChat,
+        messages,
+        quotas,
+        completionCurrency: getCurrencyOnCompletion(challenge.value),
+      }}
     >
       <ChallengeLayout.Root>
         <ChallengeLayout.Header

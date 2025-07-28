@@ -1958,27 +1958,17 @@ export interface CoursePart {
     dislikes?: number | null;
   };
   /**
-   * Coding challenges associated with this part.
+   * Linked exercice (AI or classic) for this course part.
    */
-  challenges?:
-    | {
-        languages?:
-          | {
-              name: string;
-              initialCode: string;
-              testCases?:
-                | {
-                    input: string;
-                    expectedOutput: string;
-                    id?: string | null;
-                  }[]
-                | null;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
+  exercice?:
+    | ({
+        relationTo: 'exercices';
+        value: number | Exercice;
+      } | null)
+    | ({
+        relationTo: 'ai-exercices';
+        value: number | AiExercice;
+      } | null);
   updatedAt: string;
   createdAt: string;
 }
@@ -3704,25 +3694,7 @@ export interface CoursePartsSelect<T extends boolean = true> {
         likes?: T;
         dislikes?: T;
       };
-  challenges?:
-    | T
-    | {
-        languages?:
-          | T
-          | {
-              name?: T;
-              initialCode?: T;
-              testCases?:
-                | T
-                | {
-                    input?: T;
-                    expectedOutput?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
-        id?: T;
-      };
+  exercice?: T;
   updatedAt?: T;
   createdAt?: T;
 }
