@@ -37,6 +37,7 @@ interface SubmissionResultsStore {
   setTestResults: (results: TestResult[]) => void
   setIsSubmitting: (loading: boolean) => void
   clearResults: () => void
+  reset: () => void
   
   // Actions combinées pour faciliter l'usage
   setResults: (submission: SubmissionResult, tests: TestResult[]) => void
@@ -56,6 +57,13 @@ export const useSubmissionResultsStore = create<SubmissionResultsStore>((set) =>
   
   // Action pour nettoyer les résultats
   clearResults: () => set({ 
+    submissionResult: null, 
+    testResults: null, 
+    isSubmitting: false 
+  }),
+  
+  // Action de reset (alias pour clearResults pour cohérence avec autres stores)
+  reset: () => set({ 
     submissionResult: null, 
     testResults: null, 
     isSubmitting: false 

@@ -166,4 +166,8 @@ export const useEditorStore = create<EditorState & EditorActions>()((set, get) =
     const state = get()
     return !isNodeOrParentLockedInTree(state.fileTree, id)
   },
+  reset: () => set({
+    fileTree: [],
+    activeFileId: null
+  }),
 }))

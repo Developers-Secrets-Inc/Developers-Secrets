@@ -3,8 +3,6 @@
 import { Challenge, ChallengeAiChat } from '@/payload-types'
 import { ChallengeContext } from '../challenge-context'
 import { Message } from 'ai'
-import { useEffect, useRef } from 'react'
-import { useStoreReset } from '../../hooks/use-store-reset'
 
 export const ChallengeProvider = ({
   children,
@@ -20,16 +18,12 @@ export const ChallengeProvider = ({
     completionCurrency: number
   }
 }) => {
-  const { resetAllStores } = useStoreReset()
-  const previousChallengeId = useRef<string | number | null>(null)
-
-  useEffect(() => {
-    // Réinitialise les stores uniquement lors du changement de challenge
-    if (previousChallengeId.current !== null && previousChallengeId.current !== challenge.id) {
-      resetAllStores()
-    }
-    previousChallengeId.current = challenge.id
-  }, [challenge.id, resetAllStores])
-
-  return <ChallengeContext.Provider value={{ challenge, metadata }}>{children}</ChallengeContext.Provider>
+  // Note: Store reset is handled by useChallengeLifecycle hook in ChallengeExercice
+  // The key prop on this component ensures proper remounting when challenge changes
+  
+  return (
+    <ChallengeContext.Provider value={{ challenge, metadata }}>
+      {children}
+    </ChallengeContext.Provider>
+  )
 }
