@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 
 export type DialogPage = {
   title: string
-  cta: string
+  cta: string | React.ReactNode
   content: React.ReactNode
 }
 
@@ -63,10 +63,10 @@ export const MultiPageDialog = ({
             <DialogTitle>{page.title}</DialogTitle>
           </DialogHeader>
           {page.content}
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <Button className="w-full" type="button" onClick={handleNext}>
+          <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+            {typeof page.cta === 'string' ? <Button className="w-full" type="button" onClick={handleNext}>
               {page.cta}
-            </Button>
+            </Button> : page.cta}
           </div>
         </div>
       </DialogContent>
