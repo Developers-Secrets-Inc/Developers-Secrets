@@ -33,7 +33,6 @@ export function CoursePartViewManager({ children }: ChallengeViewManagerProps) {
 
   return (
     <>
-      {/* <ChallengeDescriptionView>{children}</ChallengeDescriptionView> */}
       <CoursePartDescriptionView>{children}</CoursePartDescriptionView>
       
       {viewMode === 'sheet' && isChatActive && (

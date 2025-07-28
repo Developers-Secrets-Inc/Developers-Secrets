@@ -1,8 +1,6 @@
 'use client'
 
-import { TabConfig } from '../../tabs-config'
 import { useState } from 'react'
-import { useChallengeTabsLockStatus } from '../hooks/use-challenge-tabs-lock-status'
 import { Loader2 } from 'lucide-react'
 import {
   Dialog,
@@ -14,8 +12,9 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { NavigationTab } from '@/core/navigation/components/navigation-tabs'
+import { useCoursePartTabsLockStatus } from '../hooks/use-course-part-lock-status'
 
-export const ChallengeNavigationTabs = () => {
+export const CoursePartNavigationTabs = () => {
   const [openDialog, setOpenDialog] = useState<string | null>(null)
 
   const {
@@ -24,7 +23,7 @@ export const ChallengeNavigationTabs = () => {
     pathname,
     unlockTab,
     isUnlocking,
-  } = useChallengeTabsLockStatus()
+  } = useCoursePartTabsLockStatus()
   return (
     <>
       <nav className="h-12 flex-none border-b bg-background rounded-t-md">

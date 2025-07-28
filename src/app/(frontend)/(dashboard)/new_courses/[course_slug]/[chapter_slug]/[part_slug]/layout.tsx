@@ -9,6 +9,7 @@ import { isFailure } from '@/lib/result'
 import { notFound, redirect } from 'next/navigation'
 import { CoursePartProvider } from '@/api/courses/contexts/components/course-part-provider'
 import { CoursePartViewManager } from '@/api/courses/components/course-part-view-manager'
+import { CoursePartNavigationTabs } from '@/api/courses/navigation/components/course-part-navigation-tabs'
 
 export default async function Layout({
   params,
@@ -36,12 +37,13 @@ export default async function Layout({
   }
 
   return (
-    <CoursePartProvider coursePart={part.value} metadata={{}} >
+    <CoursePartProvider coursePart={part.value} metadata={{courseSlug: course_slug, chapterSlug: chapter_slug}} >
       <CourseLayout.Root>
         <CourseLayout.Header courseOutline={courseOutline} />
         <CourseLayout.Body>
           <CourseLayout.Content>
             <CourseLayout.LeftPart>
+              <CoursePartNavigationTabs />
               <CourseLayout.MainContainer>
                 <CoursePartViewManager>
                   {children}
