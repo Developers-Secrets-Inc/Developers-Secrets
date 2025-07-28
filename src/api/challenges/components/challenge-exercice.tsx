@@ -122,21 +122,21 @@ export const ChallengeExercice = ({ exercice }: { exercice: Exercice | AiExercic
   const { openTab } = useEditorTabsStore()
 
   useEffect(() => {
-    // Delay to ensure store reset is completed
+    // Délai pour s'assurer que la réinitialisation des stores est terminée
     const initializeEditor = () => {
-      // Get the default language
+      // Obtenir le langage par défaut
       const defaultLanguage = getDefaultLanguage(exercice)
 
-      // Extract file structure for this language
+      // Extraire la structure de fichiers pour ce langage
       const fileStructure = getFileStructureForLanguage(exercice, defaultLanguage)
 
-      // Transform to file tree
+      // Transformer en arbre de fichiers
       const transformedFileTree = transformFileStructureToFileTree(fileStructure)
 
-      // Configure the editor
+      // Configurer l'éditeur
       setFileTree(transformedFileTree)
 
-      // Identify and open the main file
+      // Identifier et ouvrir le fichier principal
       const mainFileId = findMainFile(fileStructure)
       if (mainFileId && transformedFileTree.length > 0) {
         const mainFile = fileStructure.find((item) => item.id === mainFileId)
@@ -145,7 +145,7 @@ export const ChallengeExercice = ({ exercice }: { exercice: Exercice | AiExercic
           openTab(mainFileId, mainFile.name, mainFile.language)
         }
       } else if (transformedFileTree.length > 0) {
-        // If no main file defined, take the first file
+        // Si pas de fichier principal défini, prendre le premier fichier
         const firstFile = findFirstFile(transformedFileTree)
         if (firstFile && firstFile.type === 'file') {
           setActiveFileId(firstFile.id)
@@ -154,8 +154,10 @@ export const ChallengeExercice = ({ exercice }: { exercice: Exercice | AiExercic
       }
     }
 
-    // Initialize editor directly (store reset is now synchronous)
-    initializeEditor()
+    // Utiliser setTimeout pour s'assurer que la réinitialisation des stores est terminée
+    const timeoutId = setTimeout(initializeEditor, 0)
+    
+    return () => clearTimeout(timeoutId)
   }, [exercice, setFileTree, setActiveFileId, openTab])
 
   // Fonction utilitaire pour trouver le premier fichier dans l'arbre

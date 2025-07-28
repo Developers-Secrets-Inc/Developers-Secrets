@@ -12,8 +12,6 @@ interface ChallengeUIState {
   setViewMode: (mode: PearlViewMode) => void
   showChat: () => void
   hideChat: () => void
-  reset: () => void
-  resetAll: () => void
 }
 
 export const useChallengeUIStore = create<ChallengeUIState>()(
@@ -27,8 +25,6 @@ export const useChallengeUIStore = create<ChallengeUIState>()(
       hideChat: () => set({ isChatActive: false }),
       openCompletionDialog: () => set({ isCompletionDialogOpen: true }),
       closeCompletionDialog: () => set({ isCompletionDialogOpen: false }),
-      reset: () => set({ isChatActive: false, isCompletionDialogOpen: false }),
-      resetAll: () => set({ viewMode: 'inline', isChatActive: false, isCompletionDialogOpen: false }),
     }),
     {
       name: 'challenge-ui-state', // The key in localStorage

@@ -113,9 +113,5 @@ export const useEditorTabsStore = create<EditorTabsState & EditorTabsActions>((s
   
   closeAllTabs: () => {
     set({ openTabs: [], activeTabId: null })
-  },
-  
-  reset: () => {
-    set({ openTabs: [], activeTabId: null })
   }
 }))
