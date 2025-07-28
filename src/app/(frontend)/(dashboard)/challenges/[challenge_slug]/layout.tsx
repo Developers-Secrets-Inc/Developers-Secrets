@@ -75,7 +75,6 @@ const Layout = async ({
 
   return (
     <ChallengeProvider
-      key={challenge.value.id}
       challenge={challenge.value}
       metadata={{
         challengeAiChat: challengeAIChat,

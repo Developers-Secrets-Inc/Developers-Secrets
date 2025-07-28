@@ -1,12 +1,12 @@
-# Store Reset System
+# Intelligent Store Reset System
 
-This system manages the automatic reset of Zustand stores when navigating between challenges.
+This system manages the automatic reset of Zustand stores with intelligent detection of challenge changes vs page refreshes.
 
 ## Architecture
 
 ### Centralized Hook: `useStoreReset`
 
-The `useStoreReset` hook centralizes the reset logic for all concerned stores:
+The `useStoreReset` hook provides granular reset control for all concerned stores:
 
 - `useChallengeUIStore` - Challenge user interface state
 - `useEditorStore` - Code editor state
@@ -14,17 +14,26 @@ The `useStoreReset` hook centralizes the reset logic for all concerned stores:
 - `useFileExplorerStore` - File explorer state
 - `useFooterStore` - Footer panel state
 
+### Reset Strategies
+
+- **`resetUIStores()`** - Resets only UI-related stores (for page refreshes)
+- **`resetEditorStores()`** - Resets only editor-related stores (for specific scenarios)
+- **`resetAllStores()`** - Resets all stores completely (for challenge changes)
+
 ### Integration in `ChallengeProvider`
 
-The `ChallengeProvider` uses the `useStoreReset` hook and triggers reset on every mount/challenge change for maximum reliability.
+The `ChallengeProvider` uses intelligent detection to determine the appropriate reset strategy:
+- Uses `sessionStorage` to track the current challenge ID
+- Differentiates between challenge changes and page refreshes
+- Applies the appropriate reset strategy based on the detected scenario
 
-### Optimization with `key` prop
+### No Forced Remounting
 
-The `ChallengeProvider` in `layout.tsx` uses a `key={challenge.value.id}` prop to force component remounting when challenge changes.
+The system no longer relies on `key` prop remounting, providing better performance and state preservation when appropriate.
 
 ### Synchronous Reset
 
-The store reset is now synchronous, eliminating timing issues and allowing direct editor initialization.
+All store resets are synchronous, eliminating timing issues and allowing direct editor initialization.
 
 ## Affected Stores
 
@@ -48,17 +57,34 @@ Each store has a `reset()` method that restores state to its initial values:
 
 ## Execution Flow
 
+### Challenge Change
 1. User navigates to a new challenge
-2. The `layout.tsx` receives the new challenge
-3. The `key` prop forces remounting of `ChallengeProvider`
-4. The `ChallengeProvider` immediately resets all stores on mount
-5. The `ChallengeExercice` initializes the editor directly with clean state
-6. All components render with fresh, reset state
+2. The `ChallengeProvider` detects the challenge ID change
+3. `resetAllStores()` is called to completely reset all stores
+4. `sessionStorage` is updated with the new challenge ID
+5. The `ChallengeExercice` initializes the editor with clean state
+
+### Page Refresh
+1. User refreshes the page on the same challenge
+2. The `ChallengeProvider` detects it's the same challenge ID
+3. `resetUIStores()` is called to reset only UI state
+4. Editor state (files, tabs) is preserved from previous session
+5. The `ChallengeExercice` continues with existing editor state
 
 ## Important Considerations
 
-- Persisted stores only reset non-persisted values
-- Store reset is now synchronous and immediate on component mount
-- The system uses `useCallback` for performance optimization
-- Reset order is optimized: UI stores first, then editor stores
-- No timing delays needed - initialization is safe and direct
+- **Smart Detection**: Uses `sessionStorage` to differentiate challenge changes from page refreshes
+- **Granular Reset**: Different reset strategies preserve editor state when appropriate
+- **Performance**: No forced component remounting, better React performance
+- **Persistence**: Editor state is naturally preserved on page refresh
+- **Synchronous**: All resets are immediate and synchronous
+- **Optimized Order**: UI stores reset first, then editor stores when needed
+- **Callback Optimization**: Uses `useCallback` for performance
+
+## Resolved Issues
+
+- ✅ Completion dialog no longer stays open after challenge change
+- ✅ Test results are properly cleared between challenges
+- ✅ File duplication issues resolved
+- ✅ Editor state preserved on page refresh
+- ✅ Improved performance without forced remounting
