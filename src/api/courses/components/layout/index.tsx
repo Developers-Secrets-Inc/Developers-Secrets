@@ -39,7 +39,9 @@ const CourseLayoutLeftPart: React.FC<WithChildren> = ({ children }) => {
 const CourseLayoutRightPart: React.FC<WithChildren> = ({ children }) => {
   return (
     <ResizablePanel defaultSize={50} minSize={40}>
-      <div className="flex flex-col h-full border rounded-md z-20">{children}</div>
+      <div className="flex flex-col h-full border rounded-md z-20 min-h-0 max-h-full overflow-hidden">
+        {children}
+      </div>
     </ResizablePanel>
   )
 }
@@ -66,9 +68,6 @@ export const CourseMainContainer: React.FC<WithChildren> = ({ children }) => {
   return <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">{children}</div>
 }
 
-
-
-
 export const CourseLayout = {
   Root: CourseLayoutRoot,
   Header: DefaultCourseHeader,
@@ -79,5 +78,5 @@ export const CourseLayout = {
   ContentSeparator: CourseLayoutContentSeparator,
   FooterContainer: CourseFooterContainer,
   FooterLeftPart: CourseFooterLeftPart,
-  MainContainer: CourseMainContainer
+  MainContainer: CourseMainContainer,
 }

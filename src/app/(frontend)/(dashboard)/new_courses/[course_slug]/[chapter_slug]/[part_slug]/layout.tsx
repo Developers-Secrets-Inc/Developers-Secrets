@@ -1,4 +1,4 @@
-import { getCourseOutline } from '@/api/courses/navigation'
+import { getCourseOutline, getNextPart, getPreviousPart } from '@/api/courses/navigation'
 import { CoursePartExercice } from '@/api/courses/components/course-part-exercice'
 import { CourseLayout } from '@/api/courses/components/layout'
 import { CourseFooter } from '@/api/courses/components/layout/footer'
@@ -7,18 +7,24 @@ import { getUser } from '@/core/users'
 import { isNone } from '@/lib/maybe'
 import { isFailure } from '@/lib/result'
 import { notFound, redirect } from 'next/navigation'
+import { CoursePartProvider } from '@/api/courses/contexts/components/course-part-provider'
+import { CoursePartViewManager } from '@/api/courses/components/course-part-view-manager'
 
 export default async function Layout({
   params,
+  children
 }: {
   params: Promise<{ course_slug: string; chapter_slug: string; part_slug: string }>
+  children: React.ReactNode
 }) {
   const { course_slug, chapter_slug, part_slug } = await params
 
-  const [part, user, courseOutline] = await Promise.all([
+  const [part, user, courseOutline, previousPart, nextPart] = await Promise.all([
     getPartBySlug({ part_slug }),
     getUser(),
     getCourseOutline({ course_slug }),
+    getPreviousPart({ course_slug, part_slug }),
+    getNextPart({ course_slug, part_slug }),
   ])
 
   if (isFailure(user)) {
@@ -30,20 +36,26 @@ export default async function Layout({
   }
 
   return (
-    <CourseLayout.Root>
-      <CourseLayout.Header courseOutline={courseOutline} />
-      <CourseLayout.Body>
-        <CourseLayout.Content>
-          <CourseLayout.LeftPart>
-            <CourseLayout.MainContainer>{''}</CourseLayout.MainContainer>
-          </CourseLayout.LeftPart>
-          <CourseLayout.ContentSeparator />
-          <CourseLayout.RightPart>
-            <CoursePartExercice />
-          </CourseLayout.RightPart>
-        </CourseLayout.Content>
-      </CourseLayout.Body>
-      <CourseFooter />
-    </CourseLayout.Root>
+    <CoursePartProvider coursePart={part.value} metadata={{}} >
+      <CourseLayout.Root>
+        <CourseLayout.Header courseOutline={courseOutline} />
+        <CourseLayout.Body>
+          <CourseLayout.Content>
+            <CourseLayout.LeftPart>
+              <CourseLayout.MainContainer>
+                <CoursePartViewManager>
+                  {children}
+                </CoursePartViewManager>
+              </CourseLayout.MainContainer>
+            </CourseLayout.LeftPart>
+            <CourseLayout.ContentSeparator />
+            <CourseLayout.RightPart>
+              <CoursePartExercice exercice={part.value.exercice} />
+            </CourseLayout.RightPart>
+          </CourseLayout.Content>
+        </CourseLayout.Body>
+        <CourseFooter previousPart={previousPart} nextPart={nextPart} chapterOutline={[]} />
+      </CourseLayout.Root>
+    </CoursePartProvider>
   )
 }

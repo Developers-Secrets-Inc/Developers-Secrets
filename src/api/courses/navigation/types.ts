@@ -1,5 +1,6 @@
 export type CourseOutline = {
   courseName: string
+  courseSlug: string
   chapters: {
     name: string
     slug: string

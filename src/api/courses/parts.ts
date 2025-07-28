@@ -2,6 +2,7 @@
 
 import { query } from '@/core/functions'
 import { none, some } from '@/lib/maybe'
+import { TIME } from '@/lib/time'
 import 'server-only'
 import z from 'zod'
 
@@ -19,4 +20,5 @@ export const getPartBySlug = query({
 
     return documents.docs[0] ? some(documents.docs[0]) : none()
   },
+  revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY
 })
