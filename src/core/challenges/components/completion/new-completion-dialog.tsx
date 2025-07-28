@@ -58,7 +58,23 @@ export const NewCompletionDialog = async ({
     },
     {
       title: 'Your Daily Quests',
-      cta: streaks.streak in [1, 3, 5] ? 'My Rewards' : <Button>Hey</Button>,
+      cta:
+        streaks.streak in [1, 3, 5] ? (
+          'My Rewards'
+        ) : (
+          <>
+            <Button className="w-full" variant={'outline'} asChild>
+              <Link href="/challenges">Back to challenges</Link>
+            </Button>
+            {isSome(nextChallenge) && (
+              <Button className="w-full" asChild>
+                <Link href={`/challenges/${nextChallenge.value.slug}/description`}>
+                  Next Challenge
+                </Link>
+              </Button>
+            )}
+          </>
+        ),
       content: <QuestsProgressionPage quests={quests} />,
     },
     ...(streaks.streak in [1, 3, 5]
@@ -72,7 +88,9 @@ export const NewCompletionDialog = async ({
                 </Button>
                 {isSome(nextChallenge) && (
                   <Button className="w-full" asChild>
-                    <Link href={`/challenges/${nextChallenge.value.slug}/description`}>Next Challenge</Link>
+                    <Link href={`/challenges/${nextChallenge.value.slug}/description`}>
+                      Next Challenge
+                    </Link>
                   </Button>
                 )}
               </>
