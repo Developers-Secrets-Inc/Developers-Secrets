@@ -24,10 +24,8 @@ export const ChallengeProvider = ({
   const previousChallengeId = useRef<string | number | null>(null)
 
   useEffect(() => {
-    // Reset stores only when challenge changes
-    if (previousChallengeId.current !== null && previousChallengeId.current !== challenge.id) {
-      resetAllStores()
-    }
+    // Always reset stores on mount/challenge change
+    resetAllStores()
     previousChallengeId.current = challenge.id
   }, [challenge.id, resetAllStores])
 

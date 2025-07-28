@@ -154,10 +154,8 @@ export const ChallengeExercice = ({ exercice }: { exercice: Exercice | AiExercic
       }
     }
 
-    // Use setTimeout to ensure store reset is completed
-    const timeoutId = setTimeout(initializeEditor, 0)
-    
-    return () => clearTimeout(timeoutId)
+    // Initialize editor directly (store reset is now synchronous)
+    initializeEditor()
   }, [exercice, setFileTree, setActiveFileId, openTab])
 
   // Fonction utilitaire pour trouver le premier fichier dans l'arbre

@@ -16,15 +16,15 @@ The `useStoreReset` hook centralizes the reset logic for all concerned stores:
 
 ### Integration in `ChallengeProvider`
 
-The `ChallengeProvider` uses the `useStoreReset` hook and monitors `challenge.id` changes to trigger reset automatically.
+The `ChallengeProvider` uses the `useStoreReset` hook and triggers reset on every mount/challenge change for maximum reliability.
 
 ### Optimization with `key` prop
 
 The `ChallengeProvider` in `layout.tsx` uses a `key={challenge.value.id}` prop to force component remounting when challenge changes.
 
-### Side Effects Management
+### Synchronous Reset
 
-The `ChallengeExercice` component uses a `setTimeout` to ensure editor initialization happens after store reset.
+The store reset is now synchronous, eliminating timing issues and allowing direct editor initialization.
 
 ## Affected Stores
 
@@ -51,12 +51,14 @@ Each store has a `reset()` method that restores state to its initial values:
 1. User navigates to a new challenge
 2. The `layout.tsx` receives the new challenge
 3. The `key` prop forces remounting of `ChallengeProvider`
-4. The `ChallengeProvider` detects the `challenge.id` change
-5. The `useStoreReset` hook resets all stores
-6. The `ChallengeExercice` initializes the editor with new data
+4. The `ChallengeProvider` immediately resets all stores on mount
+5. The `ChallengeExercice` initializes the editor directly with clean state
+6. All components render with fresh, reset state
 
 ## Important Considerations
 
 - Persisted stores only reset non-persisted values
-- Editor initialization is deferred to avoid conflicts
-- The system is optimized to minimize unnecessary re-renders
+- Store reset is now synchronous and immediate on component mount
+- The system uses `useCallback` for performance optimization
+- Reset order is optimized: UI stores first, then editor stores
+- No timing delays needed - initialization is safe and direct

@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useChallengeUIStore } from '../stores/challenge-ui-store'
 import { useEditorStore } from '../../../core/compiler/code-editor/store/editor-store'
 import { useEditorTabsStore } from '../../../core/compiler/code-editor/store/editor-tabs-store'
@@ -15,14 +16,14 @@ export const useStoreReset = () => {
   const resetFileExplorer = useFileExplorerStore((state) => state.reset)
   const resetFooter = useFooterStore((state) => state.reset)
 
-  const resetAllStores = () => {
-    // Reset all stores in the appropriate order
+  const resetAllStores = useCallback(() => {
+    // Reset all stores in optimized order: UI first, then editor
     resetChallengeUI()
+    resetFooter()
     resetEditor()
     resetEditorTabs()
     resetFileExplorer()
-    resetFooter()
-  }
+  }, [resetChallengeUI, resetFooter, resetEditor, resetEditorTabs, resetFileExplorer])
 
   return { resetAllStores }
 }
