@@ -122,34 +122,42 @@ export const ChallengeExercice = ({ exercice }: { exercice: Exercice | AiExercic
   const { openTab } = useEditorTabsStore()
 
   useEffect(() => {
-    // Obtenir le langage par défaut
-    const defaultLanguage = getDefaultLanguage(exercice)
+    // Delay to ensure store reset is completed
+    const initializeEditor = () => {
+      // Get the default language
+      const defaultLanguage = getDefaultLanguage(exercice)
 
-    // Extraire la structure de fichiers pour ce langage
-    const fileStructure = getFileStructureForLanguage(exercice, defaultLanguage)
+      // Extract file structure for this language
+      const fileStructure = getFileStructureForLanguage(exercice, defaultLanguage)
 
-    // Transformer en arbre de fichiers
-    const transformedFileTree = transformFileStructureToFileTree(fileStructure)
+      // Transform to file tree
+      const transformedFileTree = transformFileStructureToFileTree(fileStructure)
 
-    // Configurer l'éditeur
-    setFileTree(transformedFileTree)
+      // Configure the editor
+      setFileTree(transformedFileTree)
 
-    // Identifier et ouvrir le fichier principal
-    const mainFileId = findMainFile(fileStructure)
-    if (mainFileId && transformedFileTree.length > 0) {
-      const mainFile = fileStructure.find((item) => item.id === mainFileId)
-      if (mainFile && mainFile.language) {
-        setActiveFileId(mainFileId)
-        openTab(mainFileId, mainFile.name, mainFile.language)
-      }
-    } else if (transformedFileTree.length > 0) {
-      // Si pas de fichier principal défini, prendre le premier fichier
-      const firstFile = findFirstFile(transformedFileTree)
-      if (firstFile && firstFile.type === 'file') {
-        setActiveFileId(firstFile.id)
-        openTab(firstFile.id, firstFile.name, firstFile.language)
+      // Identify and open the main file
+      const mainFileId = findMainFile(fileStructure)
+      if (mainFileId && transformedFileTree.length > 0) {
+        const mainFile = fileStructure.find((item) => item.id === mainFileId)
+        if (mainFile && mainFile.language) {
+          setActiveFileId(mainFileId)
+          openTab(mainFileId, mainFile.name, mainFile.language)
+        }
+      } else if (transformedFileTree.length > 0) {
+        // If no main file defined, take the first file
+        const firstFile = findFirstFile(transformedFileTree)
+        if (firstFile && firstFile.type === 'file') {
+          setActiveFileId(firstFile.id)
+          openTab(firstFile.id, firstFile.name, firstFile.language)
+        }
       }
     }
+
+    // Use setTimeout to ensure store reset is completed
+    const timeoutId = setTimeout(initializeEditor, 0)
+    
+    return () => clearTimeout(timeoutId)
   }, [exercice, setFileTree, setActiveFileId, openTab])
 
   // Fonction utilitaire pour trouver le premier fichier dans l'arbre

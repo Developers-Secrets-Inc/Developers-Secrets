@@ -61,8 +61,8 @@ const Footer7 = ({
   logo = {
     url: '/',
     src: '/your-logo.svg',
-    alt: 'Your Company',
-    title: 'Your Company',
+    alt: 'Developers Secrets',
+    title: 'Developers Secrets',
   },
 }: Footer7Props) => {
   return (
@@ -93,7 +93,7 @@ const Footer7 = ({
           </div>
         </div>
         <div className="mt-8 flex flex-col justify-between gap-4 border-t pt-8 text-center text-sm font-medium text-muted-foreground lg:flex-row lg:items-center lg:text-left w-full">
-          <p>© {new Date().getFullYear()} Your Company. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Developers Secrets. All rights reserved.</p>
           <ul className="flex justify-center gap-4 lg:justify-start">
             <li className="hover:text-primary">
               <a href="#"> Terms and Conditions</a>

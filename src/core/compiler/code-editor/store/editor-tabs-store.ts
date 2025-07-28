@@ -21,6 +21,7 @@ interface EditorTabsActions {
   setActiveTab: (tabId: string) => void
   replaceActiveTab: (fileId: string, fileName: string, language: string) => void
   closeAllTabs: () => void
+  reset: () => void
 }
 
 // Zustand store for managing the editor tabs state
@@ -111,6 +112,10 @@ export const useEditorTabsStore = create<EditorTabsState & EditorTabsActions>((s
   },
   
   closeAllTabs: () => {
+    set({ openTabs: [], activeTabId: null })
+  },
+  
+  reset: () => {
     set({ openTabs: [], activeTabId: null })
   }
 }))
