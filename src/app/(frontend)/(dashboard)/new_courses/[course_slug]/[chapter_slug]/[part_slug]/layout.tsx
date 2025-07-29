@@ -56,7 +56,7 @@ export default async function Layout({
             </CourseLayout.RightPart>
           </CourseLayout.Content>
         </CourseLayout.Body>
-        <CourseFooter previousPart={previousPart} nextPart={nextPart} chapterOutline={[]} />
+        <CourseFooter courseSlug={course_slug} previousPart={previousPart} nextPart={nextPart} chapterOutline={[]} />
       </CourseLayout.Root>
     </CoursePartProvider>
   )

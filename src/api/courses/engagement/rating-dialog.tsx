@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/dialog'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useMutation } from '@/core/functions/hooks'
-// import { upsertChallengeRating } from '@/api/challenges/engagement/rating'
-import { useId, useState } from 'react'
+import { useCoursePartRating } from '@/api/course-parts/hooks/use-rating'
+import { useId, useState, useEffect } from 'react'
 
 const NotGoodReview = () => {
   return (
@@ -74,37 +74,44 @@ const RatingDialog = ({
   coursePartId: number
 }) => {
   const id = useId()
-  const [localRating, setLocalRating] = useState('0')
-//   const mutation = useMutation(upsertChallengeRating, {
-//     onSuccess: () => {
-//       onOpenChange(false)
-//     },
-//   })
+  const [localRating, setLocalRating] = useState<number>(0)
+  const { currentRating, handleRating } = useCoursePartRating({
+    userId,
+    coursePartId,
+  })
+
+  // Set initial rating when dialog opens
+  useEffect(() => {
+    if (open && currentRating !== null && currentRating !== undefined) {
+      setLocalRating(currentRating)
+    }
+  }, [open, currentRating])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // mutation.mutate({
-    //   userId,
-    //   challengeId,
-    //   rating: Number(localRating),
-    // })
+    handleRating({
+      userId,
+      coursePartId,
+      rating: localRating,
+    })
+    onOpenChange(false)
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rate this challenge</DialogTitle>
-          <DialogDescription>Please provide your feedback on this challenge</DialogDescription>
+          <DialogTitle>Rate this course part</DialogTitle>
+          <DialogDescription>Please provide your feedback on this course part</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="py-4">
             <fieldset className="space-y-4">
               <legend className="text-foreground text-sm leading-none font-medium">
-                How would you rate this challenge?
+                How would you rate this course part?
               </legend>
-              <RatingDialogRadioGroup value={localRating} onValueChange={setLocalRating} id={id} />
+              <RatingDialogRadioGroup value={localRating.toString()} onValueChange={(v) => setLocalRating(Number(v))} id={id} />
             </fieldset>
             <div className="mt-1 flex justify-between text-xs font-medium">
               <NotGoodReview />
@@ -113,8 +120,7 @@ const RatingDialog = ({
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={false}>
-              {/* {mutation.isPending ? 'Submitting...' : 'Submit Rating'} */}
+            <Button type="submit">
               Submit Rating
             </Button>
           </DialogFooter>
@@ -131,7 +137,7 @@ const RatingButtonPure = ({ onClick }: { onClick: () => void }) => {
       className="text-xs text-muted-foreground cursor-pointer hover:text-primary transition-colors"
       onClick={onClick}
     >
-      Rate this challenge
+      Rate this course part
     </Button>
   )
 }

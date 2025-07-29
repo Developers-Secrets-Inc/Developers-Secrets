@@ -4,8 +4,8 @@ export const CoursePartUserProgression: CollectionConfig = {
   slug: 'coursePartUserProgression',
   admin: {
     useAsTitle: 'id', // Improve later if needed
-    defaultColumns: ['userId', 'part', 'engagementStatus', 'completionStatus', 'updatedAt'],
-    description: 'Tracks user progression and engagement for specific course parts.',
+    defaultColumns: ['userId', 'part', 'completionStatus', 'updatedAt'],
+    description: 'Tracks user progression for specific course parts.',
     group: 'User Data', // Or another relevant group
   },
   fields: [
@@ -33,22 +33,7 @@ export const CoursePartUserProgression: CollectionConfig = {
         readOnly: true,
       },
     },
-    {
-      name: 'engagementStatus',
-      label: 'Engagement Status',
-      type: 'select',
-      options: [
-        { label: 'Liked', value: 'liked' },
-        { label: 'Disliked', value: 'disliked' },
-        { label: 'None', value: 'none' }, // Represents no active action
-      ],
-      defaultValue: 'none',
-      required: true,
-      index: true,
-      admin: {
-        description: "The user's like/dislike status for this part.",
-      },
-    },
+
     {
       name: 'completionStatus',
       label: 'Completion Status',

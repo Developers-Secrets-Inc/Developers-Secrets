@@ -2,33 +2,33 @@
 
 import { GenericLikeButton } from '@/components/common/reactions/like-button'
 import { GenericDislikeButton } from '@/components/common/reactions/dislike-button'
-// import { useChallengeEngagement } from '../hooks/use-challenge-engagement'
+import { useCoursePartReaction } from '@/api/course-parts/hooks/use-reaction'
 import { usePreloadedQuery } from '@/core/functions/hooks/use-preload'
 import type { Preloaded } from '@/core/functions/types'
-import { ChallengeEngagement } from '@/payload-types'
+import { CoursePartEngagement } from '@/payload-types'
 
 interface EngagementButtonsProps {
   userId: string
   coursePartId: number
-  preloaded?: Preloaded<ChallengeEngagement, { userId: string; challengeId: number }>
+  preloaded?: Preloaded<CoursePartEngagement, { userId: string; coursePartId: number }>
 }
 
 export function EngagementButtons({ userId, coursePartId, preloaded }: EngagementButtonsProps) {
   const preloadedData = preloaded ? usePreloadedQuery(preloaded) : undefined
-//   const { liked, disliked, isLoading, handleLikeClick, handleDislikeClick } =
-//     useChallengeEngagement({
-//       userId,
-//       challengeId,
-//       initial: preloadedData?.data,
-//     })
+  const { liked, disliked, isLoading, handleLikeClick, handleDislikeClick } =
+    useCoursePartReaction({
+      userId,
+      coursePartId,
+      initial: preloadedData?.data,
+    })
 
   return (
     <div className="flex items-center gap-2">
-      <GenericLikeButton isActive={false} onClick={() => {}} isLoading={false} />
+      <GenericLikeButton isActive={liked} onClick={handleLikeClick} isLoading={isLoading} />
       <GenericDislikeButton
-        isActive={false}
-        onClick={() => {}}
-        isLoading={false}
+        isActive={disliked}
+        onClick={handleDislikeClick}
+        isLoading={isLoading}
       />
     </div>
   )
