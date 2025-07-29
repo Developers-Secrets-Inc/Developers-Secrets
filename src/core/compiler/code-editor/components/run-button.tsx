@@ -25,8 +25,6 @@ export const RunCodeButton = () => {
   const { runFileStructure, isLoadingRun } = useRunCode()
   const { setExecutionOutput, openOutputTab } = useFooterStore()
 
-  console.log(fileTree)
-
   const handleRun = async () => {
     try {
       if (!fileTree || fileTree.length === 0) {

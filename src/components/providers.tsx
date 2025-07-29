@@ -27,15 +27,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
         <TooltipProvider>
-        {/* Wrap with the custom completion toast provider */}
-        <CompletionToastProvider>
           <NuqsAdapter>
             <NotificationProvider>{children}</NotificationProvider>
           </NuqsAdapter>
-          {/* The actual Toast component is rendered inside CompletionToastProvider */}
-        </CompletionToastProvider>
-          <Toaster /> {/* Re-added */}
-          <Sonner />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

@@ -7,6 +7,7 @@ import z from 'zod'
 import { CourseOutline } from './types'
 import { getAllCoursePartsSlugs } from '..'
 import { Maybe, none, some } from '@/lib/maybe'
+import { CoursePartUserProgression } from '@/payload-types'
 
 export const getCourseOutline = query({
   name: 'course-outline',
@@ -25,7 +26,7 @@ export const getCourseOutline = query({
         const chapterDocuments = await ctx.payload.findByID({
           collection: 'chapters',
           id: chapterId as number,
-          select: {parts: true, name: true, slug: true},
+          select: { parts: true, name: true, slug: true },
           depth: 0,
         })
 
@@ -36,13 +37,13 @@ export const getCourseOutline = query({
               id: partId as number,
               select: { slug: true, name: true },
             })
-            
+
             // TODO: Get actual completion status from user progression
             // For now, defaulting to 'not_started'
             return {
               name: part.name,
               slug: part.slug,
-              completionStatus: 'not_started' as const
+              completionStatus: 'not_started' as const,
             }
           }),
         )
@@ -50,24 +51,64 @@ export const getCourseOutline = query({
         return {
           name: chapterDocuments.name,
           slug: chapterDocuments.slug,
-          parts: partsDocuments
-        } 
+          parts: partsDocuments,
+        }
       }),
     )
 
     return {
       courseName: courseDocuments.docs[0].name,
       courseSlug: courseDocuments.docs[0].slug,
-      chapters: chapters
+      chapters: chapters,
     }
   },
-  revalidate: 1
+  revalidate: 1,
 })
 
 export const getChapterOutline = query({
   name: 'chapter-outline',
-  args: z.object({ chapter_slug: z.string() }),
-  handler: async (ctx, args) => {},
+  args: z.object({ chapter_slug: z.string(), userId: z.string() }),
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{
+    id: number
+    name: string
+    slug: string
+    completionStatus: CoursePartUserProgression['completionStatus']
+  }[]> => {
+    const documents = await ctx.payload.find({
+      collection: 'chapters',
+      where: { slug: { equals: args.chapter_slug } },
+      limit: 1,
+      depth: 0,
+    })
+
+    return await Promise.all(
+      (documents.docs[0].parts ?? []).map(async (partId) => {
+        const part = await ctx.payload.findByID({
+          collection: 'courseParts',
+          id: partId as number,
+          select: { name: true, slug: true },
+        })
+
+        const progressionDocuments = await ctx.payload.find({
+          collection: 'coursePartUserProgression',
+          where: { part: { equals: partId as number }, userId: { equals: args.userId } },
+          limit: 1,
+          depth: 0,
+          select: { completionStatus: true },
+        })
+
+        return {
+          id: part.id,
+          name: part.name,
+          slug: part.slug,
+          completionStatus: progressionDocuments.docs[0]?.completionStatus ?? 'not_started'
+        }
+      }),
+    )
+  },
 })
 
 export const getPreviousPart = query({

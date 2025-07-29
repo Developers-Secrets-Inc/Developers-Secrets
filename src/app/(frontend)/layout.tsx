@@ -7,6 +7,7 @@ import { RootProvider } from 'fumadocs-ui/provider'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
+import { Toaster } from '@/components/ui/sonner'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               strategy="beforeInteractive"
             />
             <main>{children}</main>
+            <Toaster position="bottom-right" richColors closeButton expand={false} duration={4000} />
           </RootProvider>
         </Providers>
         <SpeedInsights />

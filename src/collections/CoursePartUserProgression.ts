@@ -3,16 +3,16 @@ import type { CollectionConfig } from 'payload'
 export const CoursePartUserProgression: CollectionConfig = {
   slug: 'coursePartUserProgression',
   admin: {
-    useAsTitle: 'id', // Improve later if needed
+    useAsTitle: 'id',
     defaultColumns: ['userId', 'part', 'completionStatus', 'updatedAt'],
     description: 'Tracks user progression for specific course parts.',
-    group: 'User Data', // Or another relevant group
+    group: 'User Data',
   },
   fields: [
     {
       name: 'userId',
       label: 'User ID',
-      type: 'text', // As requested, text user ID
+      type: 'text',
       required: true,
       index: true,
       admin: {
@@ -33,7 +33,6 @@ export const CoursePartUserProgression: CollectionConfig = {
         readOnly: true,
       },
     },
-
     {
       name: 'completionStatus',
       label: 'Completion Status',
@@ -45,7 +44,7 @@ export const CoursePartUserProgression: CollectionConfig = {
       ],
       defaultValue: 'not_started',
       required: true,
-      index: true, // Allow filtering/sorting by status
+      index: true,
       admin: {
         description: 'The completion status of the part for the user.',
       },
@@ -56,15 +55,13 @@ export const CoursePartUserProgression: CollectionConfig = {
       type: 'checkbox',
       defaultValue: false,
       required: true,
-      index: true, // Useful for potential future filtering
+      index: true,
       admin: {
         description: 'Indicates if the user has viewed the official solution for this part.',
-        readOnly: true, // Should only be modified programmatically
-        position: 'sidebar', // Place it in the sidebar for better organization
+        readOnly: true,
+        position: 'sidebar',
       },
     },
   ],
-  timestamps: true, // Adds createdAt and updatedAt
-  // Note: Compound unique index (userId, part) should be enforced via hooks if needed,
-  // as 'indexes' is not a top-level CollectionConfig property.
+  timestamps: true,
 }

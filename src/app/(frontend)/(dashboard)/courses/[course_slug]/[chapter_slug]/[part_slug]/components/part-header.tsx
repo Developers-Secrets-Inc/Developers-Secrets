@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { FeedbackButton } from '@/core/courses/components/feedback-button'
 import { PartSkillsTags, PartSkillsTagsSkeleton } from '@/core/courses/components/part-skills-tags'
-import { PartStatus, PartStatusSkeleton } from '@/core/courses/components/part-status'
+import { PartStatus } from '@/core/courses/components/part-status'
 import { cn } from '@/lib/utils'
 import { CoursePart } from '@/payload-types'
 import React, { Suspense } from 'react'
@@ -80,9 +80,7 @@ export const PartHeader = ({ part }: { part: CoursePart }) => {
       </PartHero>
       <div className="flex flex-col items-end gap-1">
         <div className="flex items-center gap-2">
-          <Suspense fallback={<PartStatusSkeleton />}>
-            <PartStatus partId={part.id} />
-          </Suspense>
+          <PartStatus partId={part.id} />
 
           <FeedbackButton partId={part.id} partName={part.name} />
         </div>

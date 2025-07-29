@@ -11,6 +11,8 @@ import { FileOutput, Beaker } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AiExercice, CoursePart, Exercice } from '@/payload-types'
 import { OutputContent } from '@/core/compiler/code-editor/components/output-content'
+import { SubmitButton } from '../submissions/components/submit-button'
+import { TestResults } from '../submissions/components/tests-results'
 // Types pour la nouvelle structure de fichiers (alignés avec Payload CMS)
 type FileStructureItem = {
   id?: string | null
@@ -101,12 +103,12 @@ const footerTabs = [
     content: <OutputContent />,
     icon: 'file-output',
   },
-  //   {
-  //     id: 'tests',
-  //     title: 'Tests',
-  //     content: <TestResults />,
-  //     icon: 'beaker',
-  //   },
+    {
+      id: 'tests',
+      title: 'Tests',
+      content: <TestResults />,
+      icon: 'beaker',
+    },
 ]
 // Fonction pour obtenir le langage par défaut (premier langage disponible)
 function getDefaultLanguage(exercice: Exercice | AiExercice): string {
@@ -184,6 +186,7 @@ const ClassicChallengeExercice = ({ exercice }: { exercice: Exercice }) => {
               </CodeEditor.Header.LeftPart>
               <CodeEditor.Header.RightPart>
                 <CodeEditor.RunButton />
+                <SubmitButton />
               </CodeEditor.Header.RightPart>
             </CodeEditor.Header.Container>
             <CodeEditor.FileBreadcrumb />

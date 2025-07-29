@@ -22,6 +22,7 @@ export function ChallengeDescriptionView({ children }: ChallengeDescriptionViewP
   const { challenge } = useChallenge()
   const { user } = useUser()
 
+
   return (
         <div className="flex flex-col h-full">
           <div className="flex-1 overflow-y-auto scrollbar-hide mt-0 min-h-0">

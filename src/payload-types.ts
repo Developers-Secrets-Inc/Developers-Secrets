@@ -136,6 +136,7 @@ export interface Config {
     'course-part-rating': CoursePartRating;
     'course-parts-ratings': CoursePartsRating;
     'comments-reports': CommentsReport;
+    'course-part-ai-chats': CoursePartAiChat;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -211,6 +212,7 @@ export interface Config {
     'course-part-rating': CoursePartRatingSelect<false> | CoursePartRatingSelect<true>;
     'course-parts-ratings': CoursePartsRatingsSelect<false> | CoursePartsRatingsSelect<true>;
     'comments-reports': CommentsReportsSelect<false> | CommentsReportsSelect<true>;
+    'course-part-ai-chats': CoursePartAiChatsSelect<false> | CoursePartAiChatsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -2633,6 +2635,18 @@ export interface CoursePartsRating {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-ai-chats".
+ */
+export interface CoursePartAiChat {
+  id: number;
+  userId: string;
+  coursePart: number | CoursePart;
+  chatHistory?: (number | null) | ChatHistory;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -2913,6 +2927,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'comments-reports';
         value: number | CommentsReport;
+      } | null)
+    | ({
+        relationTo: 'course-part-ai-chats';
+        value: number | CoursePartAiChat;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -4252,6 +4270,17 @@ export interface CommentsReportsSelect<T extends boolean = true> {
   userId?: T;
   reason?: T;
   details?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-ai-chats_select".
+ */
+export interface CoursePartAiChatsSelect<T extends boolean = true> {
+  userId?: T;
+  coursePart?: T;
+  chatHistory?: T;
   updatedAt?: T;
   createdAt?: T;
 }

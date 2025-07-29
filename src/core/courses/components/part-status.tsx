@@ -1,23 +1,51 @@
-import { CoursePartStatusClient } from "@/core/courses/components/part-status-client"
-import { getUser } from "@/core/user"
-import { getUserPartCompletionStatus } from "../progression/completion-status"
-import { Skeleton } from "@/components/ui/skeleton"
+'use client'
 
-export const PartStatusSkeleton = () => {
-    return <Skeleton className="h-8 w-24" />
+import { useCoursePartUserStatus } from '@/api/courses/progression/hooks/use-course-part-completion-status'
+import { Skeleton } from '@/components/ui/skeleton'
+import { CompletionStatus } from '@/core/challenges/user-progression/types'
+import { useUser } from '@/core/users/contexts/user-context'
+import { isNone } from '@/lib/maybe'
+import { CheckCircle, Circle, CircleDot } from 'lucide-react'
+
+const statusConfig: Record<
+  CompletionStatus,
+  { icon: React.ReactNode; color: string; label: string }
+> = {
+  completed: {
+    icon: <CheckCircle size={16} />,
+    color: 'green',
+    label: 'Completed',
+  },
+  in_progress: {
+    icon: <CircleDot size={16} />,
+    color: 'amber',
+    label: 'In Progress',
+  },
+  not_started: {
+    icon: <Circle size={16} />,
+    color: 'gray',
+    label: 'Not Started',
+  },
 }
+export const PartStatus = ({ partId }: { partId: number }) => {
+  const { user } = useUser()
+  const { status: visualStatus, isLoading: isLoadingStatus } = useCoursePartUserStatus(partId, user.id)
 
-export const PartStatus = async ({ partId }: { partId: number }) => {
-    const user = await getUser()
 
-    if (!user) {
-        return null
-    }
+  if (isLoadingStatus) {
+    return <Skeleton className="h-5 w-24" />
+  }
 
-    const initialStatus = await getUserPartCompletionStatus(user.id, partId)
+  const { icon, color, label } = statusConfig[
+    !visualStatus || isNone(visualStatus) || !visualStatus.value?.completionStatus 
+      ? 'not_started' 
+      : visualStatus.value.completionStatus
+  ]
 
-    console.log(initialStatus)
-
-    return <CoursePartStatusClient partId={partId} initialStatus={initialStatus} />
+  return (
+    <div className={`flex items-center gap-1.5 text-${color}-500`}>
+      {icon}
+      <span className="text-sm font-medium">{label}</span>
+    </div>
+  )
 }
-

@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { isNone, Maybe } from '@/lib/maybe'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import { ChapterOutline } from '../../navigation/components/chapter-outline'
 
 type CoursePart = {
   name: string
@@ -13,9 +14,10 @@ type CourseFooterProps = {
   previousPart: Maybe<CoursePart>
   nextPart: Maybe<CoursePart>
   chapterOutline: {
-    partName: string
-    partSlug: string
-    isCurrent: boolean
+    id: number
+    name: string
+    slug: string
+    // isCurrent: boolean
     completionStatus: 'not_started' | 'in_progress' | 'completed'
   }[]
 }
@@ -30,6 +32,7 @@ export const CourseFooter = ({ courseSlug, previousPart, nextPart, chapterOutlin
           {isNone(previousPart) ? 'No previous part' : previousPart.value.name}
           </Link>
         </Button>
+        <ChapterOutline outline={chapterOutline} />
         <Button variant="outline" className="flex items-center gap-2" disabled={isNone(nextPart)} asChild>
           <Link href={isNone(nextPart) ? '#' : `${courseSlug}/${nextPart.value.slug}`}>
           {isNone(nextPart) ? 'No next part' : nextPart.value.name}

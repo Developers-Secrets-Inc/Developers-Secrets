@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { usePathname } from 'next/navigation'
 import { useCoursePart } from '../../contexts/course-part-context'
 import { coursePartTabs } from '../tabs-config'
+import { unlockSolution } from '../../progression/solution'
 
 type TabLockStatus = {
   [key: string]: boolean
@@ -55,7 +56,7 @@ export function useCoursePartTabsLockStatus() {
       
       // Pour les onglets de solution, on utilise setSolutionUnlocked
       if (tabId === 'official-solution' || tabId === 'solutions') {
-        // await setSolutionUnlocked(userId, coursePart)
+        await unlockSolution({userId, partId: coursePart.id})
       } else if (tab.lock.onConfirm) {
         // Pour d'autres onglets qui pourraient avoir une logique custom
         await tab.lock.onConfirm(coursePart.id, userId)

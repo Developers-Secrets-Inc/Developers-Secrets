@@ -1,4 +1,9 @@
-import { getCourseOutline, getNextPart, getPreviousPart } from '@/api/courses/navigation'
+import {
+  getChapterOutline,
+  getCourseOutline,
+  getNextPart,
+  getPreviousPart,
+} from '@/api/courses/navigation'
 import { CoursePartExercice } from '@/api/courses/components/course-part-exercice'
 import { CourseLayout } from '@/api/courses/components/layout'
 import { CourseFooter } from '@/api/courses/components/layout/footer'
@@ -10,10 +15,12 @@ import { notFound, redirect } from 'next/navigation'
 import { CoursePartProvider } from '@/api/courses/contexts/components/course-part-provider'
 import { CoursePartViewManager } from '@/api/courses/components/course-part-view-manager'
 import { CoursePartNavigationTabs } from '@/api/courses/navigation/components/course-part-navigation-tabs'
+import { getOrCreateChat, loadChat } from '@/api/courses/ai-chats'
+import { getRemainingMessagesForToday } from '@/core/ai/quotas/actions'
 
 export default async function Layout({
   params,
-  children
+  children,
 }: {
   params: Promise<{ course_slug: string; chapter_slug: string; part_slug: string }>
   children: React.ReactNode
@@ -36,8 +43,29 @@ export default async function Layout({
     return notFound()
   }
 
+  const coursePartAIChat = await getOrCreateChat({
+    userId: user.value.id,
+    coursePart: part.value.id,
+  })
+
+  const [messages, quotas] = await Promise.all([
+    loadChat({ chatId: coursePartAIChat.id }),
+    getRemainingMessagesForToday(user.value.id),
+  ])
+
+  const chapterOutline = await getChapterOutline({ chapter_slug, userId: user.value.id })
+
   return (
-    <CoursePartProvider coursePart={part.value} metadata={{courseSlug: course_slug, chapterSlug: chapter_slug}} >
+    <CoursePartProvider
+      coursePart={part.value}
+      metadata={{
+        courseSlug: course_slug,
+        chapterSlug: chapter_slug,
+        coursePartAIChat,
+        messages,
+        quotas,
+      }}
+    >
       <CourseLayout.Root>
         <CourseLayout.Header courseOutline={courseOutline} />
         <CourseLayout.Body>
@@ -45,9 +73,7 @@ export default async function Layout({
             <CourseLayout.LeftPart>
               <CoursePartNavigationTabs />
               <CourseLayout.MainContainer>
-                <CoursePartViewManager>
-                  {children}
-                </CoursePartViewManager>
+                <CoursePartViewManager>{children}</CoursePartViewManager>
               </CourseLayout.MainContainer>
             </CourseLayout.LeftPart>
             <CourseLayout.ContentSeparator />
@@ -56,7 +82,12 @@ export default async function Layout({
             </CourseLayout.RightPart>
           </CourseLayout.Content>
         </CourseLayout.Body>
-        <CourseFooter courseSlug={course_slug} previousPart={previousPart} nextPart={nextPart} chapterOutline={[]} />
+        <CourseFooter
+          courseSlug={course_slug}
+          previousPart={previousPart}
+          nextPart={nextPart}
+          chapterOutline={chapterOutline}
+        />
       </CourseLayout.Root>
     </CoursePartProvider>
   )
