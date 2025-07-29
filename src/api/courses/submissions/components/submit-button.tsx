@@ -5,17 +5,17 @@ import { useEditorStore } from '@/core/compiler/code-editor/store/editor-store'
 import { useFooterStore } from '@/core/compiler/code-editor/store/footer-store'
 import { useSubmit } from '@/core/compiler/submissions/hooks/use-submit'
 import { transformFileTreeToExecutionStructure } from '@/core/compiler/utils/file-structure'
-import { CircleCheckIcon, Loader2, Send, XIcon } from 'lucide-react'
-import { useCoursePart } from '../../contexts/course-part-context'
 import { useUser } from '@/core/users/contexts/user-context'
-import { Exercice } from '@/payload-types'
-import { useSubmissionStore } from '../stores/submissions-store'
-import { useCoursePartUserStatus } from '../../progression/hooks/use-course-part-completion-status'
-import { getCoursePartCompletionStatus } from '../../progression'
 import { isNone } from '@/lib/maybe'
+import { Exercice } from '@/payload-types'
 import { useQueryClient } from '@tanstack/react-query'
+import { Loader2, Send } from 'lucide-react'
+import { useCoursePart } from '../../contexts/course-part-context'
 import { getQueryKey } from '../../navigation/hooks/use-course-part-lock-status'
-import { toast } from 'sonner'
+import { getCoursePartCompletionStatus } from '../../progression'
+import { toast } from '../../progression/components/part-completion-toast'
+import { useCoursePartUserStatus } from '../../progression/hooks/use-course-part-completion-status'
+import { useSubmissionStore } from '../stores/submissions-store'
 
 const LoadingIcon = ({
   isLoading,
@@ -70,20 +70,7 @@ export const SubmitButton = () => {
 
     await setInProgress()
 
-    toast(
-      <div>
-        A custom toast with a{' '}
-        <a
-          href="https://emilkowal.ski/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline"
-        >
-          link
-        </a>
-      </div>,
-    )
-
+        console.log(submission)
     if (submission.testsPassed === testResults.length) {
       const currentCompletionStatus = await getCoursePartCompletionStatus({
         userId: user.id,
@@ -97,6 +84,10 @@ export const SubmitButton = () => {
           : false
 
       if (!isAlreadyCompleted) {
+        toast({
+          name: coursePart.name,
+          difficulty: coursePart.difficulty,
+        })
         await setCompleted()
 
         queryClient.invalidateQueries({
