@@ -8,6 +8,7 @@ import { CourseOutline } from './types'
 import { getAllCoursePartsSlugs } from '..'
 import { Maybe, none, some } from '@/lib/maybe'
 import { CoursePartUserProgression } from '@/payload-types'
+import { TIME } from '@/lib/time'
 
 export const getCourseOutline = query({
   name: 'course-outline',
@@ -109,6 +110,7 @@ export const getChapterOutline = query({
       }),
     )
   },
+  revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY
 })
 
 export const getPreviousPart = query({

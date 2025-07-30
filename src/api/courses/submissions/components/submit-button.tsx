@@ -28,7 +28,7 @@ const LoadingIcon = ({
 }
 
 export const SubmitButton = () => {
-  const { coursePart } = useCoursePart()
+  const { coursePart, metadata } = useCoursePart()
   const { user } = useUser()
   const queryClient = useQueryClient()
 
@@ -72,6 +72,8 @@ export const SubmitButton = () => {
 
         console.log(submission)
     if (submission.testsPassed === testResults.length) {
+
+      // This create more initial load, we need to find a secure way to improve it.
       const currentCompletionStatus = await getCoursePartCompletionStatus({
         userId: user.id,
         partId: coursePart.id,
@@ -82,6 +84,7 @@ export const SubmitButton = () => {
         : currentCompletionStatus.value.completionStatus === 'completed'
           ? true
           : false
+
 
       if (!isAlreadyCompleted) {
         toast({

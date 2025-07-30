@@ -17,6 +17,7 @@ import { CoursePartViewManager } from '@/api/courses/components/course-part-view
 import { CoursePartNavigationTabs } from '@/api/courses/navigation/components/course-part-navigation-tabs'
 import { getOrCreateChat, loadChat } from '@/api/courses/ai-chats'
 import { getRemainingMessagesForToday } from '@/core/ai/quotas/actions'
+import { getCoursePartCompletionStatus } from '@/api/courses/progression'
 
 export default async function Layout({
   params,
