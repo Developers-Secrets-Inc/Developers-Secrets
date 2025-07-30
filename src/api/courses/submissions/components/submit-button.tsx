@@ -16,6 +16,10 @@ import { getCoursePartCompletionStatus } from '../../progression'
 import { toast } from '../../progression/components/part-completion-toast'
 import { useCoursePartUserStatus } from '../../progression/hooks/use-course-part-completion-status'
 import { useSubmissionStore } from '../stores/submissions-store'
+import { useQuestActions } from '@/core/gamification/quests/hooks/use-quests'
+import { isSolutionUnlocked } from '../../progression/solution'
+import { trackAchievementProgress } from '@/core/gamification/achievements/action'
+import { addExperience } from '@/core/gamification/level'
 
 const LoadingIcon = ({
   isLoading,
@@ -40,6 +44,9 @@ export const SubmitButton = () => {
 
   const { setSubmissionResult, setTestResults, setIsSubmitting, clearResults } =
     useSubmissionStore()
+
+      const { progressQuest } = useQuestActions()
+
 
   const handleSubmit = async () => {
     setActiveTab('tests')
@@ -87,15 +94,52 @@ export const SubmitButton = () => {
 
 
       if (!isAlreadyCompleted) {
+          const solutionUnlockedResult = await isSolutionUnlocked({partId: coursePart.id, userId: user.id})
+          const solutionAlreadyUnlocked = !isNone(solutionUnlockedResult) && solutionUnlockedResult.value.isSolutionUnlocked
+
         toast({
-          name: coursePart.name,
-          difficulty: coursePart.difficulty,
-        })
+            name: coursePart.name,
+            difficulty: coursePart.difficulty,
+            solutionAlreadyUnlocked,
+          })
         await setCompleted()
 
         queryClient.invalidateQueries({
           queryKey: getQueryKey(coursePart.id, user.id, coursePart.slug),
         })
+
+
+          // Most of this code should not be located here, this component has way too much responsibility. 
+          // But we need to find a way to create an event system that is handled on the client but can perform 
+          // secure server actions. 
+
+          // For exemple, quest progress needs to be on the client to reflect live changes (should it really ?)
+          // Should we have client mutations like this ? Because we can just use revalidation on focus.
+          
+          // Current quest data (which is not from the server to avoid more load)
+
+          progressQuest({ eventType: 'challengesCompleted', userId: user.id })
+
+
+          const difficultyMultiplier = {
+            easy: 50,
+            medium: 100,
+            hard: 150,
+            horrible: 200,
+          }
+
+          const gamificationPromises: Promise<any>[] = [
+            trackAchievementProgress(user.id, 'challenges_completed', 1),
+            // updateStreak.mutateAsync(),
+            // addCurrency(userId, currencyOnCompletion, 'Challenge completion'),
+          ]
+
+          if (!solutionAlreadyUnlocked) {
+            gamificationPromises.push(addExperience(user.id, difficultyMultiplier[coursePart.difficulty] ?? 50))
+          }
+
+          // On n'a plus besoin de récupérer le résultat ici
+          await Promise.all(gamificationPromises)
       }
     }
 

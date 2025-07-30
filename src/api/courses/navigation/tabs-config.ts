@@ -1,4 +1,7 @@
 import { FileTextIcon, UsersIcon, ListChecksIcon, LucideIcon, Award, Lock } from 'lucide-react'
+import { isSolutionUnlocked } from '../progression/solution'
+import { isNone } from '@/lib/maybe'
+import { getCoursePartCompletionStatus } from '../progression'
 
 export type TabConfig = {
   id: string
@@ -33,7 +36,16 @@ export const coursePartTabs = (slug: string, pathname: string): TabConfig[] => [
     active: pathname === `/courses/${slug}/official-solution`,
     lock: {
       isLocked: async (coursePartId, userId) => {
-        return true
+        const solutionUnlocked = await isSolutionUnlocked({ partId: coursePartId, userId })
+        const completionStatus = await getCoursePartCompletionStatus({
+          partId: coursePartId,
+          userId,
+        })
+
+        if (isNone(solutionUnlocked) || isNone(completionStatus)) {
+          return true
+        }
+        return !solutionUnlocked.value.isSolutionUnlocked && completionStatus.value.completionStatus !== 'completed'
       },
       dialog: {
         title: 'Unlock Official Solution',

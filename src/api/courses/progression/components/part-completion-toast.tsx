@@ -20,10 +20,16 @@ function calculateExperience(difficulty: Difficulty): number {
   return difficultyMultipliers[difficulty] * 50
 }
 
-export function toast(coursePart: CoursePart) {
+export function toast(coursePart: CoursePart & { solutionAlreadyUnlocked?: boolean }) {
   const experience = calculateExperience(coursePart.difficulty)
   const title = `${coursePart.name} completed!`
-  const description = `You earned ${experience} experience points`
+  
+  let description: string
+  if (coursePart.solutionAlreadyUnlocked) {
+    description = "Challenge completed! No experience points awarded (solution already unlocked)"
+  } else {
+    description = `You earned ${experience} experience points`
+  }
   
   return sonnerToast.custom((id) => (
     <Toast id={id} title={title} description={description} />

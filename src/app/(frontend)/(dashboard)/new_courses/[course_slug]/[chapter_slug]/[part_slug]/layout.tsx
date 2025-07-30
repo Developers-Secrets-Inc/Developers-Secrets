@@ -84,7 +84,7 @@ export default async function Layout({
           </CourseLayout.Content>
         </CourseLayout.Body>
         <CourseFooter
-          courseSlug={course_slug}
+          courseSlug={`/courses/${course_slug}/${chapter_slug}`}
           previousPart={previousPart}
           nextPart={nextPart}
           chapterOutline={chapterOutline}

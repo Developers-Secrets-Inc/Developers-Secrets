@@ -103,12 +103,12 @@ const footerTabs = [
     content: <OutputContent />,
     icon: 'file-output',
   },
-    {
-      id: 'tests',
-      title: 'Tests',
-      content: <TestResults />,
-      icon: 'beaker',
-    },
+  {
+    id: 'tests',
+    title: 'Tests',
+    content: <TestResults />,
+    icon: 'beaker',
+  },
 ]
 
 // Fonction pour créer les onglets du footer sans tests (mode par défaut)
@@ -175,39 +175,36 @@ const ClassicChallengeExercice = ({ exercice }: { exercice: Exercice }) => {
     return null
   }
   return (
-      <CodeEditor.Container>
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="relative flex flex-1 overflow-hidden"
+    <CodeEditor.Container>
+      <ResizablePanelGroup direction="horizontal" className="relative flex flex-1 overflow-hidden">
+        <ResizablePanel
+          className={cn(!isOpen && 'hidden')}
+          defaultSize={20}
+          minSize={15}
+          maxSize={40}
         >
-          <ResizablePanel
-            className={cn(!isOpen && 'hidden')}
-            defaultSize={20}
-            minSize={15}
-            maxSize={40}
-          >
-            <CodeEditor.FileExplorer />
-          </ResizablePanel>
-          <ResizableHandle className={cn(!isOpen && 'hidden')} />
-          <ResizablePanel defaultSize={80}>
-            <CodeEditor.Header.Container>
-              <CodeEditor.Header.LeftPart>
-                <CodeEditor.Editor.Tabs />
-              </CodeEditor.Header.LeftPart>
-              <CodeEditor.Header.RightPart>
-                <CodeEditor.RunButton />
-                <SubmitButton />
-              </CodeEditor.Header.RightPart>
-            </CodeEditor.Header.Container>
-            <CodeEditor.FileBreadcrumb />
-            <CodeEditor.Editor.Container>
-              <CodeEditor.Editor.Content />
-            </CodeEditor.Editor.Container>
-          </ResizablePanel>
-          <CodeEditor.FileSystemButton />
-        </ResizablePanelGroup>
-        <CodeEditor.Footer tabs={footerTabs} />
-      </CodeEditor.Container>
+          <CodeEditor.FileExplorer />
+        </ResizablePanel>
+        <ResizableHandle className={cn(!isOpen && 'hidden')} />
+        <ResizablePanel defaultSize={80}>
+          <CodeEditor.Header.Container>
+            <CodeEditor.Header.LeftPart>
+              <CodeEditor.Editor.Tabs />
+            </CodeEditor.Header.LeftPart>
+            <CodeEditor.Header.RightPart>
+              <CodeEditor.RunButton />
+              <SubmitButton />
+            </CodeEditor.Header.RightPart>
+          </CodeEditor.Header.Container>
+          <CodeEditor.FileBreadcrumb />
+          <CodeEditor.Editor.Container>
+            <CodeEditor.Editor.Content />
+          </CodeEditor.Editor.Container>
+        </ResizablePanel>
+        <CodeEditor.FileSystemButton />
+      </ResizablePanelGroup>
+      <CodeEditor.Footer tabs={footerTabs} />
+    </CodeEditor.Container>
   )
 }
 
@@ -230,14 +227,14 @@ const DefaultCodeEditor = () => {
         content: '# Write your Python code here\n\nprint("Hello, World!")',
         language: 'python',
         locked: false,
-      }
+      },
     ]
 
     // Configurer l'éditeur avec le fichier par défaut
     setFileTree(defaultFileTree)
     setActiveFileId('main-py')
     openTab('main-py', 'main.py', 'python')
-    
+
     // Fermer l'explorateur de fichiers (pas nécessaire pour un seul fichier)
     if (isOpen) {
       toggle()
@@ -246,10 +243,7 @@ const DefaultCodeEditor = () => {
 
   return (
     <CodeEditor.Container>
-      <ResizablePanelGroup
-        direction="horizontal"
-        className="relative flex flex-1 overflow-hidden"
-      >
+      <ResizablePanelGroup direction="horizontal" className="relative flex flex-1 overflow-hidden">
         <ResizablePanel
           className={cn(!isOpen && 'hidden')}
           defaultSize={20}
@@ -305,5 +299,5 @@ export const CoursePartExercice = ({ exercice }: { exercice: CoursePart['exercic
     ),
   }
 
-  return <div className='h-full'>{exercicesComponents[exercice.relationTo]}</div>
+  return <div className="h-full">{exercicesComponents[exercice.relationTo]}</div>
 }
