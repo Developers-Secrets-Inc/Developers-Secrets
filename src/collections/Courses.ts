@@ -127,5 +127,20 @@ export const Courses: CollectionConfig = {
         description: 'Check this box if the course requires a PRO subscription to access.',
       },
     },
+    {
+      name: 'status',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: [
+        { label: 'Draft', value: 'draft' },
+        { label: 'Published', value: 'published' },
+      ],
+      defaultValue: 'draft',
+      admin: {
+        position: 'sidebar',
+        description: 'Set to Draft to hide the course from users (except admins).',
+      },
+    },
   ],
 }

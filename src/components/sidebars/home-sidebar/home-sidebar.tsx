@@ -77,8 +77,7 @@ const LearningGroup = () => {
       <SidebarMenu>
         <SidebarLink href="/home" text="Home" icon={<Home className="size-4" />} />
         <SidebarLink
-          href="#"
-          isComingSoon={true}
+          href="/courses"
           text="Courses"
           icon={<Book className="size-4" />}
         />

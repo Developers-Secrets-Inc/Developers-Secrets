@@ -13,11 +13,11 @@ import { TIME } from '@/lib/time'
 export const getCourseOutline = query({
   name: 'course-outline',
   args: z.object({ course_slug: z.string() }),
-  handler: async (ctx, args): Promise<CourseOutline> => {
+  handler: async (ctx, args): Promise<CourseOutline & { status: string }> => {
     const courseDocuments = await ctx.payload.find({
       collection: 'courses',
       where: { slug: { equals: args.course_slug } },
-      select: { name: true, orderedChapters: true, slug: true },
+      select: { name: true, orderedChapters: true, slug: true, status: true },
       limit: 1,
       depth: 0,
     })
@@ -61,6 +61,7 @@ export const getCourseOutline = query({
       courseName: courseDocuments.docs[0].name,
       courseSlug: courseDocuments.docs[0].slug,
       chapters: chapters,
+      status: courseDocuments.docs[0].status || 'published',
     }
   },
   revalidate: 1,
@@ -159,7 +160,8 @@ export const getRandomCourses = query({
   handler: async (ctx, args) => {
     const allCourses = await ctx.payload.find({
       collection: 'courses',
-      select: { name: true, slug: true, difficulty: true, description: true, ogImage: true, orderedChapters: true },
+      where: { status: { equals: 'published' } },
+      select: { name: true, slug: true, difficulty: true, description: true, ogImage: true, orderedChapters: true, status: true },
       depth: 0,
     })
 
@@ -174,7 +176,8 @@ export const getRandomCourses = query({
       description: course.description,
       ogImage: course.ogImage,
       hasChapters: (course.orderedChapters && course.orderedChapters.length > 0) || false,
+      status: course.status || 'published',
     }))
   },
-  revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY,
+  revalidate: TIME.ONE_DAY,
 })

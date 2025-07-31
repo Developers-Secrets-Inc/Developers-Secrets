@@ -1896,6 +1896,10 @@ export interface Course {
    * Check this box if the course requires a PRO subscription to access.
    */
   isProCourse: boolean;
+  /**
+   * Set to Draft to hide the course from users (except admins).
+   */
+  status: 'draft' | 'published';
   updatedAt: string;
   createdAt: string;
 }
@@ -3790,6 +3794,7 @@ export interface CoursesSelect<T extends boolean = true> {
   slug?: T;
   difficulty?: T;
   isProCourse?: T;
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }

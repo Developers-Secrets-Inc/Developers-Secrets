@@ -33,6 +33,7 @@ interface RecommendedCourse {
   description?: string | null
   ogImage?: number | null
   hasChapters: boolean
+  status?: 'draft' | 'published'
 }
 
 export async function RecommendedCourses() {
@@ -87,7 +88,7 @@ export async function RecommendedCourses() {
                   )}
                 </div>
                 <div className="mt-3">
-                  {course.hasChapters ? (
+                  {(course.hasChapters && course.status === 'published') ? (
                     <Button 
                       size="sm" 
                       className="w-full" 

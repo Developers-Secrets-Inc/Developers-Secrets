@@ -44,6 +44,12 @@ export default async function Layout({
     return notFound()
   }
 
+  // Check if course is draft and user is not admin
+  const isAdmin = user.value.informations.role === 'admin'
+  if (courseOutline.status === 'draft' && !isAdmin) {
+    return notFound()
+  }
+
   const coursePartAIChat = await getOrCreateChat({
     userId: user.value.id,
     coursePart: part.value.id,
