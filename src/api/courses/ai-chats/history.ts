@@ -4,7 +4,7 @@ import 'server-only'
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import type { ChatHistory, CoursePartChatHistory } from '@/payload-types'
+import type { CoursePartChatHistory } from '@/payload-types'
 import { Message } from 'ai'
 
 /**

@@ -60,7 +60,7 @@ const CourseLinkWrapper: React.FC<CourseLinkWrapperProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return <Link href={effectiveHref}>{children}</Link>
+  return <Link href={`${effectiveHref}/description`}>{children}</Link>
 }
 
 export const CoursesGrid = ({ userId }: CoursesGridProps) => {
@@ -237,7 +237,7 @@ export const CoursesGrid = ({ userId }: CoursesGridProps) => {
               ) : (
                 <CourseLinkWrapper
                   courseSlug={course.slug}
-                  defaultHref={course.startUrl ?? `/courses/${course.slug}`}
+                  defaultHref={course.startUrl ?? `/courses/${course.slug}/description`}
                 >
                   <CourseCard course={course} userId={userId ?? ''} />
                 </CourseLinkWrapper>

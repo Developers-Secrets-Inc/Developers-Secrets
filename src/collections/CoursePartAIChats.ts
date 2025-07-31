@@ -23,7 +23,7 @@ export const CoursePartAIChats: CollectionConfig = {
       name: 'chatHistory',
       label: 'Chat History File',
       type: 'relationship',
-      relationTo: 'chat-histories',
+      relationTo: 'course-part-chat-histories',
       required: false,
     },
     // Optionally, quotaUsed or other fields can be added later

@@ -2649,7 +2649,7 @@ export interface CoursePartAiChat {
   id: number;
   userId: string;
   coursePart: number | CoursePart;
-  chatHistory?: (number | null) | ChatHistory;
+  chatHistory?: (number | null) | CoursePartChatHistory;
   updatedAt: string;
   createdAt: string;
 }
