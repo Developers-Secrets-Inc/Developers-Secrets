@@ -4,7 +4,7 @@ import 'server-only'
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import type { ChatHistory } from '@/payload-types'
+import type { ChatHistory, CoursePartChatHistory } from '@/payload-types'
 import { Message } from 'ai'
 
 /**
@@ -19,13 +19,13 @@ export async function createChatHistory({
 }: {
   chatId: number
   initialMessages?: Message[]
-}): Promise<ChatHistory> {
+}): Promise<CoursePartChatHistory> {
   const payload = await getPayload({ config })
 
   const fileContent = Buffer.from(JSON.stringify(initialMessages, null, 2), 'utf-8')
 
   const result = await payload.create({
-    collection: 'chat-histories',
+    collection: 'course-part-chat-histories',
     data: {
       chat: chatId,
     },
@@ -47,7 +47,7 @@ export async function createChatHistory({
  */
 export async function getChatHistory(historyId: number): Promise<Message[]> {
   const payload = await getPayload({ config })
-  const history = await payload.findByID({ collection: 'chat-histories', id: historyId })
+  const history = await payload.findByID({ collection: 'course-part-chat-histories', id: historyId })
   if (!history.url) return []
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
@@ -71,13 +71,13 @@ export async function updateChatHistory({
 }: {
   historyId: number
   messages: Message[]
-}): Promise<ChatHistory> {
+}): Promise<CoursePartChatHistory> {
   const payload = await getPayload({ config })
   const fileContent = Buffer.from(JSON.stringify(messages, null, 2), 'utf-8')
   // Fetch the current document to get the 'chat' field
-  const current = await payload.findByID({ collection: 'chat-histories', id: historyId })
+  const current = await payload.findByID({ collection: 'course-part-chat-histories', id: historyId })
   const updated = await payload.update({
-    collection: 'chat-histories',
+    collection: 'course-part-chat-histories',
     id: historyId,
     data: { chat: current.chat },
     file: {
@@ -95,7 +95,7 @@ export async function updateChatHistory({
  * @param historyId - The ChatHistory id
  * @returns The updated ChatHistory object
  */
-export async function resetChatHistory(historyId: number): Promise<ChatHistory> {
+export async function resetChatHistory(historyId: number): Promise<CoursePartChatHistory> {
   return await updateChatHistory({ historyId, messages: [] })
 }
 
@@ -107,7 +107,7 @@ export async function resetChatHistory(historyId: number): Promise<ChatHistory> 
 export async function deleteChatHistory(historyId: number): Promise<boolean> {
   const payload = await getPayload({ config })
   try {
-    await payload.delete({ collection: 'chat-histories', id: historyId })
+    await payload.delete({ collection: 'course-part-chat-histories', id: historyId })
     return true
   } catch {
     return false

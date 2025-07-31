@@ -224,7 +224,7 @@ const DefaultCodeEditor = () => {
         id: 'main-py',
         type: 'file',
         name: 'main.py',
-        content: '# Write your Python code here\n\nprint("Hello, World!")',
+        content: '# Write your code here',
         language: 'python',
         locked: false,
       },

@@ -1,9 +1,9 @@
 import type { CollectionConfig } from 'payload'
 
-export const ChatHistories: CollectionConfig = {
-  slug: 'chat-histories',
+export const CoursePartChatHistories: CollectionConfig = {
+  slug: 'course-part-chat-histories',
   upload: {
-    staticDir: './chat-histories',
+    staticDir: './course-part-chat-histories',
     mimeTypes: ['application/json'],
     disableLocalStorage: true,
   },
@@ -23,7 +23,7 @@ export const ChatHistories: CollectionConfig = {
       name: 'chat',
       label: 'Associated Chat',
       type: 'relationship',
-      relationTo: 'challenge-ai-chats',
+      relationTo: 'course-part-ai-chats',
       required: true,
       unique: true,
     },

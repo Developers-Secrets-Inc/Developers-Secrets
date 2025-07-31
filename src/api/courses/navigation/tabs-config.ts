@@ -49,7 +49,7 @@ export const coursePartTabs = (slug: string, pathname: string): TabConfig[] => [
       },
       dialog: {
         title: 'Unlock Official Solution',
-        description: 'Unlock the official solution to see how the coursePart creator solved it.',
+        description: 'Unlock the official solution. Note: You will not gain experience points when unlocking the solution.',
         confirmLabel: 'Unlock',
       },
       onConfirm: async (coursePartId, userId) => {

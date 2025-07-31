@@ -137,6 +137,7 @@ export interface Config {
     'course-parts-ratings': CoursePartsRating;
     'comments-reports': CommentsReport;
     'course-part-ai-chats': CoursePartAiChat;
+    'course-part-chat-histories': CoursePartChatHistory;
     userLastVisitedCourse: UserLastVisitedCourse;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -214,6 +215,7 @@ export interface Config {
     'course-parts-ratings': CoursePartsRatingsSelect<false> | CoursePartsRatingsSelect<true>;
     'comments-reports': CommentsReportsSelect<false> | CommentsReportsSelect<true>;
     'course-part-ai-chats': CoursePartAiChatsSelect<false> | CoursePartAiChatsSelect<true>;
+    'course-part-chat-histories': CoursePartChatHistoriesSelect<false> | CoursePartChatHistoriesSelect<true>;
     userLastVisitedCourse: UserLastVisitedCourseSelect<false> | UserLastVisitedCourseSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -2652,6 +2654,25 @@ export interface CoursePartAiChat {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-chat-histories".
+ */
+export interface CoursePartChatHistory {
+  id: number;
+  chat: number | CoursePartAiChat;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
  * Tracks the last course visited by each user
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2968,6 +2989,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'course-part-ai-chats';
         value: number | CoursePartAiChat;
+      } | null)
+    | ({
+        relationTo: 'course-part-chat-histories';
+        value: number | CoursePartChatHistory;
       } | null)
     | ({
         relationTo: 'userLastVisitedCourse';
@@ -4325,6 +4350,24 @@ export interface CoursePartAiChatsSelect<T extends boolean = true> {
   chatHistory?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-chat-histories_select".
+ */
+export interface CoursePartChatHistoriesSelect<T extends boolean = true> {
+  chat?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
