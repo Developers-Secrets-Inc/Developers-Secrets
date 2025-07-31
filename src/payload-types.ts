@@ -137,6 +137,7 @@ export interface Config {
     'course-parts-ratings': CoursePartsRating;
     'comments-reports': CommentsReport;
     'course-part-ai-chats': CoursePartAiChat;
+    userLastVisitedCourse: UserLastVisitedCourse;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -213,6 +214,7 @@ export interface Config {
     'course-parts-ratings': CoursePartsRatingsSelect<false> | CoursePartsRatingsSelect<true>;
     'comments-reports': CommentsReportsSelect<false> | CommentsReportsSelect<true>;
     'course-part-ai-chats': CoursePartAiChatsSelect<false> | CoursePartAiChatsSelect<true>;
+    userLastVisitedCourse: UserLastVisitedCourseSelect<false> | UserLastVisitedCourseSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -2646,6 +2648,37 @@ export interface CoursePartAiChat {
   createdAt: string;
 }
 /**
+ * Tracks the last course visited by each user
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userLastVisitedCourse".
+ */
+export interface UserLastVisitedCourse {
+  id: number;
+  /**
+   * The Supabase user ID
+   */
+  userId: string;
+  /**
+   * The course that was last visited
+   */
+  course: number | Course;
+  /**
+   * When the course was last visited
+   */
+  lastVisitedAt: string;
+  /**
+   * The slug of the last visited chapter
+   */
+  lastChapterSlug?: string | null;
+  /**
+   * The slug of the last visited part
+   */
+  lastPartSlug?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -2931,6 +2964,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'course-part-ai-chats';
         value: number | CoursePartAiChat;
+      } | null)
+    | ({
+        relationTo: 'userLastVisitedCourse';
+        value: number | UserLastVisitedCourse;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -4281,6 +4318,19 @@ export interface CoursePartAiChatsSelect<T extends boolean = true> {
   userId?: T;
   coursePart?: T;
   chatHistory?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userLastVisitedCourse_select".
+ */
+export interface UserLastVisitedCourseSelect<T extends boolean = true> {
+  userId?: T;
+  course?: T;
+  lastVisitedAt?: T;
+  lastChapterSlug?: T;
+  lastPartSlug?: T;
   updatedAt?: T;
   createdAt?: T;
 }

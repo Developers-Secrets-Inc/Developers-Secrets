@@ -66,6 +66,7 @@ export const RecommendedChallengeClient = ({
   }
 
   if (error) {
+    console.error(error)
     return <RecommendedChallengeError />
   }
 

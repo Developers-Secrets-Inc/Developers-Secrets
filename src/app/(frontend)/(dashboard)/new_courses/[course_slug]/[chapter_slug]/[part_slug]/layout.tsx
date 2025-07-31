@@ -18,6 +18,7 @@ import { CoursePartNavigationTabs } from '@/api/courses/navigation/components/co
 import { getOrCreateChat, loadChat } from '@/api/courses/ai-chats'
 import { getRemainingMessagesForToday } from '@/core/ai/quotas/actions'
 import { getCoursePartCompletionStatus } from '@/api/courses/progression'
+import { UpdateLastVisited } from './update-last-visited'
 
 export default async function Layout({
   params,
@@ -43,6 +44,14 @@ export default async function Layout({
   if (isNone(part)) {
     return notFound()
   }
+
+      <UpdateLastVisited
+        courseSlug={course_slug}
+        chapterSlug={chapter_slug}
+        partSlug={part_slug}
+        userId={user.value.id}
+      />
+  
 
   const coursePartAIChat = await getOrCreateChat({
     userId: user.value.id,

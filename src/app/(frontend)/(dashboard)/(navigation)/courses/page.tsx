@@ -37,7 +37,7 @@ export default async function Page() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold tracking-tight">Available Courses</h2>
+            {/* <h2 className="text-xl font-semibold tracking-tight">Available Courses</h2> */}
             <CoursesGrid courses={courses} userId={user.value.id} />
           </div>
         </div>

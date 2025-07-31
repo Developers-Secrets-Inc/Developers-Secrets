@@ -152,3 +152,29 @@ export const getNextPart = query({
     })
   },
 })
+
+export const getRandomCourses = query({
+  name: 'random-courses',
+  args: z.object({ count: z.number().min(1).max(10).default(4) }),
+  handler: async (ctx, args) => {
+    const allCourses = await ctx.payload.find({
+      collection: 'courses',
+      select: { name: true, slug: true, difficulty: true, description: true, ogImage: true, orderedChapters: true },
+      depth: 0,
+    })
+
+    const shuffled = allCourses.docs.sort(() => Math.random() - 0.5)
+    const selected = shuffled.slice(0, args.count)
+
+    return selected.map(course => ({
+      id: course.id,
+      name: course.name,
+      slug: course.slug,
+      difficulty: course.difficulty,
+      description: course.description,
+      ogImage: course.ogImage,
+      hasChapters: (course.orderedChapters && course.orderedChapters.length > 0) || false,
+    }))
+  },
+  revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY,
+})

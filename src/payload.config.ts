@@ -78,6 +78,7 @@ import { CoursePartsEngagement } from './collections/CoursePartsEngagement'
 import { CoursePartRating } from './collections/CoursePartRating'
 import { CoursePartsRatings } from './collections/CoursePartsRatings'
 import { CoursePartAIChats } from './collections/CoursePartAIChats'
+import { UserLastVisitedCourse } from './collections/UserLastVisitedCourse'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -159,7 +160,8 @@ export default buildConfig({
     CoursePartRating,
     CoursePartsRatings,
     CommentsReports,
-    CoursePartAIChats
+    CoursePartAIChats,
+    UserLastVisitedCourse,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

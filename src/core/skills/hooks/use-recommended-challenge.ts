@@ -31,7 +31,7 @@ export const useRecommendedChallenge = ({
   } = useQuery({
     queryKey: recommendedChallengeQueryKey(userId),
     queryFn: async () => {
-      const challenge = await getRandomUncompletedChallenge(userId)
+      const challenge = await getRandomUncompletedChallenge({ userId })
       if (!challenge) {
         return null
       }
@@ -45,7 +45,7 @@ export const useRecommendedChallenge = ({
 
   const fetchNewRecommendationWithFeedback = async (feedbackType: string) => {
     try {
-      const newChallenge = await getRandomUncompletedChallenge(userId)
+      const newChallenge = await getRandomUncompletedChallenge({ userId })
       queryClient.setQueryData(recommendedChallengeQueryKey(userId), newChallenge)
     } catch (err) {
       console.error('Failed to fetch new recommended challenge with feedback:', err)

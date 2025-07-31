@@ -1,44 +1,34 @@
+import { getPartBySlug } from '@/api/courses/parts'
+import { PartHeader } from '@/app/(frontend)/(dashboard)/courses/[course_slug]/[chapter_slug]/[part_slug]/components/part-header'
 import { Markdown } from '@/components/markdown'
-import { Skeleton } from '@/components/ui/skeleton'
-import { getCoursesStaticInformation } from '@/core/courses'
-import { CoursePartHints } from '@/core/courses/components/course-part-hints'
-import { getPartBySlug } from '@/core/courses/parts'
-import { notFound } from 'next/navigation'
-import { Suspense } from 'react'
-import { PartHeader } from '../components/part-header'
+import { getUser } from '@/core/users'
+import { isNone } from '@/lib/maybe'
+import { isFailure } from '@/lib/result'
+import { notFound, redirect } from 'next/navigation'
 
-export const revalidate = 3600
-
-const HeaderFallback = () => {
-  return <Skeleton className="h-10 w-full mb-4" />
-}
-
-
-
-export default async function CoursePartDescriptionPage({
+export default async function Page({
   params,
 }: {
   params: Promise<{ course_slug: string; chapter_slug: string; part_slug: string }>
 }) {
   const { course_slug, chapter_slug, part_slug } = await params
+  const [part, user] = await Promise.all([getPartBySlug({ part_slug }), getUser()])
 
-  const part = await getPartBySlug(course_slug, chapter_slug, part_slug)
+  if (isFailure(user)) {
+    return redirect('/auth/login')
+  }
 
-  if (!part) {
-    notFound()
+  if (isNone(part)) {
+    return notFound()
   }
 
   return (
-    <div className="py-4 px-6">
-      <Suspense fallback={<HeaderFallback />}>
-        <PartHeader part={part} />
-      </Suspense>
+    <div className="p-6">
+      <PartHeader part={part.value} />
 
       <Markdown className="prose prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-h5:text-sm prose-h6:text-xs">
-        {part.description.statement}
+        {part.value.description.statement}
       </Markdown>
-
-      <CoursePartHints hints={part.description.hints} />
     </div>
   )
 }
