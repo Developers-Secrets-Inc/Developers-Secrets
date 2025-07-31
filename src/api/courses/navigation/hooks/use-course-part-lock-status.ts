@@ -23,13 +23,16 @@ export function useCoursePartTabsLockStatus() {
   const { user } = useUser()
   const pathname = usePathname()
   const queryClient = useQueryClient()
-  
+
   const userId = user.id
 
   const query = useQuery({
     queryKey: getQueryKey(coursePart.id, userId, coursePart.slug),
     queryFn: async () => {
-      const tabs = coursePartTabs(`${metadata.courseSlug}/${metadata.chapterSlug}/${coursePart.slug}`, pathname)
+      const tabs = coursePartTabs(
+        `${metadata.courseSlug}/${metadata.chapterSlug}/${coursePart.slug}`,
+        pathname,
+      )
       const lockedTabs: TabLockStatus = {}
 
       await Promise.all(
@@ -48,15 +51,18 @@ export function useCoursePartTabsLockStatus() {
 
   const mutation = useMutation({
     mutationFn: async (tabId: string) => {
-      const tabs = coursePartTabs(`${metadata.courseSlug}/${metadata.chapterSlug}/${coursePart.slug}`, pathname)
+      const tabs = coursePartTabs(
+        `${metadata.courseSlug}/${metadata.chapterSlug}/${coursePart.slug}`,
+        pathname,
+      )
       const tab = tabs.find((t) => t.id === tabId)
       if (!tab || !tab.lock) {
         throw new Error('Tab or lock configuration not found')
       }
-      
+
       // Pour les onglets de solution, on utilise setSolutionUnlocked
       if (tabId === 'official-solution' || tabId === 'solutions') {
-        await unlockSolution({userId, partId: coursePart.id})
+        await unlockSolution({ userId, partId: coursePart.id })
       } else if (tab.lock.onConfirm) {
         // Pour d'autres onglets qui pourraient avoir une logique custom
         await tab.lock.onConfirm(coursePart.id, userId)
@@ -71,7 +77,9 @@ export function useCoursePartTabsLockStatus() {
 
   return {
     data: query.data?.lockedTabs,
-    tabs: query.data?.tabs || coursePartTabs(`${metadata.courseSlug}/${metadata.chapterSlug}/${coursePart.slug}`, pathname),
+    tabs:
+      query.data?.tabs ||
+      coursePartTabs(`${metadata.courseSlug}/${metadata.chapterSlug}/${coursePart.slug}`, pathname),
     pathname,
     isLoading: query.isLoading,
     error: query.error,

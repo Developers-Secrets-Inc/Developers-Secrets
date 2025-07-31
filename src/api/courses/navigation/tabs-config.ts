@@ -45,11 +45,15 @@ export const coursePartTabs = (slug: string, pathname: string): TabConfig[] => [
         if (isNone(solutionUnlocked) || isNone(completionStatus)) {
           return true
         }
-        return !solutionUnlocked.value.isSolutionUnlocked && completionStatus.value.completionStatus !== 'completed'
+        return (
+          !solutionUnlocked.value.isSolutionUnlocked &&
+          completionStatus.value.completionStatus !== 'completed'
+        )
       },
       dialog: {
         title: 'Unlock Official Solution',
-        description: 'Unlock the official solution. Note: You will not gain experience points when unlocking the solution.',
+        description:
+          'Unlock the official solution. Note: You will not gain experience points when unlocking the solution.',
         confirmLabel: 'Unlock',
       },
       onConfirm: async (coursePartId, userId) => {

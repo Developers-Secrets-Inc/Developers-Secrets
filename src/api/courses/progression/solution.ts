@@ -22,7 +22,6 @@ export const isSolutionUnlocked = query({
   },
 })
 
-
 export const unlockSolution = mutation({
   name: 'solution-status',
   args: z.object({ partId: z.number(), userId: z.string().uuid() }),
