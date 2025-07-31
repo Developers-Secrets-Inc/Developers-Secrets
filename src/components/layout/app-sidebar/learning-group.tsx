@@ -35,7 +35,7 @@ const learningItems = [
 ]
 
 export const LearningGroup = () => {
-    const pathname = usePathname()
+  const pathname = usePathname()
 
   return (
     <SidebarGroup>
@@ -43,7 +43,11 @@ export const LearningGroup = () => {
       <SidebarMenu>
         {learningItems.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton tooltip={item.title} asChild isActive={pathname === item.href || pathname.startsWith(item.href + '/')}>
+            <SidebarMenuButton
+              tooltip={item.title}
+              asChild
+              isActive={pathname === item.href || pathname.startsWith(item.href + '/')}
+            >
               <Link href={item.href}>
                 {item.icon}
                 {item.title}

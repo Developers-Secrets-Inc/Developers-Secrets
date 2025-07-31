@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   SidebarSeparator,
 } from '@/components/ui/sidebar'
 import { Book, Eclipse } from 'lucide-react'
@@ -18,6 +19,14 @@ import { SocialGroup } from './social-group'
 import { FeedbackButton } from './feedback-button'
 import { SupportButton } from './support-button'
 import { ProCtaCard } from '@/components/cards/pro-cta-card'
+import {
+  AchievementsDialog,
+  InventorySheet,
+  LeaderboardDialog,
+  LeaguesLeaderboard,
+  MarketplaceInventory,
+  QuestsDialog,
+} from './dialogs'
 
 export const HomeButton = () => {
   return (
@@ -42,10 +51,10 @@ export const AppSidebar = () => {
   return (
     <Sidebar
       collapsible="icon"
-      style={{ '--sidebar-width': '270px' } as React.CSSProperties}
+      // style={{ '--sidebar-width': '270px' } as React.CSSProperties}
       className="z-50"
     >
-      <SidebarHeader>
+      <SidebarHeader className="flex items-center justify-center h-14">
         <SidebarMenu>
           <SidebarMenuItem>
             <HomeButton />
@@ -57,6 +66,14 @@ export const AppSidebar = () => {
         <ProgressionGroup />
         <SocialGroup />
       </SidebarContent>
+
+      {/* Dialog Components */}
+      <AchievementsDialog />
+      <InventorySheet />
+      <LeaderboardDialog />
+      <LeaguesLeaderboard />
+      <MarketplaceInventory />
+      <QuestsDialog />
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -66,6 +83,7 @@ export const AppSidebar = () => {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   )
 }

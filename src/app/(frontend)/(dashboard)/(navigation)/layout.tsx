@@ -9,7 +9,7 @@ import { AppSidebar } from '@/components/layout/app-sidebar'
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <RedirectIfNotSignedIn redirectTo="/auth/signup">
-      <SidebarProvider>
+      <SidebarProvider style={{ '--sidebar-width': '270px' } as React.CSSProperties}>
         <AppSidebar />
         <SidebarInset>
           <DashboardHeader />
@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </SidebarInset>
 
         {/* <AdminComponent> */}
-          {/* <DashboardSettingsBubble /> */}
+        {/* <DashboardSettingsBubble /> */}
         {/* </AdminComponent> */}
       </SidebarProvider>
     </RedirectIfNotSignedIn>

@@ -1,43 +1,51 @@
+'use client'
+
 import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { BarChart, Book, CheckCircle, GitMerge, Home, Shield, Star, Trophy } from 'lucide-react'
+import { BarChart, CheckCircle, Shield, Star } from 'lucide-react'
+import { useSidebarDialogsStore } from './stores/sidebar-dialogs-store'
 
 const progressionItems = [
   {
     title: 'Quests',
     icon: <CheckCircle className="size-4" />,
-    href: '/home',
+    dialog: 'quests',
   },
   {
     title: 'Achievements',
     icon: <Star className="size-4" />,
-    href: '/courses',
+    dialog: 'achievements',
   },
   {
     title: 'Leagues',
     icon: <Shield className="size-4" />,
-    href: '/challenges',
+    dialog: 'leagues',
   },
   {
     title: 'Leaderboard',
     icon: <BarChart className="size-4" />,
-    href: '/skills/python',
+    dialog: 'leaderboard',
   },
-]
+] as const
 
 export const ProgressionGroup = () => {
+  const { openDialog } = useSidebarDialogsStore()
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Progression</SidebarGroupLabel>
       <SidebarMenu>
         {progressionItems.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton tooltip={item.title}>
+            <SidebarMenuButton 
+              tooltip={item.title}
+              onClick={() => openDialog(item.dialog)}
+            >
               {item.icon}
               {item.title}
             </SidebarMenuButton>
