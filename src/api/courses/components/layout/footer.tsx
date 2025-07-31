@@ -17,7 +17,6 @@ type CourseFooterProps = {
     id: number
     name: string
     slug: string
-    // isCurrent: boolean
     completionStatus: 'not_started' | 'in_progress' | 'completed'
   }[]
 }

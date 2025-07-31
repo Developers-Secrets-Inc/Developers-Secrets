@@ -1,4 +1,7 @@
+'use client'
+
 import { PartProgressionDot } from '../../progression/components/part-progression-dot'
+import { useCourseParams } from '../hooks/use-course-params'
 
 export const ChapterOutline = ({
   outline,
@@ -11,12 +14,18 @@ export const ChapterOutline = ({
     completionStatus: 'not_started' | 'in_progress' | 'completed'
   }[]
 }) => {
+  const { courseSlug, chapterSlug, partSlug } = useCourseParams()
 
-  // This component should be client with revalidation on focus and tracking the current part status for live rerender
   return (
     <div className="flex-none flex justify-center items-center gap-2 mx-4">
       {outline.map((part) => (
-        <PartProgressionDot key={part.id} part={part} currentPartSlug="" courseSlug="" chapterSlug="" />
+        <PartProgressionDot 
+          key={part.id} 
+          part={part} 
+          currentPartSlug={partSlug}
+          courseSlug={courseSlug}
+          chapterSlug={chapterSlug}
+        />
       ))}
     </div>
   )
