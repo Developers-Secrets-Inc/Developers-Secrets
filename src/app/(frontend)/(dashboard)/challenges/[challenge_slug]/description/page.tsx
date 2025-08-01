@@ -24,7 +24,8 @@ export default async function ChallengeDescriptionPage({
     redirect('/auth/login')
   }
 
-  if (isNone(challenge) || (isSome(challenge) && challenge.value.draft)) {
+  const IS_DRAFT = isSome(challenge) && (challenge.value.draft && user.value.informations.role !== 'admin')
+  if (isNone(challenge) || IS_DRAFT) {
     return notFound()
   }
 

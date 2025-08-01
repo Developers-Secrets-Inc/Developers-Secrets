@@ -1,17 +1,17 @@
 import { getCourseCompletedPartsCount } from '@/core/courses/progression/completion-status'
 import { useQuery } from '@tanstack/react-query'
+import { GridCourseInformations } from '../actions'
 
-// Note: 'course' is typed as 'any' to allow access to allPartIds and totalPartsCount (not in official Course type)
-export function useCourseProgression(userId: string | null, course: any) {
+export function useCourseProgression(userId: string, course: GridCourseInformations) {
   return useQuery({
     queryKey: ['course-progression', userId, course?.id],
     queryFn: async () => {
-      const allPartIds = course?.allPartIds
+      const allPartsIds = course?.allPartsIds
       const totalPartsCount = course?.totalPartsCount
-      if (!userId || !allPartIds || !Array.isArray(allPartIds) || !totalPartsCount) {
+      if (!userId || !allPartsIds || !Array.isArray(allPartsIds) || !totalPartsCount) {
         return { percentage: 0, completedCount: 0 }
       }
-      const completedCount = await getCourseCompletedPartsCount(userId, allPartIds)
+      const completedCount = await getCourseCompletedPartsCount(userId, allPartsIds)
       const percentage =
         totalPartsCount > 0 ? Math.round((completedCount / totalPartsCount) * 100) : 0
       return { percentage, completedCount }

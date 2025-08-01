@@ -25,7 +25,7 @@ export const ChatHistories: CollectionConfig = {
       type: 'relationship',
       relationTo: 'challenge-ai-chats',
       required: true,
-      unique: true, // Chaque fichier d'historique est lié à un seul chat unique
+      unique: true,
     },
   ],
 }

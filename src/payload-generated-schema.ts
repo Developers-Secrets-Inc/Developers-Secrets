@@ -151,6 +151,15 @@ export const enum_user_challenge_progression_completion_status = pgEnum(
   'enum_user_challenge_progression_completion_status',
   ['not_started', 'in_progress', 'completed'],
 )
+export const enum_comments_votes_vote = pgEnum('enum_comments_votes_vote', ['upvote', 'downvote'])
+export const enum_user_solutions_votes_status = pgEnum('enum_user_solutions_votes_status', [
+  'upvote',
+  'downvote',
+])
+export const enum_user_solutions_status = pgEnum('enum_user_solutions_status', [
+  'drafted',
+  'published',
+])
 export const enum_challenge_submissions_submission_type = pgEnum(
   'enum_challenge_submissions_submission_type',
   ['accepted', 'runtimeError', 'wrongAnswer', 'timeLimitExceeded'],
@@ -208,10 +217,6 @@ export const enum_course_parts_difficulty = pgEnum('enum_course_parts_difficulty
   'hard',
   'horrible',
 ])
-export const enum_course_part_user_progression_engagement_status = pgEnum(
-  'enum_course_part_user_progression_engagement_status',
-  ['liked', 'disliked', 'none'],
-)
 export const enum_course_part_user_progression_completion_status = pgEnum(
   'enum_course_part_user_progression_completion_status',
   ['not_started', 'in_progress', 'completed'],
@@ -262,40 +267,19 @@ export const enum_challenge_engagement_type = pgEnum('enum_challenge_engagement_
   'like',
   'dislike',
 ])
-export const enum_exercices_file_structure_type = pgEnum('enum_exercices_file_structure_type', [
-  'folder',
-  'file',
-])
-export const enum_exercices_file_structure_language = pgEnum(
-  'enum_exercices_file_structure_language',
-  [
-    'javascript',
-    'python',
-    'java',
-    'cpp',
-    'csharp',
-    'go',
-    'rust',
-    'typescript',
-    'php',
-    'ruby',
-    'swift',
-    'kotlin',
-    'dart',
-    'scala',
-    'haskell',
-    'html',
-    'css',
-    'json',
-    'xml',
-    'yaml',
-    'markdown',
-    'sql',
-    'shell',
-    'dockerfile',
-    'text',
-  ],
+export const enum_exercices_languages_file_structure_type = pgEnum(
+  'enum_exercices_languages_file_structure_type',
+  ['folder', 'file'],
 )
+export const enum_exercices_languages_file_structure_language = pgEnum(
+  'enum_exercices_languages_file_structure_language',
+  ['python', 'javascript', 'typescript', 'html', 'css', 'json', 'markdown', 'text'],
+)
+export const enum_exercices_languages_language = pgEnum('enum_exercices_languages_language', [
+  'python',
+  'javascript',
+  'typescript',
+])
 export const enum_exercices_difficulty = pgEnum('enum_exercices_difficulty', [
   'very_easy',
   'easy',
@@ -303,44 +287,19 @@ export const enum_exercices_difficulty = pgEnum('enum_exercices_difficulty', [
   'hard',
   'horrible',
 ])
-export const enum_exercices_test_configuration_language = pgEnum(
-  'enum_exercices_test_configuration_language',
-  ['javascript', 'python', 'java', 'cpp', 'csharp', 'go', 'rust', 'typescript', 'php', 'ruby'],
-)
-export const enum_ai_exercices_file_structure_type = pgEnum(
-  'enum_ai_exercices_file_structure_type',
+export const enum_ai_exercices_languages_file_structure_type = pgEnum(
+  'enum_ai_exercices_languages_file_structure_type',
   ['folder', 'file'],
 )
-export const enum_ai_exercices_file_structure_language = pgEnum(
-  'enum_ai_exercices_file_structure_language',
-  [
-    'javascript',
-    'python',
-    'java',
-    'cpp',
-    'csharp',
-    'go',
-    'rust',
-    'typescript',
-    'php',
-    'ruby',
-    'swift',
-    'kotlin',
-    'dart',
-    'scala',
-    'haskell',
-    'html',
-    'css',
-    'json',
-    'xml',
-    'yaml',
-    'markdown',
-    'sql',
-    'shell',
-    'dockerfile',
-    'text',
-  ],
+export const enum_ai_exercices_languages_file_structure_language = pgEnum(
+  'enum_ai_exercices_languages_file_structure_language',
+  ['python', 'javascript', 'typescript', 'html', 'css', 'json', 'markdown', 'text'],
 )
+export const enum_ai_exercices_languages_language = pgEnum('enum_ai_exercices_languages_language', [
+  'python',
+  'javascript',
+  'typescript',
+])
 export const enum_ai_exercices_difficulty = pgEnum('enum_ai_exercices_difficulty', [
   'very_easy',
   'easy',
@@ -348,10 +307,10 @@ export const enum_ai_exercices_difficulty = pgEnum('enum_ai_exercices_difficulty
   'hard',
   'horrible',
 ])
-export const enum_ai_exercices_test_configuration_language = pgEnum(
-  'enum_ai_exercices_test_configuration_language',
-  ['javascript', 'python', 'java', 'cpp', 'csharp', 'go', 'rust', 'typescript', 'php', 'ruby'],
-)
+export const enum_course_part_engagement_type = pgEnum('enum_course_part_engagement_type', [
+  'like',
+  'dislike',
+])
 
 export const users = pgTable(
   'users',
@@ -1816,6 +1775,193 @@ export const user_challenge_progression = pgTable(
   }),
 )
 
+export const comments_votes = pgTable(
+  'comments_votes',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    userId: varchar('user_id').notNull(),
+    vote: enum_comments_votes_vote('vote').notNull(),
+  },
+  (columns) => ({
+    _orderIdx: index('comments_votes_order_idx').on(columns._order),
+    _parentIDIdx: index('comments_votes_parent_id_idx').on(columns._parentID),
+    _parentIDFk: foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [comments.id],
+      name: 'comments_votes_parent_id_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
+export const comments = pgTable(
+  'comments',
+  {
+    id: serial('id').primaryKey(),
+    content: varchar('content').notNull(),
+    authorId: varchar('author_id').notNull(),
+    isReply: boolean('is_reply').default(false),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => ({
+    comments_updated_at_idx: index('comments_updated_at_idx').on(columns.updatedAt),
+    comments_created_at_idx: index('comments_created_at_idx').on(columns.createdAt),
+  }),
+)
+
+export const comments_rels = pgTable(
+  'comments_rels',
+  {
+    id: serial('id').primaryKey(),
+    order: integer('order'),
+    parent: integer('parent_id').notNull(),
+    path: varchar('path').notNull(),
+    commentsID: integer('comments_id'),
+    'comments-reportsID': integer('comments_reports_id'),
+  },
+  (columns) => ({
+    order: index('comments_rels_order_idx').on(columns.order),
+    parentIdx: index('comments_rels_parent_idx').on(columns.parent),
+    pathIdx: index('comments_rels_path_idx').on(columns.path),
+    comments_rels_comments_id_idx: index('comments_rels_comments_id_idx').on(columns.commentsID),
+    comments_rels_comments_reports_id_idx: index('comments_rels_comments_reports_id_idx').on(
+      columns['comments-reportsID'],
+    ),
+    parentFk: foreignKey({
+      columns: [columns['parent']],
+      foreignColumns: [comments.id],
+      name: 'comments_rels_parent_fk',
+    }).onDelete('cascade'),
+    commentsIdFk: foreignKey({
+      columns: [columns['commentsID']],
+      foreignColumns: [comments.id],
+      name: 'comments_rels_comments_fk',
+    }).onDelete('cascade'),
+    'comments-reportsIdFk': foreignKey({
+      columns: [columns['comments-reportsID']],
+      foreignColumns: [comments_reports.id],
+      name: 'comments_rels_comments_reports_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
+export const user_solutions_votes = pgTable(
+  'user_solutions_votes',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    status: enum_user_solutions_votes_status('status').notNull(),
+    authorId: varchar('author_id').notNull(),
+  },
+  (columns) => ({
+    _orderIdx: index('user_solutions_votes_order_idx').on(columns._order),
+    _parentIDIdx: index('user_solutions_votes_parent_id_idx').on(columns._parentID),
+    _parentIDFk: foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [user_solutions.id],
+      name: 'user_solutions_votes_parent_id_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
+export const user_solutions_reports = pgTable(
+  'user_solutions_reports',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    userId: varchar('user_id').notNull(),
+    reason: varchar('reason').notNull(),
+    details: varchar('details'),
+    createdAt: timestamp('created_at', {
+      mode: 'string',
+      withTimezone: true,
+      precision: 3,
+    }).notNull(),
+  },
+  (columns) => ({
+    _orderIdx: index('user_solutions_reports_order_idx').on(columns._order),
+    _parentIDIdx: index('user_solutions_reports_parent_id_idx').on(columns._parentID),
+    _parentIDFk: foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [user_solutions.id],
+      name: 'user_solutions_reports_parent_id_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
+export const user_solutions = pgTable(
+  'user_solutions',
+  {
+    id: serial('id').primaryKey(),
+    title: varchar('title').notNull(),
+    description: varchar('description').notNull(),
+    challenge: integer('challenge_id')
+      .notNull()
+      .references(() => challenges.id, {
+        onDelete: 'set null',
+      }),
+    authorId: varchar('author_id').notNull(),
+    views: numeric('views').default('0'),
+    content: varchar('content').notNull(),
+    status: enum_user_solutions_status('status').notNull().default('drafted'),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => ({
+    user_solutions_challenge_idx: index('user_solutions_challenge_idx').on(columns.challenge),
+    user_solutions_updated_at_idx: index('user_solutions_updated_at_idx').on(columns.updatedAt),
+    user_solutions_created_at_idx: index('user_solutions_created_at_idx').on(columns.createdAt),
+  }),
+)
+
+export const user_solutions_rels = pgTable(
+  'user_solutions_rels',
+  {
+    id: serial('id').primaryKey(),
+    order: integer('order'),
+    parent: integer('parent_id').notNull(),
+    path: varchar('path').notNull(),
+    tagsID: integer('tags_id'),
+    commentsID: integer('comments_id'),
+  },
+  (columns) => ({
+    order: index('user_solutions_rels_order_idx').on(columns.order),
+    parentIdx: index('user_solutions_rels_parent_idx').on(columns.parent),
+    pathIdx: index('user_solutions_rels_path_idx').on(columns.path),
+    user_solutions_rels_tags_id_idx: index('user_solutions_rels_tags_id_idx').on(columns.tagsID),
+    user_solutions_rels_comments_id_idx: index('user_solutions_rels_comments_id_idx').on(
+      columns.commentsID,
+    ),
+    parentFk: foreignKey({
+      columns: [columns['parent']],
+      foreignColumns: [user_solutions.id],
+      name: 'user_solutions_rels_parent_fk',
+    }).onDelete('cascade'),
+    tagsIdFk: foreignKey({
+      columns: [columns['tagsID']],
+      foreignColumns: [tags.id],
+      name: 'user_solutions_rels_tags_fk',
+    }).onDelete('cascade'),
+    commentsIdFk: foreignKey({
+      columns: [columns['commentsID']],
+      foreignColumns: [comments.id],
+      name: 'user_solutions_rels_comments_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
 export const challenge_submissions_last_expected_output = pgTable(
   'challenge_submissions_last_expected_output',
   {
@@ -2834,66 +2980,6 @@ export const course_parts_description_hints = pgTable(
   }),
 )
 
-export const course_parts_challenges_languages_test_cases = pgTable(
-  'course_parts_challenges_languages_test_cases',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: varchar('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-    input: varchar('input').notNull(),
-    expectedOutput: varchar('expected_output').notNull(),
-  },
-  (columns) => ({
-    _orderIdx: index('course_parts_challenges_languages_test_cases_order_idx').on(columns._order),
-    _parentIDIdx: index('course_parts_challenges_languages_test_cases_parent_id_idx').on(
-      columns._parentID,
-    ),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [course_parts_challenges_languages.id],
-      name: 'course_parts_challenges_languages_test_cases_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const course_parts_challenges_languages = pgTable(
-  'course_parts_challenges_languages',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: varchar('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-    name: varchar('name').notNull(),
-    initialCode: varchar('initial_code').notNull(),
-  },
-  (columns) => ({
-    _orderIdx: index('course_parts_challenges_languages_order_idx').on(columns._order),
-    _parentIDIdx: index('course_parts_challenges_languages_parent_id_idx').on(columns._parentID),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [course_parts_challenges.id],
-      name: 'course_parts_challenges_languages_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
-export const course_parts_challenges = pgTable(
-  'course_parts_challenges',
-  {
-    _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
-    id: varchar('id').primaryKey(),
-  },
-  (columns) => ({
-    _orderIdx: index('course_parts_challenges_order_idx').on(columns._order),
-    _parentIDIdx: index('course_parts_challenges_parent_id_idx').on(columns._parentID),
-    _parentIDFk: foreignKey({
-      columns: [columns['_parentID']],
-      foreignColumns: [course_parts.id],
-      name: 'course_parts_challenges_parent_id_fk',
-    }).onDelete('cascade'),
-  }),
-)
-
 export const course_parts = pgTable(
   'course_parts',
   {
@@ -2919,6 +3005,44 @@ export const course_parts = pgTable(
   }),
 )
 
+export const course_parts_rels = pgTable(
+  'course_parts_rels',
+  {
+    id: serial('id').primaryKey(),
+    order: integer('order'),
+    parent: integer('parent_id').notNull(),
+    path: varchar('path').notNull(),
+    exercicesID: integer('exercices_id'),
+    'ai-exercicesID': integer('ai_exercices_id'),
+  },
+  (columns) => ({
+    order: index('course_parts_rels_order_idx').on(columns.order),
+    parentIdx: index('course_parts_rels_parent_idx').on(columns.parent),
+    pathIdx: index('course_parts_rels_path_idx').on(columns.path),
+    course_parts_rels_exercices_id_idx: index('course_parts_rels_exercices_id_idx').on(
+      columns.exercicesID,
+    ),
+    course_parts_rels_ai_exercices_id_idx: index('course_parts_rels_ai_exercices_id_idx').on(
+      columns['ai-exercicesID'],
+    ),
+    parentFk: foreignKey({
+      columns: [columns['parent']],
+      foreignColumns: [course_parts.id],
+      name: 'course_parts_rels_parent_fk',
+    }).onDelete('cascade'),
+    exercicesIdFk: foreignKey({
+      columns: [columns['exercicesID']],
+      foreignColumns: [exercices.id],
+      name: 'course_parts_rels_exercices_fk',
+    }).onDelete('cascade'),
+    'ai-exercicesIdFk': foreignKey({
+      columns: [columns['ai-exercicesID']],
+      foreignColumns: [ai_exercices.id],
+      name: 'course_parts_rels_ai_exercices_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
 export const course_part_user_progression = pgTable(
   'course_part_user_progression',
   {
@@ -2929,9 +3053,6 @@ export const course_part_user_progression = pgTable(
       .references(() => course_parts.id, {
         onDelete: 'set null',
       }),
-    engagementStatus: enum_course_part_user_progression_engagement_status('engagement_status')
-      .notNull()
-      .default('none'),
     completionStatus: enum_course_part_user_progression_completion_status('completion_status')
       .notNull()
       .default('not_started'),
@@ -2950,9 +3071,6 @@ export const course_part_user_progression = pgTable(
     course_part_user_progression_part_idx: index('course_part_user_progression_part_idx').on(
       columns.part,
     ),
-    course_part_user_progression_engagement_status_idx: index(
-      'course_part_user_progression_engagement_status_idx',
-    ).on(columns.engagementStatus),
     course_part_user_progression_completion_status_idx: index(
       'course_part_user_progression_completion_status_idx',
     ).on(columns.completionStatus),
@@ -3627,50 +3745,67 @@ export const exercices_hints = pgTable(
   }),
 )
 
-export const exercices_file_structure = pgTable(
-  'exercices_file_structure',
+export const exercices_languages_file_structure = pgTable(
+  'exercices_languages_file_structure',
   {
     _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
+    _parentID: varchar('_parent_id').notNull(),
     id: varchar('id').primaryKey(),
-    type: enum_exercices_file_structure_type('type').notNull(),
+    type: enum_exercices_languages_file_structure_type('type').notNull(),
     name: varchar('name').notNull(),
     parentId: varchar('parent_id'),
-    language: enum_exercices_file_structure_language('language'),
+    language: enum_exercices_languages_file_structure_language('language'),
     content: varchar('content'),
     isReadOnly: boolean('is_read_only').default(false),
     isHidden: boolean('is_hidden').default(false),
     isMainFile: boolean('is_main_file').default(false),
   },
   (columns) => ({
-    _orderIdx: index('exercices_file_structure_order_idx').on(columns._order),
-    _parentIDIdx: index('exercices_file_structure_parent_id_idx').on(columns._parentID),
+    _orderIdx: index('exercices_languages_file_structure_order_idx').on(columns._order),
+    _parentIDIdx: index('exercices_languages_file_structure_parent_id_idx').on(columns._parentID),
     _parentIDFk: foreignKey({
       columns: [columns['_parentID']],
-      foreignColumns: [exercices.id],
-      name: 'exercices_file_structure_parent_id_fk',
+      foreignColumns: [exercices_languages.id],
+      name: 'exercices_languages_file_structure_parent_id_fk',
     }).onDelete('cascade'),
   }),
 )
 
-export const exercices_test_configuration_test_cases = pgTable(
-  'exercices_test_configuration_test_cases',
+export const exercices_languages_test_cases = pgTable(
+  'exercices_languages_test_cases',
   {
     _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
+    _parentID: varchar('_parent_id').notNull(),
     id: varchar('id').primaryKey(),
     input: varchar('input').notNull(),
     expectedOutput: varchar('expected_output').notNull(),
   },
   (columns) => ({
-    _orderIdx: index('exercices_test_configuration_test_cases_order_idx').on(columns._order),
-    _parentIDIdx: index('exercices_test_configuration_test_cases_parent_id_idx').on(
-      columns._parentID,
-    ),
+    _orderIdx: index('exercices_languages_test_cases_order_idx').on(columns._order),
+    _parentIDIdx: index('exercices_languages_test_cases_parent_id_idx').on(columns._parentID),
+    _parentIDFk: foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [exercices_languages.id],
+      name: 'exercices_languages_test_cases_parent_id_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
+export const exercices_languages = pgTable(
+  'exercices_languages',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    language: enum_exercices_languages_language('language').notNull(),
+  },
+  (columns) => ({
+    _orderIdx: index('exercices_languages_order_idx').on(columns._order),
+    _parentIDIdx: index('exercices_languages_parent_id_idx').on(columns._parentID),
     _parentIDFk: foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [exercices.id],
-      name: 'exercices_test_configuration_test_cases_parent_id_fk',
+      name: 'exercices_languages_parent_id_fk',
     }).onDelete('cascade'),
   }),
 )
@@ -3681,9 +3816,6 @@ export const exercices = pgTable(
     id: serial('id').primaryKey(),
     title: varchar('title').notNull(),
     difficulty: enum_exercices_difficulty('difficulty').notNull().default('medium'),
-    testConfiguration_language: enum_exercices_test_configuration_language(
-      'test_configuration_language',
-    ).notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),
@@ -3716,50 +3848,89 @@ export const ai_exercices_hints = pgTable(
   }),
 )
 
-export const ai_exercices_file_structure = pgTable(
-  'ai_exercices_file_structure',
+export const ai_exercices_languages_file_structure = pgTable(
+  'ai_exercices_languages_file_structure',
   {
     _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
+    _parentID: varchar('_parent_id').notNull(),
     id: varchar('id').primaryKey(),
-    type: enum_ai_exercices_file_structure_type('type').notNull(),
+    type: enum_ai_exercices_languages_file_structure_type('type').notNull(),
     name: varchar('name').notNull(),
     parentId: varchar('parent_id'),
-    language: enum_ai_exercices_file_structure_language('language'),
+    language: enum_ai_exercices_languages_file_structure_language('language'),
     content: varchar('content'),
     isReadOnly: boolean('is_read_only').default(false),
     isHidden: boolean('is_hidden').default(false),
     isMainFile: boolean('is_main_file').default(false),
   },
   (columns) => ({
-    _orderIdx: index('ai_exercices_file_structure_order_idx').on(columns._order),
-    _parentIDIdx: index('ai_exercices_file_structure_parent_id_idx').on(columns._parentID),
+    _orderIdx: index('ai_exercices_languages_file_structure_order_idx').on(columns._order),
+    _parentIDIdx: index('ai_exercices_languages_file_structure_parent_id_idx').on(
+      columns._parentID,
+    ),
     _parentIDFk: foreignKey({
       columns: [columns['_parentID']],
-      foreignColumns: [ai_exercices.id],
-      name: 'ai_exercices_file_structure_parent_id_fk',
+      foreignColumns: [ai_exercices_languages.id],
+      name: 'ai_exercices_languages_file_structure_parent_id_fk',
     }).onDelete('cascade'),
   }),
 )
 
-export const ai_exercices_test_configuration_test_cases = pgTable(
-  'ai_exercices_test_configuration_test_cases',
+export const ai_exercices_languages_test_cases = pgTable(
+  'ai_exercices_languages_test_cases',
   {
     _order: integer('_order').notNull(),
-    _parentID: integer('_parent_id').notNull(),
+    _parentID: varchar('_parent_id').notNull(),
     id: varchar('id').primaryKey(),
     input: varchar('input').notNull(),
     expectedOutput: varchar('expected_output').notNull(),
   },
   (columns) => ({
-    _orderIdx: index('ai_exercices_test_configuration_test_cases_order_idx').on(columns._order),
-    _parentIDIdx: index('ai_exercices_test_configuration_test_cases_parent_id_idx').on(
-      columns._parentID,
-    ),
+    _orderIdx: index('ai_exercices_languages_test_cases_order_idx').on(columns._order),
+    _parentIDIdx: index('ai_exercices_languages_test_cases_parent_id_idx').on(columns._parentID),
+    _parentIDFk: foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [ai_exercices_languages.id],
+      name: 'ai_exercices_languages_test_cases_parent_id_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
+export const ai_exercices_languages = pgTable(
+  'ai_exercices_languages',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    language: enum_ai_exercices_languages_language('language').notNull(),
+  },
+  (columns) => ({
+    _orderIdx: index('ai_exercices_languages_order_idx').on(columns._order),
+    _parentIDIdx: index('ai_exercices_languages_parent_id_idx').on(columns._parentID),
     _parentIDFk: foreignKey({
       columns: [columns['_parentID']],
       foreignColumns: [ai_exercices.id],
-      name: 'ai_exercices_test_configuration_test_cases_parent_id_fk',
+      name: 'ai_exercices_languages_parent_id_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
+export const ai_exercices_prompts = pgTable(
+  'ai_exercices_prompts',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: varchar('id').primaryKey(),
+    title: varchar('title').notNull(),
+    content: varchar('content').notNull(),
+  },
+  (columns) => ({
+    _orderIdx: index('ai_exercices_prompts_order_idx').on(columns._order),
+    _parentIDIdx: index('ai_exercices_prompts_parent_id_idx').on(columns._parentID),
+    _parentIDFk: foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [ai_exercices.id],
+      name: 'ai_exercices_prompts_parent_id_fk',
     }).onDelete('cascade'),
   }),
 )
@@ -3770,9 +3941,6 @@ export const ai_exercices = pgTable(
     id: serial('id').primaryKey(),
     title: varchar('title').notNull(),
     difficulty: enum_ai_exercices_difficulty('difficulty').notNull().default('medium'),
-    testConfiguration_language: enum_ai_exercices_test_configuration_language(
-      'test_configuration_language',
-    ).notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
       .defaultNow()
       .notNull(),
@@ -3783,6 +3951,228 @@ export const ai_exercices = pgTable(
   (columns) => ({
     ai_exercices_updated_at_idx: index('ai_exercices_updated_at_idx').on(columns.updatedAt),
     ai_exercices_created_at_idx: index('ai_exercices_created_at_idx').on(columns.createdAt),
+  }),
+)
+
+export const challenge_tags = pgTable(
+  'challenge_tags',
+  {
+    id: serial('id').primaryKey(),
+    name: varchar('name').notNull(),
+    slug: varchar('slug').notNull(),
+    concept: integer('concept_id')
+      .notNull()
+      .references(() => concepts.id, {
+        onDelete: 'set null',
+      }),
+    description: varchar('description'),
+    isActive: boolean('is_active').default(true),
+    challengeCount: numeric('challenge_count').default('0'),
+    displayOrder: numeric('display_order').default('0'),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => ({
+    challenge_tags_slug_idx: uniqueIndex('challenge_tags_slug_idx').on(columns.slug),
+    challenge_tags_concept_idx: uniqueIndex('challenge_tags_concept_idx').on(columns.concept),
+    challenge_tags_updated_at_idx: index('challenge_tags_updated_at_idx').on(columns.updatedAt),
+    challenge_tags_created_at_idx: index('challenge_tags_created_at_idx').on(columns.createdAt),
+    concept_idx: uniqueIndex('concept_idx').on(columns.concept),
+    slug_idx: uniqueIndex('slug_idx').on(columns.slug),
+    isActive_displayOrder_idx: index('isActive_displayOrder_idx').on(
+      columns.isActive,
+      columns.displayOrder,
+    ),
+  }),
+)
+
+export const challenge_tags_rels = pgTable(
+  'challenge_tags_rels',
+  {
+    id: serial('id').primaryKey(),
+    order: integer('order'),
+    parent: integer('parent_id').notNull(),
+    path: varchar('path').notNull(),
+    challengesID: integer('challenges_id'),
+  },
+  (columns) => ({
+    order: index('challenge_tags_rels_order_idx').on(columns.order),
+    parentIdx: index('challenge_tags_rels_parent_idx').on(columns.parent),
+    pathIdx: index('challenge_tags_rels_path_idx').on(columns.path),
+    challenge_tags_rels_challenges_id_idx: index('challenge_tags_rels_challenges_id_idx').on(
+      columns.challengesID,
+    ),
+    parentFk: foreignKey({
+      columns: [columns['parent']],
+      foreignColumns: [challenge_tags.id],
+      name: 'challenge_tags_rels_parent_fk',
+    }).onDelete('cascade'),
+    challengesIdFk: foreignKey({
+      columns: [columns['challengesID']],
+      foreignColumns: [challenges.id],
+      name: 'challenge_tags_rels_challenges_fk',
+    }).onDelete('cascade'),
+  }),
+)
+
+export const course_part_engagement = pgTable(
+  'course_part_engagement',
+  {
+    id: serial('id').primaryKey(),
+    coursePart: integer('course_part_id')
+      .notNull()
+      .references(() => course_parts.id, {
+        onDelete: 'set null',
+      }),
+    userId: varchar('user_id').notNull(),
+    type: enum_course_part_engagement_type('type').notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => ({
+    course_part_engagement_course_part_idx: index('course_part_engagement_course_part_idx').on(
+      columns.coursePart,
+    ),
+    course_part_engagement_updated_at_idx: index('course_part_engagement_updated_at_idx').on(
+      columns.updatedAt,
+    ),
+    course_part_engagement_created_at_idx: index('course_part_engagement_created_at_idx').on(
+      columns.createdAt,
+    ),
+    coursePart_userId_idx: uniqueIndex('coursePart_userId_idx').on(
+      columns.coursePart,
+      columns.userId,
+    ),
+  }),
+)
+
+export const course_parts_engagement = pgTable(
+  'course_parts_engagement',
+  {
+    id: serial('id').primaryKey(),
+    coursePart: integer('course_part_id')
+      .notNull()
+      .references(() => course_parts.id, {
+        onDelete: 'set null',
+      }),
+    likes: numeric('likes').default('0'),
+    dislikes: numeric('dislikes').default('0'),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => ({
+    course_parts_engagement_course_part_idx: uniqueIndex(
+      'course_parts_engagement_course_part_idx',
+    ).on(columns.coursePart),
+    course_parts_engagement_updated_at_idx: index('course_parts_engagement_updated_at_idx').on(
+      columns.updatedAt,
+    ),
+    course_parts_engagement_created_at_idx: index('course_parts_engagement_created_at_idx').on(
+      columns.createdAt,
+    ),
+  }),
+)
+
+export const course_part_rating = pgTable(
+  'course_part_rating',
+  {
+    id: serial('id').primaryKey(),
+    coursePart: integer('course_part_id')
+      .notNull()
+      .references(() => course_parts.id, {
+        onDelete: 'set null',
+      }),
+    userId: varchar('user_id').notNull(),
+    rating: numeric('rating').notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => ({
+    course_part_rating_course_part_idx: index('course_part_rating_course_part_idx').on(
+      columns.coursePart,
+    ),
+    course_part_rating_updated_at_idx: index('course_part_rating_updated_at_idx').on(
+      columns.updatedAt,
+    ),
+    course_part_rating_created_at_idx: index('course_part_rating_created_at_idx').on(
+      columns.createdAt,
+    ),
+    coursePart_userId_1_idx: uniqueIndex('coursePart_userId_1_idx').on(
+      columns.coursePart,
+      columns.userId,
+    ),
+  }),
+)
+
+export const course_parts_ratings = pgTable(
+  'course_parts_ratings',
+  {
+    id: serial('id').primaryKey(),
+    coursePart: integer('course_part_id')
+      .notNull()
+      .references(() => course_parts.id, {
+        onDelete: 'set null',
+      }),
+    total: numeric('total').default('0'),
+    count: numeric('count').default('0'),
+    average: numeric('average'),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => ({
+    course_parts_ratings_course_part_idx: uniqueIndex('course_parts_ratings_course_part_idx').on(
+      columns.coursePart,
+    ),
+    course_parts_ratings_updated_at_idx: index('course_parts_ratings_updated_at_idx').on(
+      columns.updatedAt,
+    ),
+    course_parts_ratings_created_at_idx: index('course_parts_ratings_created_at_idx').on(
+      columns.createdAt,
+    ),
+  }),
+)
+
+export const comments_reports = pgTable(
+  'comments_reports',
+  {
+    id: serial('id').primaryKey(),
+    comment: integer('comment_id').references(() => comments.id, {
+      onDelete: 'set null',
+    }),
+    userId: varchar('user_id').notNull(),
+    reason: varchar('reason').notNull(),
+    details: varchar('details'),
+    updatedAt: timestamp('updated_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'string', withTimezone: true, precision: 3 })
+      .defaultNow()
+      .notNull(),
+  },
+  (columns) => ({
+    comments_reports_comment_idx: index('comments_reports_comment_idx').on(columns.comment),
+    comments_reports_updated_at_idx: index('comments_reports_updated_at_idx').on(columns.updatedAt),
+    comments_reports_created_at_idx: index('comments_reports_created_at_idx').on(columns.createdAt),
   }),
 )
 
@@ -3836,6 +4226,8 @@ export const payload_locked_documents_rels = pgTable(
     'user-achievement-progressID': integer('user_achievement_progress_id'),
     challengesID: integer('challenges_id'),
     userChallengeProgressionID: integer('user_challenge_progression_id'),
+    commentsID: integer('comments_id'),
+    'user-solutionsID': integer('user_solutions_id'),
     'challenge-submissionsID': integer('challenge_submissions_id'),
     notificationsID: integer('notifications_id'),
     'challenge-categoriesID': integer('challenge_categories_id'),
@@ -3879,6 +4271,12 @@ export const payload_locked_documents_rels = pgTable(
     'challenges-engagementID': integer('challenges_engagement_id'),
     exercicesID: integer('exercices_id'),
     'ai-exercicesID': integer('ai_exercices_id'),
+    'challenge-tagsID': integer('challenge_tags_id'),
+    'course-part-engagementID': integer('course_part_engagement_id'),
+    'course-parts-engagementID': integer('course_parts_engagement_id'),
+    'course-part-ratingID': integer('course_part_rating_id'),
+    'course-parts-ratingsID': integer('course_parts_ratings_id'),
+    'comments-reportsID': integer('comments_reports_id'),
   },
   (columns) => ({
     order: index('payload_locked_documents_rels_order_idx').on(columns.order),
@@ -3938,6 +4336,12 @@ export const payload_locked_documents_rels = pgTable(
     payload_locked_documents_rels_user_challenge_progression_id_idx: index(
       'payload_locked_documents_rels_user_challenge_progression_id_idx',
     ).on(columns.userChallengeProgressionID),
+    payload_locked_documents_rels_comments_id_idx: index(
+      'payload_locked_documents_rels_comments_id_idx',
+    ).on(columns.commentsID),
+    payload_locked_documents_rels_user_solutions_id_idx: index(
+      'payload_locked_documents_rels_user_solutions_id_idx',
+    ).on(columns['user-solutionsID']),
     payload_locked_documents_rels_challenge_submissions_id_idx: index(
       'payload_locked_documents_rels_challenge_submissions_id_idx',
     ).on(columns['challenge-submissionsID']),
@@ -4067,6 +4471,24 @@ export const payload_locked_documents_rels = pgTable(
     payload_locked_documents_rels_ai_exercices_id_idx: index(
       'payload_locked_documents_rels_ai_exercices_id_idx',
     ).on(columns['ai-exercicesID']),
+    payload_locked_documents_rels_challenge_tags_id_idx: index(
+      'payload_locked_documents_rels_challenge_tags_id_idx',
+    ).on(columns['challenge-tagsID']),
+    payload_locked_documents_rels_course_part_engagement_id_idx: index(
+      'payload_locked_documents_rels_course_part_engagement_id_idx',
+    ).on(columns['course-part-engagementID']),
+    payload_locked_documents_rels_course_parts_engagement_id_idx: index(
+      'payload_locked_documents_rels_course_parts_engagement_id_idx',
+    ).on(columns['course-parts-engagementID']),
+    payload_locked_documents_rels_course_part_rating_id_idx: index(
+      'payload_locked_documents_rels_course_part_rating_id_idx',
+    ).on(columns['course-part-ratingID']),
+    payload_locked_documents_rels_course_parts_ratings_id_idx: index(
+      'payload_locked_documents_rels_course_parts_ratings_id_idx',
+    ).on(columns['course-parts-ratingsID']),
+    payload_locked_documents_rels_comments_reports_id_idx: index(
+      'payload_locked_documents_rels_comments_reports_id_idx',
+    ).on(columns['comments-reportsID']),
     parentFk: foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_locked_documents.id],
@@ -4161,6 +4583,16 @@ export const payload_locked_documents_rels = pgTable(
       columns: [columns['userChallengeProgressionID']],
       foreignColumns: [user_challenge_progression.id],
       name: 'payload_locked_documents_rels_user_challenge_progression_fk',
+    }).onDelete('cascade'),
+    commentsIdFk: foreignKey({
+      columns: [columns['commentsID']],
+      foreignColumns: [comments.id],
+      name: 'payload_locked_documents_rels_comments_fk',
+    }).onDelete('cascade'),
+    'user-solutionsIdFk': foreignKey({
+      columns: [columns['user-solutionsID']],
+      foreignColumns: [user_solutions.id],
+      name: 'payload_locked_documents_rels_user_solutions_fk',
     }).onDelete('cascade'),
     'challenge-submissionsIdFk': foreignKey({
       columns: [columns['challenge-submissionsID']],
@@ -4376,6 +4808,36 @@ export const payload_locked_documents_rels = pgTable(
       columns: [columns['ai-exercicesID']],
       foreignColumns: [ai_exercices.id],
       name: 'payload_locked_documents_rels_ai_exercices_fk',
+    }).onDelete('cascade'),
+    'challenge-tagsIdFk': foreignKey({
+      columns: [columns['challenge-tagsID']],
+      foreignColumns: [challenge_tags.id],
+      name: 'payload_locked_documents_rels_challenge_tags_fk',
+    }).onDelete('cascade'),
+    'course-part-engagementIdFk': foreignKey({
+      columns: [columns['course-part-engagementID']],
+      foreignColumns: [course_part_engagement.id],
+      name: 'payload_locked_documents_rels_course_part_engagement_fk',
+    }).onDelete('cascade'),
+    'course-parts-engagementIdFk': foreignKey({
+      columns: [columns['course-parts-engagementID']],
+      foreignColumns: [course_parts_engagement.id],
+      name: 'payload_locked_documents_rels_course_parts_engagement_fk',
+    }).onDelete('cascade'),
+    'course-part-ratingIdFk': foreignKey({
+      columns: [columns['course-part-ratingID']],
+      foreignColumns: [course_part_rating.id],
+      name: 'payload_locked_documents_rels_course_part_rating_fk',
+    }).onDelete('cascade'),
+    'course-parts-ratingsIdFk': foreignKey({
+      columns: [columns['course-parts-ratingsID']],
+      foreignColumns: [course_parts_ratings.id],
+      name: 'payload_locked_documents_rels_course_parts_ratings_fk',
+    }).onDelete('cascade'),
+    'comments-reportsIdFk': foreignKey({
+      columns: [columns['comments-reportsID']],
+      foreignColumns: [comments_reports.id],
+      name: 'payload_locked_documents_rels_comments_reports_fk',
     }).onDelete('cascade'),
   }),
 )
@@ -5013,6 +5475,85 @@ export const relations_user_challenge_progression = relations(
     }),
   }),
 )
+export const relations_comments_votes = relations(comments_votes, ({ one }) => ({
+  _parentID: one(comments, {
+    fields: [comments_votes._parentID],
+    references: [comments.id],
+    relationName: 'votes',
+  }),
+}))
+export const relations_comments_rels = relations(comments_rels, ({ one }) => ({
+  parent: one(comments, {
+    fields: [comments_rels.parent],
+    references: [comments.id],
+    relationName: '_rels',
+  }),
+  commentsID: one(comments, {
+    fields: [comments_rels.commentsID],
+    references: [comments.id],
+    relationName: 'comments',
+  }),
+  'comments-reportsID': one(comments_reports, {
+    fields: [comments_rels['comments-reportsID']],
+    references: [comments_reports.id],
+    relationName: 'comments-reports',
+  }),
+}))
+export const relations_comments = relations(comments, ({ many }) => ({
+  votes: many(comments_votes, {
+    relationName: 'votes',
+  }),
+  _rels: many(comments_rels, {
+    relationName: '_rels',
+  }),
+}))
+export const relations_user_solutions_votes = relations(user_solutions_votes, ({ one }) => ({
+  _parentID: one(user_solutions, {
+    fields: [user_solutions_votes._parentID],
+    references: [user_solutions.id],
+    relationName: 'votes',
+  }),
+}))
+export const relations_user_solutions_reports = relations(user_solutions_reports, ({ one }) => ({
+  _parentID: one(user_solutions, {
+    fields: [user_solutions_reports._parentID],
+    references: [user_solutions.id],
+    relationName: 'reports',
+  }),
+}))
+export const relations_user_solutions_rels = relations(user_solutions_rels, ({ one }) => ({
+  parent: one(user_solutions, {
+    fields: [user_solutions_rels.parent],
+    references: [user_solutions.id],
+    relationName: '_rels',
+  }),
+  tagsID: one(tags, {
+    fields: [user_solutions_rels.tagsID],
+    references: [tags.id],
+    relationName: 'tags',
+  }),
+  commentsID: one(comments, {
+    fields: [user_solutions_rels.commentsID],
+    references: [comments.id],
+    relationName: 'comments',
+  }),
+}))
+export const relations_user_solutions = relations(user_solutions, ({ one, many }) => ({
+  challenge: one(challenges, {
+    fields: [user_solutions.challenge],
+    references: [challenges.id],
+    relationName: 'challenge',
+  }),
+  votes: many(user_solutions_votes, {
+    relationName: 'votes',
+  }),
+  reports: many(user_solutions_reports, {
+    relationName: 'reports',
+  }),
+  _rels: many(user_solutions_rels, {
+    relationName: '_rels',
+  }),
+}))
 export const relations_challenge_submissions_last_expected_output = relations(
   challenge_submissions_last_expected_output,
   ({ one }) => ({
@@ -5343,48 +5884,29 @@ export const relations_course_parts_description_hints = relations(
     }),
   }),
 )
-export const relations_course_parts_challenges_languages_test_cases = relations(
-  course_parts_challenges_languages_test_cases,
-  ({ one }) => ({
-    _parentID: one(course_parts_challenges_languages, {
-      fields: [course_parts_challenges_languages_test_cases._parentID],
-      references: [course_parts_challenges_languages.id],
-      relationName: 'testCases',
-    }),
+export const relations_course_parts_rels = relations(course_parts_rels, ({ one }) => ({
+  parent: one(course_parts, {
+    fields: [course_parts_rels.parent],
+    references: [course_parts.id],
+    relationName: '_rels',
   }),
-)
-export const relations_course_parts_challenges_languages = relations(
-  course_parts_challenges_languages,
-  ({ one, many }) => ({
-    _parentID: one(course_parts_challenges, {
-      fields: [course_parts_challenges_languages._parentID],
-      references: [course_parts_challenges.id],
-      relationName: 'languages',
-    }),
-    testCases: many(course_parts_challenges_languages_test_cases, {
-      relationName: 'testCases',
-    }),
+  exercicesID: one(exercices, {
+    fields: [course_parts_rels.exercicesID],
+    references: [exercices.id],
+    relationName: 'exercices',
   }),
-)
-export const relations_course_parts_challenges = relations(
-  course_parts_challenges,
-  ({ one, many }) => ({
-    _parentID: one(course_parts, {
-      fields: [course_parts_challenges._parentID],
-      references: [course_parts.id],
-      relationName: 'challenges',
-    }),
-    languages: many(course_parts_challenges_languages, {
-      relationName: 'languages',
-    }),
+  'ai-exercicesID': one(ai_exercices, {
+    fields: [course_parts_rels['ai-exercicesID']],
+    references: [ai_exercices.id],
+    relationName: 'ai-exercices',
   }),
-)
+}))
 export const relations_course_parts = relations(course_parts, ({ many }) => ({
   description_hints: many(course_parts_description_hints, {
     relationName: 'description_hints',
   }),
-  challenges: many(course_parts_challenges, {
-    relationName: 'challenges',
+  _rels: many(course_parts_rels, {
+    relationName: '_rels',
   }),
 }))
 export const relations_course_part_user_progression = relations(
@@ -5593,35 +6115,45 @@ export const relations_exercices_hints = relations(exercices_hints, ({ one }) =>
     relationName: 'hints',
   }),
 }))
-export const relations_exercices_file_structure = relations(
-  exercices_file_structure,
+export const relations_exercices_languages_file_structure = relations(
+  exercices_languages_file_structure,
   ({ one }) => ({
-    _parentID: one(exercices, {
-      fields: [exercices_file_structure._parentID],
-      references: [exercices.id],
+    _parentID: one(exercices_languages, {
+      fields: [exercices_languages_file_structure._parentID],
+      references: [exercices_languages.id],
       relationName: 'fileStructure',
     }),
   }),
 )
-export const relations_exercices_test_configuration_test_cases = relations(
-  exercices_test_configuration_test_cases,
+export const relations_exercices_languages_test_cases = relations(
+  exercices_languages_test_cases,
   ({ one }) => ({
-    _parentID: one(exercices, {
-      fields: [exercices_test_configuration_test_cases._parentID],
-      references: [exercices.id],
-      relationName: 'testConfiguration_testCases',
+    _parentID: one(exercices_languages, {
+      fields: [exercices_languages_test_cases._parentID],
+      references: [exercices_languages.id],
+      relationName: 'testCases',
     }),
   }),
 )
+export const relations_exercices_languages = relations(exercices_languages, ({ one, many }) => ({
+  _parentID: one(exercices, {
+    fields: [exercices_languages._parentID],
+    references: [exercices.id],
+    relationName: 'languages',
+  }),
+  fileStructure: many(exercices_languages_file_structure, {
+    relationName: 'fileStructure',
+  }),
+  testCases: many(exercices_languages_test_cases, {
+    relationName: 'testCases',
+  }),
+}))
 export const relations_exercices = relations(exercices, ({ many }) => ({
   hints: many(exercices_hints, {
     relationName: 'hints',
   }),
-  fileStructure: many(exercices_file_structure, {
-    relationName: 'fileStructure',
-  }),
-  testConfiguration_testCases: many(exercices_test_configuration_test_cases, {
-    relationName: 'testConfiguration_testCases',
+  languages: many(exercices_languages, {
+    relationName: 'languages',
   }),
 }))
 export const relations_ai_exercices_hints = relations(ai_exercices_hints, ({ one }) => ({
@@ -5631,35 +6163,115 @@ export const relations_ai_exercices_hints = relations(ai_exercices_hints, ({ one
     relationName: 'hints',
   }),
 }))
-export const relations_ai_exercices_file_structure = relations(
-  ai_exercices_file_structure,
+export const relations_ai_exercices_languages_file_structure = relations(
+  ai_exercices_languages_file_structure,
   ({ one }) => ({
-    _parentID: one(ai_exercices, {
-      fields: [ai_exercices_file_structure._parentID],
-      references: [ai_exercices.id],
+    _parentID: one(ai_exercices_languages, {
+      fields: [ai_exercices_languages_file_structure._parentID],
+      references: [ai_exercices_languages.id],
       relationName: 'fileStructure',
     }),
   }),
 )
-export const relations_ai_exercices_test_configuration_test_cases = relations(
-  ai_exercices_test_configuration_test_cases,
+export const relations_ai_exercices_languages_test_cases = relations(
+  ai_exercices_languages_test_cases,
   ({ one }) => ({
-    _parentID: one(ai_exercices, {
-      fields: [ai_exercices_test_configuration_test_cases._parentID],
-      references: [ai_exercices.id],
-      relationName: 'testConfiguration_testCases',
+    _parentID: one(ai_exercices_languages, {
+      fields: [ai_exercices_languages_test_cases._parentID],
+      references: [ai_exercices_languages.id],
+      relationName: 'testCases',
     }),
   }),
 )
+export const relations_ai_exercices_languages = relations(
+  ai_exercices_languages,
+  ({ one, many }) => ({
+    _parentID: one(ai_exercices, {
+      fields: [ai_exercices_languages._parentID],
+      references: [ai_exercices.id],
+      relationName: 'languages',
+    }),
+    fileStructure: many(ai_exercices_languages_file_structure, {
+      relationName: 'fileStructure',
+    }),
+    testCases: many(ai_exercices_languages_test_cases, {
+      relationName: 'testCases',
+    }),
+  }),
+)
+export const relations_ai_exercices_prompts = relations(ai_exercices_prompts, ({ one }) => ({
+  _parentID: one(ai_exercices, {
+    fields: [ai_exercices_prompts._parentID],
+    references: [ai_exercices.id],
+    relationName: 'prompts',
+  }),
+}))
 export const relations_ai_exercices = relations(ai_exercices, ({ many }) => ({
   hints: many(ai_exercices_hints, {
     relationName: 'hints',
   }),
-  fileStructure: many(ai_exercices_file_structure, {
-    relationName: 'fileStructure',
+  languages: many(ai_exercices_languages, {
+    relationName: 'languages',
   }),
-  testConfiguration_testCases: many(ai_exercices_test_configuration_test_cases, {
-    relationName: 'testConfiguration_testCases',
+  prompts: many(ai_exercices_prompts, {
+    relationName: 'prompts',
+  }),
+}))
+export const relations_challenge_tags_rels = relations(challenge_tags_rels, ({ one }) => ({
+  parent: one(challenge_tags, {
+    fields: [challenge_tags_rels.parent],
+    references: [challenge_tags.id],
+    relationName: '_rels',
+  }),
+  challengesID: one(challenges, {
+    fields: [challenge_tags_rels.challengesID],
+    references: [challenges.id],
+    relationName: 'challenges',
+  }),
+}))
+export const relations_challenge_tags = relations(challenge_tags, ({ one, many }) => ({
+  concept: one(concepts, {
+    fields: [challenge_tags.concept],
+    references: [concepts.id],
+    relationName: 'concept',
+  }),
+  _rels: many(challenge_tags_rels, {
+    relationName: '_rels',
+  }),
+}))
+export const relations_course_part_engagement = relations(course_part_engagement, ({ one }) => ({
+  coursePart: one(course_parts, {
+    fields: [course_part_engagement.coursePart],
+    references: [course_parts.id],
+    relationName: 'coursePart',
+  }),
+}))
+export const relations_course_parts_engagement = relations(course_parts_engagement, ({ one }) => ({
+  coursePart: one(course_parts, {
+    fields: [course_parts_engagement.coursePart],
+    references: [course_parts.id],
+    relationName: 'coursePart',
+  }),
+}))
+export const relations_course_part_rating = relations(course_part_rating, ({ one }) => ({
+  coursePart: one(course_parts, {
+    fields: [course_part_rating.coursePart],
+    references: [course_parts.id],
+    relationName: 'coursePart',
+  }),
+}))
+export const relations_course_parts_ratings = relations(course_parts_ratings, ({ one }) => ({
+  coursePart: one(course_parts, {
+    fields: [course_parts_ratings.coursePart],
+    references: [course_parts.id],
+    relationName: 'coursePart',
+  }),
+}))
+export const relations_comments_reports = relations(comments_reports, ({ one }) => ({
+  comment: one(comments, {
+    fields: [comments_reports.comment],
+    references: [comments.id],
+    relationName: 'comment',
   }),
 }))
 export const relations_payload_locked_documents_rels = relations(
@@ -5759,6 +6371,16 @@ export const relations_payload_locked_documents_rels = relations(
       fields: [payload_locked_documents_rels.userChallengeProgressionID],
       references: [user_challenge_progression.id],
       relationName: 'userChallengeProgression',
+    }),
+    commentsID: one(comments, {
+      fields: [payload_locked_documents_rels.commentsID],
+      references: [comments.id],
+      relationName: 'comments',
+    }),
+    'user-solutionsID': one(user_solutions, {
+      fields: [payload_locked_documents_rels['user-solutionsID']],
+      references: [user_solutions.id],
+      relationName: 'user-solutions',
     }),
     'challenge-submissionsID': one(challenge_submissions, {
       fields: [payload_locked_documents_rels['challenge-submissionsID']],
@@ -5975,6 +6597,36 @@ export const relations_payload_locked_documents_rels = relations(
       references: [ai_exercices.id],
       relationName: 'ai-exercices',
     }),
+    'challenge-tagsID': one(challenge_tags, {
+      fields: [payload_locked_documents_rels['challenge-tagsID']],
+      references: [challenge_tags.id],
+      relationName: 'challenge-tags',
+    }),
+    'course-part-engagementID': one(course_part_engagement, {
+      fields: [payload_locked_documents_rels['course-part-engagementID']],
+      references: [course_part_engagement.id],
+      relationName: 'course-part-engagement',
+    }),
+    'course-parts-engagementID': one(course_parts_engagement, {
+      fields: [payload_locked_documents_rels['course-parts-engagementID']],
+      references: [course_parts_engagement.id],
+      relationName: 'course-parts-engagement',
+    }),
+    'course-part-ratingID': one(course_part_rating, {
+      fields: [payload_locked_documents_rels['course-part-ratingID']],
+      references: [course_part_rating.id],
+      relationName: 'course-part-rating',
+    }),
+    'course-parts-ratingsID': one(course_parts_ratings, {
+      fields: [payload_locked_documents_rels['course-parts-ratingsID']],
+      references: [course_parts_ratings.id],
+      relationName: 'course-parts-ratings',
+    }),
+    'comments-reportsID': one(comments_reports, {
+      fields: [payload_locked_documents_rels['comments-reportsID']],
+      references: [comments_reports.id],
+      relationName: 'comments-reports',
+    }),
   }),
 )
 export const relations_payload_locked_documents = relations(
@@ -6039,6 +6691,9 @@ type DatabaseSchema = {
   enum__challenges_v_version_difficulty: typeof enum__challenges_v_version_difficulty
   enum__challenges_v_version_status: typeof enum__challenges_v_version_status
   enum_user_challenge_progression_completion_status: typeof enum_user_challenge_progression_completion_status
+  enum_comments_votes_vote: typeof enum_comments_votes_vote
+  enum_user_solutions_votes_status: typeof enum_user_solutions_votes_status
+  enum_user_solutions_status: typeof enum_user_solutions_status
   enum_challenge_submissions_submission_type: typeof enum_challenge_submissions_submission_type
   enum_notifications_importance: typeof enum_notifications_importance
   enum_notifications_type: typeof enum_notifications_type
@@ -6050,7 +6705,6 @@ type DatabaseSchema = {
   enum_courses_difficulty: typeof enum_courses_difficulty
   enum_learning_paths_icon: typeof enum_learning_paths_icon
   enum_course_parts_difficulty: typeof enum_course_parts_difficulty
-  enum_course_part_user_progression_engagement_status: typeof enum_course_part_user_progression_engagement_status
   enum_course_part_user_progression_completion_status: typeof enum_course_part_user_progression_completion_status
   enum_course_part_submissions_submission_type: typeof enum_course_part_submissions_submission_type
   enum_user_chapter_progress_completion_status: typeof enum_user_chapter_progress_completion_status
@@ -6062,14 +6716,15 @@ type DatabaseSchema = {
   enum_user_challenge_completion_status_completion_status: typeof enum_user_challenge_completion_status_completion_status
   enum_challenge_streaks_status: typeof enum_challenge_streaks_status
   enum_challenge_engagement_type: typeof enum_challenge_engagement_type
-  enum_exercices_file_structure_type: typeof enum_exercices_file_structure_type
-  enum_exercices_file_structure_language: typeof enum_exercices_file_structure_language
+  enum_exercices_languages_file_structure_type: typeof enum_exercices_languages_file_structure_type
+  enum_exercices_languages_file_structure_language: typeof enum_exercices_languages_file_structure_language
+  enum_exercices_languages_language: typeof enum_exercices_languages_language
   enum_exercices_difficulty: typeof enum_exercices_difficulty
-  enum_exercices_test_configuration_language: typeof enum_exercices_test_configuration_language
-  enum_ai_exercices_file_structure_type: typeof enum_ai_exercices_file_structure_type
-  enum_ai_exercices_file_structure_language: typeof enum_ai_exercices_file_structure_language
+  enum_ai_exercices_languages_file_structure_type: typeof enum_ai_exercices_languages_file_structure_type
+  enum_ai_exercices_languages_file_structure_language: typeof enum_ai_exercices_languages_file_structure_language
+  enum_ai_exercices_languages_language: typeof enum_ai_exercices_languages_language
   enum_ai_exercices_difficulty: typeof enum_ai_exercices_difficulty
-  enum_ai_exercices_test_configuration_language: typeof enum_ai_exercices_test_configuration_language
+  enum_course_part_engagement_type: typeof enum_course_part_engagement_type
   users: typeof users
   media: typeof media
   articles_seo_keywords: typeof articles_seo_keywords
@@ -6123,6 +6778,13 @@ type DatabaseSchema = {
   _challenges_v: typeof _challenges_v
   _challenges_v_rels: typeof _challenges_v_rels
   user_challenge_progression: typeof user_challenge_progression
+  comments_votes: typeof comments_votes
+  comments: typeof comments
+  comments_rels: typeof comments_rels
+  user_solutions_votes: typeof user_solutions_votes
+  user_solutions_reports: typeof user_solutions_reports
+  user_solutions: typeof user_solutions
+  user_solutions_rels: typeof user_solutions_rels
   challenge_submissions_last_expected_output: typeof challenge_submissions_last_expected_output
   challenge_submissions: typeof challenge_submissions
   notifications: typeof notifications
@@ -6159,10 +6821,8 @@ type DatabaseSchema = {
   chapters: typeof chapters
   chapters_rels: typeof chapters_rels
   course_parts_description_hints: typeof course_parts_description_hints
-  course_parts_challenges_languages_test_cases: typeof course_parts_challenges_languages_test_cases
-  course_parts_challenges_languages: typeof course_parts_challenges_languages
-  course_parts_challenges: typeof course_parts_challenges
   course_parts: typeof course_parts
+  course_parts_rels: typeof course_parts_rels
   course_part_user_progression: typeof course_part_user_progression
   course_part_submissions_last_expected_output: typeof course_part_submissions_last_expected_output
   course_part_submissions: typeof course_part_submissions
@@ -6189,13 +6849,23 @@ type DatabaseSchema = {
   challenge_engagement: typeof challenge_engagement
   challenges_engagement: typeof challenges_engagement
   exercices_hints: typeof exercices_hints
-  exercices_file_structure: typeof exercices_file_structure
-  exercices_test_configuration_test_cases: typeof exercices_test_configuration_test_cases
+  exercices_languages_file_structure: typeof exercices_languages_file_structure
+  exercices_languages_test_cases: typeof exercices_languages_test_cases
+  exercices_languages: typeof exercices_languages
   exercices: typeof exercices
   ai_exercices_hints: typeof ai_exercices_hints
-  ai_exercices_file_structure: typeof ai_exercices_file_structure
-  ai_exercices_test_configuration_test_cases: typeof ai_exercices_test_configuration_test_cases
+  ai_exercices_languages_file_structure: typeof ai_exercices_languages_file_structure
+  ai_exercices_languages_test_cases: typeof ai_exercices_languages_test_cases
+  ai_exercices_languages: typeof ai_exercices_languages
+  ai_exercices_prompts: typeof ai_exercices_prompts
   ai_exercices: typeof ai_exercices
+  challenge_tags: typeof challenge_tags
+  challenge_tags_rels: typeof challenge_tags_rels
+  course_part_engagement: typeof course_part_engagement
+  course_parts_engagement: typeof course_parts_engagement
+  course_part_rating: typeof course_part_rating
+  course_parts_ratings: typeof course_parts_ratings
+  comments_reports: typeof comments_reports
   payload_locked_documents: typeof payload_locked_documents
   payload_locked_documents_rels: typeof payload_locked_documents_rels
   payload_preferences: typeof payload_preferences
@@ -6254,6 +6924,13 @@ type DatabaseSchema = {
   relations__challenges_v_rels: typeof relations__challenges_v_rels
   relations__challenges_v: typeof relations__challenges_v
   relations_user_challenge_progression: typeof relations_user_challenge_progression
+  relations_comments_votes: typeof relations_comments_votes
+  relations_comments_rels: typeof relations_comments_rels
+  relations_comments: typeof relations_comments
+  relations_user_solutions_votes: typeof relations_user_solutions_votes
+  relations_user_solutions_reports: typeof relations_user_solutions_reports
+  relations_user_solutions_rels: typeof relations_user_solutions_rels
+  relations_user_solutions: typeof relations_user_solutions
   relations_challenge_submissions_last_expected_output: typeof relations_challenge_submissions_last_expected_output
   relations_challenge_submissions: typeof relations_challenge_submissions
   relations_notifications: typeof relations_notifications
@@ -6290,9 +6967,7 @@ type DatabaseSchema = {
   relations_chapters_rels: typeof relations_chapters_rels
   relations_chapters: typeof relations_chapters
   relations_course_parts_description_hints: typeof relations_course_parts_description_hints
-  relations_course_parts_challenges_languages_test_cases: typeof relations_course_parts_challenges_languages_test_cases
-  relations_course_parts_challenges_languages: typeof relations_course_parts_challenges_languages
-  relations_course_parts_challenges: typeof relations_course_parts_challenges
+  relations_course_parts_rels: typeof relations_course_parts_rels
   relations_course_parts: typeof relations_course_parts
   relations_course_part_user_progression: typeof relations_course_part_user_progression
   relations_course_part_submissions_last_expected_output: typeof relations_course_part_submissions_last_expected_output
@@ -6320,13 +6995,23 @@ type DatabaseSchema = {
   relations_challenge_engagement: typeof relations_challenge_engagement
   relations_challenges_engagement: typeof relations_challenges_engagement
   relations_exercices_hints: typeof relations_exercices_hints
-  relations_exercices_file_structure: typeof relations_exercices_file_structure
-  relations_exercices_test_configuration_test_cases: typeof relations_exercices_test_configuration_test_cases
+  relations_exercices_languages_file_structure: typeof relations_exercices_languages_file_structure
+  relations_exercices_languages_test_cases: typeof relations_exercices_languages_test_cases
+  relations_exercices_languages: typeof relations_exercices_languages
   relations_exercices: typeof relations_exercices
   relations_ai_exercices_hints: typeof relations_ai_exercices_hints
-  relations_ai_exercices_file_structure: typeof relations_ai_exercices_file_structure
-  relations_ai_exercices_test_configuration_test_cases: typeof relations_ai_exercices_test_configuration_test_cases
+  relations_ai_exercices_languages_file_structure: typeof relations_ai_exercices_languages_file_structure
+  relations_ai_exercices_languages_test_cases: typeof relations_ai_exercices_languages_test_cases
+  relations_ai_exercices_languages: typeof relations_ai_exercices_languages
+  relations_ai_exercices_prompts: typeof relations_ai_exercices_prompts
   relations_ai_exercices: typeof relations_ai_exercices
+  relations_challenge_tags_rels: typeof relations_challenge_tags_rels
+  relations_challenge_tags: typeof relations_challenge_tags
+  relations_course_part_engagement: typeof relations_course_part_engagement
+  relations_course_parts_engagement: typeof relations_course_parts_engagement
+  relations_course_part_rating: typeof relations_course_part_rating
+  relations_course_parts_ratings: typeof relations_course_parts_ratings
+  relations_comments_reports: typeof relations_comments_reports
   relations_payload_locked_documents_rels: typeof relations_payload_locked_documents_rels
   relations_payload_locked_documents: typeof relations_payload_locked_documents
   relations_payload_preferences_rels: typeof relations_payload_preferences_rels

@@ -8,25 +8,7 @@ export const CourseParts: CollectionConfig = {
     description: 'Represents a distinct part or module within a course.',
   },
   access: {
-    read: () => true,
-    create: () => {
-      if (process.env.NODE_ENV === 'development') {
-        return true
-      }
-      return false
-    },
-    update: () => {
-      if (process.env.NODE_ENV === 'development') {
-        return true
-      }
-      return false
-    },
-    delete: () => {
-      if (process.env.NODE_ENV === 'development') {
-        return true
-      }
-      return false
-    },
+    read: () => true
   },
   fields: [
     {
@@ -150,57 +132,15 @@ export const CourseParts: CollectionConfig = {
       ],
     },
     {
-      name: 'challenges',
-      label: 'Challenges',
-      type: 'array',
-      minRows: 0,
+      name: 'exercice',
+      label: 'Exercice',
+      type: 'relationship',
+      relationTo: ['exercices', 'ai-exercices'],
       admin: {
-        description: 'Coding challenges associated with this part.',
+        description: 'Linked exercice (AI or classic) for this course part.',
+        position: 'sidebar',
       },
-      fields: [
-        {
-          name: 'languages',
-          label: 'Programming Languages',
-          type: 'array',
-          minRows: 1,
-          fields: [
-            {
-              name: 'name',
-              label: 'Language',
-              type: 'text', // Could be a select if you have predefined languages
-              required: true,
-            },
-            {
-              name: 'initialCode',
-              label: 'Initial Code Snippet',
-              type: 'textarea', // Use code field for better syntax highlighting
-              required: true,
-            },
-            {
-              name: 'testCases',
-              label: 'Test Cases',
-              type: 'array',
-              minRows: 1,
-              fields: [
-                {
-                  name: 'input',
-                  label: 'Input',
-                  type: 'textarea', // Or 'code' if input is complex
-                  required: true,
-                },
-                {
-                  name: 'expectedOutput',
-                  label: 'Expected Output',
-                  type: 'textarea', // Or 'code'
-                  required: true,
-                },
-              ],
-            },
-          ],
-        },
-      ],
     },
-    // Note: The 'challenges' field from the original type is intentionally omitted.
 
     
   ],

@@ -2,7 +2,6 @@
 
 import { TabConfig } from '../../tabs-config'
 import { useState } from 'react'
-import { Tab } from './tab'
 import { useChallengeTabsLockStatus } from '../hooks/use-challenge-tabs-lock-status'
 import { Loader2 } from 'lucide-react'
 import {
@@ -14,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { NavigationTab } from '@/core/navigation/components/navigation-tabs'
 
 export const ChallengeNavigationTabs = () => {
   const [openDialog, setOpenDialog] = useState<string | null>(null)
@@ -32,7 +32,7 @@ export const ChallengeNavigationTabs = () => {
           {tabs.map((tab) => {
             const isLocked = tabsLockStatus ? tabsLockStatus[tab.id] : true
             return (
-              <Tab
+              <NavigationTab
                 key={tab.id}
                 label={tab.label}
                 icon={tab.icon}

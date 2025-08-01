@@ -131,7 +131,14 @@ export interface Config {
     exercices: Exercice;
     'ai-exercices': AiExercice;
     'challenge-tags': ChallengeTag;
+    'course-part-engagement': CoursePartEngagement;
+    'course-parts-engagement': CoursePartsEngagement;
+    'course-part-rating': CoursePartRating;
+    'course-parts-ratings': CoursePartsRating;
     'comments-reports': CommentsReport;
+    'course-part-ai-chats': CoursePartAiChat;
+    'course-part-chat-histories': CoursePartChatHistory;
+    userLastVisitedCourse: UserLastVisitedCourse;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -202,7 +209,14 @@ export interface Config {
     exercices: ExercicesSelect<false> | ExercicesSelect<true>;
     'ai-exercices': AiExercicesSelect<false> | AiExercicesSelect<true>;
     'challenge-tags': ChallengeTagsSelect<false> | ChallengeTagsSelect<true>;
+    'course-part-engagement': CoursePartEngagementSelect<false> | CoursePartEngagementSelect<true>;
+    'course-parts-engagement': CoursePartsEngagementSelect<false> | CoursePartsEngagementSelect<true>;
+    'course-part-rating': CoursePartRatingSelect<false> | CoursePartRatingSelect<true>;
+    'course-parts-ratings': CoursePartsRatingsSelect<false> | CoursePartsRatingsSelect<true>;
     'comments-reports': CommentsReportsSelect<false> | CommentsReportsSelect<true>;
+    'course-part-ai-chats': CoursePartAiChatsSelect<false> | CoursePartAiChatsSelect<true>;
+    'course-part-chat-histories': CoursePartChatHistoriesSelect<false> | CoursePartChatHistoriesSelect<true>;
+    userLastVisitedCourse: UserLastVisitedCourseSelect<false> | UserLastVisitedCourseSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -1197,6 +1211,22 @@ export interface AiExercice {
     }[];
     id?: string | null;
   }[];
+  /**
+   * Prompts for the AI exercice
+   */
+  prompts?:
+    | {
+        /**
+         * Title of the prompt
+         */
+        title: string;
+        /**
+         * Content of the prompt
+         */
+        content: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1868,6 +1898,10 @@ export interface Course {
    * Check this box if the course requires a PRO subscription to access.
    */
   isProCourse: boolean;
+  /**
+   * Set to Draft to hide the course from users (except admins).
+   */
+  status: 'draft' | 'published';
   updatedAt: string;
   createdAt: string;
 }
@@ -1942,27 +1976,17 @@ export interface CoursePart {
     dislikes?: number | null;
   };
   /**
-   * Coding challenges associated with this part.
+   * Linked exercice (AI or classic) for this course part.
    */
-  challenges?:
-    | {
-        languages?:
-          | {
-              name: string;
-              initialCode: string;
-              testCases?:
-                | {
-                    input: string;
-                    expectedOutput: string;
-                    id?: string | null;
-                  }[]
-                | null;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
+  exercice?:
+    | ({
+        relationTo: 'exercices';
+        value: number | Exercice;
+      } | null)
+    | ({
+        relationTo: 'ai-exercices';
+        value: number | AiExercice;
+      } | null);
   updatedAt: string;
   createdAt: string;
 }
@@ -1991,7 +2015,7 @@ export interface LearningPath {
   createdAt: string;
 }
 /**
- * Tracks user progression and engagement for specific course parts.
+ * Tracks user progression for specific course parts.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "coursePartUserProgression".
@@ -2006,10 +2030,6 @@ export interface CoursePartUserProgression {
    * The specific course part the user engaged with.
    */
   part: number | CoursePart;
-  /**
-   * The user's like/dislike status for this part.
-   */
-  engagementStatus: 'liked' | 'disliked' | 'none';
   /**
    * The completion status of the part for the user.
    */
@@ -2526,6 +2546,164 @@ export interface ChallengeTag {
   createdAt: string;
 }
 /**
+ * Individual user engagement (like/dislike) for course parts.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-engagement".
+ */
+export interface CoursePartEngagement {
+  id: number;
+  /**
+   * The course part being engaged with
+   */
+  coursePart: number | CoursePart;
+  /**
+   * The user who liked/disliked
+   */
+  userId: string;
+  /**
+   * Type of engagement (like or dislike)
+   */
+  type: 'like' | 'dislike';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Aggregated engagement statistics per course part.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-parts-engagement".
+ */
+export interface CoursePartsEngagement {
+  id: number;
+  /**
+   * The course part for which engagement stats are tracked
+   */
+  coursePart: number | CoursePart;
+  /**
+   * Number of likes
+   */
+  likes?: number | null;
+  /**
+   * Number of dislikes
+   */
+  dislikes?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Individual user ratings for course parts.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-rating".
+ */
+export interface CoursePartRating {
+  id: number;
+  /**
+   * The course part being rated
+   */
+  coursePart: number | CoursePart;
+  /**
+   * The user who gave the rating
+   */
+  userId: string;
+  /**
+   * Rating value (1-5)
+   */
+  rating: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Aggregated rating statistics per course part.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-parts-ratings".
+ */
+export interface CoursePartsRating {
+  id: number;
+  /**
+   * The course part this rating aggregate is for
+   */
+  coursePart: number | CoursePart;
+  /**
+   * Sum of all rating points
+   */
+  total?: number | null;
+  /**
+   * Number of ratings received
+   */
+  count?: number | null;
+  /**
+   * Average rating (0-5)
+   */
+  average?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-ai-chats".
+ */
+export interface CoursePartAiChat {
+  id: number;
+  userId: string;
+  coursePart: number | CoursePart;
+  chatHistory?: (number | null) | CoursePartChatHistory;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-chat-histories".
+ */
+export interface CoursePartChatHistory {
+  id: number;
+  chat: number | CoursePartAiChat;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * Tracks the last course visited by each user
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userLastVisitedCourse".
+ */
+export interface UserLastVisitedCourse {
+  id: number;
+  /**
+   * The Supabase user ID
+   */
+  userId: string;
+  /**
+   * The course that was last visited
+   */
+  course: number | Course;
+  /**
+   * When the course was last visited
+   */
+  lastVisitedAt: string;
+  /**
+   * The slug of the last visited chapter
+   */
+  lastChapterSlug?: string | null;
+  /**
+   * The slug of the last visited part
+   */
+  lastPartSlug?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -2789,8 +2967,36 @@ export interface PayloadLockedDocument {
         value: number | ChallengeTag;
       } | null)
     | ({
+        relationTo: 'course-part-engagement';
+        value: number | CoursePartEngagement;
+      } | null)
+    | ({
+        relationTo: 'course-parts-engagement';
+        value: number | CoursePartsEngagement;
+      } | null)
+    | ({
+        relationTo: 'course-part-rating';
+        value: number | CoursePartRating;
+      } | null)
+    | ({
+        relationTo: 'course-parts-ratings';
+        value: number | CoursePartsRating;
+      } | null)
+    | ({
         relationTo: 'comments-reports';
         value: number | CommentsReport;
+      } | null)
+    | ({
+        relationTo: 'course-part-ai-chats';
+        value: number | CoursePartAiChat;
+      } | null)
+    | ({
+        relationTo: 'course-part-chat-histories';
+        value: number | CoursePartChatHistory;
+      } | null)
+    | ({
+        relationTo: 'userLastVisitedCourse';
+        value: number | UserLastVisitedCourse;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -3613,6 +3819,7 @@ export interface CoursesSelect<T extends boolean = true> {
   slug?: T;
   difficulty?: T;
   isProCourse?: T;
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3688,25 +3895,7 @@ export interface CoursePartsSelect<T extends boolean = true> {
         likes?: T;
         dislikes?: T;
       };
-  challenges?:
-    | T
-    | {
-        languages?:
-          | T
-          | {
-              name?: T;
-              initialCode?: T;
-              testCases?:
-                | T
-                | {
-                    input?: T;
-                    expectedOutput?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
-        id?: T;
-      };
+  exercice?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3717,7 +3906,6 @@ export interface CoursePartsSelect<T extends boolean = true> {
 export interface CoursePartUserProgressionSelect<T extends boolean = true> {
   userId?: T;
   part?: T;
-  engagementStatus?: T;
   completionStatus?: T;
   isSolutionUnlocked?: T;
   updatedAt?: T;
@@ -4069,6 +4257,13 @@ export interface AiExercicesSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  prompts?:
+    | T
+    | {
+        title?: T;
+        content?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -4090,6 +4285,51 @@ export interface ChallengeTagsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-engagement_select".
+ */
+export interface CoursePartEngagementSelect<T extends boolean = true> {
+  coursePart?: T;
+  userId?: T;
+  type?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-parts-engagement_select".
+ */
+export interface CoursePartsEngagementSelect<T extends boolean = true> {
+  coursePart?: T;
+  likes?: T;
+  dislikes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-rating_select".
+ */
+export interface CoursePartRatingSelect<T extends boolean = true> {
+  coursePart?: T;
+  userId?: T;
+  rating?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-parts-ratings_select".
+ */
+export interface CoursePartsRatingsSelect<T extends boolean = true> {
+  coursePart?: T;
+  total?: T;
+  count?: T;
+  average?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "comments-reports_select".
  */
 export interface CommentsReportsSelect<T extends boolean = true> {
@@ -4097,6 +4337,48 @@ export interface CommentsReportsSelect<T extends boolean = true> {
   userId?: T;
   reason?: T;
   details?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-ai-chats_select".
+ */
+export interface CoursePartAiChatsSelect<T extends boolean = true> {
+  userId?: T;
+  coursePart?: T;
+  chatHistory?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "course-part-chat-histories_select".
+ */
+export interface CoursePartChatHistoriesSelect<T extends boolean = true> {
+  chat?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "userLastVisitedCourse_select".
+ */
+export interface UserLastVisitedCourseSelect<T extends boolean = true> {
+  userId?: T;
+  course?: T;
+  lastVisitedAt?: T;
+  lastChapterSlug?: T;
+  lastPartSlug?: T;
   updatedAt?: T;
   createdAt?: T;
 }

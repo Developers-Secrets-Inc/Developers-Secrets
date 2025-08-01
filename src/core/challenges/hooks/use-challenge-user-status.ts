@@ -17,7 +17,6 @@ export const useChallengeUserStatus = (challengeId: number, userId: string) => {
   } = useQuery({
     queryKey: ['challengeStatus', userId, challengeId],
     queryFn: () => {
-      console.log(userId, challengeId)
       if (!userId || !challengeId) {
         throw new Error('User ID or Challenge ID is undefined in queryFn.')
       }

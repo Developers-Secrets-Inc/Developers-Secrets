@@ -202,6 +202,34 @@ const AIExercices: CollectionConfig = {
         },
       ],
     },
+    {
+      name: 'prompts',
+      label: 'Prompts',
+      type: 'array',
+      admin: {
+        description: 'Prompts for the AI exercice',
+      },
+      fields: [
+        {
+          name: 'title',
+          label: 'Title',
+          type: 'text',
+          required: true,
+          admin: {
+            description: 'Title of the prompt',
+          },
+        },
+        {
+          name: 'content',
+          label: 'Content',
+          type: 'textarea',
+          required: true,
+          admin: {
+            description: 'Content of the prompt',
+          },
+        },
+      ],
+    },
   ],
   timestamps: true,
 }

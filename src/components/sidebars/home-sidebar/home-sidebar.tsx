@@ -77,13 +77,12 @@ const LearningGroup = () => {
       <SidebarMenu>
         <SidebarLink href="/home" text="Home" icon={<Home className="size-4" />} />
         <SidebarLink
-          href="#"
+          href="/courses"
           text="Courses"
           icon={<Book className="size-4" />}
-          isComingSoon={true}
         />
         <SidebarLink href="/challenges" text="Challenges" icon={<Trophy className="size-4" />} />
-        <SidebarLink href="/skills" text="Skills" icon={<GitMerge className="size-4" />} />
+        <SidebarLink href="/skills/python" text="Skills" icon={<GitMerge className="size-4" />} />
       </SidebarMenu>
     </SidebarGroup>
   )

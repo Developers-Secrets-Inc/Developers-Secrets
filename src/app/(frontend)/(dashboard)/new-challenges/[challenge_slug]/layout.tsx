@@ -77,6 +77,7 @@ const Layout = async ({
 
   return (
     <ChallengeProvider
+      key={challenge.value.id} // Force remounting when challenge changes
       challenge={challenge.value}
       metadata={{ challengeAiChat: challengeAIChat, messages, quotas, completionCurrency: getCurrencyOnCompletion(challenge.value) }}
     >

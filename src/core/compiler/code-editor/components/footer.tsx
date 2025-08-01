@@ -42,7 +42,7 @@ export const Footer = ({ tabs }: FooterProps) => {
   const activeTab = tabs.find((tab) => tab.id === activeTabId)
 
   return (
-    <div className="flex flex-col border-t bg-background">
+    <div className="flex-shrink-0 flex flex-col border-t bg-background max-h-[40%]">
       <div
         className={cn('flex items-center justify-between px-1 h-10', isOpen ? 'border-b-0' : '')}
         onDoubleClick={togglePanel}

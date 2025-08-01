@@ -9,6 +9,7 @@ export interface FooterState {
   setActiveTab: (tabId: string) => void
   setExecutionOutput: (output: string) => void
   openOutputTab: () => void
+  reset: () => void
 }
 
 export const useFooterStore = create<FooterState>((set) => ({
@@ -20,4 +21,9 @@ export const useFooterStore = create<FooterState>((set) => ({
   setActiveTab: (tabId) => set({ activeTabId: tabId }),
   setExecutionOutput: (output) => set({ executionOutput: output }),
   openOutputTab: () => set({ activeTabId: 'output', isOpen: true }),
+  reset: () => set({
+    isOpen: false,
+    activeTabId: null,
+    executionOutput: null
+  }),
 }))

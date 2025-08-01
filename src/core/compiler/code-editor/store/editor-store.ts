@@ -17,6 +17,7 @@ interface EditorActions {
   isNodeLocked: (id: string) => boolean
   isNodeOrParentLocked: (id: string) => boolean
   canModifyNode: (id: string) => boolean
+  reset: () => void
 }
 
 // Utility function to recursively add a node to the file system tree
@@ -165,4 +166,8 @@ export const useEditorStore = create<EditorState & EditorActions>()((set, get) =
     const state = get()
     return !isNodeOrParentLockedInTree(state.fileTree, id)
   },
+  reset: () => set({
+    fileTree: [],
+    activeFileId: null
+  }),
 }))

@@ -1,11 +1,9 @@
-import { find } from '@/api'
 import { getSectionsArticles, getTutorialForLayout } from '@/api/articles'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { ArticleSidebar } from '../components/article-sidebar'
 import { isFailure } from '@/lib/result'
 import { notFound } from 'next/navigation'
-import { headers } from 'next/headers'
+import { ArticleSidebar } from '../components/article-sidebar'
 
 export default async function TutorialArticlesLayout({
   children,

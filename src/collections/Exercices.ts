@@ -5,6 +5,10 @@ export const Exercices: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
   },
+  access: {
+    read: () => true, 
+    create: () => true
+  },
   fields: [
     {
       name: 'title',

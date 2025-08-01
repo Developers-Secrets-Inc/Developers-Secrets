@@ -1,8 +1,13 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { useSidebar } from '../ui/sidebar'
 
 export const ProCtaCard = () => {
-  return (
+  const { state } = useSidebar()
+
+  return state === 'expanded' && (
     <div id="upgrade-cta" className="p-4 flex flex-col gap-4 bg-background border rounded-md">
       <div id="icon-and-text" className="flex flex-col gap-3">
         <div

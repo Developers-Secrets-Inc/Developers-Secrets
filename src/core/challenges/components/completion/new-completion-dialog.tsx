@@ -9,6 +9,10 @@ import { StreakProgressionPage } from './pages/streak-progression-page'
 import { getSessionUserQuests } from '@/core/gamification/quests/actions'
 import { ChallengeCompletionInformations } from './pages/completion-informations-page'
 import { Challenge } from '@/payload-types'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { getNextChallenge } from '@/api/challenges/navigation'
+import { isNone, isSome } from '@/lib/maybe'
 
 export const NewCompletionDialog = async ({
   userId,
@@ -20,6 +24,7 @@ export const NewCompletionDialog = async ({
   const xpGained = challenge.baseExperience ?? 50
 
   const initialUserLevelInfo = await getGamificationInformations(userId)
+  const nextChallenge = await getNextChallenge({ challengeId: challenge.id })
 
   const gamificationInformations = {
     level: initialUserLevelInfo.currentLevel,
@@ -53,14 +58,43 @@ export const NewCompletionDialog = async ({
     },
     {
       title: 'Your Daily Quests',
-      cta: 'My Rewards',
+      cta:
+        streaks.streak in [1, 3, 5] ? (
+          'My Rewards'
+        ) : (
+          <>
+            <Button className="w-full" variant={'outline'} asChild>
+              <Link href="/challenges">Back to challenges</Link>
+            </Button>
+            {isSome(nextChallenge) && (
+              <Button className="w-full" asChild>
+                <Link href={`/challenges/${nextChallenge.value.slug}/description`}>
+                  Next Challenge
+                </Link>
+              </Button>
+            )}
+          </>
+        ),
       content: <QuestsProgressionPage quests={quests} />,
     },
     ...(streaks.streak in [1, 3, 5]
       ? [
           {
             title: 'Your Streak',
-            cta: 'Finish',
+            cta: (
+              <>
+                <Button className="w-full" variant={'outline'} asChild>
+                  <Link href="/challenges">Back to challenges</Link>
+                </Button>
+                {isSome(nextChallenge) && (
+                  <Button className="w-full" asChild>
+                    <Link href={`/challenges/${nextChallenge.value.slug}/description`}>
+                      Next Challenge
+                    </Link>
+                  </Button>
+                )}
+              </>
+            ),
             content: (
               <StreakProgressionPage
                 streak={streaks.streak}

@@ -3,8 +3,9 @@
 import { Course } from '@/payload-types'
 import { Gauge } from '@/components/ui/gauge'
 import { useCourseProgression } from '@/core/courses/hooks/use-course-progression'
+import { GridCourseInformations } from '../../actions'
 
-export const CourseProgressionGauge = ({ course, userId }: { course: Course; userId: string }) => {
+export const CourseProgressionGauge = ({ course, userId }: { course: GridCourseInformations; userId: string }) => {
   const { data, isLoading, refetch } = useCourseProgression(userId, course)
 
   if (isLoading) {

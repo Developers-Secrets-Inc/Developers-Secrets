@@ -1,22 +1,11 @@
-import { Suspense } from 'react'
 
 import { DivisionLeaderboardCard } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/challenges-leaderboard'
-import {
-  RecommendedChallenge,
-  RecommendedChallengeSkeleton,
-} from '@/core/challenges/recommended-challenge'
-import {
-  UserProfile,
-  UserProfileCardSkeleton,
-} from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/user-profile'
+import { RecommendedCourses } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/recommended-courses'
+import { UserProfile } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/user-profile'
 import { CurrentCourseCard } from '@/components/cards/current-course-card'
+import { RecommendedChallenge } from '@/core/challenges/recommended-challenge'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
-import {
-  RecommendedCourses,
-  RecommendedCoursesSkeleton,
-} from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/recommended-courses'
-import { createNotification } from '@/core/notifications'
 
 export const HomeGrid = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -44,8 +33,8 @@ export default async function Home() {
   return (
     <HomeGrid>
       <HomeLeftColumn>
-        <RecommendedChallenge userId={user.id} />
         <CurrentCourseCard />
+        <RecommendedChallenge userId={user.id} />
         <RecommendedCourses />
       </HomeLeftColumn>
 

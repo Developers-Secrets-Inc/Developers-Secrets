@@ -10,7 +10,7 @@ type TabProps = {
   onClick?: () => void
 }
 
-export function Tab({ label, icon: Icon, href, active, locked, onClick }: TabProps) {
+export function NavigationTab({ label, icon: Icon, href, active, locked, onClick }: TabProps) {
   const className = [
     'flex flex-1 items-center justify-center text-base gap-1.5 h-full px-4 transition-colors',
     active ? 'bg-muted border-b-2 border-b-primary' : 'text-muted-foreground hover:bg-accent',

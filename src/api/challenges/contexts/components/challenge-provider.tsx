@@ -18,5 +18,12 @@ export const ChallengeProvider = ({
     completionCurrency: number
   }
 }) => {
-  return <ChallengeContext.Provider value={{ challenge, metadata }}>{children}</ChallengeContext.Provider>
+  // Note: Store reset is handled by useChallengeLifecycle hook in ChallengeExercice
+  // The key prop on this component ensures proper remounting when challenge changes
+  
+  return (
+    <ChallengeContext.Provider value={{ challenge, metadata }}>
+      {children}
+    </ChallengeContext.Provider>
+  )
 }

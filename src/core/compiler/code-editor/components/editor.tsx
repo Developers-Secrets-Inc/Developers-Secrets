@@ -42,7 +42,7 @@ export const ChallengeEditor = ({ onChange }: ChallengeEditorProps) => {
   // Synchroniser l'onglet actif avec le fichier actif
   useEffect(() => {
     if (activeFileId) {
-      const correspondingTab = openTabs.find(tab => tab.fileId === activeFileId)
+      const correspondingTab = openTabs.find((tab) => tab.fileId === activeFileId)
       if (correspondingTab) {
         setActiveTab(correspondingTab.id)
       }
@@ -131,16 +131,10 @@ export const ChallengeEditor = ({ onChange }: ChallengeEditorProps) => {
   )
 }
 
-
 export const ChallengeEditorContainer = ({ children }: { children: React.ReactNode }) => {
-
   return (
-    <div
-      className={cn(
-        'relative flex-grow transition-all duration-300 ease-in-out h-full',
-      )}
-    >
-      {children}
-    </div>
+    <div className="flex-1 h-full min-h-0 overflow-hidden relative">
+  {children}
+</div>
   )
 }

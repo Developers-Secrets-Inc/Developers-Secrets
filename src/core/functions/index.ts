@@ -6,7 +6,27 @@ import { QueryCtx } from './types'
 
 // Génère une clé unique à partir du nom et des arguments
 function makeCacheKey(name: string, args: Record<string, any>) {
-  return [name, ...Object.entries(args).map(([k, v]) => `${k}-${v}`)].join('-')
+  return [name, ...Object.entries(args).map(([k, v]) => {
+    try {
+      if (v === null || v === undefined) {
+        return `${k}-null`
+      }
+      if (typeof v === 'object') {
+        try {
+          return `${k}-${JSON.stringify(v)}`
+        } catch {
+          return `${k}-[object]`
+        }
+      }
+      if (typeof v === 'function') {
+        return `${k}-[function]`
+      }
+      return `${k}-${String(v)}`
+    } catch {
+      // Fallback for any edge cases that might throw
+      return `${k}-[unserializable]`
+    }
+  })].join('-')
 }
 
 // Query avec cache implicite

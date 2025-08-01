@@ -13,7 +13,7 @@ export const getChallengesWithoutCompleted = query({
   handler: async (ctx, args): Promise<Maybe<Challenge[]>> => {
     const documents = await ctx.payload.find({
       collection: 'challenges',
-      where: { id: { not_in: args.completedChallengesIds } },
+      where: { id: { not_in: args.completedChallengesIds }, draft: { equals: false } },
     })
 
     return some(documents.docs)
@@ -46,6 +46,7 @@ export const getChallengeBySlug = query({
   revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY,
 })
 
+
 export const getChallengeById = query({
   name: 'challenge-by-id',
   args: z.object({ id: z.number() }),
@@ -59,6 +60,7 @@ export const getChallengeById = query({
   },
   revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY,
 })
+
 
 export const getRandomUncompletedChallenge = query({
   name: 'random-uncompleted-challenge',
@@ -90,3 +92,17 @@ export const getRandomUncompletedChallenge = query({
   },
 })
 
+
+/*
+
+- getRandomUncompletedChallenge 
+  - All challenge, not completed and which are not drafts
+
+- On veut gérer les challenges aléatoires
+- On veut gérer la récupération des challenges pour la table 
+- On veut gérer la récupération de la quantité de challenges pour une catégorie
+
+
+
+
+*/

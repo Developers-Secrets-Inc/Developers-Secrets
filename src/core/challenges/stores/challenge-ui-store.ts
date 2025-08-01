@@ -9,6 +9,7 @@ interface ChallengeUIState {
   setViewMode: (mode: PearlViewMode) => void
   showChat: () => void
   hideChat: () => void
+  reset: () => void
 }
 
 export const useChallengeUIStore = create<ChallengeUIState>()(
@@ -19,6 +20,12 @@ export const useChallengeUIStore = create<ChallengeUIState>()(
       setViewMode: (mode) => set({ viewMode: mode }),
       showChat: () => set({ isChatActive: true }),
       hideChat: () => set({ isChatActive: false }),
+      // Selective reset: only reset non-persisted values
+      reset: () => set((state) => ({
+        ...state,
+        isChatActive: false
+        // viewMode is preserved as it's persisted in localStorage
+      })),
     }),
     {
       name: 'challenge-ui-state', // The key in localStorage

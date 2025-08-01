@@ -73,11 +73,16 @@ const Layout = async ({
   if (isNone(previousChallenge) || isNone(nextChallenge) || isNone(randomChallenge))
     throw new Error('Navigation challenges not found')
 
-
   return (
     <ChallengeProvider
+      key={challenge.value.id} // Force remounting when challenge changes
       challenge={challenge.value}
-      metadata={{ challengeAiChat: challengeAIChat, messages, quotas, completionCurrency: getCurrencyOnCompletion(challenge.value) }}
+      metadata={{
+        challengeAiChat: challengeAIChat,
+        messages,
+        quotas,
+        completionCurrency: getCurrencyOnCompletion(challenge.value),
+      }}
     >
       <ChallengeLayout.Root>
         <ChallengeLayout.Header
