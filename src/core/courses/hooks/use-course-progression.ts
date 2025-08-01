@@ -2,8 +2,7 @@ import { getCourseCompletedPartsCount } from '@/core/courses/progression/complet
 import { useQuery } from '@tanstack/react-query'
 import { GridCourseInformations } from '../actions'
 
-// Note: 'course' is typed as 'any' to allow access to allPartIds and totalPartsCount (not in official Course type)
-export function useCourseProgression(userId: string | null, course: GridCourseInformations) {
+export function useCourseProgression(userId: string, course: GridCourseInformations) {
   return useQuery({
     queryKey: ['course-progression', userId, course?.id],
     queryFn: async () => {

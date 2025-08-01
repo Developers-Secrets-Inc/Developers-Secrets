@@ -78,8 +78,12 @@ export const AppSidebar = () => {
         <SidebarMenu>
           <SidebarMenuItem>
             <FeedbackButton />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SupportButton status="online" />
-            {/* <ProCtaCard /> */}
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <ProCtaCard />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

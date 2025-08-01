@@ -24,6 +24,8 @@ export const getCourseGridInformations = query({
     // Count the total of articles
     const coursesDocuments = await ctx.payload.find({
       collection: 'courses',
+      // Temporary
+      pagination: false,
       select: {
         slug: true,
         orderedChapters: true,
@@ -65,6 +67,7 @@ export const getCourseGridInformations = query({
             const firstArticle = await ctx.payload.findByID({
               collection: 'courseParts',
               id: firstPartId,
+              select: { slug: true }
             })
             startUrl = firstArticle?.slug || null
           }
@@ -86,4 +89,5 @@ export const getCourseGridInformations = query({
 
     return gridCourseInformations
   },
+  revalidate: 1
 })
