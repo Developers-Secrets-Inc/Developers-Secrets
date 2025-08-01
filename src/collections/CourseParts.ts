@@ -8,7 +8,7 @@ export const CourseParts: CollectionConfig = {
     description: 'Represents a distinct part or module within a course.',
   },
   access: {
-    read: () => true
+    read: () => true,
   },
   fields: [
     {

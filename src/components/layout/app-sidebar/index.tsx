@@ -21,11 +21,13 @@ import { SupportButton } from './support-button'
 import { ProCtaCard } from '@/components/cards/pro-cta-card'
 import {
   AchievementsDialog,
+  FeedbackDialog,
   InventorySheet,
   LeaderboardDialog,
   LeaguesLeaderboard,
   MarketplaceInventory,
   QuestsDialog,
+  SupportDialog,
 } from './dialogs'
 
 export const HomeButton = () => {
@@ -69,11 +71,13 @@ export const AppSidebar = () => {
 
       {/* Dialog Components */}
       <AchievementsDialog />
+      <FeedbackDialog />
       <InventorySheet />
       <LeaderboardDialog />
       <LeaguesLeaderboard />
       <MarketplaceInventory />
       <QuestsDialog />
+      <SupportDialog />
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>

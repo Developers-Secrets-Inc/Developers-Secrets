@@ -2,6 +2,7 @@
 
 import { SidebarMenuBadge, SidebarMenuButton } from '@/components/ui/sidebar'
 import { HelpCircle } from 'lucide-react'
+import { useSpecificDialog } from '@/components/layout/app-sidebar/stores/sidebar-dialogs-store'
 
 type SupportStatus = 'online' | 'maintenance' | 'offline'
 
@@ -21,8 +22,14 @@ export const SupportStatusBadge = ({ status }: { status: SupportStatus }) => {
 }
 
 export const SupportButton = ({ status }: { status: SupportStatus }) => {
+  const { open } = useSpecificDialog('support')
+
   return (
-    <SidebarMenuButton className="cursor-pointer flex justify-between w-full" tooltip={'feedback'}>
+    <SidebarMenuButton 
+      className="cursor-pointer flex justify-between w-full" 
+      tooltip={'support'}
+      onClick={() => open()}
+    >
       <span className="flex items-center gap-2">
         <HelpCircle className="size-4" />
         Support

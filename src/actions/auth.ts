@@ -56,8 +56,7 @@ export async function login(email: string, password: string, rememberMe: boolean
   if (rememberMe) {
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/home')
+  return { success: true, redirectTo: '/home' }
 }
 
 export async function signup(username: string, email: string, password: string) {
@@ -103,8 +102,7 @@ export async function signup(username: string, email: string, password: string) 
     }
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/challenges')
+  return { success: true, redirectTo: '/home' }
 }
 
 export async function loginWithGoogle(redirectTo?: string) {

@@ -10,9 +10,14 @@ import {
 import { Card } from '@/components/ui/card'
 import { Store } from 'lucide-react'
 import { useSpecificDialog } from '../stores/sidebar-dialogs-store'
+import { useUser } from '@/core/users/contexts/user-context'
+import { useUserLevel } from '@/api/gamification/hooks/use-user-level'
 
 export const MarketplaceInventory = () => {
   const { isOpen, close } = useSpecificDialog('marketplace')
+  const { user } = useUser()
+  const userId = user.id
+  const { data: userLevel, isLoading: isLoadingLevel } = useUserLevel(userId)
 
   return (
     <Dialog open={isOpen} onOpenChange={close}>
@@ -25,15 +30,27 @@ export const MarketplaceInventory = () => {
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          <div className="flex items-center justify-center p-8 bg-muted/30 rounded-lg">
-            <div className="text-center">
-              <Store className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">Feature Coming Soon</h3>
-              <p className="text-sm text-muted-foreground">
-                Marketplace system is under development and will be available soon!
-              </p>
+          {userLevel === undefined || userLevel >= 5 ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="text-center">
+                <Store className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">Feature Coming Soon</h3>
+                <p className="text-sm text-muted-foreground">
+                  Marketplace system is under development and will be available soon!
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center justify-center p-8">
+              <div className="text-center">
+                <Store className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">Marketplace Locked</h3>
+                <p className="text-sm text-muted-foreground">
+                  The marketplace unlocks at level 5. Keep learning to unlock this feature!
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

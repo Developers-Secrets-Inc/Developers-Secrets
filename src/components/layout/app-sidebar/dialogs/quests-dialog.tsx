@@ -15,6 +15,8 @@ import { useQuestActions, useQuestReplacementInfo, useQuests } from '@/core/gami
 import { Quest, UserQuest } from '@/payload-types'
 import { QuestCard } from '@/core/gamification/quests/components/quest-card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useUser } from '@/core/users/contexts/user-context'
+import { useUserLevel } from '@/api/gamification/hooks/use-user-level'
 
 
 const getSortedQuests = (quests: UserQuest[]): UserQuest[] => {
@@ -47,6 +49,9 @@ const QuestSkeleton = () => {
 
 export const QuestsDialog = () => {
   const { isOpen, close } = useSpecificDialog('quests')
+  const { user } = useUser()
+  const userId = user.id
+  const { data: userLevel, isLoading: isLoadingLevel } = useUserLevel(userId)
 
   // Fetch quests and replacement info
   const { data: activeQuests, isLoading: isLoadingQuests, error: questsError } = useQuests()
@@ -58,7 +63,7 @@ export const QuestsDialog = () => {
   const { completeQuest, replaceQuest, invalidateQuests, isReplacingQuestId } = useQuestActions()
 
   // Combine loading states
-  const isLoading = isLoadingQuests || isLoadingInfo
+  const isLoading = isLoadingQuests || isLoadingInfo || isLoadingLevel
 
   // Calculate remaining replacements
   const remainingReplacements = useMemo(() => {
@@ -160,17 +165,37 @@ export const QuestsDialog = () => {
           </TabsList>
 
           <TabsContent value="daily" className="space-y-4">
-            {questContent}
+            {userLevel === undefined || userLevel >= 3 ? (
+              questContent
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Clock className="w-12 h-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Daily Quests Locked</h3>
+                <p className="text-muted-foreground">
+                  Daily quests unlock at level 3. Keep learning to unlock more features!
+                </p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="quests" className="space-y-4">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Clock className="w-12 h-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Coming Soon</h3>
-              <p className="text-muted-foreground">
-                More quests are on their way. Stay tuned for exciting challenges!
-              </p>
-            </div>
+            {userLevel === undefined || userLevel >= 2 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Clock className="w-12 h-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Coming Soon</h3>
+                <p className="text-muted-foreground">
+                  More quests are on their way. Stay tuned for exciting challenges!
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Clock className="w-12 h-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Classic Quests Locked</h3>
+                <p className="text-muted-foreground">
+                  Classic quests unlock at level 2. Keep learning to unlock more features!
+                </p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>

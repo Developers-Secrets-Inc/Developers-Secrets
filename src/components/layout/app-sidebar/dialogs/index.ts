@@ -1,6 +1,8 @@
 export { AchievementsDialog } from './achievements-dialog'
+export { FeedbackDialogWrapper as FeedbackDialog } from './feedback-dialog-wrapper'
 export { InventorySheet } from './inventory-sheet'
 export { LeaderboardDialog } from './leaderboard-dialog'
 export { LeaguesLeaderboard } from './leagues-leaderboard'
 export { MarketplaceInventory } from './marketplace-dialog'
 export { QuestsDialog } from './quests-dialog'
+export { SupportDialogWrapper as SupportDialog } from './support-dialog-wrapper'

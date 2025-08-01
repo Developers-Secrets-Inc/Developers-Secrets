@@ -2,10 +2,17 @@
 
 import { SidebarMenuButton } from '@/components/ui/sidebar'
 import { MessageSquare } from 'lucide-react'
+import { useSpecificDialog } from '@/components/layout/app-sidebar/stores/sidebar-dialogs-store'
 
 export const FeedbackButton = () => {
+  const { open } = useSpecificDialog('feedback')
+
   return (
-    <SidebarMenuButton className="cursor-pointer flex justify-between w-full" tooltip={'feedback'}>
+    <SidebarMenuButton 
+      className="cursor-pointer flex justify-between w-full" 
+      tooltip={'feedback'}
+      onClick={() => open()}
+    >
       <span className="flex items-center gap-2">
         <MessageSquare className="size-4" />
         Feedback
