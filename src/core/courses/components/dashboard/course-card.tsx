@@ -9,6 +9,7 @@ import { CourseProgressionGauge } from './course-progression-gauge'
 import { CourseLastVisitDate } from './course-last-visit-date'
 import { CourseWithStartUrl } from '../..'
 import { getUser } from '@/core/user'
+import { GridCourseInformations } from '../../actions'
 type CourseDifficulty = Course['difficulty']
 type BadgeStyle = `bg-${string}-500/10 text-${string}-500`
 
@@ -36,8 +37,8 @@ const CourseCardBadges = ({
   )
 }
 
-export const CourseCard = ({ course, userId }: { course: CourseWithStartUrl, userId: string }) => {
-  const isLocked = !course.orderedChapters || course.orderedChapters.length === 0
+export const CourseCard = ({ course, userId }: { course: GridCourseInformations, userId: string }) => {
+  const isLocked = course.isLocked
 
     return (
     <Card className="w-full h-full hover:shadow-lg transition-shadow flex flex-col p-1 pb-0 relative gap-0 hover:border-primary/50">

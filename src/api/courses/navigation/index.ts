@@ -152,6 +152,7 @@ export const getNextPart = query({
       slug: nextPart.slug,
     })
   },
+  revalidate: process.env.NODE_ENV === 'development' ? 5 : false
 })
 
 export const getRandomCourses = query({

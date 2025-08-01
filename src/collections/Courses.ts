@@ -7,6 +7,9 @@ export const Courses: CollectionConfig = {
     defaultColumns: ['name', 'slug', 'difficulty', 'updatedAt'],
     group: 'Courses',
   },
+  access: {
+    read: () => true
+  },
   fields: [
     {
       type: 'tabs',

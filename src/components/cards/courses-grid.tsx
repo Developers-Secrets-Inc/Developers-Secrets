@@ -100,8 +100,8 @@ export const CoursesGrid = ({ userId }: CoursesGridProps) => {
   const sortedCourses = React.useMemo(() => {
     if (!paginatedCoursesRaw) return []
     return [...paginatedCoursesRaw].sort((a, b) => {
-      const isLockedA = !a.orderedChapters || a.orderedChapters.length === 0
-      const isLockedB = !b.orderedChapters || b.orderedChapters.length === 0
+      const isLockedA = a.isLocked
+      const isLockedB = b.isLocked
       return Number(isLockedA) - Number(isLockedB)
     })
   }, [paginatedCoursesRaw])
@@ -220,7 +220,7 @@ export const CoursesGrid = ({ userId }: CoursesGridProps) => {
       {filters}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {sortedCourses.map((course) => {
-          const isLocked = !course.orderedChapters || course.orderedChapters.length === 0
+          const isLocked = course.isLocked
           return (
             <motion.div
               key={course.id}

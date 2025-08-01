@@ -7,6 +7,9 @@ export const CourseParts: CollectionConfig = {
     defaultColumns: ['name', 'slug', 'difficulty', 'updatedAt'],
     description: 'Represents a distinct part or module within a course.',
   },
+  access: {
+    read: () => true
+  },
   fields: [
     {
       name: 'name',

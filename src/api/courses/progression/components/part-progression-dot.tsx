@@ -37,7 +37,7 @@ export const PartProgressionDot = ({
     <TooltipProvider delayDuration={100} skipDelayDuration={0}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link href={`/new_courses/${courseSlug}/${chapterSlug}/${part.slug}`}>
+          <Link href={`/new_courses/${courseSlug}/${chapterSlug}/${part.slug}/description`}>
             <div className={getPartStyle(part, currentPartSlug)} />
           </Link>
         </TooltipTrigger>

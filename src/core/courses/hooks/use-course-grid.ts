@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getCoursesWithStartUrl } from '@/core/courses'
 import type { CourseWithStartUrl } from '@/core/courses'
+import { getCourseGridInformations, GridCourseInformations } from '../actions'
 
 export function useCourseGrid({
   search,
@@ -15,9 +16,9 @@ export function useCourseGrid({
   page: number
   pageSize: number
 }) {
-  const { data: allCourses, isLoading } = useQuery<CourseWithStartUrl[]>({
+  const { data: allCourses, isLoading } = useQuery<GridCourseInformations[]>({
     queryKey: ['courses'],
-    queryFn: getCoursesWithStartUrl,
+    queryFn: getCourseGridInformations,
     staleTime: 1000 * 60 * 10, // 10 min
   })
 
@@ -28,7 +29,7 @@ export function useCourseGrid({
     const matchesDifficulty =
       difficulty === 'all' ||
       (typeof course.difficulty === 'string' && course.difficulty.toLowerCase() === difficulty)
-    const isLocked = !course.orderedChapters || course.orderedChapters.length === 0
+    const isLocked = course.isLocked
     const matchesLocked = showLocked ? true : !isLocked
     return matchesSearch && matchesDifficulty && matchesLocked
   })
