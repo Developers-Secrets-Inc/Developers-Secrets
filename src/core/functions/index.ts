@@ -5,7 +5,7 @@ import { unstable_cache, revalidateTag } from 'next/cache'
 import { QueryCtx } from './types'
 
 // Génère une clé unique à partir du nom et des arguments
-function makeCacheKey(name: string, args: Record<string, any>) {
+export function makeCacheKey(name: string, args: Record<string, any>) {
   return [name, ...Object.entries(args).map(([k, v]) => {
     try {
       if (v === null || v === undefined) {

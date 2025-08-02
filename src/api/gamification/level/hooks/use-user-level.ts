@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getUserLevel } from '../level'
+import { getUserLevel } from '..'
 
 export const useUserLevel = (userId: string) => {
   return useQuery({

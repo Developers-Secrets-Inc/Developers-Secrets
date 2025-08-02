@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card'
 import { Store } from 'lucide-react'
 import { useSpecificDialog } from '../stores/sidebar-dialogs-store'
 import { useUser } from '@/core/users/contexts/user-context'
-import { useUserLevel } from '@/api/gamification/hooks/use-user-level'
+import { useUserLevel } from '@/api/gamification/level/hooks/use-user-level'
 
 export const MarketplaceInventory = () => {
   const { isOpen, close } = useSpecificDialog('marketplace')

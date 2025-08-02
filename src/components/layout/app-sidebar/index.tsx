@@ -22,7 +22,7 @@ import { ProCtaCard } from '@/components/cards/pro-cta-card'
 import {
   AchievementsDialog,
   FeedbackDialog,
-  InventorySheet,
+  InventoryDialog,
   LeaderboardDialog,
   LeaguesLeaderboard,
   MarketplaceInventory,
@@ -72,7 +72,7 @@ export const AppSidebar = () => {
       {/* Dialog Components */}
       <AchievementsDialog />
       <FeedbackDialog />
-      <InventorySheet />
+      <InventoryDialog />
       <LeaderboardDialog />
       <LeaguesLeaderboard />
       <MarketplaceInventory />

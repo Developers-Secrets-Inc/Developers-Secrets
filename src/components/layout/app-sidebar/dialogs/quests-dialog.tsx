@@ -1,23 +1,21 @@
 'use client'
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Clock } from 'lucide-react'
 import { useSpecificDialog } from '../stores/sidebar-dialogs-store'
 
 import { useMemo } from 'react'
-import { useQuestActions, useQuestReplacementInfo, useQuests } from '@/core/gamification/quests/hooks/use-quests'
+import {
+  useQuestActions,
+  useQuestReplacementInfo,
+  useQuests,
+} from '@/core/gamification/quests/hooks/use-quests'
 import { Quest, UserQuest } from '@/payload-types'
 import { QuestCard } from '@/core/gamification/quests/components/quest-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useUser } from '@/core/users/contexts/user-context'
-import { useUserLevel } from '@/api/gamification/hooks/use-user-level'
-
+import { useUserLevel } from '@/api/gamification/level/hooks/use-user-level'
 
 const getSortedQuests = (quests: UserQuest[]): UserQuest[] => {
   return [...quests].sort((a, b) => {
@@ -25,10 +23,12 @@ const getSortedQuests = (quests: UserQuest[]): UserQuest[] => {
       return a.isCompleted ? 1 : -1
     }
     const difficultyOrder: Record<Quest['difficulty'], number> = { easy: 1, medium: 2, hard: 3 }
-    return difficultyOrder[(a.quest as Quest).difficulty] - difficultyOrder[(b.quest as Quest).difficulty]
+    return (
+      difficultyOrder[(a.quest as Quest).difficulty] -
+      difficultyOrder[(b.quest as Quest).difficulty]
+    )
   })
 }
-
 
 const QuestSkeleton = () => {
   return (
@@ -45,7 +45,6 @@ const QuestSkeleton = () => {
     </div>
   )
 }
-
 
 export const QuestsDialog = () => {
   const { isOpen, close } = useSpecificDialog('quests')

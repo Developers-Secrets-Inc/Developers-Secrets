@@ -71,10 +71,8 @@ export default async function ArticlePage({
 }) {
   const { tutorial_slug, article_slug } = await params
 
-  const article = await getArticleBySlug({tutorialSlug: tutorial_slug, articleSlug: article_slug})
-  console.log(article)
+  const article = await getArticleBySlug({ tutorialSlug: tutorial_slug, articleSlug: article_slug })
   if (isNone(article)) {
-    console.log('end')
     return notFound()
   }
 
