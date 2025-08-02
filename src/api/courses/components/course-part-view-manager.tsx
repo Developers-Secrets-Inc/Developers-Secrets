@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import React from 'react'
+import React, { Suspense } from 'react'
 import { useCoursePartUIStore } from '../stores/course-part-ui-store'
 import { InlinePearlView } from '@/core/ai/components/views/inline-view'
 import { SheetPearlView } from '@/core/ai/components/views/sheet-view'
@@ -44,7 +44,9 @@ export function CoursePartViewManager({ children }: ChallengeViewManagerProps) {
 
   return (
     <>
-      <CoursePartDescriptionView>{children}</CoursePartDescriptionView>
+      <CoursePartDescriptionView>
+        <Suspense>{children}</Suspense>
+      </CoursePartDescriptionView>
 
       {viewMode === 'sheet' && isChatActive && (
         <SheetPearlView

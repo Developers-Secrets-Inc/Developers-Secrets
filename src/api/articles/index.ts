@@ -248,7 +248,6 @@ export const getArticleBySlug = query({
   args: z.object({ tutorialSlug: z.string(), articleSlug: z.string() }),
   handler: async (ctx, args): Promise<Maybe<Article>> => {
     const articlesIds = await getTutorialArticles({ tutorialSlug: args.tutorialSlug })
-    console.log('oh', articlesIds)
 
     if (isNone(articlesIds)) return none()
 
@@ -267,5 +266,4 @@ export const getArticleBySlug = query({
 
 
   },
-  revalidate: 5
 })

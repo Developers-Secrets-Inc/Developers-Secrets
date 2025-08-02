@@ -28,12 +28,9 @@ export default async function Layout({
 }) {
   const { course_slug, chapter_slug, part_slug } = await params
 
-  const [part, user, courseOutline, previousPart, nextPart] = await Promise.all([
+  const [part, user] = await Promise.all([
     getPartBySlug({ part_slug }),
     getUser(),
-    getCourseOutline({ course_slug }),
-    getPreviousPart({ course_slug, part_slug }),
-    getNextPart({ course_slug, part_slug }),
   ])
 
   if (isFailure(user)) {
@@ -41,12 +38,6 @@ export default async function Layout({
   }
 
   if (isNone(part)) {
-    return notFound()
-  }
-
-  // Check if course is draft and user is not admin
-  const isAdmin = user.value.informations.role === 'admin'
-  if (courseOutline.status === 'draft' && !isAdmin) {
     return notFound()
   }
 
@@ -60,7 +51,6 @@ export default async function Layout({
     getRemainingMessagesForToday(user.value.id),
   ])
 
-  const chapterOutline = await getChapterOutline({ chapter_slug, userId: user.value.id })
 
   return (
     <CoursePartProvider
@@ -74,26 +64,34 @@ export default async function Layout({
       }}
     >
       <CourseLayout.Root>
-        <CourseLayout.Header courseOutline={courseOutline} />
+        <CourseLayout.Header courseSlug={course_slug} />
         <CourseLayout.Body>
           <CourseLayout.Content>
+
             <CourseLayout.LeftPart>
               <CoursePartNavigationTabs />
               <CourseLayout.MainContainer>
                 <CoursePartViewManager>{children}</CoursePartViewManager>
               </CourseLayout.MainContainer>
             </CourseLayout.LeftPart>
+
             <CourseLayout.ContentSeparator />
+
             <CourseLayout.RightPart>
               <CoursePartExercice exercice={part.value.exercice} />
             </CourseLayout.RightPart>
+
           </CourseLayout.Content>
         </CourseLayout.Body>
+
+        {/* // ? This component should be fully client, using modern tanstack query server suspense. 
+        // ? Too much props here, client components can solve it AND in future version theses components 
+        // ? Will need to be on the client for instant revalidation for current course progress. */}
         <CourseFooter
-          courseSlug={`/courses/${course_slug}/${chapter_slug}`}
-          previousPart={previousPart}
-          nextPart={nextPart}
-          chapterOutline={chapterOutline}
+          href={`/courses/${course_slug}/${chapter_slug}`}
+          courseSlug={course_slug}
+          partSlug={part.value.slug}
+          chapterOutline={getChapterOutline({ chapter_slug, userId: user.value.id })}
         />
       </CourseLayout.Root>
     </CoursePartProvider>

@@ -116,10 +116,10 @@ export const getChapterOutline = query({
 
 export const getPreviousPart = query({
   name: 'previous-part',
-  args: z.object({ course_slug: z.string(), part_slug: z.string() }),
+  args: z.object({ courseSlug: z.string(), partSlug: z.string() }),
   handler: async (_, args): Promise<Maybe<{ name: string; slug: string }>> => {
-    const partsSlug = await getAllCoursePartsSlugs({ course_slug: args.course_slug })
-    const currentPartIndex = partsSlug.findIndex((part) => part.slug === args.part_slug)
+    const partsSlug = await getAllCoursePartsSlugs({ course_slug: args.courseSlug })
+    const currentPartIndex = partsSlug.findIndex((part) => part.slug === args.partSlug)
 
     if (currentPartIndex <= 0) {
       return none()
@@ -136,10 +136,10 @@ export const getPreviousPart = query({
 
 export const getNextPart = query({
   name: 'next-part',
-  args: z.object({ course_slug: z.string(), part_slug: z.string() }),
+  args: z.object({ courseSlug: z.string(), partSlug: z.string() }),
   handler: async (_, args): Promise<Maybe<{ name: string; slug: string }>> => {
-    const partsSlug = await getAllCoursePartsSlugs({ course_slug: args.course_slug })
-    const currentPartIndex = partsSlug.findIndex((part) => part.slug === args.part_slug)
+    const partsSlug = await getAllCoursePartsSlugs({ course_slug: args.courseSlug })
+    const currentPartIndex = partsSlug.findIndex((part) => part.slug === args.partSlug)
 
     if (currentPartIndex === -1 || currentPartIndex >= partsSlug.length - 1) {
       return none()

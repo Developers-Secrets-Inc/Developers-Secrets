@@ -7,8 +7,19 @@ import {
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { List } from 'lucide-react'
-import type { CourseOutline as CourseOutlineType } from '../types'
 import Link from 'next/link'
+import { getCourseOutline } from '@/api/courses/navigation'
+import { Skeleton } from '@/components/ui/skeleton'
+import { getUser } from '@/core/users'
+import { isFailure } from '@/lib/result'
+import { notFound } from 'next/navigation'
+import type { CourseOutline as CourseOutlineType } from '../types'
+
+export const CourseOutlineSkeleton = () => {
+  return (
+      <Skeleton className="h-5 w-[100px]" />
+  )
+}
 
 const CourseOutlineChaptersAccordion = ({
   courseSlug,
@@ -44,7 +55,21 @@ const CourseOutlineChaptersAccordion = ({
   )
 }
 
-export const CourseOutline = ({ courseOutline }: { courseOutline: CourseOutlineType }) => {
+export const CourseOutline = async ({ courseSlug }: { courseSlug: string }) => {
+  const [user, courseOutline] = await Promise.all([
+    getUser(),
+    getCourseOutline({ course_slug: courseSlug }),
+  ])
+
+  if (isFailure(user)) {
+    return notFound()
+  }
+
+  // Check if course is draft and user is not admin
+  const isAdmin = user.value.informations.role === 'admin'
+  if (courseOutline.status === 'draft' && !isAdmin) {
+    return notFound()
+  }
   return (
     <Sheet>
       <SheetTrigger asChild>
