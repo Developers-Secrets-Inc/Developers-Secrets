@@ -38,7 +38,7 @@ export const ArticlesSectionsTable = ({ sections, tutorialSlug, type = '' }: { s
                         <div className="w-8 h-8 border border-primary/20 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold flex-shrink-0">
                           {index + 1}
                         </div>
-                        <Link href={`/articles/${tutorialSlug}/${article.slug}`} className="hover:text-primary transition-colors">
+                        <Link href={`/articles/${tutorialSlug}${type ? `/${type}` : ''}/${article.slug}`} className="hover:text-primary transition-colors">
                           {article.name}
                         </Link>
                       </li>

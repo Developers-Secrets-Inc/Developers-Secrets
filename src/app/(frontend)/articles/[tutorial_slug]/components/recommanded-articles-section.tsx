@@ -14,7 +14,7 @@ export const RecommandedArticles = ({ tutorialSlug, articles, type = '' }: { tut
     <div className="max-w-5xl mx-auto">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         {articles.map((article, index) => (
-          <Link key={article.slug} href={`/articles/${tutorialSlug}/${article.slug}`} className="block">
+          <Link key={article.slug} href={`/articles/${tutorialSlug}${type ? `/${type}` : ''}/${article.slug}`} className="block">
             <Card className="border hover:border-primary/50 transition-colors h-full flex flex-col p-4">
               <CardContent className="flex-1 px-0">
                 <div className="flex justify-between items-start mb-3">
