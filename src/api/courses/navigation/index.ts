@@ -7,7 +7,7 @@ import z from 'zod'
 import { CourseOutline } from './types'
 import { getAllCoursePartsSlugs } from '..'
 import { Maybe, none, some } from '@/lib/maybe'
-import { CoursePartUserProgression } from '@/payload-types'
+import { Course, CoursePartUserProgression } from '@/payload-types'
 import { TIME } from '@/lib/time'
 
 export const getCourseOutline = query({
@@ -64,7 +64,6 @@ export const getCourseOutline = query({
       status: courseDocuments.docs[0].status || 'published',
     }
   },
-  revalidate: 1,
 })
 
 export const getChapterOutline = query({
@@ -73,12 +72,14 @@ export const getChapterOutline = query({
   handler: async (
     ctx,
     args,
-  ): Promise<{
-    id: number
-    name: string
-    slug: string
-    completionStatus: CoursePartUserProgression['completionStatus']
-  }[]> => {
+  ): Promise<
+    {
+      id: number
+      name: string
+      slug: string
+      completionStatus: CoursePartUserProgression['completionStatus']
+    }[]
+  > => {
     const documents = await ctx.payload.find({
       collection: 'chapters',
       where: { slug: { equals: args.chapter_slug } },
@@ -106,12 +107,37 @@ export const getChapterOutline = query({
           id: part.id,
           name: part.name,
           slug: part.slug,
-          completionStatus: progressionDocuments.docs[0]?.completionStatus ?? 'not_started'
+          completionStatus: progressionDocuments.docs[0]?.completionStatus ?? 'not_started',
         }
       }),
     )
   },
-  revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY
+})
+
+const getCourseChaptersIds = query({
+  name: 'course-chapters-ids',
+  args: z.object({ courseSlug: z.string() }),
+  handler: async (ctx, args): Promise<Maybe<number[]>> => {
+    const documents = await ctx.payload.find({
+      collection: 'courses',
+      where: { slug: { equals: args.courseSlug } },
+      depth: 0,
+      limit: 1,
+    })
+
+    const course = documents.docs[0]
+
+    if (!course) return none()
+
+    return course.orderedChapters
+      ? some(
+          course.orderedChapters.map((chapter) =>
+            typeof chapter === 'number' ? chapter : chapter.id,
+          ),
+        )
+      : none()
+  },
+  revalidate: TIME.ONE_DAY
 })
 
 export const getPreviousPart = query({
@@ -152,7 +178,6 @@ export const getNextPart = query({
       slug: nextPart.slug,
     })
   },
-  revalidate: process.env.NODE_ENV === 'development' ? 5 : false
 })
 
 export const getRandomCourses = query({
@@ -162,14 +187,22 @@ export const getRandomCourses = query({
     const allCourses = await ctx.payload.find({
       collection: 'courses',
       where: { status: { equals: 'published' } },
-      select: { name: true, slug: true, difficulty: true, description: true, ogImage: true, orderedChapters: true, status: true },
+      select: {
+        name: true,
+        slug: true,
+        difficulty: true,
+        description: true,
+        ogImage: true,
+        orderedChapters: true,
+        status: true,
+      },
       depth: 0,
     })
 
     const shuffled = allCourses.docs.sort(() => Math.random() - 0.5)
     const selected = shuffled.slice(0, args.count)
 
-    return selected.map(course => ({
+    return selected.map((course) => ({
       id: course.id,
       name: course.name,
       slug: course.slug,

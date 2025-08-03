@@ -11,6 +11,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from '@/components/ui/sidebar'
 import { SearchForm } from '../(article)/[article_slug]/components/search-form'
 import { ArticleSidebarFooter } from './article-sidebar-footer'
@@ -96,6 +97,7 @@ export const ArticleSidebar = ({ tutorial, articleType }: ArticleSidebarProps) =
         ))}
       </SidebarContent>
       <ArticleSidebarFooter />
+      <SidebarRail />
     </Sidebar>
   )
 }

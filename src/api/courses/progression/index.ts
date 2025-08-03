@@ -5,6 +5,7 @@ import { isNone, none, some } from '@/lib/maybe'
 import { TIME } from '@/lib/time'
 import 'server-only'
 import z from 'zod'
+import { getAllCoursePartsSlugs } from '..'
 
 export const getCoursePartCompletionStatus = query({
   name: 'course-part-completion-status',
@@ -57,4 +58,22 @@ export const setCoursePartCompletionStatus = mutation({
       data: { completionStatus: args.newStatus },
     })
   },
+})
+
+
+export const getCourseProgression = query({
+  name: 'course-progression',
+  args: z.object({ courseSlug: z.string(), userId: z.string().uuid() }),
+  handler: async (ctx, args): Promise<number> => {
+    const courseParts = await getAllCoursePartsSlugs({ course_slug: args.courseSlug })
+    if (!courseParts || courseParts.length === 0) return 0
+    let completedCount = 0
+    for (const part of courseParts) {
+      const statusResult = await getCoursePartCompletionStatus({ partId: part.id, userId: args.userId })
+      if (statusResult._tag === 'some' && statusResult.value.completionStatus === 'completed') {
+        completedCount++
+      }
+    }
+    return completedCount / courseParts.length
+  }
 })

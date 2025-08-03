@@ -41,7 +41,7 @@ export const PreviousPartButton = async ({
       asChild
     >
       <Link
-        href={isNone(previousPart) ? '#' : `${courseSlug}/${previousPart.value.slug}/description`}
+        href={isNone(previousPart) ? '#' : `${href}/${previousPart.value.slug}/description`}
       >
         <ChevronLeft className="h-4 w-4" />
         {isNone(previousPart) ? 'No previous part' : previousPart.value.name}
@@ -68,7 +68,7 @@ export const NextPartButton = async ({
       disabled={isNone(nextPart)}
       asChild
     >
-      <Link href={isNone(nextPart) ? '#' : `${courseSlug}/${nextPart.value.slug}/description`}>
+      <Link href={isNone(nextPart) ? '#' : `${href}/${nextPart.value.slug}/description`}>
         {isNone(nextPart) ? 'No next part' : nextPart.value.name}
         <ChevronRight className="h-4 w-4" />
       </Link>

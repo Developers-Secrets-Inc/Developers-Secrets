@@ -1,19 +1,27 @@
-import { getFirstArticleOfTutorial } from '@/core/articles'
-import { TutorialNotFoundError } from '@/core/articles/errors'
-import { notFound, redirect } from 'next/navigation'
+import { HomeHeader } from '@/components/common/home-header'
+import { TutorialHero } from './components/tutorial-hero'
+import { getTutorialSections } from '@/api/articles/actions'
+import { ArticlesSectionsTable } from './components/sections-table'
+import { RecommandedArticles } from './components/recommanded-articles-section'
 
 export default async function Page({ params }: { params: Promise<{ tutorial_slug: string }> }) {
   const { tutorial_slug } = await params
+  const sections = await getTutorialSections({ tutorialSlug: tutorial_slug })
 
-  try {
-    const article = await getFirstArticleOfTutorial(tutorial_slug)
-    const slug = article.slug
+  return (
+    <>
+      <HomeHeader />
+      <div className="mb-8">
+        <TutorialHero tutorialSlug={tutorial_slug} />
+      </div>
+      
+      <div className="mb-4">
+        <RecommandedArticles tutorialSlug={tutorial_slug} articles={sections[0]?.articles?.slice(0, 4) || []} />
+      </div>
 
-    return redirect(`/articles/${tutorial_slug}/${slug}`)
-  } catch (error) {
-    if (error instanceof TutorialNotFoundError) {
-      notFound()
-    }
-    throw error
-  }
+      <div className="mb-8">
+        <ArticlesSectionsTable sections={sections} tutorialSlug={tutorial_slug} />
+      </div>
+    </>
+  )
 }

@@ -9,6 +9,7 @@ import { ArticleOutline } from './components/article-outline'
 import { ArticleContent, ArticleSkeleton } from '../../components/article-content'
 import { getArticleBySlug } from '@/api/articles'
 import { isNone } from '@/lib/maybe'
+import { ArticleSidebarTrigger } from '../../components/sidebar-trigger'
 
 // export async function generateMetadata(
 //   { params }: { params: Promise<{ tutorial_slug: string; article_slug: string }> },
@@ -101,7 +102,9 @@ export default async function ArticlePage({
 
   return (
     <>
-      <div className="flex flex-1">
+      <div className="relative flex flex-1">
+          <ArticleSidebarTrigger />
+
         <Suspense fallback={<ArticleSkeleton />}>
           <ArticleContent
             article={article.value}
