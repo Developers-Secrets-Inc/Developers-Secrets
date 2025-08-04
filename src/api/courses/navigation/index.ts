@@ -2,13 +2,14 @@
 
 import 'server-only'
 
-import { query } from '@/core/functions'
+import { action, query } from '@/core/functions'
 import z from 'zod'
 import { CourseOutline } from './types'
 import { getAllCoursePartsSlugs } from '..'
-import { Maybe, none, some } from '@/lib/maybe'
+import { isNone, Maybe, none, some } from '@/lib/maybe'
 import { Course, CoursePartUserProgression } from '@/payload-types'
 import { TIME } from '@/lib/time'
+import { getCoursePartCompletionStatus } from '../progression'
 
 export const getCourseOutline = query({
   name: 'course-outline',
@@ -66,7 +67,7 @@ export const getCourseOutline = query({
   },
 })
 
-export const getChapterOutline = query({
+export const getChapterOutline = action({
   name: 'chapter-outline',
   args: z.object({ chapter_slug: z.string(), userId: z.string() }),
   handler: async (
@@ -87,7 +88,7 @@ export const getChapterOutline = query({
       depth: 0,
     })
 
-    return await Promise.all(
+    const status = await Promise.all(
       (documents.docs[0].parts ?? []).map(async (partId) => {
         const part = await ctx.payload.findByID({
           collection: 'courseParts',
@@ -95,24 +96,22 @@ export const getChapterOutline = query({
           select: { name: true, slug: true },
         })
 
-        const progressionDocuments = await ctx.payload.find({
-          collection: 'coursePartUserProgression',
-          where: { part: { equals: partId as number }, userId: { equals: args.userId } },
-          limit: 1,
-          depth: 0,
-          select: { completionStatus: true },
-        })
+        const progressionDocuments = await getCoursePartCompletionStatus({ userId: args.userId, partId: partId as number })
 
+        
         return {
           id: part.id,
           name: part.name,
           slug: part.slug,
-          completionStatus: progressionDocuments.docs[0]?.completionStatus ?? 'not_started',
+          completionStatus: isNone(progressionDocuments) ? 'not_started' : progressionDocuments.value.completionStatus,
         }
       }),
     )
-  },
+
+    return status
+  }
 })
+
 
 const getCourseChaptersIds = query({
   name: 'course-chapters-ids',

@@ -6,7 +6,6 @@ import config from '@payload-config'
 import { BasePayload, getPayload } from 'payload'
 import { unstable_cache } from 'next/cache'
 import { TIME } from '@/lib/time'
-import { challenges } from './challenges'
 
 type PayloadInstance = InstanceType<typeof BasePayload>
 

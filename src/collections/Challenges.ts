@@ -235,6 +235,16 @@ export const Challenges: CollectionConfig = {
         position: 'sidebar',
       },
     },
+    {
+      name: 'isPro',
+      label: 'Challenge PRO',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Indicates if this challenge requires a PRO subscription',
+        position: 'sidebar',
+      },
+    },
   ],
   timestamps: true, // Ajout automatique des champs createdAt et updatedAt
 }

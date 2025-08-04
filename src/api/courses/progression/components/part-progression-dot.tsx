@@ -6,24 +6,24 @@ import { PartProgressionDotProps } from '../types'
 
 const getPartStyle = (part: PartProgressionDotProps['part'], currentPartSlug: string) => {
   const isCurrent = part.slug === currentPartSlug
-  let styles = 'w-2.5 h-2.5 rounded-full border transition-colors cursor-pointer'
+  let styles = cn(
+    'w-2.5 h-2.5 rounded-full border transition-colors cursor-pointer',
+    isCurrent ? 'scale-110' : '',
+  )
 
-  if (isCurrent) {
-    styles = cn(styles, 'bg-primary/10 border border-primary/20 scale-110')
-  } else {
-    switch (part.completionStatus) {
-      case 'completed':
-        styles = cn(styles, 'bg-green-500/30 border border-green-500/40 hover:bg-green-500/40')
-        break
-      case 'in_progress':
-        styles = cn(styles, 'bg-amber-500/30 border border-amber-500/40 hover:bg-amber-500/40')
-        break
-      case 'not_started':
-      default:
-        styles = cn(styles, 'bg-muted border-border hover:bg-muted-foreground/20')
-        break
-    }
+  switch (part.completionStatus) {
+    case 'completed':
+      styles = cn(styles, 'bg-green-500/30 border border-green-500/40 hover:bg-green-500/40')
+      break
+    case 'in_progress':
+      styles = cn(styles, 'bg-amber-500/30 border border-amber-500/40 hover:bg-amber-500/40')
+      break
+    case 'not_started':
+    default:
+      styles = cn(styles, 'bg-muted border-border hover:bg-muted-foreground/20')
+      break
   }
+
   return styles
 }
 
@@ -37,7 +37,7 @@ export const PartProgressionDot = ({
     <TooltipProvider delayDuration={100} skipDelayDuration={0}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link href={`/new_courses/${courseSlug}/${chapterSlug}/${part.slug}/description`}>
+          <Link href={`/courses/${courseSlug}/${chapterSlug}/${part.slug}/description`}>
             <div className={getPartStyle(part, currentPartSlug)} />
           </Link>
         </TooltipTrigger>

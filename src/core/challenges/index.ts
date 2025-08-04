@@ -152,6 +152,7 @@ export interface ChallengeWithProgress {
   slug: string
   status: 'not_started' | 'in_progress' | 'completed'
   draft?: boolean
+  isPro: boolean
 }
 
 // Define the pagination structure directly

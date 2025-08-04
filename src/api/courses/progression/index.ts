@@ -1,11 +1,11 @@
 'use server'
 
-import { mutation, query } from '@/core/functions'
+import { makeCacheKey, mutation, query } from '@/core/functions'
 import { isNone, none, some } from '@/lib/maybe'
-import { TIME } from '@/lib/time'
 import 'server-only'
 import z from 'zod'
 import { getAllCoursePartsSlugs } from '..'
+import { revalidateTag } from 'next/cache'
 
 export const getCoursePartCompletionStatus = query({
   name: 'course-part-completion-status',
@@ -19,9 +19,10 @@ export const getCoursePartCompletionStatus = query({
       select: { completionStatus: true },
     })
 
+    console.log(documents.docs[0])
+
     return documents.docs[0] ? some(documents.docs[0]) : none()
   },
-  revalidate: process.env.NODE_ENV === 'development' ? 5 : TIME.ONE_DAY
 })
 
 export const createCompletionStatus = mutation({
@@ -49,7 +50,7 @@ export const setCoursePartCompletionStatus = mutation({
   }),
   handler: async (ctx, args) => {
     if (isNone(await getCoursePartCompletionStatus({ partId: args.partId, userId: args.userId }))) {
-        await createCompletionStatus({ partId: args.partId, userId: args.userId })
+      await createCompletionStatus({ partId: args.partId, userId: args.userId })
     }
 
     await ctx.payload.update({
@@ -57,9 +58,42 @@ export const setCoursePartCompletionStatus = mutation({
       where: { part: { equals: args.partId }, userId: { equals: args.userId } },
       data: { completionStatus: args.newStatus },
     })
+
+    revalidateTag(
+      makeCacheKey('course-part-completion-status', { userId: args.userId, partId: args.partId }),
+    )
   },
 })
 
+export const setInProgress = mutation({
+  name: 'course-part-in-progress',
+  args: z.object({
+    partId: z.number(),
+    userId: z.string().uuid(),
+  }),
+  handler: async (_, args) => {
+    await setCoursePartCompletionStatus({
+      partId: args.partId,
+      userId: args.userId,
+      newStatus: 'in_progress',
+    })
+  },
+})
+
+export const setCompleted = mutation({
+  name: 'course-part-completed',
+  args: z.object({
+    partId: z.number(),
+    userId: z.string().uuid(),
+  }),
+  handler: async (_, args) => {
+    await setCoursePartCompletionStatus({
+      partId: args.partId,
+      userId: args.userId,
+      newStatus: 'completed',
+    })
+  },
+})
 
 export const getCourseProgression = query({
   name: 'course-progression',
@@ -69,11 +103,14 @@ export const getCourseProgression = query({
     if (!courseParts || courseParts.length === 0) return 0
     let completedCount = 0
     for (const part of courseParts) {
-      const statusResult = await getCoursePartCompletionStatus({ partId: part.id, userId: args.userId })
+      const statusResult = await getCoursePartCompletionStatus({
+        partId: part.id,
+        userId: args.userId,
+      })
       if (statusResult._tag === 'some' && statusResult.value.completionStatus === 'completed') {
         completedCount++
       }
     }
     return completedCount / courseParts.length
-  }
+  },
 })

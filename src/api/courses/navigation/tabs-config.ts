@@ -26,13 +26,13 @@ export const coursePartTabs = (slug: string, pathname: string, hasExercice: bool
     label: 'Description',
     href: `/courses/${slug}/description`,
     icon: FileTextIcon,
-    active: pathname === `/courseParts/${slug}/description`,
+    active: pathname === `/courses/${slug}/description`,
   },
   // Official Solution tab only if hasExercice
   ...(hasExercice ? [{
     id: 'official-solution',
     label: 'Official Solution',
-    href: `/courseParts/${slug}/official-solution`,
+    href: `/courses/${slug}/official-solution`,
     icon: Award,
     active: pathname === `/courses/${slug}/official-solution`,
     lock: {
@@ -68,7 +68,7 @@ export const coursePartTabs = (slug: string, pathname: string, hasExercice: bool
     label: 'Submissions',
     href: `/courses/${slug}/submissions`,
     icon: ListChecksIcon,
-    active: pathname.startsWith(`/courseParts/${slug}/submissions`),
+    active: pathname.startsWith(`/courses/${slug}/submissions`),
   },
 ]
 

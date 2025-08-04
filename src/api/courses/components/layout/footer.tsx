@@ -11,20 +11,18 @@ type CourseFooterProps = {
   href: string
   courseSlug: string
   partSlug: string
-  chapterOutline: Promise<
-    {
-      id: number
-      name: string
-      slug: string
-      completionStatus: 'not_started' | 'in_progress' | 'completed'
-    }[]
-  >
+  chapterOutline: {
+    id: number
+    name: string
+    slug: string
+    completionStatus: 'not_started' | 'in_progress' | 'completed'
+  }[]
 }
 
 export const PreviousPartButton = async ({
   courseSlug,
   partSlug,
-  href
+  href,
 }: {
   courseSlug: string
   partSlug: string
@@ -40,9 +38,7 @@ export const PreviousPartButton = async ({
       disabled={isNone(previousPart)}
       asChild
     >
-      <Link
-        href={isNone(previousPart) ? '#' : `${href}/${previousPart.value.slug}/description`}
-      >
+      <Link href={isNone(previousPart) ? '#' : `${href}/${previousPart.value.slug}/description`}>
         <ChevronLeft className="h-4 w-4" />
         {isNone(previousPart) ? 'No previous part' : previousPart.value.name}
       </Link>
@@ -53,7 +49,7 @@ export const PreviousPartButton = async ({
 export const NextPartButton = async ({
   courseSlug,
   partSlug,
-  href
+  href,
 }: {
   courseSlug: string
   partSlug: string

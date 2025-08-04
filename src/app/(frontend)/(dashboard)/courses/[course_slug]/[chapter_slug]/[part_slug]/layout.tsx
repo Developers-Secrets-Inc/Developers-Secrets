@@ -91,7 +91,7 @@ export default async function Layout({
           href={`/courses/${course_slug}/${chapter_slug}`}
           courseSlug={course_slug}
           partSlug={part.value.slug}
-          chapterOutline={getChapterOutline({ chapter_slug, userId: user.value.id })}
+          chapterOutline={await getChapterOutline({ chapter_slug, userId: user.value.id })}
         />
       </CourseLayout.Root>
     </CoursePartProvider>

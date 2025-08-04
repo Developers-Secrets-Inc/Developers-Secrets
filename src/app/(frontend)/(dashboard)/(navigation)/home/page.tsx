@@ -10,17 +10,17 @@ import { redirect } from 'next/navigation'
 export const HomeGrid = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex-1 w-full h-[calc(100vh-4rem)] overflow-auto max-w-7xl px-4 mx-auto">
-      <div className="flex gap-6 p-6 h-full">{children}</div>
+      <div className="flex flex-col lg:flex-row gap-6 p-6 h-full">{children}</div>
     </div>
   )
 }
 
 export const HomeLeftColumn = ({ children }: { children: React.ReactNode }) => {
-  return <div className="flex-1 flex flex-col gap-6 w-[800px]">{children}</div>
+  return <div className="flex-1 flex flex-col gap-6 max-w-full lg:max-w-[800px]">{children}</div>
 }
 
 export const HomeRightColumn = ({ children }: { children: React.ReactNode }) => {
-  return <div className="w-[360px] flex flex-col gap-6">{children}</div>
+  return <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-6">{children}</div>
 }
 
 export default async function Home() {
@@ -34,7 +34,7 @@ export default async function Home() {
     <HomeGrid>
       <HomeLeftColumn>
         <CurrentCourseCard />
-        <RecommendedChallenge userId={user.id} />
+        <RecommendedChallenge userId={user.id} isPro={user.informations.role !== 'basic'} />
         <RecommendedCourses />
       </HomeLeftColumn>
 

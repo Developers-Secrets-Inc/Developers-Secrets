@@ -4,16 +4,26 @@ import { query } from '@/core/functions'
 import { isNone, Maybe, none, some } from '@/lib/maybe'
 import { TIME } from '@/lib/time'
 import { Challenge } from '@/payload-types'
+import { Where } from 'payload'
 import 'server-only'
 import z from 'zod'
 
 export const getChallengesWithoutCompleted = query({
   name: 'challenges-without-completed',
-  args: z.object({ completedChallengesIds: z.array(z.number()) }),
+  args: z.object({ completedChallengesIds: z.array(z.number()), isPro: z.boolean() }),
   handler: async (ctx, args): Promise<Maybe<Challenge[]>> => {
+    const whereClause: Where = { 
+      id: { not_in: args.completedChallengesIds }, 
+      draft: { equals: false } 
+    }
+    
+    if (!args.isPro) {
+      whereClause.isPro = { equals: false }
+    }
+
     const documents = await ctx.payload.find({
       collection: 'challenges',
-      where: { id: { not_in: args.completedChallengesIds }, draft: { equals: false } },
+      where: whereClause,
     })
 
     return some(documents.docs)
@@ -64,8 +74,9 @@ export const getChallengeById = query({
 
 export const getRandomUncompletedChallenge = query({
   name: 'random-uncompleted-challenge',
-  args: z.object({ userId: z.string() }),
+  args: z.object({ userId: z.string(), isPro: z.boolean()}),
   handler: async (ctx, args): Promise<Challenge> => {
+
     const completedChallengeDocs = await ctx.payload.find({
       collection: 'userChallengeProgression',
       where: {
@@ -81,6 +92,7 @@ export const getRandomUncompletedChallenge = query({
 
     const uncompletedChallenges = await getChallengesWithoutCompleted({
       completedChallengesIds,
+      isPro: args.isPro,
     })
 
     if (isNone(uncompletedChallenges)) throw new Error('No uncompleted challenges found')

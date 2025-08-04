@@ -12,7 +12,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, Send } from 'lucide-react'
 import { useCoursePart } from '../../contexts/course-part-context'
 import { getQueryKey } from '../../navigation/hooks/use-course-part-lock-status'
-import { getCoursePartCompletionStatus } from '../../progression'
+import { getCoursePartCompletionStatus, setCoursePartCompletionStatus } from '../../progression'
 import { toast } from '../../progression/components/part-completion-toast'
 import { useCoursePartUserStatus } from '../../progression/hooks/use-course-part-completion-status'
 import { useSubmissionStore } from '../stores/submissions-store'
@@ -20,6 +20,7 @@ import { useQuestActions } from '@/core/gamification/quests/hooks/use-quests'
 import { isSolutionUnlocked } from '../../progression/solution'
 import { trackAchievementProgress } from '@/core/gamification/achievements/action'
 import { addExperience } from '@/core/gamification/level'
+import { useRevalidateChapterProgression } from '../../progression/hooks/useRevalidateChapterProgression'
 
 const LoadingIcon = ({
   isLoading,
@@ -40,7 +41,7 @@ export const SubmitButton = () => {
   const { submit, isLoading } = useSubmit()
   const { fileTree } = useEditorStore()
 
-  const { setInProgress, setCompleted } = useCoursePartUserStatus(coursePart.id, user.id)
+  const { revalidate } = useRevalidateChapterProgression();
 
   const { setSubmissionResult, setTestResults, setIsSubmitting, clearResults } =
     useSubmissionStore()
@@ -75,9 +76,13 @@ export const SubmitButton = () => {
     setSubmissionResult(submission)
     setTestResults(testResults)
 
-    await setInProgress()
+    await setCoursePartCompletionStatus({
+      partId: coursePart.id,
+      userId: user.id,
+      newStatus: 'in_progress',
+    })
 
-        console.log(submission)
+    
     if (submission.testsPassed === testResults.length) {
 
       // This create more initial load, we need to find a secure way to improve it.
@@ -102,11 +107,17 @@ export const SubmitButton = () => {
             difficulty: coursePart.difficulty,
             solutionAlreadyUnlocked,
           })
-        await setCompleted()
+          
+        await setCoursePartCompletionStatus({
+          partId: coursePart.id,
+          userId: user.id,
+          newStatus: 'completed',
+        })
 
         queryClient.invalidateQueries({
           queryKey: getQueryKey(coursePart.id, user.id, coursePart.slug),
         })
+        
 
 
           // Most of this code should not be located here, this component has way too much responsibility. 
@@ -143,7 +154,15 @@ export const SubmitButton = () => {
       }
     }
 
+
+    console.log('yo')
+    queryClient.invalidateQueries({
+      queryKey: ['coursePartStatus', user.id, coursePart.id],
+    });
+    revalidate(metadata.chapterSlug, user.id)
+    console.log("yea")
     setIsSubmitting(false)
+    
   }
 
   return (
