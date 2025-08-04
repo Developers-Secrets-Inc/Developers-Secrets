@@ -23,12 +23,6 @@ export const POST = Webhooks({
     //     console.log('📝 Subscription updated:', payload.data.id)
     //     break
       case 'subscription.active':
-        // console.log('✅ Subscription activated:', payload.data.id)
-        // console.log('Customer ID:', payload.data.customerId)
-        // console.log('Customer:', payload.data.customer)
-        // console.log('Customer email:', payload.data.customer.email)
-        // console.log('Plan:', payload.data.product.name)
-        
         const user = await getUserByEmail(payload.data.customer.email)
 
         if (isError(user)) {

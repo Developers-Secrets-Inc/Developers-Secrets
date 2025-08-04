@@ -69,7 +69,7 @@ export const getCourseGridInformations = query({
               id: firstPartId,
               select: { slug: true }
             })
-            startUrl = firstArticle?.slug || null
+            startUrl = `/courses/${course.slug}/${firstChapter.slug}/${firstArticle.slug}`
           }
         }
 
