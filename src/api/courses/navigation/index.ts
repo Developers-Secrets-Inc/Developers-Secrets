@@ -96,22 +96,25 @@ export const getChapterOutline = action({
           select: { name: true, slug: true },
         })
 
-        const progressionDocuments = await getCoursePartCompletionStatus({ userId: args.userId, partId: partId as number })
+        const progressionDocuments = await getCoursePartCompletionStatus({
+          userId: args.userId,
+          partId: partId as number,
+        })
 
-        
         return {
           id: part.id,
           name: part.name,
           slug: part.slug,
-          completionStatus: isNone(progressionDocuments) ? 'not_started' : progressionDocuments.value.completionStatus,
+          completionStatus: isNone(progressionDocuments)
+            ? 'not_started'
+            : progressionDocuments.value.completionStatus,
         }
       }),
     )
 
     return status
-  }
+  },
 })
-
 
 const getCourseChaptersIds = query({
   name: 'course-chapters-ids',
@@ -136,25 +139,42 @@ const getCourseChaptersIds = query({
         )
       : none()
   },
-  revalidate: TIME.ONE_DAY
+  revalidate: TIME.ONE_DAY,
 })
 
 export const getPreviousPart = query({
   name: 'previous-part',
   args: z.object({ courseSlug: z.string(), partSlug: z.string() }),
-  handler: async (_, args): Promise<Maybe<{ name: string; slug: string }>> => {
-    const partsSlug = await getAllCoursePartsSlugs({ course_slug: args.courseSlug })
-    const currentPartIndex = partsSlug.findIndex((part) => part.slug === args.partSlug)
+  handler: async (_, args): Promise<Maybe<{ name: string; slug: string; chapterSlug: string }>> => {
+    const courseOutline = await getCourseOutline({ course_slug: args.courseSlug })
+
+    // Créer une liste plate de toutes les parties avec leur chapitre
+    const allParts: Array<{ chapterSlug: string; part: { name: string; slug: string } }> = []
+
+    for (const chapter of courseOutline.chapters) {
+      for (const part of chapter.parts) {
+        allParts.push({
+          chapterSlug: chapter.slug,
+          part: {
+            name: part.name,
+            slug: part.slug,
+          },
+        })
+      }
+    }
+
+    const currentPartIndex = allParts.findIndex((item) => item.part.slug === args.partSlug)
 
     if (currentPartIndex <= 0) {
       return none()
     }
 
-    const previousPart = partsSlug[currentPartIndex - 1]
+    const previousPart = allParts[currentPartIndex - 1]
 
     return some({
-      name: previousPart.name,
-      slug: previousPart.slug,
+      name: previousPart.part.name,
+      slug: previousPart.part.slug,
+      chapterSlug: previousPart.chapterSlug,
     })
   },
 })
@@ -162,19 +182,36 @@ export const getPreviousPart = query({
 export const getNextPart = query({
   name: 'next-part',
   args: z.object({ courseSlug: z.string(), partSlug: z.string() }),
-  handler: async (_, args): Promise<Maybe<{ name: string; slug: string }>> => {
-    const partsSlug = await getAllCoursePartsSlugs({ course_slug: args.courseSlug })
-    const currentPartIndex = partsSlug.findIndex((part) => part.slug === args.partSlug)
+  handler: async (_, args): Promise<Maybe<{ name: string; slug: string; chapterSlug: string }>> => {
+    const courseOutline = await getCourseOutline({ course_slug: args.courseSlug })
 
-    if (currentPartIndex === -1 || currentPartIndex >= partsSlug.length - 1) {
+    // Créer une liste plate de toutes les parties avec leur chapitre
+    const allParts: Array<{ chapterSlug: string; part: { name: string; slug: string } }> = []
+
+    for (const chapter of courseOutline.chapters) {
+      for (const part of chapter.parts) {
+        allParts.push({
+          chapterSlug: chapter.slug,
+          part: {
+            name: part.name,
+            slug: part.slug,
+          },
+        })
+      }
+    }
+
+    const currentPartIndex = allParts.findIndex((item) => item.part.slug === args.partSlug)
+
+    if (currentPartIndex === -1 || currentPartIndex >= allParts.length - 1) {
       return none()
     }
 
-    const nextPart = partsSlug[currentPartIndex + 1]
+    const nextPart = allParts[currentPartIndex + 1]
 
     return some({
-      name: nextPart.name,
-      slug: nextPart.slug,
+      name: nextPart.part.name,
+      slug: nextPart.part.slug,
+      chapterSlug: nextPart.chapterSlug,
     })
   },
 })

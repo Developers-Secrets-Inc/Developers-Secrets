@@ -8,7 +8,6 @@ import { Suspense } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 
 type CourseFooterProps = {
-  href: string
   courseSlug: string
   partSlug: string
   chapterOutline: {
@@ -22,13 +21,10 @@ type CourseFooterProps = {
 export const PreviousPartButton = async ({
   courseSlug,
   partSlug,
-  href,
 }: {
   courseSlug: string
   partSlug: string
-  href: string
 }) => {
-  console.log(courseSlug, partSlug)
   const previousPart = await getPreviousPart({ courseSlug, partSlug })
 
   return (
@@ -38,7 +34,7 @@ export const PreviousPartButton = async ({
       disabled={isNone(previousPart)}
       asChild
     >
-      <Link href={isNone(previousPart) ? '#' : `${href}/${previousPart.value.slug}/description`}>
+      <Link href={isNone(previousPart) ? '#' : `/courses/${courseSlug}/${previousPart.value.chapterSlug}/${previousPart.value.slug}/description`}>
         <ChevronLeft className="h-4 w-4" />
         {isNone(previousPart) ? 'No previous part' : previousPart.value.name}
       </Link>
@@ -49,11 +45,9 @@ export const PreviousPartButton = async ({
 export const NextPartButton = async ({
   courseSlug,
   partSlug,
-  href,
 }: {
   courseSlug: string
   partSlug: string
-  href: string
 }) => {
   const nextPart = await getNextPart({ courseSlug, partSlug })
 
@@ -64,7 +58,7 @@ export const NextPartButton = async ({
       disabled={isNone(nextPart)}
       asChild
     >
-      <Link href={isNone(nextPart) ? '#' : `${href}/${nextPart.value.slug}/description`}>
+      <Link href={isNone(nextPart) ? '#' : `/courses/${courseSlug}/${nextPart.value.chapterSlug}/${nextPart.value.slug}/description`}>
         {isNone(nextPart) ? 'No next part' : nextPart.value.name}
         <ChevronRight className="h-4 w-4" />
       </Link>
@@ -72,18 +66,18 @@ export const NextPartButton = async ({
   )
 }
 
-export const CourseFooter = ({ courseSlug, partSlug, chapterOutline, href }: CourseFooterProps) => {
+export const CourseFooter = ({ courseSlug, partSlug, chapterOutline }: CourseFooterProps) => {
   return (
     <footer className="flex-none py-2 px-4 bg-background border-t border-border h-14">
       <div className="flex items-center justify-between w-full h-full">
         <Suspense fallback={<Skeleton className="h-5 w-[100px]" />}>
-          <PreviousPartButton courseSlug={courseSlug} partSlug={partSlug} href={href} />
+          <PreviousPartButton courseSlug={courseSlug} partSlug={partSlug} />
         </Suspense>
         <Suspense fallback={<Skeleton className="h-2 w-[200px]" />}>
           <ChapterOutline outline={chapterOutline} />
         </Suspense>
         <Suspense fallback={<Skeleton className="h-5 w-[100px]" />}>
-          <NextPartButton courseSlug={courseSlug} partSlug={partSlug} href={href} />
+          <NextPartButton courseSlug={courseSlug} partSlug={partSlug} />
         </Suspense>
       </div>
     </footer>
