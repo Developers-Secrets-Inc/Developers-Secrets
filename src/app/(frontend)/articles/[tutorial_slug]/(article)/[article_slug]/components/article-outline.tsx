@@ -36,7 +36,6 @@ export function ArticleOutline({ outline }: ArticleOutlineProps) {
       return elements.filter(Boolean) as HTMLElement[]
     })
 
-    console.log(headingElements)
 
     const observer = new IntersectionObserver(
       (entries) => {

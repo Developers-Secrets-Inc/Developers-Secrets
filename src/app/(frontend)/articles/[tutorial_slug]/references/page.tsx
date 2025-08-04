@@ -1,34 +1,27 @@
-import { getFirstReferenceArticleOfTutorial, getSlugFromTitle, getTutorial } from '@/core/articles'
-import { redirect } from 'next/navigation'
+import { HomeHeader } from '@/components/common/home-header'
+import { TutorialHero } from '../components/tutorial-hero'
+import { getTutorialReferenceSections } from '@/api/articles/actions'
+import { ArticlesSectionsTable } from '../components/sections-table'
+import { RecommandedArticles } from '../components/recommanded-articles-section'
 
 export default async function Page({ params }: { params: Promise<{ tutorial_slug: string }> }) {
   const { tutorial_slug } = await params
+  const sections = await getTutorialReferenceSections({ tutorialSlug: tutorial_slug })
 
-  try {
-    // Vérifie d'abord que le tutoriel existe
-    const tutorial = await getTutorial(tutorial_slug)
+  return (
+    <>
+      <HomeHeader />
+      <div className="mb-8">
+        <TutorialHero tutorialSlug={tutorial_slug} />
+      </div>
+      
+      <div className="mb-4">
+        <RecommandedArticles tutorialSlug={tutorial_slug} articles={sections[0]?.articles?.slice(0, 4) || []} type="reference" />
+      </div>
 
-    // Si le tutoriel n'a pas de sections de références, redirige vers la page principale
-    if (!tutorial.referenceSections || tutorial.referenceSections.length === 0) {
-      console.log(`No reference sections found for tutorial: ${tutorial_slug}`)
-      return redirect(`/articles/${tutorial_slug}`)
-    }
-
-    // Récupère le premier article de référence
-    const article = await getFirstReferenceArticleOfTutorial(tutorial_slug)
-    if (!article) {
-      console.log(`No reference articles found for tutorial: ${tutorial_slug}`)
-      return redirect(`/articles/${tutorial_slug}`)
-    }
-
-    // Redirige vers l'article
-    const slug = article.slug
-    redirect(`/articles/${tutorial_slug}/references/${slug}`)
-  } catch (error) {
-    if (error instanceof Error && error.message !== 'NEXT_REDIRECT') {
-      console.error('Error in references page:', error)
-      return redirect(`/articles/${tutorial_slug}`)
-    }
-    throw error
-  }
+      <div className="mb-8">
+        <ArticlesSectionsTable sections={sections} tutorialSlug={tutorial_slug} type="reference" />
+      </div>
+    </>
+  )
 }

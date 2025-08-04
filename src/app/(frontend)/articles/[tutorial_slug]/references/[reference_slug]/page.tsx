@@ -1,4 +1,3 @@
-export const experimental_ppr = true
 import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
 import { getArticleOutline } from '@/core/articles'
 import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'

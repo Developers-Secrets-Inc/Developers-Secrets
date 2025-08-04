@@ -20,18 +20,19 @@ export type TabConfig = {
   }
 }
 
-export const coursePartTabs = (slug: string, pathname: string): TabConfig[] => [
+export const coursePartTabs = (slug: string, pathname: string, hasExercice: boolean): TabConfig[] => [
   {
     id: 'description',
     label: 'Description',
     href: `/courses/${slug}/description`,
     icon: FileTextIcon,
-    active: pathname === `/courseParts/${slug}/description`,
+    active: pathname === `/courses/${slug}/description`,
   },
-  {
+  // Official Solution tab only if hasExercice
+  ...(hasExercice ? [{
     id: 'official-solution',
     label: 'Official Solution',
-    href: `/courseParts/${slug}/official-solution`,
+    href: `/courses/${slug}/official-solution`,
     icon: Award,
     active: pathname === `/courses/${slug}/official-solution`,
     lock: {
@@ -61,17 +62,13 @@ export const coursePartTabs = (slug: string, pathname: string): TabConfig[] => [
         // qui gère automatiquement l'invalidation du cache
       },
     },
-  },
+  }] : []),
   {
     id: 'submissions',
     label: 'Submissions',
-
-    // ! Same here, href is always the same pattern
     href: `/courses/${slug}/submissions`,
     icon: ListChecksIcon,
-
-    // ! Quite useless, same pattern everywhere `/courseParts/{slug}/{id}`. Could be dynamic
-    active: pathname.startsWith(`/courseParts/${slug}/submissions`),
+    active: pathname.startsWith(`/courses/${slug}/submissions`),
   },
 ]
 

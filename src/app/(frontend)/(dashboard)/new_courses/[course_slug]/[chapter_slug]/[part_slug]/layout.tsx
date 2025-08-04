@@ -33,8 +33,8 @@ export default async function Layout({
     getPartBySlug({ part_slug }),
     getUser(),
     getCourseOutline({ course_slug }),
-    getPreviousPart({ course_slug, part_slug }),
-    getNextPart({ course_slug, part_slug }),
+    getPreviousPart({ courseSlug: course_slug, partSlug: part_slug }),
+    getNextPart({ courseSlug: course_slug, partSlug: part_slug }),
   ])
 
   if (isFailure(user)) {
@@ -93,9 +93,8 @@ export default async function Layout({
           </CourseLayout.Content>
         </CourseLayout.Body>
         <CourseFooter
-          courseSlug={`/courses/${course_slug}/${chapter_slug}`}
-          previousPart={previousPart}
-          nextPart={nextPart}
+          courseSlug={course_slug}
+          partSlug={part_slug}
           chapterOutline={chapterOutline}
         />
       </CourseLayout.Root>

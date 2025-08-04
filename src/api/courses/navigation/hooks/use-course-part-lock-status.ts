@@ -25,6 +25,7 @@ export function useCoursePartTabsLockStatus() {
   const queryClient = useQueryClient()
 
   const userId = user.id
+  const hasExercice = !!coursePart.exercice
 
   const query = useQuery({
     queryKey: getQueryKey(coursePart.id, userId, coursePart.slug),
@@ -32,6 +33,7 @@ export function useCoursePartTabsLockStatus() {
       const tabs = coursePartTabs(
         `${metadata.courseSlug}/${metadata.chapterSlug}/${coursePart.slug}`,
         pathname,
+        hasExercice
       )
       const lockedTabs: TabLockStatus = {}
 
@@ -54,6 +56,7 @@ export function useCoursePartTabsLockStatus() {
       const tabs = coursePartTabs(
         `${metadata.courseSlug}/${metadata.chapterSlug}/${coursePart.slug}`,
         pathname,
+        hasExercice
       )
       const tab = tabs.find((t) => t.id === tabId)
       if (!tab || !tab.lock) {
@@ -79,7 +82,7 @@ export function useCoursePartTabsLockStatus() {
     data: query.data?.lockedTabs,
     tabs:
       query.data?.tabs ||
-      coursePartTabs(`${metadata.courseSlug}/${metadata.chapterSlug}/${coursePart.slug}`, pathname),
+      coursePartTabs(`${metadata.courseSlug}/${metadata.chapterSlug}/${coursePart.slug}`, pathname, hasExercice),
     pathname,
     isLoading: query.isLoading,
     error: query.error,

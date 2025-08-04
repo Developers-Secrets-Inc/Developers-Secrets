@@ -60,8 +60,8 @@ RecommendedChallengeCard.HeaderTitle = RecommendedChallengeCardHeaderTitle
 RecommendedChallengeCard.Header = RecommendedChallengeCardHeader
 RecommendedChallengeCard.Description = RecommendedChallengeCardDescription
 
-export const RecommendedChallenge = async ({ userId }: { userId: string }) => {
-  const initialChallenge = await getRandomUncompletedChallenge({ userId })
+export const RecommendedChallenge = async ({ userId, isPro }: { userId: string, isPro: boolean }) => {
+  const initialChallenge = await getRandomUncompletedChallenge({ userId, isPro })
   return <RecommendedChallengeClient userId={userId} initialChallenge={initialChallenge} />
 }
 

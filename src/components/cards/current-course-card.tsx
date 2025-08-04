@@ -141,14 +141,6 @@ export const CurrentCourseCard = () => {
             )}
           </CurrentCourseCardHeader>
         <CurrentCourseCardDescription>
-          {/* <CardDescription className="text-sm text-muted-foreground">
-            {lastVisited.lastChapterSlug && (
-              <span>Chapter: {lastVisited.lastChapterSlug}</span>
-            )}
-            {lastVisited.lastPartSlug && (
-              <span> • Part: {lastVisited.lastPartSlug}</span>
-            )}
-          </CardDescription> */}
           <CardDescription className="text-sm text-muted-foreground flex items-center gap-1">
             <Clock className="h-3 w-3" />
             Last visited: {new Date(lastVisited.lastVisitedAt).toLocaleDateString()}

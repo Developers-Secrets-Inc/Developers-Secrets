@@ -1,12 +1,12 @@
 'use server'
 
-import { mutation, query } from '@/core/functions'
+import { mutation, query, action } from '@/core/functions'
 import { isNone, none, some } from '@/lib/maybe'
 import 'server-only'
 import z from 'zod'
 import { createCompletionStatus } from '.'
 
-export const isSolutionUnlocked = query({
+export const isSolutionUnlocked = action({
   name: 'solution-status',
   args: z.object({ partId: z.number(), userId: z.string().uuid() }),
   handler: async (ctx, args) => {

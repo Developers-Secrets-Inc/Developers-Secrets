@@ -1,6 +1,5 @@
 import { getArticleOutline } from '@/core/articles'
 import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'
-import { getArticleBySlug } from '@/core/articles/index-v2'
 import { getPersonalizedArticles, getPopularArticles } from '@/core/articles/recommandations-v2'
 import { isFailure } from '@/lib/result'
 import { Metadata, ResolvingMetadata } from 'next'
@@ -8,60 +7,63 @@ import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { ArticleOutline } from './components/article-outline'
 import { ArticleContent, ArticleSkeleton } from '../../components/article-content'
+import { getArticleBySlug } from '@/api/articles'
+import { isNone } from '@/lib/maybe'
+import { ArticleSidebarTrigger } from '../../components/sidebar-trigger'
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ tutorial_slug: string; article_slug: string }> },
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const { tutorial_slug, article_slug } = await params
+// export async function generateMetadata(
+//   { params }: { params: Promise<{ tutorial_slug: string; article_slug: string }> },
+//   parent: ResolvingMetadata,
+// ): Promise<Metadata> {
+//   const { tutorial_slug, article_slug } = await params
 
-  const payloadArticle = await getArticleBySlug(tutorial_slug, article_slug, {
-    seo: true,
-    title: true,
-    subtitle: true,
-    createdAt: true,
-    updatedAt: true,
-  })
+//   const payloadArticle = await getArticleBySlug(tutorial_slug, article_slug, {
+//     seo: true,
+//     title: true,
+//     subtitle: true,
+//     createdAt: true,
+//     updatedAt: true,
+//   })
 
-  if (isFailure(payloadArticle)) {
-    throw payloadArticle.error
-  }
+//   if (isFailure(payloadArticle)) {
+//     throw payloadArticle.error
+//   }
 
-  const article = payloadArticle.value
+//   const article = payloadArticle.value
 
-  const previousImages = (await parent).openGraph?.images || []
+//   const previousImages = (await parent).openGraph?.images || []
 
-  const title = article.seo?.title || article.title
-  const fullTitle = `${title} | ${article.title}`
+//   const title = article.seo?.title || article.title
+//   const fullTitle = `${title} | ${article.title}`
 
-  const description =
-    article.seo?.description ||
-    article.subtitle ||
-    `Learn about ${article.title} in our ${article.title} tutorial.`
+//   const description =
+//     article.seo?.description ||
+//     article.subtitle ||
+//     `Learn about ${article.title} in our ${article.title} tutorial.`
 
-  const keywords =
-    article.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
+//   const keywords =
+//     article.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
 
-  return {
-    title: fullTitle,
-    description: description,
-    keywords: keywords,
-    openGraph: {
-      title: fullTitle,
-      description: description,
-      type: 'article',
-      publishedTime: article.createdAt,
-      modifiedTime: article.updatedAt,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/${article_slug}`,
-      images: previousImages,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: fullTitle,
-      description: description,
-    },
-  }
-}
+//   return {
+//     title: fullTitle,
+//     description: description,
+//     keywords: keywords,
+//     openGraph: {
+//       title: fullTitle,
+//       description: description,
+//       type: 'article',
+//       publishedTime: article.createdAt,
+//       modifiedTime: article.updatedAt,
+//       url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/${article_slug}`,
+//       images: previousImages,
+//     },
+//     twitter: {
+//       card: 'summary_large_image',
+//       title: fullTitle,
+//       description: description,
+//     },
+//   }
+// }
 
 export default async function ArticlePage({
   params,
@@ -70,13 +72,8 @@ export default async function ArticlePage({
 }) {
   const { tutorial_slug, article_slug } = await params
 
-  const article = await getArticleBySlug(tutorial_slug, article_slug, {
-    content: true,
-    title: true,
-    subtitle: true,
-  })
-
-  if (isFailure(article)) {
+  const article = await getArticleBySlug({ tutorialSlug: tutorial_slug, articleSlug: article_slug })
+  if (isNone(article)) {
     return notFound()
   }
 
@@ -105,7 +102,9 @@ export default async function ArticlePage({
 
   return (
     <>
-      <div className="flex flex-1">
+      <div className="relative flex flex-1">
+          <ArticleSidebarTrigger />
+
         <Suspense fallback={<ArticleSkeleton />}>
           <ArticleContent
             article={article.value}

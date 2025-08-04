@@ -2,8 +2,9 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { getTutorialBySlug } from '@/core/articles/index-v2'
 import { isFailure } from '@/lib/result'
 import { notFound } from 'next/navigation'
-import { ArticleSidebar } from '../components/article-sidebar'
+import { ArticleSidebar } from '../../components/article-sidebar'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
+import { find } from '@/api'
 import { getSectionsArticles, getTutorialForLayout } from '@/api/articles'
 
 export default async function ReferenceArticlesLayout({
@@ -19,7 +20,7 @@ export default async function ReferenceArticlesLayout({
 
   if (isFailure(tutorial)) return notFound()
 
-  const sections = await getSectionsArticles(tutorial.value.exampleSections ?? [])
+  const sections = await getSectionsArticles(tutorial.value.referenceSections ?? [])
 
   return (
     <SidebarProvider>
@@ -29,7 +30,7 @@ export default async function ReferenceArticlesLayout({
           title: tutorial.value.title,
           sections: sections,
         }}
-        articleType="examples"
+        articleType="references"
       />
       <SidebarInset>
         <HomeHeader />

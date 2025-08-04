@@ -1,7 +1,10 @@
 'use client'
 
+import { use } from 'react'
 import { PartProgressionDot } from '../../progression/components/part-progression-dot'
 import { useCourseParams } from '../hooks/use-course-params'
+import { useChapterPartsProgression } from '../../progression/hooks/useChapterPartsProgression'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export const ChapterOutline = ({
   outline,
@@ -15,10 +18,20 @@ export const ChapterOutline = ({
   }[]
 }) => {
   const { courseSlug, chapterSlug, partSlug } = useCourseParams()
+  const { parts, isLoading, error } = useChapterPartsProgression(chapterSlug, courseSlug, { initialData: outline })
+
+
+  if (!parts) {
+    return null
+  }
+
+  if (isLoading) {
+    return <Skeleton className="h-5 w-[100px]" />
+  }
 
   return (
     <div className="flex-none flex justify-center items-center gap-2 mx-4">
-      {outline.map((part) => (
+      {parts.map((part) => (
         <PartProgressionDot 
           key={part.id} 
           part={part} 

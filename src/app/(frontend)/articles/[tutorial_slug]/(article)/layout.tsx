@@ -18,6 +18,7 @@ export default async function TutorialArticlesLayout({
 
   if (isFailure(tutorial)) return notFound()
 
+    // console.log(tutorial.value.sections)
   const sections = await getSectionsArticles(tutorial.value.sections)
 
   return (

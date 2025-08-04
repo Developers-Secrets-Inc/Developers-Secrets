@@ -1,7 +1,7 @@
-import { Markdown } from './markdown'
+// import { Markdown } from './markdown'
 import { RecommendedArticleCard, RecommendedArticles } from '@/components/recommended-articles'
 import { TypographyH1, TypographyP } from '@/components/typography'
-import { Article as PayloadArticle } from '@/payload-types'
+import { Markdown } from './markdown'
 
 interface ArticleContentProps {
   article: {
@@ -26,8 +26,7 @@ export const ArticleContent = ({
         <article className="prose prose-slate max-w-none">
           <TypographyH1>{article.title}</TypographyH1>
           {article.subtitle && <TypographyP>{article.subtitle}</TypographyP>}
-          {/* Article content */}
-          <Markdown>{article.content}</Markdown>
+          <Markdown content={article.content} />
         </article>
         <RecommendedArticles
           popularArticles={popularArticles}

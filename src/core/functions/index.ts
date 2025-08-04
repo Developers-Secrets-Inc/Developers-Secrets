@@ -5,7 +5,7 @@ import { unstable_cache, revalidateTag } from 'next/cache'
 import { QueryCtx } from './types'
 
 // Génère une clé unique à partir du nom et des arguments
-function makeCacheKey(name: string, args: Record<string, any>) {
+export function makeCacheKey(name: string, args: Record<string, any>) {
   return [name, ...Object.entries(args).map(([k, v]) => {
     try {
       if (v === null || v === undefined) {
@@ -29,7 +29,6 @@ function makeCacheKey(name: string, args: Record<string, any>) {
   })].join('-')
 }
 
-// Query avec cache implicite
 export function query<Schema extends ZodTypeAny, T>(config: {
   name: string
   args?: Schema
@@ -59,7 +58,7 @@ export function query<Schema extends ZodTypeAny, T>(config: {
   }
 }
 
-// Mutation avec revalidation implicite
+
 export function mutation<Schema extends ZodTypeAny, T>(config: {
   name: string
   args?: Schema
@@ -79,5 +78,25 @@ export function mutation<Schema extends ZodTypeAny, T>(config: {
     revalidateTag(cacheKey)
 
     return result
+  }
+}
+
+
+
+
+export function action<Schema extends ZodTypeAny, T>(config: {
+  name: string
+  args?: Schema
+  handler: (
+    ctx: QueryCtx,
+    args: Schema extends undefined ? undefined : z.infer<Schema>,
+  ) => Promise<T> | T
+}): (args?: Schema extends undefined ? undefined : z.infer<Schema>) => Promise<T> {
+  return async (args?: Schema extends undefined ? undefined : z.infer<Schema>) => {
+    const payload = await getPayload({ config: payloadConfig })
+    const ctx: QueryCtx = { payload, drizzle: payload.db.drizzle }
+    if (config.args) config.args.parse(args ?? {})
+
+    return config.handler(ctx, args ?? ({} as any))
   }
 }

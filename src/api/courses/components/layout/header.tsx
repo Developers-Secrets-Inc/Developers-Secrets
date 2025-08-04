@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
 import Link from 'next/link'
 import React from 'react'
-import { CourseOutline } from '../../navigation/components/course-outline'
+import { CourseOutline, CourseOutlineSkeleton } from '../../navigation/components/course-outline'
+import { Suspense } from 'react'
 import type { CourseOutline as CourseOutlineType } from '@/api/courses/navigation/types'
 
 type WithChildren = {
@@ -33,12 +34,14 @@ export const ChallengeHeader = {
   RightPart: ChallengeHeaderRightPart,
 }
 
-export const DefaultCourseHeader = ({ courseOutline }: { courseOutline: CourseOutlineType }) => {
+export const DefaultCourseHeader = ({ courseSlug }: { courseSlug: string }) => {
   return (
     <ChallengeHeader.Root>
       <ChallengeHeader.LeftPart>
         <HomeLink />
-        <CourseOutline courseOutline={courseOutline} />
+        <Suspense fallback={<CourseOutlineSkeleton />}>
+          <CourseOutline courseSlug={courseSlug} />
+        </Suspense>
       </ChallengeHeader.LeftPart>
       <ChallengeHeader.RightPart>
         <NotificationButton />

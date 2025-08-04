@@ -35,17 +35,19 @@ export const extractOutline = (content: string): OutlineItem[] => {
   // Helper function to process nodes recursively
   const processNode = (node: MarkdownNode) => {
     if (node.type === 'heading' && node.depth && node.depth >= 1 && node.depth <= 6) {
-      // Extract heading text
+      // Extract heading text including inline code
       const headingText =
         node.children
-          ?.filter((child) => child.type === 'text')
-          .map((child) => child.value)
+          ?.filter((child) => child.type === 'text' || child.type === 'inlineCode')
+          .map((child) => child.value || '')
           .join('') || ''
 
-      const headingId = formatTitleToId(headingText)
+      // Clean heading text by removing backticks
+      const cleanHeadingText = headingText.replace(/`/g, '')
+      const headingId = formatTitleToId(cleanHeadingText)
       const item: OutlineItem = {
         id: headingId,
-        text: headingText,
+        text: cleanHeadingText,
         level: node.depth,
         children: [],
       }
@@ -179,7 +181,7 @@ export function convertMarkdownToReact(node: MarkdownNode): React.ReactNode {
     case 'heading':
       const headingContent = node.children
         ?.map((child) => {
-          if (child.type === 'text') return child.value
+          if (child.type === 'text' || child.type === 'inlineCode') return child.value || ''
           return ''
         })
         .join('')

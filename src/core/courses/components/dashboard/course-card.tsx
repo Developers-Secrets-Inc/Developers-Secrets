@@ -11,7 +11,7 @@ import { CourseWithStartUrl } from '../..'
 import { getUser } from '@/core/user'
 import { GridCourseInformations } from '../../actions'
 type CourseDifficulty = Course['difficulty']
-type BadgeStyle = `bg-${string}-500/10 text-${string}-500`
+type BadgeStyle = `bg-${string}-500/10 text-${string}-500 border-${string}-500/20`
 
 const CourseCardBadges = ({
   isLocked,
@@ -21,10 +21,10 @@ const CourseCardBadges = ({
   difficulty: CourseDifficulty
 }) => {
   const styles: Record<CourseDifficulty, BadgeStyle> = {
-    beginner: 'bg-emerald-500/10 text-emerald-500',
-    intermediate: 'bg-amber-500/10 text-amber-500',
-    advanced: 'bg-red-500/10 text-red-500',
-    expert: 'bg-purple-500/10 text-purple-500',
+    beginner: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+    intermediate: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+    advanced: 'bg-red-500/10 text-red-500 border-red-500/20',
+    expert: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
   }
 
   return (

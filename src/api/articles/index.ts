@@ -1,6 +1,10 @@
 import { Tutorial, Article } from '@/payload-types'
 import { find } from '..'
 import { failure, Result, success } from '@/lib/result'
+import { query } from '@/core/functions'
+import z from 'zod'
+import { isNone, Maybe, none, some } from '@/lib/maybe'
+import { articles } from '@/payload-generated-schema'
 
 type FormattedArticle = {
   id: number
@@ -179,3 +183,87 @@ export const getTutorialForLayout = async (
   const tutorial = result.docs[0]
   return success(tutorial)
 }
+
+
+
+
+
+
+export const getTutorialArticles = query({
+  name: 'tutorial-articles',
+  args: z.object({ tutorialSlug: z.string() }),
+  handler: async (
+    ctx,
+    args,
+  ): Promise<
+    Maybe<
+      {
+        id: number
+        slug: string
+        title: string
+      }[]
+    >
+  > => {
+    const documents = await ctx.payload.find({
+      collection: 'tutorials',
+      where: { slug: { equals: args.tutorialSlug } },
+      limit: 1,
+      depth: 0,
+    })
+
+    console.log(documents.docs[0].sections)
+    if (!documents.docs[0]) return none()
+
+    const tutorial = documents.docs[0]
+
+    const getArticleDetails = async (articleId: number) => {
+      const payloadArticles = await ctx.payload.find({
+        collection: 'articles',
+        where: { id: { equals: articleId } },
+        select: {
+          title: true,
+          slug: true,
+        },
+      })
+      return payloadArticles.docs[0]
+    }
+
+    const allArticlesPromises = tutorial.sections.flatMap((section) =>
+      section.articles.map(async (article) =>
+        typeof article === 'number'
+          ? await getArticleDetails(article)
+          : await getArticleDetails(article.id),
+      ),
+    )
+
+    const formattedArticles = await Promise.all(allArticlesPromises)
+    console.log(formattedArticles)
+
+    return formattedArticles.length > 0 ? some(formattedArticles) : none()
+  },
+})
+
+export const getArticleBySlug = query({
+  name: 'article-by-slug',
+  args: z.object({ tutorialSlug: z.string(), articleSlug: z.string() }),
+  handler: async (ctx, args): Promise<Maybe<Article>> => {
+    const articlesIds = await getTutorialArticles({ tutorialSlug: args.tutorialSlug })
+
+    if (isNone(articlesIds)) return none()
+
+    const foundArticle = articlesIds.value.find(
+      (article) => article.slug === args.articleSlug,
+    )
+
+    if (!foundArticle) return none()
+
+    const article = await ctx.payload.findByID({
+      collection: 'articles',
+      id: foundArticle.id,
+    })
+
+    return article ? some(article) : none()
+
+
+  },
+})

@@ -39,13 +39,14 @@ export const getChallengeTableInformations = async (): Promise<{
 }[]> => {
   const payload = await getPayload({ config })
   const challenges = await payload.find({
-    collection: CHALLENGE_COLLECTION_NAME,
+    collection: 'challenges',
     pagination: false,
     select: {
       title: true,
       slug: true,
       difficulty: true,
       baseExperience: true,
+      isPro: true
     }
   })
 

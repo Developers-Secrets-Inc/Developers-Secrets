@@ -25,8 +25,6 @@ export const Challenges: CollectionConfig = {
   },
   access: {
     read: () => true,
-    create: () => true
-
   },
   fields: [
     {
@@ -234,6 +232,16 @@ export const Challenges: CollectionConfig = {
       defaultValue: true,
       admin: {
         description: 'Indique si le challenge est en mode brouillon (draft)',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'isPro',
+      label: 'Challenge PRO',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Indicates if this challenge requires a PRO subscription',
         position: 'sidebar',
       },
     },

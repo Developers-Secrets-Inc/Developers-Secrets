@@ -26,6 +26,7 @@ import {
   CircleXIcon,
   FilterIcon,
   ListFilterIcon,
+  LockIcon,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
@@ -52,8 +53,29 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { useQueryState } from 'nuqs'
 
-const ChallengeStatusCell = () => {
+const ChallengeStatusCell = ({ challenge, isPro }: { challenge: ChallengeWithProgress, isPro: boolean }) => {
   const { visualStatus } = useChallengeStatus()
+  
+  // If challenge is PRO and user is not PRO, show lock icon
+  if (challenge.isPro && !isPro) {
+    return (
+      <div className="w-8">
+        <Tooltip.Provider>
+          <Tooltip.Root>
+            <Tooltip.Trigger asChild>
+              <div className="flex items-center justify-center">
+                <LockIcon className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </Tooltip.Trigger>
+            <TooltipContentCustom sideOffset={2} align="center">
+              PRO subscription required
+            </TooltipContentCustom>
+          </Tooltip.Root>
+        </Tooltip.Provider>
+      </div>
+    )
+  }
+  
   if (visualStatus === 'not_started') return null
 
   return (
@@ -80,6 +102,7 @@ const ChallengeStatusCell = () => {
 
 type ChallengesTableProps = {
   userId: string
+  isPro: boolean
 }
 
 const difficulties = [
@@ -96,7 +119,7 @@ const statuses = [
   { value: 'completed', label: 'Completed' },
 ]
 
-export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
+export const ChallengesTable = ({ userId, isPro }: ChallengesTableProps) => {
   const [titleQuery, setTitleQuery] = useQueryState('title', { defaultValue: '' })
   const [difficultyQuery, setDifficultyQuery] = useQueryState('difficulty', {
     defaultValue: [],
@@ -156,7 +179,7 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
             userId={userId}
             initialStatus={row.original.status as CompletionStatus}
           >
-            <ChallengeStatusCell />
+            <ChallengeStatusCell challenge={row.original} isPro={isPro} />
           </ChallengeStatusProvider>
         ),
         size: 40,
@@ -166,14 +189,27 @@ export const ChallengesTable = ({ userId }: ChallengesTableProps) => {
         accessorKey: 'title',
         enableSorting: true,
         enableColumnFilter: true,
-        cell: ({ row }) => (
-          <Link
-            href={`/challenges/${row.original.slug}/description`}
-            className="font-medium hover:underline"
-          >
-            {row.getValue('title')}
-          </Link>
-        ),
+        cell: ({ row }) => {
+          const challenge = row.original;
+          const isProChallenge = challenge.isPro;
+          
+          if (isProChallenge && !isPro) {
+            return (
+              <span className="font-medium text-muted-foreground">
+                {row.getValue('title')}
+              </span>
+            );
+          }
+          
+          return (
+            <Link
+              href={`/challenges/${row.original.slug}/description`}
+              className="font-medium hover:underline"
+            >
+              {row.getValue('title')}
+            </Link>
+          );
+        },
       },
       {
         header: 'Difficulty',
