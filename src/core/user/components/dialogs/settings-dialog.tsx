@@ -1,12 +1,23 @@
 'use client'
 
-import * as React from 'react'
-import { Settings, User, Sliders, CreditCard, Shield, CrownIcon, CheckIcon } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  CheckIcon,
+  CreditCard,
+  CrownIcon,
+  Loader2,
+  LockIcon,
+  Settings,
+  Shield,
+  Sliders,
+  UserIcon,
+} from 'lucide-react'
+import Link from 'next/link'
+import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
-import Link from 'next/link'
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,6 +27,8 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import {
   Form,
@@ -27,7 +40,13 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sidebar,
   SidebarContent,
@@ -38,36 +57,20 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from '@/components/ui/sidebar'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getUserInformations } from '@/core/user/user-informations'
-import { UserRole } from '@/core/user/user-informations/types'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { revokeUserSubscription } from '@/core/payments/subscriptions'
-import { updateUserRole } from '@/core/user/user-informations'
 import { changeUserEmail, changeUserPassword } from '@/core/user/auth'
+import { UserRole } from '@/core/user/user-informations/types'
+import { useUser } from '@/core/users/hooks/use-user'
+import { User } from '@/core/users/types'
+import { getCustomerPortalUrl, isCustomer } from '@/core/customers'
+import { useState } from 'react'
+import { isNone } from '@/lib/maybe'
+import router from 'next/router'
+import { redirect } from 'next/navigation'
 
 const data = {
   nav: [
     { name: 'General', icon: Settings },
-    { name: 'Profile', icon: User },
+    { name: 'Profile', icon: UserIcon },
     { name: 'Preferences', icon: Sliders },
     { name: 'Subscription', icon: CreditCard },
     { name: 'Security', icon: Shield },
@@ -77,16 +80,6 @@ const data = {
 type SettingsDialogProps = {
   showSettingsDialog: boolean
   setShowSettingsDialog: (show: boolean) => void
-  user: {
-    id: string
-    informations: {
-      name: string
-      avatar: string
-      initials: string
-      role: UserRole
-      customerId: string
-    }
-  }
 }
 
 const emailFormSchema = z.object({
@@ -142,6 +135,12 @@ const subscriptionFeatures = {
   },
   max: {
     name: 'Max',
+    description: 'Ultimate access to all features',
+    features: ['Everything in Pro', 'Dedicated support', 'Custom features', 'Early access'],
+    icon: CrownIcon,
+  },
+  admin: {
+    name: 'Admin',
     description: 'Ultimate access to all features',
     features: ['Everything in Pro', 'Dedicated support', 'Custom features', 'Early access'],
     icon: CrownIcon,
@@ -528,78 +527,31 @@ function CurrentSubscriptionCard({ role }: { role: UserRole }) {
   )
 }
 
-function SubscriptionActions({
-  role,
-  user,
-}: {
-  role: UserRole
-  user: { informations: { customerId?: string | null }; id: string }
-}) {
-  const subscription = subscriptionFeatures[role]
-  const [isPending, setIsPending] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
+const SubscriptionActions = ({ user }: { user: User }) => {
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleCancelSubscription = async () => {
-    if (!user.informations.customerId) {
-      setError('No customer ID found')
-      return
-    }
+  const handleClick = async () => {
+    setIsLoading(true)
+    const portalUrl = await getCustomerPortalUrl(user.id)
 
-    try {
-      setIsPending(true)
-      setError(null)
+    if (isNone(portalUrl)) return
 
-      await revokeUserSubscription(user.informations.customerId)
-      await updateUserRole(user.id, 'basic')
-
-      window.location.reload()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to cancel subscription')
-      console.error('Error cancelling subscription:', err)
-    } finally {
-      setIsPending(false)
-    }
+    setIsLoading(false)
+    redirect(portalUrl.value)
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end gap-x-2">
-        <Button variant="outline" asChild>
-          <Link href="/api/portal">
+        <Button variant="outline" onClick={handleClick}>
+          {isLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
             <CreditCard className="mr-2 h-4 w-4" />
-            Manage Subscription
-          </Link>
+          )}
+          Manage Subscription
         </Button>
-        {role !== 'basic' && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={isPending} className="text-white">
-                {isPending ? 'Cancelling...' : 'Cancel Subscription'}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to cancel your {subscription.name} subscription? You will be
-                  downgraded to the Basic plan at the end of your current billing period.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleCancelSubscription}
-                  className="bg-destructive hover:bg-destructive/90"
-                  disabled={isPending}
-                >
-                  {isPending ? 'Cancelling...' : 'Yes, Cancel Subscription'}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
       </div>
-      {error && <p className="text-sm text-destructive text-right">{error}</p>}
     </div>
   )
 }
@@ -681,12 +633,9 @@ function SubscriptionSelector({ role }: { role: UserRole }) {
   )
 }
 
-export function SettingsDialog({
-  showSettingsDialog,
-  setShowSettingsDialog,
-  user,
-}: SettingsDialogProps) {
+export function SettingsDialog({ showSettingsDialog, setShowSettingsDialog }: SettingsDialogProps) {
   const [activeItem, setActiveItem] = React.useState('General')
+  const { user } = useUser()
 
   return (
     <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
@@ -736,53 +685,83 @@ export function SettingsDialog({
             </header>
             <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
               {activeItem === 'General' ? (
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Email</CardTitle>
-                      <CardDescription>Change your email address</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <EmailForm />
-                    </CardContent>
-                  </Card>
+                // <div className="space-y-6">
+                //   <Card>
+                //     <CardHeader>
+                //       <CardTitle>Email</CardTitle>
+                //       <CardDescription>Change your email address</CardDescription>
+                //     </CardHeader>
+                //     <CardContent>
+                //       <EmailForm />
+                //     </CardContent>
+                //   </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Password</CardTitle>
-                      <CardDescription>Change your password</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <PasswordForm />
-                    </CardContent>
-                  </Card>
+                //   <Card>
+                //     <CardHeader>
+                //       <CardTitle>Password</CardTitle>
+                //       <CardDescription>Change your password</CardDescription>
+                //     </CardHeader>
+                //     <CardContent>
+                //       <PasswordForm />
+                //     </CardContent>
+                //   </Card>
+                // </div>
+                <div className="space-y-4 mt-4">
+                  <div className="flex items-center justify-center p-8 rounded-lg">
+                    <div className="text-center">
+                      <LockIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">Feature Coming Soon</h3>
+                      <p className="text-sm text-muted-foreground">
+                        General Settings are under development and will be available soon!
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : activeItem === 'Profile' ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Profile</CardTitle>
-                    <CardDescription>Manage your personal information</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ProfileForm />
-                  </CardContent>
-                </Card>
+                // <Card>
+                //   <CardHeader>
+                //     <CardTitle>Profile</CardTitle>
+                //     <CardDescription>Manage your personal information</CardDescription>
+                //   </CardHeader>
+                //   <CardContent>
+                //     <ProfileForm />
+                //   </CardContent>
+                // </Card>
+                <div className="space-y-4 mt-4">
+                  <div className="flex items-center justify-center p-8 rounded-lg">
+                    <div className="text-center">
+                      <LockIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">Feature Coming Soon</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Profile Settings are under development and will be available soon!
+                      </p>
+                    </div>
+                  </div>
+                </div>
               ) : activeItem === 'Preferences' ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Preferences</CardTitle>
-                    <CardDescription>Customize your experience</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <PreferencesForm />
-                  </CardContent>
-                </Card>
+                <div className="space-y-4 mt-4">
+                  <div className="flex items-center justify-center p-8 rounded-lg">
+                    <div className="text-center">
+                      <LockIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">Feature Coming Soon</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Preferences Settings are under development and will be available soon!
+                      </p>
+                    </div>
+                  </div>
+                </div>
               ) : activeItem === 'Security' ? (
-                <Card>
-                  <CardContent>
-                    <SecurityForm />
-                  </CardContent>
-                </Card>
+                <div className="space-y-4 mt-4">
+                  <div className="flex items-center justify-center p-8 rounded-lg">
+                    <div className="text-center">
+                      <LockIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">Feature Coming Soon</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Security Settings are under development and will be available soon!
+                      </p>
+                    </div>
+                  </div>
+                </div>
               ) : activeItem === 'Subscription' ? (
                 <div className="space-y-6">
                   <Card>
@@ -794,7 +773,7 @@ export function SettingsDialog({
                       <CurrentSubscriptionCard role={user.informations.role} />
                     </CardContent>
                   </Card>
-                  <SubscriptionSelector role={user.informations.role} />
+                  {/* <SubscriptionSelector role={user.informations.role} /> */}
                   <div className="mt-6">
                     <SubscriptionActions role={user.informations.role} user={user} />
                   </div>

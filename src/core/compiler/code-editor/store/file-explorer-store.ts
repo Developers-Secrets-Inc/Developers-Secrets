@@ -9,5 +9,5 @@ interface FileExplorerState {
 export const useFileExplorerStore = create<FileExplorerState>((set) => ({
   isOpen: false,
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
-  reset: () => set({ isOpen: true }),
+  reset: () => set({ isOpen: false }),
 }))

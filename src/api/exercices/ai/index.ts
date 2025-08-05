@@ -1,40 +1,10 @@
 'use server'
 
 import { FileSystemNode } from '@/core/compiler/code-editor/types'
-import { query } from '@/core/functions'
-import 'server-only'
-import { z } from 'zod'
-import { generateObject } from 'ai'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-
-const FileSystemNodeSchema: z.ZodType<FileSystemNode> = z.lazy(() =>
-  z.union([
-    z.object({
-      id: z.string(),
-      type: z.literal('file'),
-      name: z.string(),
-      content: z.string(),
-      language: z.string(),
-      locked: z.boolean().optional()
-    }),
-    z.object({
-      id: z.string(),
-      type: z.literal('folder'),
-      name: z.string(),
-      children: z.array(FileSystemNodeSchema),
-      locked: z.boolean().optional()
-    })
-  ])
-)
-
-// Schema for the evaluation response
-const EvaluationSchema = z.object({
-  score: z.number().min(0).max(10).describe('Score from 0 to 10 for code quality'),
-  improvements: z.array(z.string()).describe('List of suggested improvements'),
-  strengths: z.array(z.string()).describe('Code strengths and good practices found'),
-  suggestions: z.array(z.string()).describe('Specific suggestions to improve the code'),
-  category: z.enum(['excellent', 'good', 'average', 'needs_improvement', 'poor']).describe('Overall quality category')
-})
+import { generateObject } from 'ai'
+import 'server-only'
+import { EvaluationSchema } from './types'
 
 const openRouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -93,3 +63,4 @@ ${codeStructure}
     throw new Error('Unable to evaluate code at the moment')
   }
 }
+

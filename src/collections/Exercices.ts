@@ -7,6 +7,7 @@ export const Exercices: CollectionConfig = {
   },
   access: {
     read: () => true, 
+    create: () => true
   },
   fields: [
     {

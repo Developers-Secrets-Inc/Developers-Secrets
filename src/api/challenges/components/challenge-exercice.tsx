@@ -10,9 +10,10 @@ import { SubmitButton } from './submit-button'
 import { SubmitButton as AISubmitButton } from '@/api/exercices/ai/components/ai-exercice-submit-button'
 import { TestResults } from '../submissions/components/test-results'
 import { useChallengeLifecycle } from '@/api/challenges/hooks/use-challenge-lifecycle'
+import { AITestResults } from '../submissions/components/ai-tests-results'
 
 // Fonction pour créer les onglets du footer avec les tests de l'exercice
-const footerTabs = [
+const classicChallengeFooterTabs = [
   {
     id: 'output',
     title: 'Output',
@@ -23,6 +24,21 @@ const footerTabs = [
     id: 'tests',
     title: 'Tests',
     content: <TestResults />,
+    icon: 'beaker',
+  },
+]
+
+const aiChallengeFooterTabs = [
+    {
+    id: 'output',
+    title: 'Output',
+    content: <OutputContent />,
+    icon: 'file-output',
+  },
+  {
+    id: 'tests',
+    title: 'Tests',
+    content: <AITestResults />,
     icon: 'beaker',
   },
 ]
@@ -62,7 +78,7 @@ export const ChallengeExercice = ({ exercice }: { exercice: Exercice | AiExercic
         </ResizablePanel>
         <CodeEditor.FileSystemButton />
       </ResizablePanelGroup>
-      <CodeEditor.Footer tabs={footerTabs} />
+      <CodeEditor.Footer tabs={'prompts' in exercice ? aiChallengeFooterTabs : classicChallengeFooterTabs} />
     </CodeEditor.Container>
   )
 }

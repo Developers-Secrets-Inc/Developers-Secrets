@@ -40,7 +40,7 @@ const AuthButtonsLoggedIn = ({ user }: { user: User }) => {
 
       <NotificationButton />
       <DashboardButton />
-      <UserDropdownMenu user={user} />
+      <UserDropdownMenu />
     </>
   )
 }
