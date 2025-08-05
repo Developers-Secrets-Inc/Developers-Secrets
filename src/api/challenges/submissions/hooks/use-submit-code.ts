@@ -73,6 +73,10 @@ const createStructureSubmission = (fileStructure: FileStructureForExecution): Su
   fileStructure,
 })
 
+const escapeRegExp = (string: string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the matched substring
+};
+
 export const useSubmitCode = () => {
   const {
     mutateAsync: submitCodeMutation,
@@ -114,7 +118,7 @@ export const useSubmitCode = () => {
 
           // Clean output based on input type
           if (tc.input.type === 'single') {
-            cleanOutput = cleanOutput.replace(new RegExp(`^${tc.input.code}[\n\r]*`), '').trim()
+            cleanOutput = cleanOutput.replace(new RegExp(`^${escapeRegExp(tc.input.code)}[\n\r]*`), '').trim()
           }
 
           return {

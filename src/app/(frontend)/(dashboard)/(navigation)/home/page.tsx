@@ -30,6 +30,8 @@ export default async function Home() {
     redirect('/auth/login')
   }
 
+
+  
   return (
     <HomeClientWrapper>
       <HomeGrid>

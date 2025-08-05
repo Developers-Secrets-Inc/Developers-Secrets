@@ -31,14 +31,14 @@ interface SubmissionResultsStore {
   submissionResult: SubmissionResult | null
   testResults: TestResult[] | null
   isSubmitting: boolean
-  
+
   // Actions
   setSubmissionResult: (result: SubmissionResult) => void
   setTestResults: (results: TestResult[]) => void
   setIsSubmitting: (loading: boolean) => void
   clearResults: () => void
   reset: () => void
-  
+
   // Actions combinées pour faciliter l'usage
   setResults: (submission: SubmissionResult, tests: TestResult[]) => void
 }
@@ -49,30 +49,33 @@ export const useSubmissionResultsStore = create<SubmissionResultsStore>((set) =>
   submissionResult: null,
   testResults: null,
   isSubmitting: false,
-  
+
   // Actions individuelles
   setSubmissionResult: (result) => set({ submissionResult: result }),
   setTestResults: (results) => set({ testResults: results }),
   setIsSubmitting: (loading) => set({ isSubmitting: loading }),
-  
+
   // Action pour nettoyer les résultats
-  clearResults: () => set({ 
-    submissionResult: null, 
-    testResults: null, 
-    isSubmitting: false 
-  }),
-  
+  clearResults: () =>
+    set({
+      submissionResult: null,
+      testResults: null,
+      isSubmitting: false,
+    }),
+
   // Action de reset (alias pour clearResults pour cohérence avec autres stores)
-  reset: () => set({ 
-    submissionResult: null, 
-    testResults: null, 
-    isSubmitting: false 
-  }),
-  
+  reset: () =>
+    set({
+      submissionResult: null,
+      testResults: null,
+      isSubmitting: false,
+    }),
+
   // Action combinée pour définir les deux résultats en une fois
-  setResults: (submission, tests) => set({ 
-    submissionResult: submission, 
-    testResults: tests,
-    isSubmitting: false
-  }),
+  setResults: (submission, tests) =>
+    set({
+      submissionResult: submission,
+      testResults: tests,
+      isSubmitting: false,
+    }),
 }))

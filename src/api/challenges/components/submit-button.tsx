@@ -77,7 +77,6 @@ export const SubmitButton = () => {
 
       await setInProgress()
 
-      console.log(submission)
       if (submission.testsPassed === testResults.length) {
         const isAlreadyCompleted =
           (await getCompletionStatus(user.id, challenge.id)) === 'completed'

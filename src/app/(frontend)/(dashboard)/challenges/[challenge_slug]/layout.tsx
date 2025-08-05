@@ -50,7 +50,7 @@ const Layout = async ({
     return redirect('/auth/login')
   }
 
-  if (isNone(challenge) || (isSome(challenge) && challenge.value.draft)) {
+  if (isNone(challenge) || (isSome(challenge) && (challenge.value.draft && !(user.value.informations.role === 'admin')))) {
     return notFound()
   }
 
