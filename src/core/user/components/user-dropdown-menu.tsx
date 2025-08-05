@@ -12,11 +12,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { UserAvatar } from '@/core/user/components/user-avatar'
 import { useUser } from '@/core/users/hooks/use-user'
-import { User } from '@/types/user'
 import { LockIcon, LogOutIcon, PinIcon, UserPenIcon } from 'lucide-react'
 import { useState } from 'react'
 import { LogoutConfirmationDialog } from './dialogs/logout-confirmation-dialog'
 import { SettingsDialog } from './dialogs/settings-dialog'
+
 
 export const UserDropdownMenu = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
@@ -95,11 +95,10 @@ export const UserDropdownMenu = () => {
         setShowLogoutDialog={setShowLogoutDialog}
       />
 
-      {/* <SettingsDialog
+      <SettingsDialog
         showSettingsDialog={showSettingsDialog}
         setShowSettingsDialog={setShowSettingsDialog}
-        user={user}
-      /> */}
+      />
     </>
   )
 }
