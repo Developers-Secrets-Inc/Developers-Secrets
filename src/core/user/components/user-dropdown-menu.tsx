@@ -47,7 +47,8 @@ export const UserDropdownMenu = () => {
           <Button variant="ghost" className="h-auto p-0 hover:bg-transparent">
             <UserAvatar
               user={{
-                avatarUrl: user.informations.avatar ?? `https://avatar.vercel.sh/${user.informations.name}`,
+                avatarUrl:
+                  user.informations.avatar ?? `https://avatar.vercel.sh/${user.informations.name}`,
                 initials: user.informations.initials ?? '',
               }}
               className="cursor-pointer"
@@ -102,6 +103,3 @@ export const UserDropdownMenu = () => {
     </>
   )
 }
-
-
-
