@@ -11,11 +11,16 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
+  SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { SearchForm } from '../(article)/[article_slug]/components/search-form'
 import { ArticleSidebarFooter } from './article-sidebar-footer'
 import { ArticlesSwitcher } from './articles-switcher'
+import { Eclipse } from 'lucide-react'
 
 type FormattedArticle = {
   id: number
@@ -59,12 +64,12 @@ export const ArticleSidebar = ({ tutorial, articleType }: ArticleSidebarProps) =
   const tutorialOutline = createTutorialOutline(tutorial.sections)
 
   return (
-    <Sidebar style={{ '--sidebar-width': '270px' } as React.CSSProperties} className="z-50">
+    <Sidebar className="z-50">
       <SidebarHeader>
         <ArticlesSwitcher tutorialSlug={tutorial.slug} tutorialTitle={tutorial.title} />
         <SearchForm />
       </SidebarHeader>
-      <SidebarContent className="gap-4">
+      <SidebarContent className="gap-4 pt-2">
         {tutorialOutline.map((section) => (
           <SidebarGroup key={section.title}>
             <SidebarGroupLabel className="text-sm text-sidebar-foreground">
@@ -74,17 +79,10 @@ export const ArticleSidebar = ({ tutorial, articleType }: ArticleSidebarProps) =
               <SidebarMenu>
                 {section.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      // isActive={item.url === currentArticleSlug}
-                      // className={`text-muted-foreground truncate ${
-                      //   item.url === currentArticleSlug ? 'text-primary' : ''
-                      // }`}
-                      className="text-muted-foreground truncate"
-                    >
+                    <SidebarMenuButton asChild className="text-muted-foreground truncate">
                       <Link
                         href={`/articles/${tutorial.slug}/${articleType !== 'tutorial' ? `${articleType}/` : ''}${item.url}`}
-                        prefetch={true}
+                        // prefetch={true}
                       >
                         {item.title}
                       </Link>

@@ -98,7 +98,7 @@ export function SearchForm() {
 
   return (
     <>
-      <SidebarGroup className="py-0">
+      <SidebarGroup className="py-0 px-0">
         <SidebarGroupContent className="relative">
           <Label htmlFor="search" className="sr-only">
             Comming Soon
@@ -106,7 +106,7 @@ export function SearchForm() {
           <SidebarInput
             id="search"
             placeholder="Search the docs..."
-            className="pl-8 cursor-pointer"
+            className="pl-8 h-10 cursor-pointer"
             // onClick={() => setOpen(true)}
             readOnly
             disabled

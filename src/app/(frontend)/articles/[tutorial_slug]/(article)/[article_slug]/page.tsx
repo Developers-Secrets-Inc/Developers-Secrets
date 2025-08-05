@@ -103,7 +103,7 @@ export default async function ArticlePage({
   return (
     <>
       <div className="relative flex flex-1">
-          <ArticleSidebarTrigger />
+        <ArticleSidebarTrigger />
 
         <Suspense fallback={<ArticleSkeleton />}>
           <ArticleContent

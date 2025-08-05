@@ -22,7 +22,7 @@ export default async function TutorialArticlesLayout({
   const sections = await getSectionsArticles(tutorial.value.sections)
 
   return (
-    <SidebarProvider>
+    <SidebarProvider style={{ '--sidebar-width': '270px' } as React.CSSProperties}>
       <ArticleSidebar
         tutorial={{
           slug: tutorial.value.slug,

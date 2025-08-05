@@ -44,7 +44,7 @@ export const getCourseGridInformations = query({
             return await ctx.payload.findByID({
               collection: 'chapters',
               id: chapter as number,
-              select: { parts: true },
+              select: { parts: true, slug: true },
               depth: 0,
             })
           }),
