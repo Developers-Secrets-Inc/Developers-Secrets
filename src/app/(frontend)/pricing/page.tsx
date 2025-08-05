@@ -264,6 +264,7 @@ export const PremiumPlanCard = async ({
     const premiumCheckout = await api.checkouts.create({
       products: ['d5c47912-f301-4eaa-9351-6e87eb83a209'],
       customerExternalId: user.value.id,
+      successUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/home?subscribed=true`,
     })
 
     needPortal = await isCustomer(user.value.id)

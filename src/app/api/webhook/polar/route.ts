@@ -1,4 +1,3 @@
-// src/app/api/webhook/polar/route.ts
 import { updateUserCustomerId, updateUserRole } from '@/core/user/user-informations'
 import { Webhooks } from '@polar-sh/nextjs'
 
