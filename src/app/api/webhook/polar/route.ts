@@ -11,6 +11,7 @@ export const POST = Webhooks({
           break
         }
 
+        console.log(payload.data.product)
         if (payload.data.product.name === 'Pro Membership') {
           await updateUserRole(payload.data.customer.externalId, 'pro')
         } else if (payload.data.product.name === 'Max Membership') {
