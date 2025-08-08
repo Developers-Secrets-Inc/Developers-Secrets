@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { ArrowRightIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { ArrowRightIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogClose,
@@ -13,8 +13,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
+} from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 
 interface SubscriptionDialogProps {
   open: boolean
@@ -42,20 +42,24 @@ export const SubscriptionDialog = ({ open, onClose }: SubscriptionDialogProps) =
 
   const stepContent = [
     {
-      title: "Welcome to Pro!",
-      description: "You've unlocked premium access. Discover everything you now have access to, including advanced features, exclusive content, and priority support that will accelerate your development journey.",
+      title: 'Welcome to Pro!',
+      description:
+        "You've unlocked premium access. Discover everything you now have access to, including advanced features, exclusive content, and priority support that will accelerate your development journey.",
     },
     {
-      title: "Unlimited Content",
-      description: "Explore our complete library of premium resources, tutorials, and challenges. Get unlimited access to cutting-edge courses, AI-powered coding challenges, and comprehensive guides that will level up your skills.",
+      title: 'Unlimited Content',
+      description:
+        'Explore our complete library of premium resources, tutorials, and challenges. Get unlimited access to cutting-edge courses, AI-powered coding challenges, and comprehensive guides that will level up your skills.',
     },
     {
-      title: "Community & Support",
-      description: "Join our private community of expert developers and get priority support. Connect with like-minded professionals, share knowledge, and receive personalized assistance from our dedicated support team.",
+      title: 'Unlimited Pearl Access',
+      description:
+        'Enjoy unlimited quota for the Pearl platform AI. No more limits on using our advanced artificial intelligence tools for coding, debugging, and learning more efficiently.',
     },
     {
-      title: "Ready to Start?",
-      description: "Your Pro journey begins now! You have everything you need to accelerate your growth as a developer. Let's explore together and unlock your full potential with our premium platform.",
+      title: 'Ready to Start?',
+      description:
+        "Your Pro journey begins now! You have everything you need to accelerate your growth as a developer. Let's explore together and unlock your full potential with our premium platform.",
     },
   ]
 
@@ -65,7 +69,7 @@ export const SubscriptionDialog = ({ open, onClose }: SubscriptionDialogProps) =
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="gap-0 p-0 [&>button:last-child]:text-white sm:max-w-lg">
         <div className="space-y-8 px-8 py-12">
-          <DialogHeader className="space-y-4">
+          <DialogHeader className="space-y-2">
             <DialogTitle>{stepContent[step - 1].title}</DialogTitle>
             <DialogDescription className="text-muted-foreground">
               {stepContent[step - 1].description}
@@ -77,8 +81,8 @@ export const SubscriptionDialog = ({ open, onClose }: SubscriptionDialogProps) =
                 <div
                   key={index}
                   className={cn(
-                    "bg-primary size-1.5 rounded-full",
-                    index + 1 === step ? "bg-primary" : "opacity-20"
+                    'bg-primary size-1.5 rounded-full',
+                    index + 1 === step ? 'bg-primary' : 'opacity-20',
                   )}
                 />
               ))}
@@ -90,11 +94,7 @@ export const SubscriptionDialog = ({ open, onClose }: SubscriptionDialogProps) =
                 </Button>
               </DialogClose>
               {step < totalSteps ? (
-                <Button
-                  className="group"
-                  type="button"
-                  onClick={handleContinue}
-                >
+                <Button className="group" type="button" onClick={handleContinue}>
                   Next
                   <ArrowRightIcon
                     className="-me-1 opacity-60 transition-transform group-hover:translate-x-0.5"
