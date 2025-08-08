@@ -29,6 +29,10 @@ import {
   QuestsDialog,
   SupportDialog,
 } from './dialogs'
+import { getUser } from '@/core/users'
+import { isFailure } from '@/lib/result'
+import { redirect } from 'next/navigation'
+import { MainSidebarNews } from '@/components/sidebar/main-sidebar-news'
 
 export const HomeButton = () => {
   return (
@@ -49,7 +53,13 @@ export const HomeButton = () => {
   )
 }
 
-export const AppSidebar = () => {
+export const AppSidebar = async () => {
+  const user = await getUser()
+
+  if (isFailure(user)) {
+    return redirect('/auth/login')
+  }
+
   return (
     <Sidebar
       collapsible="icon"
@@ -87,7 +97,7 @@ export const AppSidebar = () => {
             <SupportButton status="online" />
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <ProCtaCard />
+            {user.value.informations.role === 'basic' ? <ProCtaCard /> : <MainSidebarNews />}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
