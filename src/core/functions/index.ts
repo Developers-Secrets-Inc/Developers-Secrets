@@ -37,6 +37,7 @@ export function query<Schema extends ZodTypeAny, T>(config: {
     args: Schema extends undefined ? undefined : z.infer<Schema>,
   ) => Promise<T> | T
   revalidate?: number | false
+  tags?: string[] | ((args: Schema extends undefined ? undefined : z.infer<Schema>) => string[])
 }): (args?: Schema extends undefined ? undefined : z.infer<Schema>) => Promise<T> {
   return async (args?: Schema extends undefined ? undefined : z.infer<Schema>) => {
     const payload = await getPayload({ config: payloadConfig })
@@ -44,17 +45,31 @@ export function query<Schema extends ZodTypeAny, T>(config: {
     if (config.args) config.args.parse(args ?? {})
 
     const cacheKey = makeCacheKey(config.name, args ?? {})
-
+    
+    // Calculate tags based on args only (static tags)
+    let tags = [cacheKey]
+    if (config.tags) {
+      if (Array.isArray(config.tags)) {
+        tags = [...tags, ...config.tags]
+      } else if (typeof config.tags === 'function') {
+        const dynamicTags = config.tags(args ?? ({} as any))
+        tags = [...tags, ...dynamicTags]
+      }
+    }
+    
     const cachedFn = unstable_cache(
-      () => Promise.resolve(config.handler(ctx, args ?? ({} as any))),
-      [cacheKey],
+      async () => {
+        const result = await Promise.resolve(config.handler(ctx, args ?? ({} as any)))
+        return result
+      },
+      tags,
       {
-        tags: [cacheKey],
+        tags: tags,
         revalidate: config.revalidate,
       },
     )
 
-    return cachedFn()
+    return await cachedFn()
   }
 }
 

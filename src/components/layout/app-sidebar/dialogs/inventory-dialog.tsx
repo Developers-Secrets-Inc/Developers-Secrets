@@ -13,7 +13,7 @@ import {
 import { Package } from 'lucide-react'
 import { useSpecificDialog } from '../stores/sidebar-dialogs-store'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/archive/ui/badge'
+import { Badge } from '@/components/ui/badge'
 import { CoinIcon } from '@/components/icons/coin'
 import { getItemIcon } from '@/core/gamification/marketplace/components/dialogs/marketplace-dialog'
 

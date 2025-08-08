@@ -211,7 +211,6 @@ export const getTutorialArticles = query({
       depth: 0,
     })
 
-    console.log(documents.docs[0].sections)
     if (!documents.docs[0]) return none()
 
     const tutorial = documents.docs[0]
@@ -263,7 +262,8 @@ export const getArticleBySlug = query({
     })
 
     return article ? some(article) : none()
-
-
   },
+  tags: (args) => [
+    `article-slug-${args.articleSlug}`,
+  ],
 })

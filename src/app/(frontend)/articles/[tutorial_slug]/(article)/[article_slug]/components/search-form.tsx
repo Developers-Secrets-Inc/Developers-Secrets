@@ -1,23 +1,9 @@
 'use client'
 
-import { Search, ArrowUp, ArrowDown, ArrowRight, BookOpen, Code, FileText } from 'lucide-react'
-import * as React from 'react'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Search } from 'lucide-react'
 
-import {
-  Command,
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
-import { SidebarGroup, SidebarGroupContent, SidebarInput } from '@/components/ui/sidebar'
-import { fetchArticlesChunk, type ArticleWithTutorial } from '@/actions/articles'
 import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
+import { SidebarGroup, SidebarGroupContent, SidebarInput } from '@/components/ui/sidebar'
 
 // Animation variants for the articles
 const articleVariants = {

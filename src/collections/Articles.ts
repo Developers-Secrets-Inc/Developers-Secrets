@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { revalidateTag } from 'next/cache'
 
 export const Articles: CollectionConfig = {
   slug: 'articles',
@@ -9,6 +10,32 @@ export const Articles: CollectionConfig = {
   // Enable version system with drafts
   versions: {
     drafts: true,
+  },
+  hooks: {
+    afterChange: [
+      async ({ doc, previousDoc, operation }) => {
+        console.log(doc.slug, previousDoc.slug)
+        revalidateTag(`article-slug-${doc.slug}`)
+        console.log('Article has been revalidated')
+        
+        // Invalider l'ancien slug si le slug a changé
+        if (previousDoc && previousDoc.slug !== doc.slug) {
+          revalidateTag(`article-slug-${previousDoc.slug}`)
+        }
+        
+        return doc
+      },
+    ],
+    afterDelete: [
+      async ({ doc }) => {
+        // Invalidate cache for the deleted article
+        revalidateTag(`article-slug-${doc.slug}`)
+        revalidateTag('articles-collection')
+        revalidateTag('articles')
+        
+        return doc
+      },
+    ],
   },
   fields: [
     {

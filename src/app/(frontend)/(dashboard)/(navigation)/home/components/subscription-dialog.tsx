@@ -43,19 +43,19 @@ export const SubscriptionDialog = ({ open, onClose }: SubscriptionDialogProps) =
   const stepContent = [
     {
       title: "Welcome to Pro!",
-      description: "You've unlocked premium access. Discover everything you now have access to.",
+      description: "You've unlocked premium access. Discover everything you now have access to, including advanced features, exclusive content, and priority support that will accelerate your development journey.",
     },
     {
       title: "Unlimited Content",
-      description: "Explore our complete library of premium resources.",
+      description: "Explore our complete library of premium resources, tutorials, and challenges. Get unlimited access to cutting-edge courses, AI-powered coding challenges, and comprehensive guides that will level up your skills.",
     },
     {
       title: "Community & Support",
-      description: "Join our private community and get priority support.",
+      description: "Join our private community of expert developers and get priority support. Connect with like-minded professionals, share knowledge, and receive personalized assistance from our dedicated support team.",
     },
     {
       title: "Ready to Start?",
-      description: "Your Pro journey begins now. Let's explore together!",
+      description: "Your Pro journey begins now! You have everything you need to accelerate your growth as a developer. Let's explore together and unlock your full potential with our premium platform.",
     },
   ]
 
@@ -64,19 +64,10 @@ export const SubscriptionDialog = ({ open, onClose }: SubscriptionDialogProps) =
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="gap-0 p-0 [&>button:last-child]:text-white sm:max-w-lg">
-        <div className="p-2">
-          <img
-            className="w-full rounded-md"
-            src="/dialog-content.png"
-            width={382}
-            height={216}
-            alt="dialog"
-          />
-        </div>
-        <div className="space-y-6 px-6 pt-3 pb-6">
-          <DialogHeader>
+        <div className="space-y-8 px-8 py-12">
+          <DialogHeader className="space-y-4">
             <DialogTitle>{stepContent[step - 1].title}</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-muted-foreground">
               {stepContent[step - 1].description}
             </DialogDescription>
           </DialogHeader>

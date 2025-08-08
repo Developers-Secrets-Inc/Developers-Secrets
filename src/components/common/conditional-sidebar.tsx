@@ -1,6 +1,6 @@
 'use client'
 
-import { useSidebar } from "@/archive/ui/sidebar"
+import { useSidebar } from "@/components/ui/sidebar"
 
 
 
