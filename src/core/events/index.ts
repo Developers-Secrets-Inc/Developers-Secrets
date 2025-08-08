@@ -1,7 +1,9 @@
+import { Challenge } from '@/payload-types';
 import { ChallengeEvents } from './handlers/challenges'
+import { User } from '../users/types';
 
 type EventPayloads = {
-  'challenge.completed': { challengeId: number; userId: string }
+  'challenge.completed': { challenge: Challenge; user: User }
 }
 
 type EventType = keyof EventPayloads

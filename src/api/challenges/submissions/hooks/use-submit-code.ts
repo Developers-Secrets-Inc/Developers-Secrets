@@ -8,7 +8,7 @@ import { FileStructureForExecution } from '@/core/compiler/utils/file-structure'
 // Import Language type from the submissions module
 type Language = 'python' | 'javascript' | 'typescript'
 
-type SubmitCodeInput =
+export type SubmitCodeInput =
   | { type: 'single'; code: string; language: Language }
   | { type: 'structure'; fileStructure: FileStructureForExecution }
 

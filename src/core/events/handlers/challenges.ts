@@ -1,10 +1,11 @@
-import { trackAchievementProgress } from "@/core/gamification/achievements/action"
-import type { Event } from "../type"
-import { addCurrency } from "@/core/gamification/marketplace/currency"
+import { trackAchievementProgress } from "@/core/gamification/achievements/action";
+import { User } from "@/core/users/types";
+import { Challenge } from "@/payload-types";
+import type { Event } from "../type";
 
 
-export const ChallengeEvents: Event<{challengeId: number, userId: string}>[] = [
-    async (payload) => (await trackAchievementProgress(payload.userId, 'challenges_completed', 1)),
+export const ChallengeEvents: Event<{challenge: Challenge; user: User}>[] = [
+    async (payload) => (await trackAchievementProgress(payload.user.id, 'challenges_completed', 1)),
 ]
 
 

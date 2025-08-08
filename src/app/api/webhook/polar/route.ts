@@ -23,15 +23,33 @@ export const POST = Webhooks({
         await updateUserCustomerId(payload.data.customer.externalId, payload.data.customer.id)
 
         break
-        case 'subscription.revoked':
-          if (!payload.data.customer.externalId) {
+      case 'subscription.created':
+        if (!payload.data.customer.externalId) {
           console.error('❌ User not found:', payload.data.customer.email)
           break
         }
 
-          await updateUserRole(payload.data.customer.externalId, 'basic')
+        console.log(payload.data.product)
+        if (payload.data.product.name === 'Pro Membership') {
+          await updateUserRole(payload.data.customer.externalId, 'pro')
+        } else if (payload.data.product.name === 'Max Membership') {
+          await updateUserRole(payload.data.customer.externalId, 'max')
+        } else if (payload.data.product.name === 'Lite Membership') {
+          await updateUserRole(payload.data.customer.externalId, 'lite')
+        }
 
+        await updateUserCustomerId(payload.data.customer.externalId, payload.data.customer.id)
+
+        break
+      case 'subscription.revoked':
+        if (!payload.data.customer.externalId) {
+          console.error('❌ User not found:', payload.data.customer.email)
           break
+        }
+
+        await updateUserRole(payload.data.customer.externalId, 'basic')
+
+        break
 
       default:
         console.log('⚠️ Unknown event:', payload.type)
