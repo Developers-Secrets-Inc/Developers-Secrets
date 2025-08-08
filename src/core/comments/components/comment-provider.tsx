@@ -1,5 +1,5 @@
 import { Comment as PayloadComment } from '@/payload-types'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { createContext } from 'react'
 
 export type CommentContextType = {

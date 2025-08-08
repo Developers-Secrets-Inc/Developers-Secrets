@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { OAuth2Buttons } from '@/components/buttons/OAuth2Buttons'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
-import { loginWithGoogle, loginWithGitHub } from '@/actions/auth'
+import { loginWithGoogle, loginWithGitHub } from '@/core/users/auth'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2, AtSignIcon } from 'lucide-react' // Removed LockIcon as PasswordInput should handle it

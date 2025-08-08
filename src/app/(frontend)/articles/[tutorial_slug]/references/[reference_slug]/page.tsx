@@ -1,8 +1,4 @@
 import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
-import { getArticleOutline } from '@/core/articles'
-import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'
-import { getReferenceArticleBySlug } from '@/core/articles/index-v2'
-import { getPersonalizedArticles, getPopularArticles } from '@/core/articles/recommandations-v2'
 import { isFailure } from '@/lib/result'
 import { Metadata, ResolvingMetadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -10,63 +6,67 @@ import { Suspense } from 'react'
 import { ArticleOutline } from '../../(article)/[article_slug]/components/article-outline'
 import { ArticleContent, ArticleSkeleton } from '../../components/article-content'
 import { ArticleHeader } from '../../components/article-header'
+import { getArticleOutline } from '@/api/articles/navigation'
+import { getPersonalizedArticles, getPopularArticles } from '@/api/articles/recommandations'
+import { getReferenceArticleBySlug } from '@/api/articles'
+import { isNone } from '@/lib/maybe'
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ tutorial_slug: string; reference_slug: string }> },
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const { tutorial_slug, reference_slug } = await params
+// export async function generateMetadata(
+//   { params }: { params: Promise<{ tutorial_slug: string; reference_slug: string }> },
+//   parent: ResolvingMetadata,
+// ): Promise<Metadata> {
+//   const { tutorial_slug, reference_slug } = await params
 
-  const payloadArticle = await getReferenceArticleBySlug(tutorial_slug, reference_slug, {
-    seo: true,
-    title: true,
-    subtitle: true,
-    createdAt: true,
-    updatedAt: true,
-  })
+//   const payloadArticle = await getReferenceArticleBySlug(tutorial_slug, reference_slug, {
+//     seo: true,
+//     title: true,
+//     subtitle: true,
+//     createdAt: true,
+//     updatedAt: true,
+//   })
 
-  if (isFailure(payloadArticle)) {
-    throw payloadArticle.error
-  }
+//   if (isFailure(payloadArticle)) {
+//     throw payloadArticle.error
+//   }
 
-  const article = payloadArticle.value
+//   const article = payloadArticle.value
 
-  // Get the parent metadata
-  const previousImages = (await parent).openGraph?.images || []
+//   // Get the parent metadata
+//   const previousImages = (await parent).openGraph?.images || []
 
-  // Prepare SEO title - use SEO title if available, otherwise use article title
-  const title = article.seo?.title || article.title
-  const fullTitle = `${title} | Reference`
+//   // Prepare SEO title - use SEO title if available, otherwise use article title
+//   const title = article.seo?.title || article.title
+//   const fullTitle = `${title} | Reference`
 
-  // Prepare SEO description
-  const description =
-    article.seo?.description ||
-    article.subtitle ||
-    `Reference guide for ${article.title} in our tutorial.`
+//   // Prepare SEO description
+//   const description =
+//     article.seo?.description ||
+//     article.subtitle ||
+//     `Reference guide for ${article.title} in our tutorial.`
 
-  const keywords =
-    article.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
+//   const keywords =
+//     article.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
 
-  return {
-    title: fullTitle,
-    description: description,
-    keywords: keywords,
-    openGraph: {
-      title: fullTitle,
-      description: description,
-      type: 'article',
-      publishedTime: article.createdAt,
-      modifiedTime: article.updatedAt,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/references/${reference_slug}`,
-      images: previousImages,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: fullTitle,
-      description: description,
-    },
-  }
-}
+//   return {
+//     title: fullTitle,
+//     description: description,
+//     keywords: keywords,
+//     openGraph: {
+//       title: fullTitle,
+//       description: description,
+//       type: 'article',
+//       publishedTime: article.createdAt,
+//       modifiedTime: article.updatedAt,
+//       url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/references/${reference_slug}`,
+//       images: previousImages,
+//     },
+//     twitter: {
+//       card: 'summary_large_image',
+//       title: fullTitle,
+//       description: description,
+//     },
+//   }
+// }
 
 export default async function ReferencePage({
   params,
@@ -75,12 +75,8 @@ export default async function ReferencePage({
 }) {
   const { tutorial_slug, reference_slug } = await params
 
-  const article = await getReferenceArticleBySlug(tutorial_slug, reference_slug, {
-    content: true,
-    title: true,
-    subtitle: true,
-  })
-  if (isFailure(article)) {
+  const article = await getReferenceArticleBySlug(tutorial_slug, reference_slug)
+  if (isNone(article)) {
     return notFound()
   }
   const outline = getArticleOutline(article.value.content)

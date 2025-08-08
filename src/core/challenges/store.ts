@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { Challenge as PayloadChallenge } from '@/payload-types'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 
 interface ChallengeStoreState {
   challenge: PayloadChallenge | null

@@ -1,4 +1,4 @@
-import { login } from '@/actions/auth'
+import { login } from '@/core/users/auth'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { LoginPageClient } from '../components/LoginPageClient'
 
@@ -23,7 +23,5 @@ export default async function LoginPage({
   const params = await searchParams
   const redirectTo = params?.redirect?.startsWith('/') ? params.redirect : undefined
 
-  return (
-      <LoginPageClient loginAction={login} redirectTo={redirectTo} />
-  )
+  return <LoginPageClient loginAction={login} redirectTo={redirectTo} />
 }

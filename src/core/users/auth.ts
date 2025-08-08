@@ -3,15 +3,9 @@
 import { initializeUser } from '@/core/gamification/level'
 import { createInitialUserInformation } from '@/core/user'
 import { createClient } from '@/utils/supabase/server'
+import { checkAndIncrementThrottle } from '@/utils/throttle'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import {
-  EmailInUseError,
-  InvalidPasswordError,
-  InvalidCredentialsError,
-  UserNotVerifiedError,
-} from '@/core/user/errors'
-import { checkAndIncrementThrottle } from '@/utils/throttle'
 
 export async function login(email: string, password: string, rememberMe: boolean) {
   // Throttling : 5 tentatives sur 10 minutes par email

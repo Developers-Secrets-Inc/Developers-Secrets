@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { UserMinus, Shield } from 'lucide-react'

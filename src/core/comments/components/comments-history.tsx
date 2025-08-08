@@ -1,7 +1,7 @@
 'use client'
 
 import { Comment } from '@/payload-types'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { CommentThread } from './comment-thread'
 
 interface CommentsHistoryProps {

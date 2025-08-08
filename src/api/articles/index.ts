@@ -267,3 +267,20 @@ export const getArticleBySlug = query({
     `article-slug-${args.articleSlug}`,
   ],
 })
+
+
+
+export const getExampleArticleBySlug = async (
+  tutorialSlug: string,
+  exampleSlug: string,
+) => {
+  return none()
+}
+
+
+export const getReferenceArticleBySlug = async (
+  tutorialSlug: string,
+  referenceSlug: string,
+) => {
+  return none()
+}

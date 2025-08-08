@@ -1,7 +1,7 @@
 'use client'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { UserCard } from './user-card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useFollowers, useFollowing } from '../hooks'

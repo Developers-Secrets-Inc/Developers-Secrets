@@ -4,8 +4,8 @@ import { PlusIcon } from 'lucide-react'
 import Link from 'next/link'
 import { getSessionUser } from '@/core/user'
 import { Button } from '@/components/ui/button'
-import { getAllBlogArticles } from '@/core/blog'
-import { ArticlesGrid } from '@/core/blog/components/articles-grid'
+import { getAllBlogArticles } from '@/api/blog'
+import { ArticlesGrid } from '@/api/blog/components/articles-grid'
 
 export default async function BlogPage() {
   const userResult = await getSessionUser()

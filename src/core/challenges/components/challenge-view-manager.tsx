@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
 
 import { useChallengeUIStore } from '@/core/challenges/stores/challenge-ui-store'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { ChallengeDescriptionView } from './challenge-description-view'
 import { InlinePearlView } from './pearl/inline-pearl-view'
 import { SheetPearlView } from './pearl/sheet-pearl-view'

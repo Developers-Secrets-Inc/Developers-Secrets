@@ -6,7 +6,7 @@ import { UserPlus, UserMinus, UserCheck } from 'lucide-react'
 import { UserListDialog } from './user-list-dialog'
 import { useFollowers, useFollowing, useFollowActions } from '../hooks'
 import { Skeleton } from '@/components/ui/skeleton'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 
 interface FollowButtonProps {
   userId: string

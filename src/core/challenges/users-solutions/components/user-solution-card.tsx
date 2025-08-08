@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { getUserById } from '@/core/user'
 import { isError } from '@/core/user/result'
 import { UserSolution } from '@/payload-types'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { ExternalLink, Eye, MessageSquare, ThumbsDown, ThumbsUp } from 'lucide-react'
 import Link from 'next/link'
 

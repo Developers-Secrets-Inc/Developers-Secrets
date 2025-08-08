@@ -1,8 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
-import { Article } from '@/types/article'
-import { Tutorial, TutorialSection } from '@/types/tutorial'
 import { cn } from '@/lib/utils'
+import { Article, Tutorial } from '@/payload-types'
 
 interface ArticlesSidebarProps {
   tutorial: Tutorial
@@ -52,7 +51,7 @@ export function ArticlesSidebar({
 }
 
 interface SidebarSectionProps {
-  section: TutorialSection | any // Using any to accommodate different section types
+  section: Tutorial['sections'] | any // Using any to accommodate different section types
   articles: Article[]
   currentArticleSlug?: string
   tutorialSlug: string

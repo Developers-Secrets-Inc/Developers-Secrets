@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { addBlocked } from '@/core/profile/actions'

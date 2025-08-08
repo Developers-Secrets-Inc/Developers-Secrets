@@ -1,5 +1,5 @@
 import { SignUpCard } from '../components/SignUpCard'
-import { signup } from '@/actions/auth'
+import { signup } from '@/core/users/auth'
 
 export default function SignUpPage() {
   const handleSignUp = async (

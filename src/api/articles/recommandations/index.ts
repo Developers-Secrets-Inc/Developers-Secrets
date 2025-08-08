@@ -5,8 +5,6 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-import { getTutorialArticles } from './index-v2'
-import { calculateHotnessScore } from './index'
 import { Article as PayloadArticle } from '@/payload-types'
 import { unstable_cache } from 'next/cache'
 import { TIME } from '@/lib/time'
@@ -14,6 +12,9 @@ import { Articles } from '@/collections/Articles'
 import { Result, success, failure, isFailure, flatMapAsync } from '@/lib/result'
 import { TutorialsNotFoundError, ArticleNotFoundError } from '@/core/articles/errors'
 import { PayloadSelect, GetProjectedType } from '@/core/articles/types'
+import { calculateHotnessScore } from './hotness'
+import { getTutorialArticles } from '..'
+import { isNone } from '@/lib/maybe'
 
 type ArticleSelect = PayloadSelect<PayloadArticle>
 
@@ -69,9 +70,11 @@ export const getPersonalizedArticles = async <S extends ArticleSelect | undefine
 ): Promise<
   Result<GetProjectedType<PayloadArticle, S>[], TutorialsNotFoundError | ArticleNotFoundError>
 > => {
-  const articlesResult = await getTutorialArticles(tutorialSlug, select)
+  const articlesResult = await getTutorialArticles({tutorialSlug})
 
-  return flatMapAsync(articlesResult, async (articles) => {
+  if (isNone(articlesResult)) return []
+
+  return flatMapAsync(articlesResult.value, async (articles) => {
     // Filter out the current article if specified
     const filteredArticles = excludeArticleId
       ? articles.filter((a) => String(a.id) !== String(excludeArticleId))

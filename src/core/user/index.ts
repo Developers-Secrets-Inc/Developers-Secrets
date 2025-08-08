@@ -2,25 +2,25 @@
 
 import 'server-only'
 
-import { UserInformation as PayloadUserInformation } from '@/payload-types'
-import { User, UserInformations, UserPermission, UserRole } from '@/types/user'
+import { UserInformation as PayloadUserInformation, UserInformation } from '@/payload-types'
 import { createClient } from '@/utils/supabase/server'
 import config from '@payload-config'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 import { getPayload } from 'payload'
 import {
   SupabaseUserNotFoundError,
-  UserInformationsNotFoundError,
+  UserInformationNotFoundError,
   UserNotFoundError,
 } from './errors'
 import { isError, Result } from './result'
 import { UserId, validateUserId } from './types'
+import { User } from '../users/types'
 
-const convertPayloadUserInformationToUserInformations = (
+const convertPayloadUserInformationToUserInformation = (
   payloadUserInformation: PayloadUserInformation,
-): UserInformations => {
+): UserInformation => {
   // Convertir les permissions de Payload en UserPermission[]
-  const permissions: UserPermission[] = Array.isArray(payloadUserInformation.permissions)
+  const permissions  = Array.isArray(payloadUserInformation.permissions)
     ? payloadUserInformation.permissions
         .filter((p) => typeof p === 'object' && p !== null)
         .map((p) => ({
@@ -96,7 +96,7 @@ export const createInitialUserInformation = async (
   }
 }
 
-export const getUserInformation = async (userId: string): Promise<UserInformations> => {
+export const getUserInformation = async (userId: string): Promise<UserInformation> => {
   const payload = await getPayload({ config })
 
   const userInformation = await payload.find({
@@ -108,7 +108,7 @@ export const getUserInformation = async (userId: string): Promise<UserInformatio
     throw new Error(`User information not found for user ${userId}`)
   }
 
-  return convertPayloadUserInformationToUserInformations(userInformation.docs[0])
+  return convertPayloadUserInformationToUserInformation(userInformation.docs[0])
 }
 
 const getSupabaseUser = async (): Promise<SupabaseUser | null> => {
@@ -153,11 +153,11 @@ export const getUserById = async (userId: UserId): Promise<Result<User, UserNotF
   return { success: true, value: { ...data.user, informations: user } }
 }
 
-const getSessionUserInformations = async (
+const getSessionUserInformation = async (
   supabaseUser: SupabaseUser,
-): Promise<Result<UserInformations, UserInformationsNotFoundError>> => {
-  const userInformations = await getUserInformation(supabaseUser.id)
-  return { success: true, value: userInformations }
+): Promise<Result<UserInformation, UserInformationNotFoundError>> => {
+  const UserInformation = await getUserInformation(supabaseUser.id)
+  return { success: true, value: UserInformation }
 }
 
 const getSupabaseSessionUser = async (): Promise<
@@ -187,15 +187,15 @@ export const getSessionUser = async (): Promise<Result<User, UserNotFoundError>>
     return { success: false, error: new UserNotFoundError(supabaseSessionUser.error.message) }
   }
 
-  const userInformations = await getSessionUserInformations(supabaseSessionUser.value)
+  const UserInformation = await getSessionUserInformation(supabaseSessionUser.value)
 
-  if (isError(userInformations)) {
-    return { success: false, error: new UserNotFoundError(userInformations.error.message) }
+  if (isError(UserInformation)) {
+    return { success: false, error: new UserNotFoundError(UserInformation.error.message) }
   }
 
   return {
     success: true,
-    value: { ...supabaseSessionUser.value, informations: userInformations.value },
+    value: { ...supabaseSessionUser.value, informations: UserInformation.value },
   }
 }
 
@@ -237,9 +237,9 @@ export const getUserByEmail = async (email: string): Promise<Result<User, UserNo
     return { success: false, error: new UserNotFoundError(supabaseUser.error.message) }
   }
 
-  const userInformations = await getUserInformation(supabaseUser.value.id)
+  const UserInformation = await getUserInformation(supabaseUser.value.id)
 
-  return { success: true, value: { ...supabaseUser.value, informations: userInformations } }
+  return { success: true, value: { ...supabaseUser.value, informations: UserInformation } }
 }
 
 // =============

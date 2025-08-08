@@ -1,91 +1,81 @@
 export const experimental_ppr = true
 import { ArticleOutline } from '../../(article)/[article_slug]/components/article-outline'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import {
-  getExampleArticleBySlug,
-  getFirstExampleArticle,
-  getTutorialBySlug,
-  getTutorialExamplesArticles,
-  getTutorials,
-} from '@/core/articles/index-v2'
-import { getArticleOutline } from '@/core/articles'
+
 import { Metadata, ResolvingMetadata } from 'next'
 import { Suspense } from 'react'
 import { ArticleContent, ArticleSkeleton } from '../../components/article-content'
 import { ArticleSidebar } from '../../components/article-sidebar'
 import { ArticleHeader } from '../../components/article-header'
 import { HeaderPlaceholder } from '@/components/layout/header-placeholder'
-import { ChatActivationButton } from '@/core/articles/components/chat-activation-button'
-import { getPopularArticles, getPersonalizedArticles } from '@/core/articles/recommandations-v2'
 import { notFound } from 'next/navigation'
 import { isFailure } from '@/lib/result'
+import { getExampleArticleBySlug } from '@/api/articles'
+import { getArticleOutline } from '@/api/articles/navigation'
+import { isNone } from '@/lib/maybe'
+import { getPersonalizedArticles, getPopularArticles } from '@/api/articles/recommandations'
+import { ChatActivationButton } from '@/api/articles/ai/components/chat-activation-button'
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ tutorial_slug: string; example_slug: string }> },
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const { tutorial_slug, example_slug } = await params
+// export async function generateMetadata(
+//   { params }: { params: Promise<{ tutorial_slug: string; example_slug: string }> },
+//   parent: ResolvingMetadata,
+// ): Promise<Metadata> {
+//   const { tutorial_slug, example_slug } = await params
 
-  try {
-    // Get the tutorial and article data (Payload structure)
-    const payloadArticle = await getExampleArticleBySlug(tutorial_slug, example_slug, {
-      seo: true,
-      title: true,
-      subtitle: true,
-      createdAt: true,
-      updatedAt: true,
-    })
+//   try {
+//     // Get the tutorial and article data (Payload structure)
+//     const payloadArticle = await getExampleArticleBySlug(tutorial_slug, example_slug)
 
-    if (isFailure(payloadArticle)) {
-      throw payloadArticle.error
-    }
+//     if (isNone(payloadArticle)) {
+//       throw payloadArticle.error
+//     }
 
-    const article = payloadArticle.value
+//     const article = payloadArticle.value
 
-    // Get the parent metadata
-    const previousImages = (await parent).openGraph?.images || []
+//     // Get the parent metadata
+//     const previousImages = (await parent).openGraph?.images || []
 
-    // Prepare SEO title - use SEO title if available, otherwise use article title
-    const title = article.seo?.title || article.title
-    const fullTitle = `${title} | Examples | ${article.title}`
+//     // Prepare SEO title - use SEO title if available, otherwise use article title
+//     const title = article.seo?.title || article.title
+//     const fullTitle = `${title} | Examples | ${article.title}`
 
-    // Prepare SEO description
-    const description =
-      article.seo?.description ||
-      article.subtitle ||
-      `Practical examples of ${article.title} in our tutorial.`
+//     // Prepare SEO description
+//     const description =
+//       article.seo?.description ||
+//       article.subtitle ||
+//       `Practical examples of ${article.title} in our tutorial.`
 
-    // Prepare keywords
-    const keywords =
-      article.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
+//     // Prepare keywords
+//     const keywords =
+//       article.seo?.keywords?.map((k) => k.keyword).filter((k): k is string => !!k) || []
 
-    return {
-      title: fullTitle,
-      description: description,
-      keywords: keywords,
-      openGraph: {
-        title: fullTitle,
-        description: description,
-        type: 'article',
-        publishedTime: article.createdAt,
-        modifiedTime: article.updatedAt,
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/examples/${example_slug}`,
-        images: previousImages,
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: fullTitle,
-        description: description,
-      },
-    }
-  } catch (error) {
-    // Return basic metadata if there's an error
-    return {
-      title: 'Example',
-      description: 'Practical examples from our comprehensive tutorials',
-    }
-  }
-}
+//     return {
+//       title: fullTitle,
+//       description: description,
+//       keywords: keywords,
+//       openGraph: {
+//         title: fullTitle,
+//         description: description,
+//         type: 'article',
+//         publishedTime: article.createdAt,
+//         modifiedTime: article.updatedAt,
+//         url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/articles/${tutorial_slug}/examples/${example_slug}`,
+//         images: previousImages,
+//       },
+//       twitter: {
+//         card: 'summary_large_image',
+//         title: fullTitle,
+//         description: description,
+//       },
+//     }
+//   } catch (error) {
+//     // Return basic metadata if there's an error
+//     return {
+//       title: 'Example',
+//       description: 'Practical examples from our comprehensive tutorials',
+//     }
+//   }
+// }
 
 export default async function ExamplePage({
   params,
@@ -95,13 +85,9 @@ export default async function ExamplePage({
   const { tutorial_slug, example_slug } = await params
 
   // Get the tutorial, article, and related data
-  const article = await getExampleArticleBySlug(tutorial_slug, example_slug, {
-    content: true,
-    title: true,
-    subtitle: true,
-  })
+  const article = await getExampleArticleBySlug(tutorial_slug, example_slug)
 
-  if (isFailure(article)) return notFound()
+  if (isNone(article)) return notFound()
 
   const outline = getArticleOutline(article.value.content)
 

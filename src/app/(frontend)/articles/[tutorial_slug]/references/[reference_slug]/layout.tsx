@@ -1,5 +1,4 @@
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { getTutorialBySlug } from '@/core/articles/index-v2'
 import { isFailure } from '@/lib/result'
 import { notFound } from 'next/navigation'
 import { ArticleSidebar } from '../../components/article-sidebar'

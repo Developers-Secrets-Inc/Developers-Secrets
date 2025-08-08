@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar'
 import { useState } from 'react'
 import { useEffect } from 'react'
-import { getSupportStatus as fetchSupportStatus } from '@/actions/support'
+import { getSupportStatus as fetchSupportStatus } from '@/api/support'
 
 export const ArticleSidebarFooter = () => {
   const [feedbackOpen, setFeedbackOpen] = useState(false)

@@ -1,7 +1,7 @@
 'use client'
 
+import { Article } from '@/payload-types'
 import { useMemo, useRef, useEffect, useState } from 'react'
-import { Article } from '@/types/article'
 
 // Configuration des recommandations
 export const RECOMMENDATIONS_CONFIG = {

@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getFollowers } from '../follow'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 
 export const useFollowers = (userId: string) => {
   return useQuery<User[]>({

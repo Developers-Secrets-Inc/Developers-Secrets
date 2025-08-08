@@ -3,8 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { initializeChallengeStore } from '@/core/challenges/store'
 import { Challenge as PayloadChallenge } from '@/payload-types'
-import { User } from '@/types/user'
-
+import { User } from '@/core/users/types'
 interface ChallengeStoreHydratorProps {
   challenge: PayloadChallenge
   user: User

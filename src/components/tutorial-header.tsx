@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
-import { Tutorial } from '@/types/tutorial'
 import { cn } from '@/lib/utils'
+import { Tutorial } from '@/payload-types'
 
 interface TutorialHeaderProps {
   tutorial: Tutorial

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { Markdown } from '@/components/markdown'
-import { getBlogArticleBySlug } from '@/core/blog' // Import the specific action
+import { getBlogArticleBySlug } from '@/api/blog' // Import the specific action
 
 interface BlogArticlePageProps {
   params: Promise<{

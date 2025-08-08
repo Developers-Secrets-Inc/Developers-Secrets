@@ -4,20 +4,19 @@ import { UsersSolutionsTagsWithProvider } from '@/core/challenges/users-solution
 import { CommunitySolutionCard } from '@/core/challenges/users-solutions/components/user-solution-card'
 import { useTagsAndSorting } from '@/core/challenges/users-solutions/hooks/use-users-solutions-tags'
 import { Tag, UserSolution } from '@/payload-types'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { filterAndSortSolutions } from '../../utils/solution-filters'
 import { SolutionsSearch } from './solutions-search'
 
-
-export function CommunitySolutions({ 
-  solutions, 
+export function CommunitySolutions({
+  solutions,
   user,
-  challengeSlug
-}: { 
-  solutions: UserSolution[],
-  user: User,
+  challengeSlug,
+}: {
+  solutions: UserSolution[]
+  user: User
   challengeSlug: string
 }) {
   const [searchTerm, setSearchTerm] = useState('')
@@ -52,7 +51,6 @@ export function CommunitySolutions({
   }, [solutions, searchTerm, selectedTags, sortBy])
 
   // Convertir les solutions en format attendu par CommunitySolutionCard
-
 
   // Callback pour mettre à jour le terme de recherche
   const handleSearch = (newSearchTerm: string) => {

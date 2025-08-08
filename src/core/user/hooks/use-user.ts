@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getUser } from '..'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 
 export const useSessionUser = () => {
   const {

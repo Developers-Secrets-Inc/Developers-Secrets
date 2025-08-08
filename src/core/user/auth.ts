@@ -4,7 +4,7 @@ import { UserCreationError } from './errors'
 import { Email, Password } from './types'
 import { createInitialUserInformation, getUserInformation } from '.'
 import { createClient } from '@/utils/supabase/server'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 
 export const createSupabaseUser = async (
@@ -33,7 +33,7 @@ export const createSupabaseUser = async (
  *
  * @param {Email} email - The email address of the user to be created.
  * @param {Password} password - The password for the new user.
- * @returns {Promise<{ user: User | null, error: UserCreationError | null }>} 
+ * @returns {Promise<{ user: User | null, error: UserCreationError | null }>}
  * An object containing the created user or an error if the creation failed.
  */
 export const createUser = async (
@@ -56,7 +56,6 @@ export const createUser = async (
   return { user: null, error }
 }
 
-
 export const logoutSessionUser = async () => {
   const supabase = await createClient()
 
@@ -65,7 +64,6 @@ export const logoutSessionUser = async () => {
     throw new Error(error.message)
   }
 }
-
 
 export const changeUserEmail = async (newEmail: Email) => {
   const supabase = await createClient()

@@ -1,6 +1,6 @@
 'use server'
 
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getUserById } from '../user'

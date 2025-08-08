@@ -1,5 +1,5 @@
 import { Challenge } from '@/payload-types'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { notFound } from 'next/navigation'
 
 export const DraftRedirect = ({

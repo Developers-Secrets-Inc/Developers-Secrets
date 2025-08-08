@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toggleFollowUser } from '../actions'
 import { useToast } from '@/components/ui/use-toast'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 
 interface FollowResult {
   success: boolean

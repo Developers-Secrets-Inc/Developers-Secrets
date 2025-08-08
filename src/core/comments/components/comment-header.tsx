@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User } from '@/types/user'
+import { User } from '@/core/users/types'
 import { formatDistanceToNow } from 'date-fns'
 import { Edit2, MoreVertical, Trash2 } from 'lucide-react'
 import { useComment } from '../hooks/use-comment'
