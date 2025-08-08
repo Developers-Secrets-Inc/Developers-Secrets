@@ -89,5 +89,4 @@ export const getCourseGridInformations = query({
 
     return gridCourseInformations
   },
-  revalidate: 1
 })

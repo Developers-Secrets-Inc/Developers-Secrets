@@ -102,18 +102,18 @@ export const SubmitButton = () => {
           ),
         )
 
-        const successfulAiEvaluations = promptsResults.filter((result) => result.score >= 8).length
+        const successfulAiEvaluations = promptsResults.filter((result) => result.score >= 3).length
         const totalAiEvaluations = promptsResults.length
         const aiSuccessPercentage =
           totalAiEvaluations > 0 ? (successfulAiEvaluations / totalAiEvaluations) * 100 : 0
 
         setAiAndSubmissionResults(promptsResults, submission, testResults)
 
-        if (aiSuccessPercentage) {
+        if (aiSuccessPercentage >= 30) {
           const isAlreadyCompleted =
             (await getCompletionStatus(user.id, challenge.id)) === 'completed'
 
-          // await setCompleted()
+          await setCompleted()
 
           if (!isAlreadyCompleted) {
             openCompletionDialog()
