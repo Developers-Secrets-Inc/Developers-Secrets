@@ -139,6 +139,7 @@ export interface Config {
     'course-part-ai-chats': CoursePartAiChat;
     'course-part-chat-histories': CoursePartChatHistory;
     userLastVisitedCourse: UserLastVisitedCourse;
+    'user-page-visits': UserPageVisit;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -217,6 +218,7 @@ export interface Config {
     'course-part-ai-chats': CoursePartAiChatsSelect<false> | CoursePartAiChatsSelect<true>;
     'course-part-chat-histories': CoursePartChatHistoriesSelect<false> | CoursePartChatHistoriesSelect<true>;
     userLastVisitedCourse: UserLastVisitedCourseSelect<false> | UserLastVisitedCourseSelect<true>;
+    'user-page-visits': UserPageVisitsSelect<false> | UserPageVisitsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -2708,6 +2710,29 @@ export interface UserLastVisitedCourse {
   createdAt: string;
 }
 /**
+ * Tracks whether a user has visited a specific app route (boolean only).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-page-visits".
+ */
+export interface UserPageVisit {
+  id: number;
+  /**
+   * The Supabase user ID (UUID).
+   */
+  userId: string;
+  /**
+   * The application route path (e.g., /(frontend)/(dashboard)/(navigation)/home).
+   */
+  path: string;
+  /**
+   * Whether the user has visited the specified path.
+   */
+  visited: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -3001,6 +3026,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'userLastVisitedCourse';
         value: number | UserLastVisitedCourse;
+      } | null)
+    | ({
+        relationTo: 'user-page-visits';
+        value: number | UserPageVisit;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -4384,6 +4413,17 @@ export interface UserLastVisitedCourseSelect<T extends boolean = true> {
   lastVisitedAt?: T;
   lastChapterSlug?: T;
   lastPartSlug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-page-visits_select".
+ */
+export interface UserPageVisitsSelect<T extends boolean = true> {
+  userId?: T;
+  path?: T;
+  visited?: T;
   updatedAt?: T;
   createdAt?: T;
 }

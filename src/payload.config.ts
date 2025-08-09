@@ -80,6 +80,7 @@ import { CoursePartsRatings } from './collections/CoursePartsRatings'
 import { CoursePartAIChats } from './collections/CoursePartAIChats'
 import { CoursePartChatHistories } from './collections/CoursePartChatHistories'
 import { UserLastVisitedCourse } from './collections/UserLastVisitedCourse'
+import { UserPageVisits } from './collections/UserPageVisits'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -164,6 +165,7 @@ export default buildConfig({
     CoursePartAIChats,
     CoursePartChatHistories,
     UserLastVisitedCourse,
+    UserPageVisits,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

@@ -6,6 +6,9 @@ import { RecommendedChallenge } from '@/core/challenges/recommended-challenge'
 import { getUser } from '@/core/user'
 import { redirect } from 'next/navigation'
 import { HomeClientWrapper } from './components/home-client-wrapper'
+import { withOnboardingStep } from '@/core/onboarding/tour/components/withOnboardingStep'
+
+const OnboardedCurrentCourseCard = withOnboardingStep(CurrentCourseCard, { stepId: 'current-course' })
 
 export const HomeGrid = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -34,7 +37,7 @@ export default async function Home() {
     <HomeClientWrapper>
       <HomeGrid>
         <HomeLeftColumn>
-          <CurrentCourseCard />
+          <OnboardedCurrentCourseCard />
           <RecommendedChallenge userId={user.id} isPro={user.informations.role !== 'basic'} />
           <RecommendedCourses />
         </HomeLeftColumn>

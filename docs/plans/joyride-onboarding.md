@@ -23,7 +23,7 @@
   - indexes: unique composite (userId, path)
   - Remarque: absence d’entrée = non visité; on peut aussi ignorer le champ `visited` et considérer la présence comme “oui”.
 
-#### 2) Fonctions serveur (src/core/functions)
+#### 2) Fonctions serveur (src/core/onboarding/tour/server.ts)
 - Queries
   - (Optionnel) `hasVisited({ userId, path })`: renvoie boolean depuis `user-page-visits`.
 
@@ -70,20 +70,6 @@ Notes:
 #### 7) Accessibilité
 - Focus management, ARIA, navigation clavier, échappement, spotlight configurable.
 
-#### 8) Tests
-- Unit: Zod schemas, upsert `setPageVisited`.
-- Intégration: déclenchement via `?onboarding`, rendu des steps depuis le registre, HOC applique `data-onboarding-step`.
-- E2E: rendu des étapes sur pages cibles, fallback si sélecteur manquant, une seule écriture par (userId, path).
-
-#### 9) Déploiement par phases
-- Phase 1 (MVP): collections, queries/mutations, `OnboardingProvider`, `RouteTracker`, un tour basique.
-- Phase 2: mode preview, options d’audience, reprise cross-device.
-- Phase 3: i18n, analytics de tours (indépendant du booléen de visite).
-
-#### 10) Risques & mitigations
-- Sélecteurs instables: privilégier sélecteurs stables, observer DOM, step fallback sans cible.
-- Multi-écritures sur routes dynamiques: cache mémoire + index unique + debounce.
-
 ---
 
 ### Backlog de tâches (implémentation)
@@ -98,5 +84,295 @@ Notes:
    - Registre d’onboarding par route avec steps définies en code.
    - `RouteTracker` (écriture idempotente sur visite).
 4) Tests (unit, intégration, E2E) et documentation d’usage (HOC, registre, paramètre d’URL).
+
+
+---
+
+### Implémentation — code proposé (hors collection)
+
+Les extraits ci-dessous illustrent l’implémentation à ajouter au codebase. Ils respectent les standards de `src/core/functions` et l’architecture App Router. Les noms de fichiers sont indicatifs.
+
+#### 1) Fonctions serveur (src/core/onboarding/tour/server.ts)
+
+```typescript
+// src/core/onboarding/tour/server.ts
+import { z } from 'zod'
+import { mutation, query } from '@/core/functions'
+import { onboardingRegistry } from '@/core/onboarding/tour/registry' // aucune génération de fichiers
+
+export type AppRoute = keyof typeof onboardingRegistry
+
+// Schéma Zod runtime basé sur les clés du registre (100% TS, pas de génération)
+const appRouteValues = Object.keys(onboardingRegistry) as AppRoute[]
+const appRouteSchema = z.enum(appRouteValues as unknown as [AppRoute, ...AppRoute[]])
+
+export const setPageVisited = mutation({
+  name: 'setPageVisited',
+  args: z.object({
+    userId: z.string().min(1),
+    path: appRouteSchema,
+  }),
+  handler: async ({ payload }, { userId, path }) => {
+    const existing = await payload
+      .find({
+        collection: 'user-page-visits',
+        where: {
+          and: [
+            { userId: { equals: userId } },
+            { path: { equals: path } },
+          ],
+        },
+        limit: 1,
+      })
+      .then((r) => r.docs[0])
+
+    if (!existing) {
+      await payload.create({
+        collection: 'user-page-visits',
+        data: { userId, path, visited: true },
+      })
+    }
+
+    return { visited: true }
+  },
+})
+
+export const hasVisited = query({
+  name: 'hasVisited',
+  args: z.object({
+    userId: z.string().min(1),
+    path: appRouteSchema,
+  }),
+  handler: async ({ payload }, { userId, path }) => {
+    const total = await payload
+      .find({
+        collection: 'user-page-visits',
+        where: {
+          and: [
+            { userId: { equals: userId } },
+            { path: { equals: path } },
+          ],
+        },
+        limit: 1,
+      })
+      .then((r) => r.totalDocs)
+
+    return total > 0
+  },
+})
+```
+
+#### 2) Registre d’onboarding par route (src/core/onboarding/tour/registry.ts)
+
+```typescript
+// src/core/onboarding/tour/registry.ts
+export type OnboardingStep = {
+  id: string
+  title: string
+  content: string
+  placement?: 'top' | 'bottom' | 'left' | 'right' | 'auto'
+}
+
+export type OnboardingTour = {
+  id: string
+  steps: OnboardingStep[]
+}
+
+export const onboardingRegistry = {
+  '/(frontend)/(dashboard)/(navigation)/home': {
+    id: 'home',
+    steps: [
+      {
+        id: 'current-course',
+        title: 'Your current course',
+        content: 'Resume your learning journey from here.',
+        placement: 'bottom',
+      },
+      {
+        id: 'recommended-challenge',
+        title: 'Recommended challenge',
+        content: 'Try this challenge tailored to your level.',
+      },
+    ],
+  },
+} as const satisfies Record<string, OnboardingTour>
+
+// Les steps ciblent des éléments marqués via data attribute: [data-onboarding-step="<id>"]
+```
+
+> Pas de génération de fichiers. Le type `AppRoute` est dérivé directement des clés du `onboardingRegistry`.
+
+#### 3) HOC pour marquer les composants (src/onboarding/withOnboardingStep.tsx)
+
+```tsx
+// src/onboarding/withOnboardingStep.tsx
+'use client'
+import React, { forwardRef } from 'react'
+
+type WithOnboardingStepOptions = {
+  stepId: string
+}
+
+export function withOnboardingStep<P extends object>(
+  Component: React.ComponentType<P>,
+  options: WithOnboardingStepOptions,
+) {
+  const Wrapped = forwardRef<any, P>(function Wrapped(props, ref) {
+    return (
+      <div data-onboarding-step={options.stepId}>
+        <Component ref={ref as any} {...(props as P)} />
+      </div>
+    )
+  })
+
+  Wrapped.displayName = `WithOnboardingStep(${Component.displayName || Component.name || 'Component'})`
+  return Wrapped
+}
+```
+
+#### 4) Provider d’onboarding (src/core/onboarding/tour/components/provider.tsx)
+
+```tsx
+// src/core/onboarding/tour/components/provider.tsx
+'use client'
+import React, { useMemo } from 'react'
+import Joyride, { Step } from 'react-joyride'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { onboardingRegistry } from './registry'
+import type { AppRoute } from '@/core/onboarding/tour/index'
+
+export function OnboardingProvider({ children }: { children: React.ReactNode }) {
+  const pathnameRaw = usePathname() ?? ''
+  const pathname = (pathnameRaw in onboardingRegistry ? pathnameRaw : '') as AppRoute | ''
+  const search = useSearchParams()
+  const shouldStart = Boolean(search.get('onboarding'))
+
+  const tour = useMemo(() => (pathname ? onboardingRegistry[pathname as AppRoute] : undefined), [pathname])
+  const steps = useMemo<Step[]>(
+    () =>
+      tour
+        ? tour.steps.map((s) => ({
+            target: `[data-onboarding-step="${s.id}"]`,
+            title: s.title,
+            content: s.content,
+            placement: s.placement ?? 'auto',
+            disableBeacon: true,
+          }))
+        : [],
+    [tour],
+  )
+
+  const run = shouldStart && steps.length > 0
+
+  return (
+    <>
+      {children}
+      {run && (
+        <Joyride
+          steps={steps}
+          run={run}
+          showSkipButton
+          showProgress
+          continuous
+          disableScrolling
+          styles={{ options: { zIndex: 9999 } }}
+        />
+      )}
+    </>
+  )
+}
+```
+
+#### 5) Hook TanStack Query pour le tracking (src/core/onboarding/tour/hooks.ts)
+
+```typescript
+// src/core/onboarding/tour/hooks.ts
+'use client'
+import { useQuery } from '@/core/functions/hooks'
+import { setPageVisited } from '@/core/onboarding/tour/index'
+import type { AppRoute } from '@/core/onboarding/tour/index'
+
+export function useTrackPageVisit(args: { userId: string | undefined; path: AppRoute | '' }) {
+  const enabled = Boolean(args.userId && args.path)
+  // Déclenche l'écriture sans useEffect, via useQuery avec enabled
+  return useQuery(setPageVisited, enabled ? { userId: args.userId!, path: args.path as AppRoute } : (undefined as any), {
+    enabled,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  })
+}
+```
+
+#### 6) Composant client de tracking (src/core/onboarding/tour/components/visit-tracker-client.tsx)
+
+```tsx
+// src/core/onboarding/tour/components/visit-tracker-client.tsx
+'use client'
+import { usePathname } from 'next/navigation'
+import { useSessionUser } from '@/core/user/hooks/use-user'
+import { useTrackPageVisit } from '@/core/onboarding/tour/hooks'
+import { onboardingRegistry } from '@/core/onboarding/tour/registry'
+import type { AppRoute } from '@/core/onboarding/tour/index'
+
+export function VisitTrackerClient() {
+  const raw = usePathname() ?? ''
+  const pathname = (raw in onboardingRegistry ? raw : '') as AppRoute | ''
+  const { user } = useSessionUser()
+  useTrackPageVisit({ userId: user?.id, path: pathname })
+  return null
+}
+```
+
+#### 7) Intégration layout (exemple)
+
+```tsx
+// src/app/(frontend)/layout.tsx (extrait)
+import { OnboardingProvider } from '@/core/onboarding/tour/components/provider'
+import { VisitTrackerClient } from '@/core/onboarding/tour/components/visit-tracker-client'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <OnboardingProvider>
+          <VisitTrackerClient />
+          {children}
+        </OnboardingProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+#### 8) Exemple d’usage du HOC dans une page/composant (src/core/onboarding/tour/components/with-step.tsx)
+
+```tsx
+// Exemple: marquer un composant de la Home
+import { withOnboardingStep } from '@/core/onboarding/tour/components/with-step'
+import { CurrentCourseCard as BaseCard } from '@/components/cards/current-course-card'
+
+export const CurrentCourseCard = withOnboardingStep(BaseCard, { stepId: 'current-course' })
+```
+
+#### 8) Lecture du paramètre ?onboarding dans une page (option serveur)
+
+```tsx
+// src/app/(frontend)/(dashboard)/(navigation)/home/page.tsx (extrait)
+export default async function Home({ searchParams }: { searchParams?: { onboarding?: string } }) {
+  // Rien d’autre à faire si le Provider lit déjà useSearchParams côté client.
+  // Si besoin, on peut passer un prop au wrapper client.
+  return (
+    // <HomeClientWrapper onboarding={!!searchParams?.onboarding}>
+    //   ...
+    // </HomeClientWrapper>
+    // Pour ce plan, le Provider lit directement le paramètre côté client.
+    <>{/* contenu existant */}</>
+  )
+}
+```
+
+Notes complémentaires:
+- Si certains composants ne peuvent pas être enveloppés par le HOC (contraintes de composition), on peut ajouter un wrapper parent dédié à l’endroit où ils sont utilisés.
+- En cas de DOM async, Joyride peut nécessiter un léger délai; sinon, fallback sur une étape non ciblée (plein écran) est possible.
 
 
