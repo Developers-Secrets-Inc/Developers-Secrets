@@ -1,338 +1,102 @@
-# Tour System Implementation Plan
+### Joyride Onboarding — Plan de développement
 
-## Overview
-This document outlines the complete implementation plan for adding a generic tour system to the home dashboard page using an abstraction layer over React Joyride. The system is designed to be reusable across the entire platform.
+#### Objectifs
+- Mettre en place un système d’onboarding “joyride” activable par paramètre d’URL `?onboarding` sur les pages ciblées.
+- Définir la configuration Joyride directement dans le code (pas de CMS) et marquer les composants via un composant d’ordre supérieur (HOC) sans toucher à leur implémentation interne.
+- Persister en base uniquement le fait qu’un utilisateur a visité une page donnée (booléen oui/non), par (userId, path).
 
-## 1. Installation
-```bash
-npm install react-joyride @types/react-joyride
-```
+#### Contraintes et principes
+- Toutes les lectures/écritures passent par `src/core/functions` (queries/mutations + Zod) pour typage, cache, SSR/CSR avec React Query.
+- Intégration non invasive: ciblage des étapes par sélecteurs CSS configurés (pas d’édition de composants), overlay global monté dans le layout.
+- Hydratation initiale côté serveur (preloadQuery) + réactivité côté client (usePreloadedQuery/useQuery).
+- Respect des `maxLength` pour tous les champs textuels en Payload.
 
-## 2. Architecture Overview
-The implementation uses a layered architecture:
-- **Core Tour Module**: Generic tour system in `/src/core/tour/`
-- **Tour Components**: React components wrapping Joyride with abstraction
-- **Home Integration**: Specific implementation for home dashboard
-- **Persistence Layer**: Local storage and server-side state management
+---
 
-## 3. Component Structure
+### Architecture technique
 
-### 3.2 Home-Specific Tour Implementation
-**Location:** `src/app/(frontend)/(dashboard)/(navigation)/home/components/home-tour.tsx`
+#### 1) Collections Payload
+- `user-page-visits` (booléen de visite, simplifié)
+  - userId (text, required, index)
+  - path (text, required, maxLength: 255, index)
+  - visited (checkbox, required, default: true)
+  - indexes: unique composite (userId, path)
+  - Remarque: absence d’entrée = non visité; on peut aussi ignorer le champ `visited` et considérer la présence comme “oui”.
 
-**Purpose:** Specific implementation using the core tour system for the home dashboard.
+#### 2) Fonctions serveur (src/core/functions)
+- Queries
+  - (Optionnel) `hasVisited({ userId, path })`: renvoie boolean depuis `user-page-visits`.
 
-**Key Features:**
-- 5-step tour covering all dashboard sections
-- Custom blue theme matching Tailwind's blue-500
-- Persistent state management
-- Skip and progress indicators
-- URL parameter activation (`?onboarding=true`)
+- Mutations
+  - `setPageVisited({ userId, path })`: upsert idempotent sur (userId, path) pour marquer “visité”.
 
-**Step Configuration:**
-1. **Current Course** - Bottom placement
-2. **Recommended Challenges** - Bottom placement  
-3. **Suggested Courses** - Bottom placement
-4. **User Profile** - Left placement
-5. **Leaderboard** - Left placement
+Notes:
+- Zod pour valider les args; tagging cache via `makeCacheKey` + `revalidateTag` pour les mutations.
 
-### 3.3 TourTarget Wrapper (Advanced Generic)
-**Location:** `src/core/tour/components/TourTarget.tsx`
+#### 3) Intégration UI (non invasive)
+- `OnboardingProvider` (client) monté globalement (dans `RootLayout` ou layout Dashboard):
+  - Lit le paramètre `?onboarding` depuis la page (via prop passée au wrapper client) et déclenche le tour si présent.
+  - Utilise `react-joyride` (ou équivalent) pour rendre le tour; steps définies en code (voir registre ci-dessous).
+  - Observe le DOM (MutationObserver) jusqu’à présence des cibles (attributs data du HOC) avec timeout configurable; fallback plein écran si nécessaire.
 
-**Purpose:** Sophisticated, zero-impact wrapper that provides intelligent targeting capabilities with advanced features like conditional rendering, responsive breakpoints, and accessibility support. Designed for platform-wide usage with minimal footprint.
+- `RouteTracker` (client léger) monté globalement:
+  - À chaque navigation, appelle `setPageVisited` une seule fois par (userId, path) (cache mémoire session + debounce) pour écrire le booléen.
 
-**Core Architecture:**
-- **Zero DOM Impact**: Uses data attributes exclusively, no wrapper divs when possible
-- **Smart Rendering**: Conditional rendering based on tour state and viewport
-- **Accessibility**: Automatic ARIA labels and keyboard navigation hints
-- **Responsive**: Built-in breakpoint system for mobile/desktop tours
+- `Paramètre ?onboarding` côté pages (`page.tsx`):
+  - Dans les pages App Router, récupérer `searchParams` serveur ou `useSearchParams` côté client wrapper, et passer le flag/nom au `OnboardingProvider` pour ouverture du tour.
 
-**Props Interface:**
-```typescript
-interface TourTargetProps {
-  tourId: string;                    // Tour identifier (e.g., "home-dashboard")
-  stepId: string;                    // Unique step within tour (e.g., "welcome-banner")
-  className?: string;                // Additional classes (merged with defaults)
-  children: React.ReactNode;        // Component to target
-  metadata?: {
-    title?: string;                 // Step title for accessibility
-    description?: string;           // Step description
-    placement?: 'top' | 'bottom' | 'left' | 'right' | 'center';
-    offset?: { x: number; y: number };
-    mobile?: {
-      placement?: string;           // Mobile-specific placement
-      hide?: boolean;              // Hide on mobile
-    };
-    desktop?: {
-      placement?: string;           // Desktop-specific placement
-      hide?: boolean;              // Hide on desktop
-    };
-    conditions?: {
-      viewport?: { min?: number; max?: number };
-      userAgent?: string[];         // Target specific browsers/devices
-      featureFlags?: string[];      // Feature flag dependencies
-    };
-  };
-  fallback?: React.ReactNode;       // Fallback when target is hidden
-  priority?: number;                // Target priority (0-100, default 50)
-  debug?: boolean;                  // Enable debug mode for development
-}
-```
+#### 4) Hydratation SSR/CSR
+- Pas de données d’onboarding à précharger depuis le serveur (la config est dans le code).
+- Écritures côté client: `setPageVisited` au premier rendu par route.
 
-**Advanced Features:**
-- **Intersection Observer**: Automatic visibility detection
-- **Mutation Observer**: Dynamic DOM changes handling
-- **Performance Optimized**: Memoized rendering and debounced updates
-- **Error Boundaries**: Graceful degradation when targets are missing
-- **Analytics Hooks**: Built-in tracking for target visibility and interaction
+#### 5) Sécurité, perfs, conformité
+- `maxLength` sur tous les champs `text`/`textarea` Payload.
+- Upserts idempotents pour `setPageVisited` (réduction egress DB) + index unique (userId, path).
+- Pas d’IP, pas de métadonnées de visite, uniquement booléen.
 
-**Usage Patterns:**
-```typescript
-// Basic usage
-<TourTarget tourId="home-dashboard" stepId="welcome-banner">
-  <WelcomeBanner />
-</TourTarget>
+#### 6) Définition de la config Joyride dans le code
+- Registre d’onboarding par route (p. ex. `src/onboarding/registry.ts`):
+  - `export const onboardingRegistry = { '/dashboard/home': { id: 'home', steps: [...] } }`.
+  - Chaque step référence un sélecteur stable de type `[data-onboarding-step="<id>"]`.
 
-// Advanced usage with metadata
-<TourTarget 
-  tourId="home-dashboard" 
-  stepId="challenge-card"
-  metadata={{
-    title: "Start Your First Challenge",
-    description: "Click here to begin your coding journey",
-    placement: "bottom",
-    mobile: { placement: "top", hide: false },
-    conditions: { viewport: { min: 768 } }
-  }}
->
-  <ChallengeCard />
-</TourTarget>
-```
+- HOC pour marquer les composants cibles:
+  - `withOnboardingStep(Component, { stepId: string })` retourne un composant qui rend un wrapper (ou propage) avec `data-onboarding-step={stepId}`.
+  - Aucun changement de logique interne des composants existants; seule la consommation via HOC change.
+  - Les steps dans le registre référencent ces `stepId` via sélecteur CSS.
 
-**Internal Structure:**
-- **Target Registry**: Global registry for all tour targets
-- **State Management**: React Context for tour state synchronization
-- **DOM Utilities**: Efficient DOM querying and attribute management
-- **Event System**: Custom events for tour lifecycle hooks
+- Démarrage par paramètre:
+  - `?onboarding=1` (ou `?onboarding=<tourId>`) déclenche le tour associé à la route/au tourId dans le registre.
 
-### 3.3 HomeClientWrapper Enhancement
-**Location:** `src/app/(frontend)/(dashboard)/(navigation)/home/components/home-client-wrapper.tsx`
+#### 7) Accessibilité
+- Focus management, ARIA, navigation clavier, échappement, spotlight configurable.
 
-**Additions:**
-- URL parameter detection for `?onboarding=true`
-- Local state management for tour visibility
-- Integration with existing subscription dialog logic
+#### 8) Tests
+- Unit: Zod schemas, upsert `setPageVisited`.
+- Intégration: déclenchement via `?onboarding`, rendu des steps depuis le registre, HOC applique `data-onboarding-step`.
+- E2E: rendu des étapes sur pages cibles, fallback si sélecteur manquant, une seule écriture par (userId, path).
 
-## 4. Implementation Details
+#### 9) Déploiement par phases
+- Phase 1 (MVP): collections, queries/mutations, `OnboardingProvider`, `RouteTracker`, un tour basique.
+- Phase 2: mode preview, options d’audience, reprise cross-device.
+- Phase 3: i18n, analytics de tours (indépendant du booléen de visite).
 
-### 4.1 Core Tour Integration Strategy
-**Step 1: Core Module Setup**
-```typescript
-// Initialize core tour system
-import { TourProvider } from '@/core/tour'
-import { registerTour } from '@/core/tour/utils/tourRegistry'
-```
+#### 10) Risques & mitigations
+- Sélecteurs instables: privilégier sélecteurs stables, observer DOM, step fallback sans cible.
+- Multi-écritures sur routes dynamiques: cache mémoire + index unique + debounce.
 
-**Step 2: Tour Registration**
-```typescript
-// Register home dashboard tour
-registerTour('home-dashboard', {
-  id: 'home-dashboard',
-  steps: [
-    { id: 'current-course', title: 'Current Course', content: '...' },
-    { id: 'recommended-challenge', title: 'Challenges', content: '...' },
-    { id: 'recommended-courses', title: 'Courses', content: '...' },
-    { id: 'user-profile', title: 'Profile', content: '...' },
-    { id: 'leaderboard', title: 'Leaderboard', content: '...' }
-  ]
-})
-```
+---
 
-**Step 3: Component Wrapping**
-```typescript
-<TourTarget tourId="home-dashboard" stepId="current-course" className="w-full">
-  <CurrentCourseCard />
-</TourTarget>
-```
+### Backlog de tâches (implémentation)
+1) Collections Payload
+   - Créer `user-page-visits` (booléen, unique (userId, path)).
+2) Fonctions serveur (src/core/functions)
+   - Queries: (opt) `hasVisited`.
+   - Mutations: `setPageVisited` (upsert idempotent).
+3) Client
+   - `OnboardingProvider` (client) + lecture du paramètre `?onboarding`.
+   - HOC `withOnboardingStep` pour marquer les composants.
+   - Registre d’onboarding par route avec steps définies en code.
+   - `RouteTracker` (écriture idempotente sur visite).
+4) Tests (unit, intégration, E2E) et documentation d’usage (HOC, registre, paramètre d’URL).
 
-### 4.2 Styling Configuration
-**Joyride Custom Styles:**
-- Primary color: `#3b82f6` (Tailwind blue-500)
-- Border radius: `8px`
-- Z-index: `10000` (above all content)
-- Tooltip styling matches Tailwind design system
 
-### 4.3 Persistent Storage (Multi-layer)
-**Local Storage:**
-- Key: `tour-state-{userId}`
-- Stores: completed tours, last step, preferences
-- TTL: 30 days
-
-**Server Storage:**
-- Collection: `user-tour-progress`
-- Fields: userId, tourId, completedSteps, lastSeen, preferences
-- Enables cross-device synchronization
-
-**Configuration:**
-```typescript
-const persistenceConfig = {
-  local: { enabled: true, ttl: 30 * 24 * 60 * 60 * 1000 },
-  server: { enabled: true, sync: true },
-  urlOverride: { param: 'tour', force: true }
-}
-```
-
-## 5. Page Modifications
-
-### 5.1 Global Setup
-**Root Layout Enhancement:**
-```typescript
-// In root layout or _app.tsx
-import { TourProvider } from '@/core/tour'
-
-<TourProvider config={tourConfig}>
-  {children}
-</TourProvider>
-```
-
-### 5.2 Home Page Integration
-**HomeClientWrapper Enhancement:**
-```typescript
-import { useTour } from '@/core/tour/hooks/useTour'
-import { TourTarget } from '@/core/tour/components/TourTarget'
-
-// Register tour on mount
-useEffect(() => {
-  registerTour('home-dashboard', homeTourConfig)
-}, [])
-```
-
-**Component Wrapping:**
-```typescript
-// HomeLeftColumn
-<TourTarget tourId="home-dashboard" stepId="current-course" className="w-full">
-  <CurrentCourseCard />
-</TourTarget>
-
-<TourTarget tourId="home-dashboard" stepId="recommended-challenge" className="w-full">
-  <RecommendedChallenge userId={user.id} isPro={user.informations.role !== 'basic'} />
-</TourTarget>
-
-<TourTarget tourId="home-dashboard" stepId="recommended-courses" className="w-full">
-  <RecommendedCourses />
-</TourTarget>
-
-// HomeRightColumn
-<TourTarget tourId="home-dashboard" stepId="user-profile" className="w-full">
-  <UserProfile user={user} />
-</TourTarget>
-
-<TourTarget tourId="home-dashboard" stepId="leaderboard" className="w-full">
-  <DivisionLeaderboardCard />
-</TourTarget>
-```
-
-## 6. Testing Strategy
-
-### 6.1 Manual Testing
-- Access: `http://localhost:3000/home?onboarding=true`
-- Verify all 5 steps display correctly
-- Test skip functionality
-- Test completion flow
-- Verify no layout shifts
-
-### 6.2 Edge Cases
-- Mobile responsiveness
-- Different screen sizes
-- Component loading states
-- User authentication states
-
-## 7. Deployment Considerations
-
-### 7.1 Performance Impact
-- Minimal bundle size increase (~50KB)
-- Lazy loading of Joyride component
-- No impact on existing component performance
-
-### 7.2 Accessibility
-- Keyboard navigation support
-- Screen reader compatibility
-- Focus management during tour
-
-## 8. Future Enhancements
-
-### 8.1 Platform-wide Reusability
-- **Tour Library**: Reusable tour configurations for different pages
-- **Role-based Tours**: Different tours for basic/pro/enterprise users
-- **Feature-specific Tours**: Tours for new features, updates, or complex workflows
-
-### 8.2 Advanced Analytics
-- **Engagement Metrics**: Completion rates, skip rates, time per step
-- **User Segmentation**: Track by user type, experience level, device
-- **A/B Testing**: Test different tour flows and content
-
-### 8.3 Dynamic Tour Generation
-- **Context-aware Tours**: Based on user actions, page context, or feature flags
-- **Progressive Disclosure**: Tours that adapt based on user progress
-- **Localization**: Multi-language tour content
-
-### 8.4 Integration Examples
-```typescript
-// Challenge page tour
-registerTour('challenge-first-visit', challengeTourConfig)
-
-// Settings tour for new features
-registerTour('settings-new-feature', settingsTourConfig)
-
-// Pro features tour
-registerTour('pro-features', proTourConfig)
-```
-
-## 9. Rollback Plan
-- All changes are additive and non-breaking
-- Can be disabled by removing URL parameter detection
-- Components remain fully functional without wrappers
-- No database schema changes required
-
-## 10. Development Checklist
-
-### 10.1 Prerequisites
-- [ ] React Joyride installed
-- [ ] TypeScript types available
-- [ ] Development environment running
-
-### 10.2 Core Module Development
-1. [ ] Create `/src/core/tour/` directory structure
-2. [ ] Implement core types and interfaces
-3. [ ] Build TourProvider component
-4. [ ] Create TourTarget wrapper
-5. [ ] Implement useTour hook
-6. [ ] Add tourRegistry utility
-7. [ ] Create server-side actions
-8. [ ] Write unit tests for core module
-
-### 10.3 Home Dashboard Integration
-1. [ ] Create home-specific tour configuration
-2. [ ] Update HomeClientWrapper with tour logic
-3. [ ] Wrap all target components with TourTarget
-4. [ ] Test tour flow with URL parameter
-5. [ ] Verify responsive behavior
-6. [ ] Test persistence across sessions
-7. [ ] Validate server-side sync
-8. [ ] Performance testing
-
-### 10.4 Platform Integration
-1. [ ] Add TourProvider to root layout
-2. [ ] Create tour configuration templates
-3. [ ] Document API for other developers
-4. [ ] Create example implementations
-5. [ ] Set up analytics tracking
-6. [ ] Deploy to staging environment
-7. [ ] Production deployment
-8. [ ] Monitor initial usage metrics
-
-### 10.3 Post-Deployment
-- [ ] Monitor user engagement
-- [ ] Collect feedback
-- [ ] Adjust tour content based on usage
-- [ ] Document any issues for future improvements
