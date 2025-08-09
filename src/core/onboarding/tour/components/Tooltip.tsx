@@ -54,18 +54,22 @@ export function CustomTooltip(props: TooltipRenderProps) {
 
       <CardFooter className="border-t border-border p-2">
         <div className="grid w-full grid-cols-2 gap-2">
-          <Button
-            {...skipProps}
-            variant="ghost"
-            className={[(skipProps as any).className ?? '', 'w-full text-muted-foreground hover:bg-muted'].join(' ')}
-          >
-            {skipProps.title}
-          </Button>
+          {index === 0 && (
+            <Button
+              {...skipProps}
+              variant="ghost"
+              size="sm"
+              className={[(skipProps as any).className ?? '', 'w-full text-muted-foreground hover:bg-muted'].join(' ')}
+            >
+              {skipProps.title}
+            </Button>
+          )}
 
           {index > 0 && (
             <Button
               {...backProps}
               variant="secondary"
+              size="sm"
               className={[(backProps as any).className ?? '', 'w-full'].join(' ')}
             >
               {backProps.title}
@@ -76,6 +80,7 @@ export function CustomTooltip(props: TooltipRenderProps) {
             <Button
               {...primaryProps}
               variant="default"
+              size="sm"
               className={[(primaryProps as any).className ?? '', 'w-full'].join(' ')}
             >
               {primaryProps.title}
@@ -86,6 +91,7 @@ export function CustomTooltip(props: TooltipRenderProps) {
             <Button
               {...primaryProps}
               variant="default"
+              size="sm"
               className={[(primaryProps as any).className ?? '', 'w-full'].join(' ')}
             >
               {primaryProps.title}

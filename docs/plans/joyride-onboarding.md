@@ -235,17 +235,24 @@ export function withOnboardingStep<P extends object>(
 ```tsx
 // src/core/onboarding/tour/components/provider.tsx
 'use client'
-import React, { useMemo } from 'react'
-import Joyride, { Step } from 'react-joyride'
-import { usePathname, useSearchParams } from 'next/navigation'
+import React, { useMemo, useCallback, useRef } from 'react'
+import Joyride, { Step, STATUS } from 'react-joyride'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { onboardingRegistry } from './registry'
+import { setPageVisited } from '@/core/onboarding/tour/index'
 import type { AppRoute } from '@/core/onboarding/tour/index'
+import { useMutation } from '@/core/functions/hooks'
+import { useSessionUser } from '@/core/user/hooks/use-user'
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
   const pathnameRaw = usePathname() ?? ''
   const pathname = (pathnameRaw in onboardingRegistry ? pathnameRaw : '') as AppRoute | ''
   const search = useSearchParams()
   const shouldStart = Boolean(search.get('onboarding'))
+  const router = useRouter()
+  const visitedRef = useRef(false)
+  const { user } = useSessionUser()
+  const { mutate: markVisited } = useMutation(setPageVisited)
 
   const tour = useMemo(() => (pathname ? onboardingRegistry[pathname as AppRoute] : undefined), [pathname])
   const steps = useMemo<Step[]>(
@@ -264,6 +271,20 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   const run = shouldStart && steps.length > 0
 
+  const handleJoyride = useCallback(async (data: any) => {
+    const { status } = data
+    if (visitedRef.current) return
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+      visitedRef.current = true
+      // Appelle directement la mutation setPageVisited (src/core/onboarding/tour/index.ts)
+      if (user?.id && pathname) {
+        markVisited({ userId: user.id, path: pathname as AppRoute })
+      }
+      // Nettoie l'URL pour retirer ?onboarding et rester sur la même page
+      router.replace(window.location.pathname + window.location.hash)
+    }
+  }, [pathname, router, user?.id, markVisited])
+
   return (
     <>
       {children}
@@ -275,6 +296,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           showProgress
           continuous
           disableScrolling
+          callback={handleJoyride}
           styles={{ options: { zIndex: 9999 } }}
         />
       )}

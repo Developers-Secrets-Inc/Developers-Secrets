@@ -9,6 +9,10 @@ import { HomeClientWrapper } from './components/home-client-wrapper'
 import { withOnboardingStep } from '@/core/onboarding/tour/components/withOnboardingStep'
 
 const OnboardedCurrentCourseCard = withOnboardingStep(CurrentCourseCard, { stepId: 'current-course' })
+const OnboardedRecommendedChallenge = withOnboardingStep(RecommendedChallenge, { stepId: 'recommended-challenge' })
+const OnboardedRecommendedCourses = withOnboardingStep(RecommendedCourses, { stepId: 'recommended-courses' })
+const OnboardedUserProfile = withOnboardingStep(UserProfile, { stepId: 'user-profile' })
+const OnboardedDivisionLeaderboardCard = withOnboardingStep(DivisionLeaderboardCard, { stepId: 'division-leaderboard' })
 
 export const HomeGrid = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -38,13 +42,13 @@ export default async function Home() {
       <HomeGrid>
         <HomeLeftColumn>
           <OnboardedCurrentCourseCard />
-          <RecommendedChallenge userId={user.id} isPro={user.informations.role !== 'basic'} />
-          <RecommendedCourses />
+          <OnboardedRecommendedChallenge userId={user.id} isPro={user.informations.role !== 'basic'} />
+          <OnboardedRecommendedCourses />
         </HomeLeftColumn>
 
         <HomeRightColumn>
-          <UserProfile user={user} />
-          <DivisionLeaderboardCard />
+          <OnboardedUserProfile user={user} />
+          <OnboardedDivisionLeaderboardCard />
         </HomeRightColumn>
       </HomeGrid>
     </HomeClientWrapper>

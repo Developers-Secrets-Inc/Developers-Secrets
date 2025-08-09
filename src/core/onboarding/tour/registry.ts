@@ -22,6 +22,30 @@ export const onboardingRegistry = {
         content: 'Resume your learning journey from here.',
         placement: 'bottom',
       },
+      {
+        id: 'recommended-challenge',
+        title: 'Recommended challenge',
+        content: 'Practice with a curated challenge tailored to your level.',
+        placement: 'bottom',
+      },
+      {
+        id: 'recommended-courses',
+        title: 'Recommended courses',
+        content: 'Explore courses selected to help you progress faster.',
+        placement: 'bottom',
+      },
+      {
+        id: 'user-profile',
+        title: 'Your profile',
+        content: 'Manage your info and track your progress here.',
+        placement: 'left',
+      },
+      {
+        id: 'division-leaderboard',
+        title: 'Division leaderboard',
+        content: 'See how you rank among your peers in the division.',
+        placement: 'left',
+      },
     ],
   },
 } as const satisfies Record<string, OnboardingTour>
