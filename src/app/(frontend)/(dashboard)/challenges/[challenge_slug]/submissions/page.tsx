@@ -1,7 +1,8 @@
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { SubmissionsList } from '../components/submissions-list'
 import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { redirect } from 'next/navigation'
+import { isFailure } from '@/lib/result'
 
 export default async function SubmissionsPage({
   params,
@@ -12,7 +13,7 @@ export default async function SubmissionsPage({
   const challenge = await getChallengeBySlug(challenge_slug)
   const user = await getUser()
 
-  if (!user) {
+  if (isFailure(user)) {
     redirect('/auth/login')
   }
 
@@ -22,7 +23,7 @@ export default async function SubmissionsPage({
         <h3 className="text-lg font-semibold mb-3">Your Submissions</h3>
         <SubmissionsList
           challenge={challenge}
-          userId={user.id}
+          userId={user.value.id}
         />
       </div>
     </div>

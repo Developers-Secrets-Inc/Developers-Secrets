@@ -1,6 +1,6 @@
 'use server'
 
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import {
   findUserCoursePartEngagement,
   createUserCoursePartEngagement,
@@ -12,6 +12,7 @@ import {
   upsertCoursePartRating,
   removeCoursePartRating,
 } from '@/api/course-parts/engagement/rating'
+import { isFailure } from '@/lib/result'
 
 /**
  * Toggles the like status for a course part
@@ -21,11 +22,11 @@ import {
 export async function toggleCoursePartLike(liked: boolean, coursePartId: number) {
   try {
     const user = await getUser()
-    if (!user || !user.id) {
+    if (isFailure(user)) {
       throw new Error('Authentication required')
     }
 
-    const userId = user.id
+    const userId = user.value.id
 
     // Get current engagement
     const currentEngagement = await findUserCoursePartEngagement({ userId, coursePartId })

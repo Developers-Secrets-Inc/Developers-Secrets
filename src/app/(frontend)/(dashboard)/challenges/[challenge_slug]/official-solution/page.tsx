@@ -3,9 +3,10 @@ import { ChallengeHeader } from '../components/challenge-header'
 import { OfficialSolutionComments } from '../components/comments/official-solution-comments'
 import { SolutionContent } from './components/solution-content'
 import { getUserCompletionStatus } from '@/core/challenges/user-progression'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { redirect } from 'next/navigation'
 import { canAccessSolution } from '@/core/challenges/user-progression/completion-status'
+import { isFailure } from '@/lib/result'
 
 export default async function OfficialSolutionPage({
   params,
@@ -17,11 +18,11 @@ export default async function OfficialSolutionPage({
   const challenge = await getChallengeBySlug(challenge_slug)
   const user = await getUser()
 
-  if (!user) {
+  if (isFailure(user)) {
     redirect('/auth/login')
   }
 
-  const isSolutionUnlocked = await canAccessSolution(user.id, challenge.id)
+  const isSolutionUnlocked = await canAccessSolution(user.value.id, challenge.id)
 
   if (!isSolutionUnlocked) {
     redirect(`/challenges/${challenge_slug}/description`)

@@ -1,11 +1,12 @@
 import { getLearningPathBySlug } from '@/core/courses/learning-paths'
 import { LearningPathSections } from './components/learning-path-sections'
 import { DotPattern } from '@/components/magicui/dot-pattern'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeftIcon } from 'lucide-react'
+import { isFailure } from '@/lib/result'
 
 const Header = ({ learningPathName }: { learningPathName: string }) => {
   return (
@@ -44,11 +45,11 @@ export default async function LearningPathPage({
 
   const user = await getUser()
 
-  if (!user) {
+  if (isFailure(user)) {
     redirect('/auth/login')
   }
 
-  const userId = user.id
+  const userId = user.value.id
 
   return (
     <>

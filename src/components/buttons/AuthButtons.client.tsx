@@ -1,4 +1,4 @@
-import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
+import { UserDropdownMenu } from '@/core/users/components/user-dropdown-menu'
 import Link from 'next/link'
 import { Button } from '../ui/button'
 import { NotificationButton } from '../sidebars/home-sidebar/notification-button'

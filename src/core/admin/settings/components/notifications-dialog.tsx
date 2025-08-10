@@ -20,9 +20,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { createNotification } from '@/core/notifications'
-import { User } from '@/core/user/types'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { User as UserIcon, Loader2 } from 'lucide-react'
+import { isSuccess } from '@/lib/result'
 
 const importanceOptions = [
   { value: 'high', label: 'High' },
@@ -70,9 +70,9 @@ export function NotificationsDialog({
     setFetchingUser(true)
     try {
       const user = await getUser()
-      if (user?.id) {
-        setForm((f) => ({ ...f, userId: user.id }))
-        setCurrentUserId(user.id)
+      if (isSuccess(user)) {
+        setForm((f) => ({ ...f, userId: user.value.id }))
+        setCurrentUserId(user.value.id)
       }
     } finally {
       setFetchingUser(false)

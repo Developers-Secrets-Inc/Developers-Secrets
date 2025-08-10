@@ -4,8 +4,8 @@ import { UserSolution } from '@/payload-types'
 import { getChallengeSolutions } from '..'
 import { CommunitySolutionCard } from './user-solution-card'
 import { User } from '@/core/users/types'
-import { getUserById } from '@/core/user'
-import { isError } from '@/core/user/result'
+import { getUser } from '@/core/users'
+import { isFailure } from '@/lib/result'
 
 const ChallengeSchema = z.object({
   id: z.number().int().positive(),
@@ -32,9 +32,9 @@ const convertUserSolutionToCardUserSolution = async (
   userSolution: UserSolution,
   challenge: Challenge,
 ): Promise<CardUserSolution> => {
-  const user = await getUserById(userSolution.authorId)
+  const user = await getUser(userSolution.authorId)
 
-  if (isError(user)) {
+  if (isFailure(user)) {
     throw new Error('User not found')
   }
 

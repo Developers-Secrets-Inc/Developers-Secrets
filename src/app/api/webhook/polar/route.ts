@@ -1,4 +1,4 @@
-import { updateUserCustomerId, updateUserRole } from '@/core/user/user-informations'
+import { updateUserCustomerId, updateUserRole } from '@/core/users/user-informations'
 import { Webhooks } from '@polar-sh/nextjs'
 
 export const POST = Webhooks({

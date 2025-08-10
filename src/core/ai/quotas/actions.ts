@@ -3,7 +3,7 @@
 import 'server-only'
 import { getOrCreateUserAIUsage, incrementMessagesSent } from '.'
 import { decreaseCredits, getOrCreateUserAICredits, getRemainingCredits } from './credits'
-import { getUserRole } from '@/core/user/user-informations'
+import { getUserRole } from '@/core/users/user-informations'
 
 
 export const getRemainingMessagesForToday = async (userId: string): Promise<number> => {

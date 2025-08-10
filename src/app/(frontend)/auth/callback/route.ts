@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { createInitialUserInformation, getUserInformation } from '@/core/user'
+import { createInitialUserInformation, getUserInformations } from '@/core/users/user-informations'
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser()
     if (user) {
       try {
-        await getUserInformation(user.id)
+        await getUserInformations(user.id)
       } catch {
         await createInitialUserInformation(user.id, user.user_metadata?.username || user.email)
       }

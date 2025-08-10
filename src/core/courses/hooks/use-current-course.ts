@@ -2,12 +2,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { getCourseProgressSummary, CourseProgressSummary } from '@/core/courses'
-import { getUser } from '@/core/user'
+import { useUser } from '@/core/users/hooks/use-user'
 
 export function useCurrentCourse() {
   const [lastCourseSlug, setLastCourseSlug] = useState<string | null>(null)
   const [lastUrl, setLastUrl] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const { user } = useUser()
 
   // Hydrate depuis localStorage et user
   useEffect(() => {
@@ -15,8 +16,8 @@ export function useCurrentCourse() {
       typeof window !== 'undefined' ? localStorage.getItem('lastVisitedCourseSlug') : null,
     )
     setLastUrl(typeof window !== 'undefined' ? localStorage.getItem('lastVisitedPartUrl') : null)
-    getUser().then((user) => setUserId(user?.id ?? null))
-  }, [])
+    setUserId(user?.id ?? null)
+  }, [user])
 
   // Utilise React Query pour la progression
   const {

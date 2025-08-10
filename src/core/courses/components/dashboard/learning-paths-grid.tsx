@@ -1,7 +1,6 @@
-import { getLearningPaths, getLearningPathsWithoutCache } from '@/core/courses/learning-paths'
+import { getLearningPaths } from '@/core/courses/learning-paths'
 import { LearningPath } from '@/payload-types'
 import { LearningPathCard, NoLearningPathsCard } from './learning-path-card'
-import { getUser } from '@/core/user'
 
 const MAX_ITEMS = 3
 

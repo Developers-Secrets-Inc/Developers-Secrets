@@ -147,3 +147,47 @@ export const updateUserCustomerId = async (
     data: { customerId: validatedCustomerId },
   })
 }
+
+
+
+
+export const createInitialUserInformation = async (
+  userId: string,
+  username: string,
+): Promise<void> => {
+  const payload = await getPayload({ config })
+
+  try {
+    try {
+      await getUserInformations(userId)
+    } catch (_error) {
+      await payload.create({
+        collection: 'user-informations',
+        data: {
+          userId,
+          name: username,
+          role: 'basic', // Rôle par défaut
+          preferences: {
+            notifications: {
+              friends: true,
+            },
+            emails: {
+              marketing: true,
+              affiliates: true,
+            },
+            theme: 'system',
+          },
+          // Les permissions seront ajoutées séparément
+        },
+      })
+    }
+
+    // Créer les informations initiales de l'utilisateur
+    console.log(`Created initial user information for user ${userId}`)
+  } catch (error) {
+    console.error('Error creating initial user information:', error)
+    throw new Error(
+      `Failed to create initial user information: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    )
+  }
+}

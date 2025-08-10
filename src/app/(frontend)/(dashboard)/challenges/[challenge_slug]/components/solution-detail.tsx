@@ -17,7 +17,7 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { addReportToUserSolution, addViews } from '@/core/challenges/users-solutions'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { UserSolution } from '@/payload-types'
 import { formatDistanceToNow } from 'date-fns'
 import {
@@ -32,6 +32,9 @@ import {
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { isFailure } from '@/lib/result'
+import { redirect } from 'next/navigation'
+import { User } from '@/core/users/types'
 
 type Props = {
   solution: UserSolution
@@ -39,14 +42,19 @@ type Props = {
 }
 
 function UserCard({ authorId, date }: { authorId: string; date: Date }) {
-  const [user, setUser] = useState<Awaited<ReturnType<typeof getUser>> | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const userData = await getUser()
-        setUser(userData)
+
+        if (isFailure(userData)) {
+          return redirect('/auth/login')
+        }
+
+        setUser(userData.value)
       } catch (error) {
         console.error('Error fetching user:', error)
       } finally {

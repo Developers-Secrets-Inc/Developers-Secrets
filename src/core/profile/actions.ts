@@ -49,7 +49,8 @@ export async function addBlockedAction(userId: string, blockedId: string) {
 }
 
 
-import { getSessionUser } from '@/core/user'
+import { getUser } from '@/core/users'
+import { isFailure } from '@/lib/result'
 
 export interface UserProfile {
   id: string
@@ -64,9 +65,9 @@ export interface UserProfile {
 }
 
 export async function getUserProfile(): Promise<UserProfile | null> {
-  const userResult = await getSessionUser()
+  const userResult = await getUser()
 
-  if (!userResult.success) {
+  if (isFailure(userResult)) {
     return null
   }
 

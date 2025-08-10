@@ -1,5 +1,12 @@
 import type { CollectionConfig } from 'payload'
-import { ItemType } from '../types/gamification/item'
+
+enum ItemType {
+  EXPERIENCE_BOOST = 'experience_boost',
+  STREAK_SAVER = 'streak_saver',
+  STREAK_RECOVERY = 'streak_recovery',
+  SOLUTION_VIEWER = 'solution_viewer',
+  CHEST = 'chest',
+}
 
 export const UserInventory: CollectionConfig = {
   slug: 'user-inventory',

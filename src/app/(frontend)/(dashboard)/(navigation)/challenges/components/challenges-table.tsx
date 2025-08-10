@@ -48,10 +48,10 @@ import { ChallengeStatusProvider } from '@/core/challenges/components/challenge-
 import { useChallengeStatus } from '@/core/challenges/hooks/use-challenge-status'
 import { useChallenges } from '@/core/challenges/hooks/use-challenges'
 import { CompletionStatus } from '@/core/challenges/user-progression/types'
-import { useSessionUser } from '@/core/user/hooks/use-user'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { useQueryState } from 'nuqs'
+import { useUser } from '@/core/users/contexts/user-context'
 
 const ChallengeStatusCell = ({ challenge, isPro }: { challenge: ChallengeWithProgress, isPro: boolean }) => {
   const { visualStatus } = useChallengeStatus()
@@ -159,7 +159,7 @@ export const ChallengesTable = ({ userId, isPro }: ChallengesTableProps) => {
   }, [sortBy, sortOrder])
 
   const { challenges, isLoading } = useChallenges()
-  const { user } = useSessionUser()
+  const { user } = useUser()
 
   const filteredChallenges = useMemo(() => {
     if (user?.informations?.role === 'admin') return challenges || []

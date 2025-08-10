@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { useChallenge } from '@/core/challenges/contexts/challenge-context'
 import { useChallengeEditor } from '@/core/challenges/contexts/challenge-editor-context'
 import { useSolutionUnlockStatus } from '@/core/challenges/hooks/use-solution-queries'
-import { getUser } from '@/core/user'
+import { useUser } from '@/core/users/hooks/use-user'
 import { cn } from '@/lib/utils'
 import type { Challenge } from '@/payload-types'
 import { useChat } from '@ai-sdk/react'
@@ -101,14 +101,11 @@ function buildChallengeSystemPrompt(context: {
 export const AIAssistantDialog = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const { user } = useUser()
 
   useEffect(() => {
-    getUser().then((user) => {
-      if (user) {
-        setUserId(user.id)
-      }
-    })
-  }, [])
+    setUserId(user?.id ?? null)
+  }, [user])
 
   const challenge = useChallenge()
   const { currentCodeByLanguage, currentLanguage } = useChallengeEditor()

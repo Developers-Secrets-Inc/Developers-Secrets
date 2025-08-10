@@ -5,11 +5,9 @@ import { cn } from '@/lib/utils'
 import { LockIcon, Target } from 'lucide-react'
 
 import { Course } from '@/payload-types'
-import { CourseProgressionGauge } from './course-progression-gauge'
-import { CourseLastVisitDate } from './course-last-visit-date'
-import { CourseWithStartUrl } from '../..'
-import { getUser } from '@/core/user'
 import { GridCourseInformations } from '../../actions'
+import { CourseLastVisitDate } from './course-last-visit-date'
+import { CourseProgressionGauge } from './course-progression-gauge'
 type CourseDifficulty = Course['difficulty']
 type BadgeStyle = `bg-${string}-500/10 text-${string}-500 border-${string}-500/20`
 

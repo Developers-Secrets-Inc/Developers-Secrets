@@ -1,4 +1,4 @@
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { getCoursePartSubmissions } from '@/core/courses/submissions/actions'
 import { getPartBySlug } from '@/core/courses/parts' // Correct import path
 import { CourseSubmissionsList } from './components/CourseSubmissionsList' // Assume this client component exists
@@ -6,6 +6,7 @@ import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { PartHeader } from '../components/part-header'
 import { Skeleton } from '@/components/ui/skeleton'
+import { isFailure } from '@/lib/result'
 
 export default async function CoursePartSubmissionsPage({
   params,
@@ -20,9 +21,8 @@ export default async function CoursePartSubmissionsPage({
 
   // Fetch User
   const user = await getUser()
-  if (!user) {
-    // Redirect to login or show an error/message
-    redirect('/login?origin=/courses/' + course_slug) // Example redirect
+  if (isFailure(user)) {
+    redirect('/auth/login')
   }
 
   // Fetch Course Part (needed for context, e.g., title)
@@ -32,7 +32,7 @@ export default async function CoursePartSubmissionsPage({
   }
 
   // Fetch initial submissions data - include code field for the list component
-  const submissionsData = await getCoursePartSubmissions(coursePart.id, user.id)
+  const submissionsData = await getCoursePartSubmissions(coursePart.id, user.value.id)
 
   const initialSubmissions = submissionsData.map((submission) => ({
     id: submission.id.toString(), // Ensure ID is string for the hook
@@ -60,7 +60,7 @@ export default async function CoursePartSubmissionsPage({
       <h3 className="text-lg font-semibold mb-3">Your Submissions</h3>
       <CourseSubmissionsList
         partId={coursePart.id}
-        userId={user.id}
+        userId={user.value.id}
         initialSubmissions={initialSubmissions}
       />
     </div>

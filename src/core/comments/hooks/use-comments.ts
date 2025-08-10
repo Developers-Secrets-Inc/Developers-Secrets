@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CommentContext, CommentResponse } from '../types'
 import { Comment } from '@/payload-types'
-import { getUserById } from '@/core/user'
-import { isError } from '@/core/user/result'
+import { getUserById } from '@/core/users'
 import { deleteCommentAction, modifyCommentAction, createReplyAction } from '../actions'
 import {
   getChallengeDescriptionCommentsAction,
@@ -15,6 +14,7 @@ import {
   getUserSolutionCommentsAction,
   createUserSolutionCommentAction,
 } from '@/core/challenges/users-solutions/comments.actions'
+import { isFailure } from '@/lib/result'
 
 // Compteur global pour les IDs temporaires
 let tempIdCounter = -1
@@ -77,7 +77,7 @@ export const useComments = (context: CommentContext, userId?: string) => {
     queryFn: async () => {
       const authorPromises = uniqueAuthorIds.map(async (id) => {
         const result = await getUserById(id)
-        if (isError(result)) {
+        if (isFailure(result)) {
           throw new Error('User not found')
         }
         return result.value

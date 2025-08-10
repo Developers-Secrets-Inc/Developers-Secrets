@@ -4,7 +4,7 @@ import 'server-only'
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { getUserInformation } from '@/core/user'
+import { getUserInformations } from '@/core/users/user-informations'
 import { handleExperienceGainForQuests } from './quests/actions'
 import { createNotification } from '@/core/notifications'
 import { getActiveXPBoost, getPassiveXPBoostMultiplier } from './effects'
@@ -341,7 +341,7 @@ export async function getLeaderboard(period: LeaderboardPeriod): Promise<Leaderb
 
   for (const entry of gamificationData.docs) {
     try {
-      const userInfo = await getUserInformation(entry.userId)
+      const userInfo = await getUserInformations(entry.userId)
 
       leaderboardEntries.push({
         informations: {

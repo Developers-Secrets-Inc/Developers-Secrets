@@ -7,7 +7,7 @@ import config from '@payload-config'
 
 import { UserInformation } from '@/payload-types'
 import { failure, success, Result } from '@/lib/result'
-import { UserInformationsNotFoundError } from '@/core/user/errors'
+import { UserInformationsNotFoundError } from '@/core/users/errors'
 import { unstable_cache } from 'next/cache'
 import { TIME } from '@/lib/time'
 

@@ -1,11 +1,17 @@
 import { MainNavigationMenu } from '@/components/navigation-menu/header-navigation-menu'
 import { Eclipse } from 'lucide-react'
 import Link from 'next/link'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { AuthButtonsClient } from '@/components/buttons/AuthButtons.client'
+import { isFailure } from '@/lib/result'
+import { redirect } from 'next/navigation'
 
 export const HomeHeader = async () => {
   const user = await getUser()
+
+  if (isFailure(user)) {
+    redirect('/auth/login')
+  }
 
   return (
     <header className="flex z-40 sticky top-0 bg-background h-16 shrink-0 items-center gap-2 border-b px-4 pl-8">
@@ -15,7 +21,7 @@ export const HomeHeader = async () => {
         </Link>
         <MainNavigationMenu />
       </div>
-      <AuthButtonsClient user={user} />
+      <AuthButtonsClient user={user.value} />
     </header>
   )
 }

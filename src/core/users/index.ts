@@ -4,12 +4,12 @@ import 'server-only'
 
 import { AuthError } from '@supabase/supabase-js'
 import { UserNotFoundError } from './errors'
-import { Result, failure, isFailure, success, flatMapAsync, mapAsync } from '@/lib/result'
+import { Result, failure, success, flatMapAsync, mapAsync } from '@/lib/result'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 
 import { User } from './types'
 import { getAllUserInformations } from './informations'
-import { UserInformationsNotFoundError } from '@/core/user/errors'
+import { UserInformationsNotFoundError } from './errors'
 import { createClient } from '@/utils/supabase/server'
 import { mergeUserInformations } from './utils'
 

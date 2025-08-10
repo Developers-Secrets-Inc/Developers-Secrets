@@ -1,7 +1,6 @@
 import { CustomTooltip } from '@/app/(frontend)/(dashboard)/challenges/[challenge_slug]/components/custom-tooltip'
 import { Button } from '@/components/ui/button'
 import { Flag } from 'lucide-react'
-import { getUser } from '@/core/user'
 
 import {
   Dialog,
@@ -20,9 +19,8 @@ import {
 import { User } from '@/core/users/types'
 import { formatDistanceToNow } from 'date-fns'
 import { Edit2, MoreVertical, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { useComment } from '../hooks/use-comment'
-import { useState, useEffect } from 'react'
-import { deleteComment } from '..'
 
 const AuthorName = ({ author }: { author: User }) => {
   return <span className="text-sm font-medium">{author.informations.name}</span>

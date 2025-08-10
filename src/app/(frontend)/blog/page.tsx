@@ -2,14 +2,15 @@ import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
 import { Card } from '@/components/ui/card'
 import { PlusIcon } from 'lucide-react'
 import Link from 'next/link'
-import { getSessionUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { Button } from '@/components/ui/button'
 import { getAllBlogArticles } from '@/api/blog'
 import { ArticlesGrid } from '@/api/blog/components/articles-grid'
+import { isFailure } from '@/lib/result'
 
 export default async function BlogPage() {
-  const userResult = await getSessionUser()
-  const isAuthenticated = userResult.success
+  const userResult = await getUser()
+  const isAuthenticated = !isFailure(userResult)
 
   const { success, value: blogArticles } = await getAllBlogArticles()
   const articles = success ? blogArticles : []

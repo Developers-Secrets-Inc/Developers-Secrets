@@ -12,17 +12,19 @@ import {
   markQuestAsCompleted,
   updateUserQuestProgression,
 } from './user-quests'
-import { getSessionUser, getUserInformation } from '@/core/user'
+import { getUserInformations } from '@/core/users/user-informations'
 import { addExperience, getGamificationInformations } from '../level'
 import { createNotification } from '@/core/notifications'
 import { addItemToInventory } from '../inventory'
 import { Item } from '@/payload-types'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { getUser } from '@/core/users'
+import { isFailure } from '@/lib/result'
 
 export const getSessionUserQuests = async (): Promise<UserQuest[]> => {
-  const userResult = await getSessionUser()
-  if (!userResult.success) {
+  const userResult = await getUser()
+  if (isFailure(userResult)) {
     throw new Error('User not authenticated')
   }
 
@@ -185,8 +187,8 @@ export const replaceUserQuest = async (
   const payload = await getPayload({ config })
 
   // Get current user session
-  const userResult = await getSessionUser()
-  if (!userResult.success) {
+  const userResult = await getUser()
+  if (isFailure(userResult)) {
     return { success: false, error: 'User not authenticated' }
   }
   const userId = userResult.value.id
@@ -195,7 +197,7 @@ export const replaceUserQuest = async (
     // Fetch user gamification data and general info concurrently
     const [userGamification, userInfo] = await Promise.all([
       getGamificationInformations(userId),
-      getUserInformation(userId),
+      getUserInformations(userId),
     ])
 
     // --- Daily Reset Logic ---

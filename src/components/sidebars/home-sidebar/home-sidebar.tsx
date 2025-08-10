@@ -12,8 +12,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { getSessionUser } from '@/core/user'
-import { isError } from '@/core/user/result'
+import { getUser } from '@/core/users'
+import { isFailure } from '@/lib/result'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { LearningPathSwitcher } from './learning-path-switcher'
@@ -91,9 +91,9 @@ const LearningGroup = () => {
 // Skeleton for loading state
 
 export const HomeSidebar = async () => {
-  const user = await getSessionUser()
+  const user = await getUser()
 
-  if (isError(user)) {
+  if (isFailure(user)) {
     return null
   }
 

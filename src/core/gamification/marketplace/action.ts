@@ -4,7 +4,8 @@ import 'server-only'
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { getSessionUser } from '@/core/user'
+import { getUser } from '@/core/users'
+import { isFailure } from '@/lib/result'
 import { addItemToInventory } from '../inventory'
 import { getUserCurrency, setUserCurrency } from './currency'
 import { MarketplaceItem } from '@/payload-types'
@@ -18,11 +19,11 @@ export const buyItem = async (
 
   try {
     // Get current user
-    const userResult = await getSessionUser()
-    if (!userResult.success) {
+    const user = await getUser()
+    if (isFailure(user)) {
       return { success: false, error: 'User not found' }
     }
-    const userId = userResult.value.id
+    const userId = user.value.id
 
     // Find the MarketplaceItem document linked to the itemId
     const marketplaceEntries = await payload.find({

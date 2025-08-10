@@ -2,7 +2,7 @@
 import { getMarketplaceItems } from '@/core/gamification/marketplace'
 import { getUserCurrency } from '@/core/gamification/marketplace/currency'
 import { getUserInventory } from '@/core/gamification/inventory'
-import { getSessionUser } from '@/core/user' // To get userId
+import { getUser } from '@/core/users' // To get userId
 
 // Import the client layer component
 import { SocialGroupClientLayer } from './social-group-client-layer'
@@ -13,8 +13,8 @@ import { MarketplaceItem, UserItem } from '@/payload-types'
 // Refactored SocialGroup as an async Server Component
 export const SocialGroup = async () => {
   // Fetch user ID first
-  const userResult = await getSessionUser()
-  const userId = userResult.success ? userResult.value.id : null
+  const userResult = await getUser()
+  const userId = userResult._tag === 'success' ? userResult.value.id : null
 
   let results: PromiseSettledResult<any>[] = []
   if (userId) {

@@ -1,6 +1,5 @@
 import { DotPattern } from '@/components/magicui/dot-pattern'
 import { HomeHeader } from '@/components/sidebars/home-sidebar/home-header'
-import { RedirectIfSignedIn } from '@/core/user/components/signed-in'
 import { cn } from '@/lib/utils'
 
 const AuthLayoutGridPattern = () => {

@@ -1,4 +1,4 @@
-import { getUser } from "@/core/user"
+import { getUser } from "@/core/users"
 import { redirect } from "next/navigation"
 
 type RedirectIfSignedInProps = {

@@ -1,19 +1,14 @@
 'use server'
 
-import { getUserIsSolutionUnlocked } from '@/core/challenges/user-progression'
-import { DEFAULT_LEVEL_UP_FORMULA, getGamificationInformations } from '@/core/gamification/level'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import 'server-only'
 
-import { Result } from '@/core/user/result'
 import type {
   Challenge as PayloadChallenge,
   UserChallengeProgression
 } from '@/payload-types'
-import { getChallengeBySlug } from './challenge-queries'
-import { ChallengeNotFoundError } from './errors'
-import { getChallengeById } from './challenge-queries'
+import { getChallengeById, getChallengeBySlug } from './challenge-queries'
 import { getNextChallenge } from './navigation'
 
 

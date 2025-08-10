@@ -4,9 +4,10 @@ import { CreateSolutionBanner } from '@/core/challenges/users-solutions/componen
 import { getChallengeSolutions } from '@/core/challenges/users-solutions'
 import { getChallengeBySlug } from '@/core/challenges/challenge-queries'
 import { Suspense } from 'react'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { redirect } from 'next/navigation'
 import { canAccessSolution } from '@/core/challenges/user-progression/completion-status'
+import { isFailure } from '@/lib/result'
 // Ajoutons la configuration ISR pour cette page
 export const revalidate = 600 // 10 minutes en secondes
 
@@ -35,11 +36,11 @@ export default async function SolutionsPage({
   const hasSolutions = solutions && solutions.length > 0
   const user = await getUser()
 
-  if (!user) {
-    redirect('/login')
+  if (isFailure(user)) {
+    redirect('/auth/login')
   }
 
-  const isSolutionUnlocked = await canAccessSolution(user.id, challenge.id)
+  const isSolutionUnlocked = await canAccessSolution(user.value.id, challenge.id)
 
   if (!isSolutionUnlocked) {
     redirect(`/challenges/${challenge_slug}/description`)
@@ -48,7 +49,7 @@ export default async function SolutionsPage({
   if (!hasSolutions) {
     return (
       <div className="p-6">
-        <CreateSolutionBanner challengeId={challenge.id} userId={user.id} />
+        <CreateSolutionBanner challengeId={challenge.id} userId={user.value.id} />
         <NoSolutionsAvailable />
       </div>
     )
@@ -56,9 +57,9 @@ export default async function SolutionsPage({
 
   return (
     <div className="p-6">
-      <CreateSolutionBanner challengeId={challenge.id} userId={user.id} />
+      <CreateSolutionBanner challengeId={challenge.id} userId={user.value.id} />
       <Suspense fallback={<SolutionsLoading />}>
-        <CommunitySolutions challengeSlug={challenge_slug} solutions={solutions} user={user} />
+        <CommunitySolutions challengeSlug={challenge_slug} solutions={solutions} user={user.value} />
       </Suspense>
     </div>
   )

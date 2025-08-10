@@ -2,11 +2,12 @@ import { Separator } from '@/components/ui/separator'
 import { getUserSolutionById, getUserSolutions } from '@/core/challenges/users-solutions'
 import { CommentsSection } from '@/core/comments/components/comments-section'
 import { commentContexts } from '@/core/comments/types'
-import { getUser } from '@/core/user'
-import { notFound } from 'next/navigation'
+import { getUser } from '@/core/users'
+import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { SolutionDetail } from '../../components/solution-detail'
 import { getAllChallenges } from '@/core/challenges/challenge-queries'
+import { isFailure } from '@/lib/result'
 
 
 
@@ -43,13 +44,17 @@ export default async function SolutionDetailPage({
     notFound()
   }
 
+  if (isFailure(user)) {
+    redirect('/auth/login')
+  }
+
   return (
     <div className="p-6">
       <Suspense fallback={<SolutionSkeleton />}>
         <SolutionDetail solution={solution} challengeSlug={challenge_slug} />
       </Suspense>
       <Separator className="my-6" />
-      <CommentsSection context={commentContexts.userSolution(solution.id)} userId={user.id} />
+      <CommentsSection context={commentContexts.userSolution(solution.id)} userId={user.value.id} />
     </div>
   )
 }

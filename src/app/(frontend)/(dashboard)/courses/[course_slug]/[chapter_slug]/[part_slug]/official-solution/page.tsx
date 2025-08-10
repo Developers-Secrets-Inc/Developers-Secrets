@@ -2,7 +2,9 @@ import { Suspense } from 'react'
 import { Markdown } from '@/components/markdown'
 import { getPartBySlug } from '@/core/courses/parts'
 import { PartHeader } from '../components/part-header'
-import { getSessionUser } from '@/core/user'
+import { getUser } from '@/core/users'
+import { isFailure } from '@/lib/result'
+import { redirect } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CoursePart } from '@/payload-types'
 import { notFound } from 'next/navigation'
@@ -10,8 +12,11 @@ import { notFound } from 'next/navigation'
 export const experimental_ppr = true
 
 const DynamicCourseHeader = async ({ part }: { part: CoursePart }) => {
-  const userResult = await getSessionUser()
-  const userId = userResult.success ? userResult.value.id : null
+  const userResult = await getUser()
+  if (isFailure(userResult)) {
+    return redirect('/auth/login')
+  }
+  const userId = userResult.value.id
   return <PartHeader part={part} userId={userId} />
 }
 

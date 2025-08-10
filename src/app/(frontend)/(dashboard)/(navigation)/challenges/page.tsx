@@ -9,8 +9,7 @@ import { ChallengesTable, TableSkeleton } from './components/challenges-table'
 import { UserProfile, UserProfileCardSkeleton } from './components/user-profile'
 import { getTagsLinkInformations } from '@/api/challenges/tags'
 import { TagsLists } from '@/api/challenges/tags/components/tags-list'
-import { AdminComponent } from '@/core/user/components/admin-component'
-import { isNone } from '@/lib/maybe'
+import { AdminComponent } from '@/core/users/components/admin-component'
 import { isFailure } from '@/lib/result'
 
 export default async function ChallengesPage() {
@@ -27,13 +26,19 @@ export default async function ChallengesPage() {
       <div className="flex-1 w-full h-[calc(100vh-4rem)] overflow-auto max-w-7xl px-4 mx-auto">
         <div className="flex flex-col lg:flex-row gap-6 p-6 h-full">
           <div className="flex-1 flex flex-col gap-6 max-w-full lg:max-w-[800px]">
-            <RecommendedChallenge userId={user.value.id} isPro={user.value.informations.role != 'basic'} />
+            <RecommendedChallenge
+              userId={user.value.id}
+              isPro={user.value.informations.role != 'basic'}
+            />
             <AdminComponent>
               <TagsLists tags={tags} />
             </AdminComponent>
             <ChallengeCategories />
             <Suspense fallback={<TableSkeleton />}>
-              <ChallengesTable userId={user.value.id} isPro={user.value.informations.role != 'basic'}/>
+              <ChallengesTable
+                userId={user.value.id}
+                isPro={user.value.informations.role != 'basic'}
+              />
             </Suspense>
           </div>
           <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-6">

@@ -1,6 +1,7 @@
 'use server'
 
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
+import { isFailure } from '@/lib/result'
 
 import {
   addLikeToChallenge,
@@ -19,8 +20,6 @@ import {
   setUserRating,
   getUserIsSolutionUnlocked,
   getUserCompletionStatus,
-  setUserCode,
-  getSavedUserCode,
 } from '@/core/challenges/user-progression'
 
 /**
@@ -31,11 +30,11 @@ import {
 export async function toggleChallengeLike(liked: boolean, challengeId: number) {
   try {
     const user = await getUser()
-    if (!user || !user.id) {
+    if (isFailure(user)) {
       throw new Error('Authentication required')
     }
 
-    const userId = user.id
+    const userId = user.value.id
 
     // Get current state
     const wasDisliked = await hasUserDislikedChallenge(userId, challengeId)
@@ -74,11 +73,11 @@ export async function toggleChallengeLike(liked: boolean, challengeId: number) {
 export async function toggleChallengeDislike(disliked: boolean, challengeId: number) {
   try {
     const user = await getUser()
-    if (!user || !user.id) {
+    if (isFailure(user)) {
       throw new Error('Authentication required')
     }
 
-    const userId = user.id
+    const userId = user.value.id
 
     // Get current state
     const wasLiked = await hasUserLikedChallenge(userId, challengeId)
@@ -122,11 +121,11 @@ export async function rateChallenge(challengeId: number, rating: number) {
     }
 
     const user = await getUser()
-    if (!user || !user.id) {
+    if (isFailure(user)) {
       throw new Error('Authentication required')
     }
 
-    const userId = user.id
+    const userId = user.value.id
 
     // Get current rating
     const currentRating = await getUserRating(userId, challengeId)

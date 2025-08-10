@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { UserAvatar } from '@/core/user/components/user-avatar'
+import { UserAvatar } from '@/core/users/components/user-avatar'
 import { useUser } from '@/core/users/hooks/use-user'
 import { LockIcon, LogOutIcon, PinIcon, UserPenIcon } from 'lucide-react'
 import { useState } from 'react'
@@ -22,7 +22,7 @@ export const UserDropdownMenu = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [showSettingsDialog, setShowSettingsDialog] = useState(false)
 
-  const { user, isLoading, isError, error } = useUser()
+  const { user, isLoading, isError } = useUser()
 
   if (isLoading) {
     return (

@@ -6,8 +6,7 @@ import {
   incrementMessagesSentForToday,
   canSendMessage,
 } from '../actions'
-import { useSessionUser } from '@/core/user/hooks/use-user'
-import { getUserRole } from '@/core/user/user-informations'
+import { getUserRole } from '@/core/users/user-informations'
 
 const quotaKeys = {
   all: ['ai-quota'],

@@ -1,7 +1,7 @@
 'use server'
 
 import { initializeUser } from '@/core/gamification/level'
-import { createInitialUserInformation } from '@/core/user'
+import { createInitialUserInformation } from './user-informations'
 import { createClient } from '@/utils/supabase/server'
 import { checkAndIncrementThrottle } from '@/utils/throttle'
 import { revalidatePath } from 'next/cache'

@@ -1,10 +1,11 @@
-import { getSessionUser } from ".."
+import { getUser } from "../"
+import { isFailure } from "@/lib/result"
 
 
 
 export const AdminComponent = async ({ children }: { children: React.ReactNode }) => {
-  const user = await getSessionUser()
-  if (!user.success) {
+  const user = await getUser()
+  if (isFailure(user)) {
     return null
   }
   const isAdmin = user.value.informations.role === 'admin'

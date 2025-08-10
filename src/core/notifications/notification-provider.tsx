@@ -8,8 +8,8 @@ import {
   setIsRead,
   setAllNotificationsAsRead,
 } from '@/core/notifications'
-import { useSessionUser } from '@/core/user/hooks/use-user'
 import { Notification } from '@/payload-types'
+import { useUser } from '../users/hooks/use-user'
 
 export type NotificationContextType = {
   notifications: Notification[]
@@ -25,7 +25,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient()
-  const { user, isLoading: isUserLoading } = useSessionUser()
+  const { user, isLoading: isUserLoading } = useUser()
   const userId = user?.id
 
   // Notifications non lues

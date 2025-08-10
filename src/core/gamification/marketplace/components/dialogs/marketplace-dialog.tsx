@@ -1,36 +1,32 @@
-import * as React from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogClose,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { XIcon, Sparkles, Shield, Sword, Crown, Coins, Zap, Heart, Star, Gift } from 'lucide-react'
-import { getSessionUser } from '@/core/user'
-import { useState, useEffect } from 'react'
-import { getUserCurrency } from '@/core/gamification/marketplace/currency'
-import { getMarketplaceItems } from '@/core/gamification/marketplace'
-import { MarketplaceItem, Item, UserItem } from '@/payload-types'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useToast } from '@/components/ui/use-toast'
-import { buyItem } from '@/core/gamification/marketplace/action'
-import { getUserInventory } from '@/core/gamification/inventory'
-import { ShieldAlert } from 'lucide-react'
 import { BluePotionIcon } from '@/components/icons/blue-potion'
 import { CoinIcon } from '@/components/icons/coin'
 import { GiftIcon } from '@/components/icons/gift'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useToast } from '@/components/ui/use-toast'
+import { getUserInventory } from '@/core/gamification/inventory'
+import { buyItem } from '@/core/gamification/marketplace/action'
+import { getUserCurrency } from '@/core/gamification/marketplace/currency'
+import { Item, MarketplaceItem, UserItem } from '@/payload-types'
+import { Heart, ShieldAlert, Sparkles, Star } from 'lucide-react'
+import * as React from 'react'
+import { useEffect, useState } from 'react'
 
 // Configuration for the glow effect based on rarity - moved outside component
 export const rarityGlowConfig = {

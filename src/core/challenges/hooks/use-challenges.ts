@@ -5,18 +5,14 @@ import {
   getAllUserCompletionStatuses,
 } from '../user-progression/completion-status'
 import { getAllChallenges, getChallengeTableInformations } from '../challenge-queries'
-import { getUser } from '@/core/user'
+import { useUser } from '@/core/users/hooks/use-user'
 import { ChallengeWithProgress } from '@/core/challenges' // Keep this type
 import { UserChallengeProgression } from '@/payload-types' // Import the progression type
 import { CompletionStatus } from '../user-progression/types'
 
 export const useChallenges = () => {
-  // Re-introduce the query for the user object
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: getUser,
-    staleTime: Infinity,
-  })
+  // Use client-side user
+  const { user } = useUser()
 
   // Query to fetch ALL challenges (ensure getAllChallenges has pagination: false)
   const { data: challenges, isLoading: isChallengesLoading } = useQuery({

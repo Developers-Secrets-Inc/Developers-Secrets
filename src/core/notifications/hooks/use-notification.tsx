@@ -3,15 +3,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { getNotifications } from '@/core/notifications'
 import { Notification } from '@/payload-types'
-import { getSessionUser } from '@/core/user'
+import { useUser } from '@/core/users/hooks/use-user'
 
 export const NOTIFICATIONS_QUERY_KEY = ['notifications']
 
 export function useNotifications() {
-  const { data: user } = useQuery({
-    queryKey: ['session'],
-    queryFn: getSessionUser,
-  })
+  const { user } = useUser()
 
   return useQuery<Notification[]>({
     queryKey: [...NOTIFICATIONS_QUERY_KEY, user?.id],

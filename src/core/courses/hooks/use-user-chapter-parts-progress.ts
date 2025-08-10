@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { getAllUserPartCompletionStatusesForChapter } from '@/core/courses/progression/completion-status'
-import { useSessionUser } from '@/core/user/hooks/use-user'
+import { useUser } from '@/core/users/hooks/use-user'
 import { ChapterPartStatusInfo } from '@/core/courses/parts'
 
 interface UseUserChapterPartsProgressProps {
@@ -14,7 +14,7 @@ export function useUserChapterPartsProgress({
   chapterParts,
   userId: userIdProp,
 }: UseUserChapterPartsProgressProps) {
-  const { user, isLoading: isUserLoading } = useSessionUser()
+  const { user, isLoading: isUserLoading } = useUser()
   const userId = userIdProp ?? user?.id ?? null
 
   const partIds = chapterParts.map((p) => p.id)

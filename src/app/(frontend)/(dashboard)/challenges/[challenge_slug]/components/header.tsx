@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Eclipse } from 'lucide-react'
 import Link from 'next/link'
 import { User } from '@/core/users/types'
-import { UserDropdownMenu } from '@/core/user/components/user-dropdown-menu'
+import { UserDropdownMenu } from '@/core/users/components/user-dropdown-menu'
 import { getNextChallenge, getPreviousChallenge, getRandomChallenge } from '@/core/challenges/navigation'
 import { ChallengeNavigationButtons } from '@/api/challenges/components/navigation/buttons'
 

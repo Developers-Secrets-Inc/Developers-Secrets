@@ -1,16 +1,17 @@
 import { categories } from '@/api/challenges/categories/types'
 import { ChallengeCategory } from '../components'
-import { getSessionUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { notFound, redirect } from 'next/navigation'
+import { isFailure } from '@/lib/result'
 
 export default async function Page({ params }: { params: Promise<{ category_slug: string }> }) {
   const { category_slug } = await params
 
   const category = await categories.getUnique.bySlugWithChallenges(category_slug)
 
-  const user = await getSessionUser()
+  const user = await getUser()
 
-  if (!user.success) return redirect('/auth/login')
+  if (isFailure(user)) return redirect('/auth/login')
 
   const completionPercent = await categories.userProgression.getUnique.bySlug(
     user.value.id,

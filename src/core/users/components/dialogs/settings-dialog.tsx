@@ -57,8 +57,8 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from '@/components/ui/sidebar'
-import { changeUserEmail, changeUserPassword } from '@/core/user/auth'
-import { UserRole } from '@/core/user/user-informations/types'
+// import { changeUserEmail, changeUserPassword } from '@/core/user/auth'
+import { UserRole } from '@/core/users/user-informations/types'
 import { useUser } from '@/core/users/hooks/use-user'
 import { User } from '@/core/users/types'
 import { getCustomerPortalUrl, isCustomer } from '@/core/customers'
@@ -168,7 +168,7 @@ function EmailForm() {
     try {
       setIsPending(true)
       setError(null)
-      await changeUserEmail(values.email)
+      // await changeUserEmail(values.email)
       window.location.reload()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update email')
@@ -219,7 +219,7 @@ function PasswordForm() {
     try {
       setIsPending(true)
       setError(null)
-      await changeUserPassword(values.newPassword)
+      // await changeUserPassword(values.newPassword)
       form.reset()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update password')

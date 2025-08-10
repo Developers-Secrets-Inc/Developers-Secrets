@@ -7,7 +7,7 @@ import {
   TimeLimitExceededSubmission,
 } from '../index.client'
 import { handleSubmission } from '../client-actions'
-import { useSessionUser } from '@/core/user/hooks/use-user'
+import { useUser } from '@/core/users/contexts/user-context'
 
 export const SUBMISSIONS_QUERY_KEY = 'submissions'
 
@@ -16,7 +16,7 @@ export const useChallengeSubmissions = (
   page: number = 1,
   perPage: number = 10,
 ) => {
-  const { user } = useSessionUser()
+  const { user } = useUser()
   const userId = user?.id
 
   const queryClient = useQueryClient()

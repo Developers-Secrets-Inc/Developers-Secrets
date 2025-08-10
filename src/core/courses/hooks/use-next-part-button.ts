@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getNavigationParts } from '@/core/courses/parts'
 import { getChapterBySlug } from '@/core/courses/chapters'
 import { checkChapterPrerequisites } from '@/core/courses/progression/actions'
-import { useSessionUser } from '@/core/user/hooks/use-user'
+import { useUser } from '@/core/users/hooks/use-user'
 
 interface UseNextPartButtonProps {
   currentCourseSlug: string
@@ -17,7 +17,7 @@ export function useNextPartButton({
   currentPartSlug,
   initialNextPartUrl = null,
 }: UseNextPartButtonProps) {
-  const { user, isLoading: isUserLoading } = useSessionUser()
+  const { user, isLoading: isUserLoading } = useUser()
   const userId = user?.id ?? null
 
   const {

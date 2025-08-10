@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getSessionUser } from '@/core/user'
+import { useUser } from '@/core/users/hooks/use-user'
 
 interface PartCompletionSelectProps {
   partId: number
@@ -28,25 +28,12 @@ const statusLabels: Record<CompletionStatus, string> = {
 export const PartCompletionSelect = ({ partId, initialStatus }: PartCompletionSelectProps) => {
   const [userId, setUserId] = useState<string | null>(null)
   const [isUserLoading, setIsUserLoading] = useState(true)
+  const { user } = useUser()
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userResult = await getSessionUser()
-        if (userResult.success) {
-          setUserId(userResult.value.id)
-        } else {
-          setUserId(null)
-        }
-      } catch (error) {
-        console.error('Failed to fetch session user:', error)
-        setUserId(null)
-      } finally {
-        setIsUserLoading(false)
-      }
-    }
-    fetchUser()
-  }, [])
+    setUserId(user?.id ?? null)
+    setIsUserLoading(false)
+  }, [user])
 
   const { status, updateStatus, isLoading, isInitialLoading, error } =
     useCoursePartCompletionStatus({

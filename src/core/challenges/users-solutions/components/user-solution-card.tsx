@@ -1,9 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { getUserById } from '@/core/user'
-import { isError } from '@/core/user/result'
-import { UserSolution } from '@/payload-types'
 import { User } from '@/core/users/types'
+import { UserSolution } from '@/payload-types'
 import { ExternalLink, Eye, MessageSquare, ThumbsDown, ThumbsUp } from 'lucide-react'
 import Link from 'next/link'
 

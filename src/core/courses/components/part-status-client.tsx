@@ -8,7 +8,7 @@ import {
 import { CheckCircle, Circle, CircleDot, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useSessionUser } from '@/core/user/hooks/use-user'
+import { useUser } from '@/core/users/hooks/use-user'
 
 type CompletionStatusLabel = 'Completed' | 'In Progress' | 'Not Started'
 
@@ -42,7 +42,7 @@ interface CoursePartStatusClientProps {
 }
 
 export const CoursePartStatusClient = ({ partId, initialStatus }: CoursePartStatusClientProps) => {
-  const { user, isLoading: isUserLoading } = useSessionUser()
+  const { user, isLoading: isUserLoading } = useUser()
   const userId = user?.id
 
   // Utilisation de initialStatus passé en props, avec 'not_started' par défaut

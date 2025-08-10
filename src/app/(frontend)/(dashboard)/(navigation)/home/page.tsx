@@ -3,9 +3,10 @@ import { RecommendedCourses } from '@/app/(frontend)/(dashboard)/(navigation)/ch
 import { UserProfile } from '@/app/(frontend)/(dashboard)/(navigation)/challenges/components/user-profile'
 import { CurrentCourseCard } from '@/components/cards/current-course-card'
 import { RecommendedChallenge } from '@/core/challenges/recommended-challenge'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { redirect } from 'next/navigation'
 import { HomeClientWrapper } from './components/home-client-wrapper'
+import { isFailure } from '@/lib/result'
 
 export const HomeGrid = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -26,7 +27,7 @@ export const HomeRightColumn = ({ children }: { children: React.ReactNode }) => 
 export default async function Home() {
   const user = await getUser()
 
-  if (!user) {
+  if (isFailure(user)) {
     redirect('/auth/login')
   }
 
@@ -35,12 +36,12 @@ export default async function Home() {
       <HomeGrid>
         <HomeLeftColumn>
           <CurrentCourseCard />
-          <RecommendedChallenge userId={user.id} isPro={user.informations.role !== 'basic'} />
+          <RecommendedChallenge userId={user.value.id} isPro={user.value.informations.role !== 'basic'} />
           <RecommendedCourses />
         </HomeLeftColumn>
 
         <HomeRightColumn>
-          <UserProfile user={user} />
+          <UserProfile user={user.value} />
           <DivisionLeaderboardCard />
         </HomeRightColumn>
       </HomeGrid>

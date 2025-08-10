@@ -8,10 +8,12 @@ import {
 import { UsersSolutionsSearchBar } from '@/core/challenges/users-solutions/components/users-solutions-search-bar'
 import { useTagsAndSorting } from '@/core/challenges/users-solutions/hooks/use-users-solutions-tags'
 import { UsersSolutionsTagsWithProvider } from '@/core/challenges/users-solutions/components/tags/users-solutions-tags'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { Tag, UserSolution } from '@/payload-types'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
+import { isFailure } from '@/lib/result'
+import { redirect } from 'next/navigation'
 
 type CommunitySolutionsProps = {
   challengeSlug: string
@@ -28,8 +30,13 @@ export function CommunitySolutions({ challengeSlug }: CommunitySolutionsProps) {
   useEffect(() => {
     const fetchData = async () => {
       const [fetchedSolutions, currentUser] = await Promise.all([getUserSolutions(), getUser()])
+
+      if (isFailure(currentUser)) {
+        return redirect('/auth/login')
+      }
+
       setSolutions(fetchedSolutions)
-      setUser(currentUser)
+      setUser(currentUser.value)
     }
     fetchData()
   }, [])

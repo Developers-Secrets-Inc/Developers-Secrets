@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
 import { getRandomUncompletedChallenge } from '@/core/skills/recommendations'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import type { Challenge, Concept, User } from '@/payload-types'
 import { Brain, RefreshCw, SearchX, Shuffle, TrendingDown, TrendingUp, Trophy } from 'lucide-react'
 import Link from 'next/link'
@@ -15,6 +15,7 @@ import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { Skeleton } from '@/components/ui/skeleton'
+import { isFailure } from '@/lib/result'
 
 // Define a type for the recommended challenge that includes bonusExperience for dummy data
 type RecommendedChallengeType = Challenge & { bonusExperience?: number }
@@ -59,10 +60,16 @@ export const RecommendedChallenge = () => {
     const fetchUser = async () => {
       try {
         const fetchedUser = await getUser()
+        if (isFailure(fetchedUser)) {
+          console.error('Error fetching user:', fetchedUser.error)
+          setError('Failed to load user data.')
+          setIsLoading(false)
+          return
+        }
         // The User type from @/payload-types might be for Payload CMS user document.
         // getUser() might return a more comprehensive object (Supabase + Payload).
         // For now, let's assert it to the User type we have, or use a more general type if needed.
-        setUser(fetchedUser as User | null)
+        setUser(fetchedUser.value as User | null)
       } catch (err) {
         console.error('Failed to fetch user:', err)
         setError('Could not load user data.')

@@ -6,7 +6,7 @@ import { MoreVertical } from 'lucide-react'
 import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { TooltipContentCustom } from '@/components/tooltip-without-decoration'
 import { FeedbackDialog } from './feedback-dialog' // Assuming it's in the same directory
-import { useSessionUser } from '@/core/user/hooks/use-user'
+import { useUser } from '@/core/users/hooks/use-user'
 
 interface FeedbackButtonProps {
   partId: number
@@ -14,8 +14,8 @@ interface FeedbackButtonProps {
 }
 
 export function FeedbackButton({ partId, partName }: FeedbackButtonProps) {
-  const user = useSessionUser()
-  const userId = user.user?.id
+  const { user } = useUser()
+  const userId = user?.id
   const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false)
 
   if (!userId) {

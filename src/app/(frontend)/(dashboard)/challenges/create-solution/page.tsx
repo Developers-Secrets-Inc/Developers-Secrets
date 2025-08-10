@@ -3,7 +3,7 @@ import { HomeSidebar } from '@/components/sidebars/home-sidebar/home-sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { getChallengeById } from '@/core/challenges/challenge-queries'
 import { getUserSolution } from '@/core/challenges/users-solutions'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
 import { FC } from 'react'
 import CreateSolutionForm from './components/CreateSolutionForm'
 import { SolutionFormStoreInitializer } from './store/solution-form-store'
@@ -13,6 +13,7 @@ import SolutionComments from './components/SolutionComments'
 import SolutionStats from './components/SolutionStats'
 import { UserSolutionTags } from './components/user-solution-tags'
 import { SolutionFormHeader } from './components/header/create-solution-header'
+import { isFailure } from '@/lib/result'
 
 interface CreateSolutionPageProps {
   searchParams: Promise<{
@@ -82,11 +83,11 @@ const CreateSolutionPage: FC<CreateSolutionPageProps> = async ({ searchParams })
   const user = await getUser()
   const challenge = await getChallengeById(challengeId)
 
-  if (!user || !user.id) {
+  if (isFailure(user)) {
     return <UserNotAuthenticated />
   }
 
-  const existingSolutionData = await getUserSolution(challengeId, user.id)
+  const existingSolutionData = await getUserSolution(challengeId, user.value.id)
 
   const initialSolutionForStore = existingSolutionData
     ? {
@@ -119,7 +120,7 @@ const CreateSolutionPage: FC<CreateSolutionPageProps> = async ({ searchParams })
         <SolutionFormStoreInitializer
           initialSolution={initialSolutionForStore}
           challenge={challenge}
-          userId={user.id}
+          userId={user.value.id}
         />
         <HomeHeader />
         <div className="w-full h-full flex flex-col">
@@ -139,7 +140,7 @@ const CreateSolutionPage: FC<CreateSolutionPageProps> = async ({ searchParams })
                       likes={stats.likes}
                       dislikes={stats.dislikes}
                     />
-                    <SolutionComments solutionId={validSolutionId} userId={user.id} />
+                    <SolutionComments solutionId={validSolutionId} userId={user.value.id} />
                   </div>
                 </div>
               </div>

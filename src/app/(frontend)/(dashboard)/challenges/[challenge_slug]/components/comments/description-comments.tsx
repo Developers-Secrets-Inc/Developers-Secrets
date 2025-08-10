@@ -1,14 +1,19 @@
 import { Challenge } from '@/payload-types'
 import { CommentsSection } from '@/core/comments/components/comments-section'
 import { commentContexts } from '@/core/comments/types'
-import { getUser } from '@/core/user'
+import { getUser } from '@/core/users'
+import { isFailure } from '@/lib/result'
+import { redirect } from 'next/navigation'
 
 export const DescriptionComments = async ({ challenge }: { challenge: Challenge }) => {
   let userId = ''
 
   try {
     const user = await getUser()
-    userId = user.id
+    if (isFailure(user)) {
+      return redirect('/auth/login')
+    }
+    userId = user.value.id
   } catch (error) {
     console.error('Error fetching user for comments:', error)
   }
